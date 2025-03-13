@@ -1,21 +1,9 @@
 <script setup lang="ts">
-import { ref, watchEffect, reactive } from 'vue'
-import ResturantTable from './widgets/ResturantTable.vue'
-import { User } from './types'
-import { useUsers } from './composables/useUsers'
-import { useForm, useToast } from 'vuestic-ui'
+import { watchEffect } from 'vue'
+import { useToast } from 'vuestic-ui'
 import { validators } from '../../services/utils'
-import { useProjects } from '../projects/composables/useProjects'
-import { useRouter } from 'vue-router'
-const { users, isLoading, filters, sorting, pagination, error, ...usersApi } = useUsers()
 
-const { validate } = useForm('form')
 const { init: notify } = useToast()
-const router = useRouter()
-
-const formData = reactive({
-  name: '',
-})
 
 watchEffect(() => {
   if (error.value) {
@@ -44,7 +32,7 @@ watchEffect(() => {
             :rules="[validators.required]"
             :max-visible-options="2"
           >
-            <option value="1">Restaurant</option>
+            <option value="1">Company</option>
           </VaSelect>
           <VaInput v-model="address" :rules="[validators.required]" label="Address" type="text" />
           <VaInput v-model="postcode" :rules="[validators.required]" label="Postcode" type="text" />

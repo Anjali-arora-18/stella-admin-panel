@@ -2,7 +2,7 @@ export type UserRole = 'admin' | 'user' | 'owner'
 
 export type UUID = `${string}-${string}-${string}-${string}-${string}`
 
-export type User = {
+export type subCategories = {
   id: UUID
   fullname: string
   email: string

@@ -1,17 +1,15 @@
 <script setup lang="ts">
-import { defineVaDataTableColumns, useModal } from 'vuestic-ui'
-import { User, UserRole } from '../types'
+import { defineVaDataTableColumns } from 'vuestic-ui'
+import { User } from '../types'
 import { PropType, computed, toRef } from 'vue'
-import { Pagination, Sorting } from '../../../data/pages/users'
+import { Pagination, Sorting } from '../../data/pages/users'
 import { useVModel } from '@vueuse/core'
 import { Project } from '../../projects/types'
 
 const columns = defineVaDataTableColumns([
   { label: 'id', key: 'id', sortable: true },
-  { label: 'Code', key: 'code', sortable: true },
-  { label: 'Name', key: 'name', sortable: true },
-  { label: 'Resturant Name', key: 'rest_code', sortable: true },
-  { label: 'Resturant Code', key: 'rest_code', sortable: true },
+  { label: 'Table Number', key: 'table_number', sortable: true },
+  { label: 'QR Code', key: 'qr_code', sortable: true },
   { label: ' ', key: 'actions', align: 'right' },
 ])
 
@@ -41,39 +39,7 @@ const users = toRef(props, 'users')
 const sortByVModel = useVModel(props, 'sortBy', emit)
 const sortingOrderVModel = useVModel(props, 'sortingOrder', emit)
 
-const roleColors: Record<UserRole, string> = {
-  admin: 'danger',
-  user: 'background-element',
-  owner: 'warning',
-}
-
 const totalPages = computed(() => Math.ceil(props.pagination.total / props.pagination.perPage))
-
-const formatProjectNames = (projects: Project['id'][]) => {
-  const names = projects.reduce((acc, p) => {
-    const project = props.projects?.find(({ id }) => p === id)
-
-    if (project) {
-      acc.push(project.project_name)
-    }
-
-    return acc
-  }, [] as string[])
-  if (names.length === 0) return 'No projects'
-  if (names.length <= 2) {
-    return names.map((name) => name).join(', ')
-  }
-
-  return (
-    names
-      .slice(0, 2)
-      .map((name) => name)
-      .join(', ') +
-    ' + ' +
-    (names.length - 2) +
-    ' more'
-  )
-}
 </script>
 
 <template>
@@ -100,16 +66,6 @@ const formatProjectNames = (projects: Project['id'][]) => {
     <template #cell(email)="{ rowData }">
       <div class="ellipsis max-w-[230px]">
         {{ rowData.email }}
-      </div>
-    </template>
-
-    <template #cell(role)="{ rowData }">
-      <VaBadge :text="rowData.role" :color="roleColors[rowData.role as UserRole]" />
-    </template>
-
-    <template #cell(projects)="{ rowData }">
-      <div class="ellipsis max-w-[300px] lg:max-w-[450px]">
-        {{ formatProjectNames(rowData.projects) }}
       </div>
     </template>
 

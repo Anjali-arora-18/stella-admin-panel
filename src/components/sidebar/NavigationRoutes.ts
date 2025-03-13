@@ -2,6 +2,7 @@ export interface INavigationRoute {
   name: string
   displayName: string
   meta: { icon: string }
+  visible: boolean
   children?: INavigationRoute[]
 }
 
@@ -20,8 +21,8 @@ export default {
       },
     },
     {
-      name: 'restaurants',
-      displayName: 'menu.restaurants',
+      name: 'companies',
+      displayName: 'menu.companies',
       visible: true,
       meta: {
         icon: 'group',
@@ -53,7 +54,7 @@ export default {
     },
     {
       name: 'orders',
-      visible: false,
+      visible: true,
       displayName: 'menu.orders',
       meta: {
         icon: 'group',
@@ -67,14 +68,14 @@ export default {
         icon: 'group',
       },
     },
-    {
-      name: 'users',
-      visible: true,
-      displayName: 'menu.users',
-      meta: {
-        icon: 'group',
-      },
-    },
+    // {
+    //   name: 'users',
+    //   visible: true,
+    //   displayName: 'menu.users',
+    //   meta: {
+    //     icon: 'group',
+    //   },
+    // },
     // {
     //   name: 'projects',
     //   displayName: 'menu.projects',

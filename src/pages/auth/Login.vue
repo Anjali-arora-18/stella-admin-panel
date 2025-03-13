@@ -62,15 +62,16 @@ const formData = reactive({
 
 const submit = () => {
   if (validate()) {
+    const url: any = import.meta.env.VITE_API_BASE_URL
     axios
-      .post('http://127.0.0.1:8080/api/v1/auth/signin', {
+      .post(`${url}/auth/signin`, {
         email: formData.email,
         password: formData.password,
       })
       .then((response) => {
         window.sessionStorage.setItem('token', response.data.accessToken)
         init({ message: "You've successfully logged in", color: 'success' })
-        push({ name: 'restaurants' })
+        push({ name: 'companies' })
       })
       .catch((err) => {
         init({ message: err.response.data.message, color: 'danger' })

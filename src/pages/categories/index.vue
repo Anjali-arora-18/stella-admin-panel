@@ -1,39 +1,23 @@
 <script setup lang="ts">
-import { ref, watchEffect } from 'vue'
-import ResturantTable from './widgets/ResturantTable.vue'
-import { User } from './types'
-import { useUsers } from './composables/useUsers'
-import { useToast } from 'vuestic-ui'
-import { useProjects } from '../projects/composables/useProjects'
-import { useRouter } from 'vue-router'
-const { users, isLoading, filters, sorting, pagination, error, ...usersApi } = useUsers()
-
-const { init: notify } = useToast()
-const router = useRouter()
-watchEffect(() => {
-  if (error.value) {
-    notify({
-      message: error.value.message,
-      color: 'danger',
-    })
-  }
+import { ref } from 'vue'
+import { useRoute } from 'vue-router'
+import CategoriesTable from './widgets/CategoriesTable.vue'
+import { useCategoryStore } from '../../stores/categories'
+const categoriesStore = useCategoryStore()
+const items = ref([])
+const isLoading = ref(true)
+const route = useRoute()
+categoriesStore.getAll(route.params.id).then(() => {
+  console.log(categoriesStore.items)
+  items.value = categoriesStore.items
+  isLoading.value = false
 })
 </script>
 
 <template>
-  <span class="mb-5" @click="router.push('/restaurants')">Restaurants</span>
   <VaCard>
     <VaCardContent>
-      <ResturantTable
-        v-model:sort-by="sorting.sortBy"
-        v-model:sorting-order="sorting.sortingOrder"
-        :users="users"
-        :projects="projects"
-        :loading="isLoading"
-        :pagination="pagination"
-        @editUser="showEditUserModal"
-        @deleteUser="onUserDelete"
-      />
+      <CategoriesTable :items="items" :loading="isLoading" />
     </VaCardContent>
   </VaCard>
 </template>

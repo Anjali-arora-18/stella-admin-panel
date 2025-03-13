@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { PropType, computed, ref, watch } from 'vue'
-import { useForm } from 'vuestic-ui'
-import { User, UserRole } from '../types'
-import UserAvatar from './UserAvatar.vue'
+import { User } from '../types'
 import { useProjects } from '../../projects/composables/useProjects'
-import { validators } from '../../../services/utils'
 
 const props = defineProps({
   user: {
@@ -74,25 +71,25 @@ watch(avatar, (newAvatar) => {
   newUser.value.avatar = newAvatar ? makeAvatarBlobUrl(newAvatar) : ''
 })
 
-const form = useForm('add-user-form')
+// const form = useForm('add-user-form')
 
-const emit = defineEmits(['close', 'save'])
+// const emit = defineEmits(['close', 'save'])
 
-const onSave = () => {
-  if (form.validate()) {
-    emit('save', newUser.value)
-  }
-}
+// const onSave = () => {
+//   if (form.validate()) {
+//     emit('save', newUser.value)
+//   }
+// }
 
-const roleSelectOptions: { text: Capitalize<Lowercase<UserRole>>; value: UserRole }[] = [
-  { text: 'Admin', value: 'admin' },
-  { text: 'User', value: 'user' },
-  { text: 'Owner', value: 'owner' },
-]
+// const roleSelectOptions: { text: Capitalize<Lowercase<UserRole>>; value: UserRole }[] = [
+//   { text: 'Admin', value: 'admin' },
+//   { text: 'User', value: 'user' },
+//   { text: 'Owner', value: 'owner' },
+// ]
 </script>
 
 <template>
-  <VaForm v-slot="{ isValid }" ref="add-user-form" class="flex-col justify-start items-start gap-4 inline-flex w-full">
+  <VaForm ref="add-user-form" class="flex-col justify-start items-start gap-4 inline-flex w-full">
     <div class="self-stretch flex-col justify-start items-start gap-4 flex">
       <div class="w-full bg-white p-4 shadow-md rounded">
         <h2 class="text-xl font-bold mb-4">Order <sup>#</sup>1</h2>
@@ -113,8 +110,7 @@ const roleSelectOptions: { text: Capitalize<Lowercase<UserRole>>; value: UserRol
       </div>
 
       <div class="flex gap-4 flex-col sm:flex-row w-full"></div>
-      <div class="flex gap-2 flex-col-reverse items-stretch justify-end w-full sm:flex-row sm:items-center">
-      </div>
+      <div class="flex gap-2 flex-col-reverse items-stretch justify-end w-full sm:flex-row sm:items-center"></div>
     </div>
   </VaForm>
 </template>

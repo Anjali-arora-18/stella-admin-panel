@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { ref, watchEffect } from 'vue'
-import ResturantTable from './widgets/ResturantTable.vue'
-import { User } from './types'
+import { watchEffect } from 'vue'
+import CompanyTable from './widgets/CompanyTable.vue'
 import { useUsers } from './composables/useUsers'
 import { useToast } from 'vuestic-ui'
-import { useProjects } from '../projects/composables/useProjects'
 
-const { users, isLoading, filters, sorting, pagination, error, ...usersApi } = useUsers()
+const { users, isLoading, sorting, pagination, error } = useUsers()
 
 const { init: notify } = useToast()
 
@@ -21,18 +19,15 @@ watchEffect(() => {
 </script>
 
 <template>
-  <h1 class="page-title font-bold">Resturants</h1>
+  <h1 class="page-title font-bold">Companies</h1>
   <VaCard>
     <VaCardContent>
-      <ResturantTable
+      <CompanyTable
         v-model:sort-by="sorting.sortBy"
         v-model:sorting-order="sorting.sortingOrder"
         :users="users"
-        :projects="projects"
         :loading="isLoading"
         :pagination="pagination"
-        @editUser="showEditUserModal"
-        @deleteUser="onUserDelete"
       />
     </VaCardContent>
   </VaCard>

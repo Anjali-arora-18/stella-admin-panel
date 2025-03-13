@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { ref, watchEffect } from 'vue'
+import { watchEffect } from 'vue'
 import SubCategoriesTable from './widgets/subCategoriesTable.vue'
-import { User } from './types'
 import { useUsers } from './composables/useUsers'
 import { useToast } from 'vuestic-ui'
-import { useProjects } from '../projects/composables/useProjects'
 
-const { users, isLoading, filters, sorting, pagination, error, ...usersApi } = useUsers()
+const { users, isLoading, sorting, pagination, error } = useUsers()
 
 const { init: notify } = useToast()
 
@@ -21,7 +19,6 @@ watchEffect(() => {
 </script>
 
 <template>
-  <h1 class="page-title font-bold">Menu Items</h1>
   <VaCard>
     <VaCardContent>
       <SubCategoriesTable

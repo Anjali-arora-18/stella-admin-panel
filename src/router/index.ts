@@ -17,42 +17,26 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../pages/admin/dashboard/Dashboard.vue'),
       },
       {
-        name: 'restaurants',
-        path: 'restaurants',
-        component: () => import('../pages/restaurants/index.vue'),
+        name: 'companies',
+        path: 'companies',
+        component: () => import('../pages/companies/index.vue'),
       },
       {
-        name: 'restaurant',
-        path: 'restaurant/:id?',
+        name: 'company',
+        path: 'company/:id?',
         children: [
           {
-            name: 'tables',
-            path: 'tables',
-            component: () => import('../pages/tables/index.vue'),
-          },
-          {
-            name: 'categories',
-            path: 'categories',
-            component: () => import('../pages/categories/index.vue'),
-          },
-          {
-            name: 'menuItems',
-            path: 'menuItems',
-            component: () => import('../pages/subCategories/index.vue'),
-          },
-          {
-            name: 'orders',
-            path: 'orders',
-            component: () => import('../pages/orders/index.vue'),
-          },
-          {
-            name: 'configurations',
-            path: 'configurations',
-            component: () => import('../pages/configurations/index.vue'),
+            name: 'view',
+            path: 'view',
+            component: () => import('../pages/company/index.vue'),
           },
         ],
       },
-
+      {
+        name: 'orders',
+        path: 'orders',
+        component: () => import('../pages/orders/index.vue'),
+      },
       {
         name: 'settings',
         path: 'settings',
@@ -166,46 +150,46 @@ const token = (config) => {
 
 const activeInterceptor = ''
 
-// async function setToken() {
-//   if (!activeInterceptor) {
-//     const interceptorObj = axios.interceptors.request.use(token)
-//     window.sessionStorage.setItem('activeInterceptor', JSON.stringify(interceptorObj))
-//   }
-// }
+async function setToken() {
+  if (!activeInterceptor) {
+    const interceptorObj = axios.interceptors.request.use(token)
+    window.sessionStorage.setItem('activeInterceptor', JSON.stringify(interceptorObj))
+  }
+}
 
-// async function removeToken() {
-//   axios.interceptors.request.eject(
-//     axios.interceptors.request.use(JSON.parse(window.sessionStorage.getItem('activeInterceptor'))),
-//   )
-//   window.sessionStorage.removeItem('activeInterceptor')
-// }
+async function removeToken() {
+  axios.interceptors.request.eject(
+    axios.interceptors.request.use(JSON.parse(window.sessionStorage.getItem('activeInterceptor'))),
+  )
+  window.sessionStorage.removeItem('activeInterceptor')
+}
 
-// router.beforeEach((to, from, next) => {
-//   const homePage = 'dashboard'
-//   const userAlreadyLoggedIn: any = window.sessionStorage.getItem('token')
-//   if (to.name === '403' || to.name === '404') {
-//     next()
-//   }
+router.beforeEach((to, from, next) => {
+  const homePage = 'dashboard'
+  const userAlreadyLoggedIn: any = window.sessionStorage.getItem('token')
+  if (to.name === '403' || to.name === '404') {
+    next()
+  }
 
-//   if (!userAlreadyLoggedIn) {
-//     removeToken()
-//     if (
-//       to.name !== 'login' &&
-//       to.name !== 'signup' &&
-//       to.name !== 'recover-password' &&
-//       to.name !== 'recover-password-email'
-//     ) {
-//       next('/auth/login')
-//     } else {
-//       next()
-//     }
-//   } else {
-//     setToken()
-//     if (to.name === 'login') {
-//       next(homePage)
-//     } else {
-//       next()
-//     }
-//   }
-// })
+  if (!userAlreadyLoggedIn) {
+    removeToken()
+    if (
+      to.name !== 'login' &&
+      to.name !== 'signup' &&
+      to.name !== 'recover-password' &&
+      to.name !== 'recover-password-email'
+    ) {
+      next('/auth/login')
+    } else {
+      next()
+    }
+  } else {
+    setToken()
+    if (to.name === 'login') {
+      next(homePage)
+    } else {
+      next()
+    }
+  }
+})
 export default router

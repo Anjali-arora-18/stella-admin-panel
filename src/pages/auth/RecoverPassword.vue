@@ -28,8 +28,9 @@ const router = useRouter()
 const { init } = useToast()
 const submit = () => {
   if (form.validate()) {
+    const url: any = import.meta.env.VITE_API_BASE_URL
     axios
-      .post('https://2ce8-59-182-32-185.ngrok-free.app/api/v1/auth/forgot-password', {
+      .post(`${url}/auth/forgot-password`, {
         email: email.value,
       })
       .then((response) => {

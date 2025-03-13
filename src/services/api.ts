@@ -2,6 +2,8 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 
 export default {
   allUsers: () => `${apiBaseUrl}/users`,
+  allCategories: (payload) => `${apiBaseUrl}/families?companyCode=${payload}`,
+  allCompanies: () => `${apiBaseUrl}/companies`,
   user: (id: string) => `${apiBaseUrl}/users/${id}`,
   users: ({ page, pageSize }: { page: number; pageSize: number }) =>
     `${apiBaseUrl}/users/?page=${page}&pageSize=${pageSize}`,

@@ -111,7 +111,7 @@ Get Premium Support & Consulting services through our official development partn
 
 Stay up to date with the latest Vuestic news! Follow us
 on [Twitter](https://twitter.com/vuestic_ui)
-or [Linkedin](https://www.linkedin.com/company/18509340)
+or [Linkedin](https://www.linkedin.com/git/18509340)
 
 ### License
 

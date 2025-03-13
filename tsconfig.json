@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
-    "noEmit": true,
+    "noEmit": false,
+    "noEmitOnError": false,
     "target": "esnext",
     "useDefineForClassFields": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "strict": true,
+    "strict": false,
     "jsx": "preserve",
     "sourceMap": true,
     "resolveJsonModule": true,

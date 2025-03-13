@@ -11,7 +11,7 @@ const columns = defineVaDataTableColumns([
   { label: 'Full Name', key: 'fullname', sortable: true },
   { label: 'Email', key: 'email', sortable: true },
   { label: 'Username', key: 'username', sortable: true },
-  { label: 'Restaurant Name', key: 'restaurant', sortable: true },
+  { label: 'Company Name', key: 'company', sortable: true },
   // { label: 'Role', key: 'role', sortable: true },
   // { label: ' ', key: 'actions', align: 'right' },
 ])

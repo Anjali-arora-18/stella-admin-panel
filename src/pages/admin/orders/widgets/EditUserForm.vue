@@ -3,8 +3,7 @@ import { PropType, computed, ref, watch } from 'vue'
 import { useForm } from 'vuestic-ui'
 import { User, UserRole } from '../types'
 import UserAvatar from './UserAvatar.vue'
-import { useProjects } from '../../projects/composables/useProjects'
-import { validators } from '../../../services/utils'
+import { validators } from '../../../../services/utils'
 
 const props = defineProps({
   user: {
@@ -25,7 +24,6 @@ const defaultNewUser: Omit<User, 'id'> = {
   notes: '',
   email: '',
   active: true,
-  projects: [],
 }
 
 const newUser = ref<User>({ ...defaultNewUser } as User)
@@ -46,8 +44,6 @@ defineExpose({
   isFormHasUnsavedChanges,
 })
 
-const { projects } = useProjects({ pagination: ref({ page: 1, perPage: 9999, total: 10 }) })
-
 watch(
   [() => props.user, projects],
   () => {
@@ -57,7 +53,6 @@ watch(
 
     newUser.value = {
       ...props.user,
-      projects: props.user.projects.filter((projectId) => projects.value.find(({ id }) => id === projectId)),
       avatar: props.user.avatar || '',
     }
   },

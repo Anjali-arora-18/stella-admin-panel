@@ -9,18 +9,13 @@ import { useProjects } from '../projects/composables/useProjects'
 
 const doShowEditUserModal = ref(false)
 
-const { users, isLoading, filters, sorting, pagination, error, ...usersApi } = useUsers()
+const { users, isLoading, sorting, pagination, error, ...usersApi } = useUsers()
 const { projects } = useProjects()
 
 const userToEdit = ref<User | null>(null)
 
 const showEditUserModal = (user: User) => {
   userToEdit.value = user
-  doShowEditUserModal.value = true
-}
-
-const showAddUserModal = () => {
-  userToEdit.value = null
   doShowEditUserModal.value = true
 }
 
@@ -95,26 +90,6 @@ const beforeEditFormModalClose = async (hide: () => unknown) => {
 
   <VaCard>
     <VaCardContent>
-      <!-- <div class="flex flex-col md:flex-row gap-2 mb-2 justify-between">
-        <div class="flex flex-col md:flex-row gap-2 justify-start">
-          <VaButtonToggle
-            v-model="filters.isActive"
-            color="background-element"
-            border-color="background-element"
-            :options="[
-              { label: 'Active', value: true },
-              { label: 'Inactive', value: false },
-            ]"
-          />
-          <VaInput v-model="filters.search" placeholder="Search">
-            <template #prependInner>
-              <VaIcon name="search" color="secondary" size="small" />
-            </template>
-          </VaInput>
-        </div>
-        <VaButton @click="showAddUserModal">Add User</VaButton>
-      </div> -->
-
       <UsersTable
         v-model:sort-by="sorting.sortBy"
         v-model:sorting-order="sorting.sortingOrder"

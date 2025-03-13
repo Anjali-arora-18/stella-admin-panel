@@ -8,7 +8,7 @@ import { useProjects } from '../projects/composables/useProjects'
 import EditUserForm from './widgets/EditUserForm.vue'
 const doShowEditUserModal = ref(false)
 
-const { users, isLoading, filters, sorting, pagination, error, ...usersApi } = useUsers()
+const { users, isLoading, sorting, pagination, error } = useUsers()
 const { projects } = useProjects()
 
 const userToEdit = ref<User | null>(null)
@@ -65,7 +65,7 @@ watchEffect(() => {
     hide-default-actions
     :before-cancel="beforeEditFormModalClose"
   >
-  <h1 class="va-h5">Order Detail</h1>
+    <h1 class="va-h5">Order Detail</h1>
     <EditUserForm
       ref="editFormRef"
       :user="userToEdit"

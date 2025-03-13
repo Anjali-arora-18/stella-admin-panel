@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineVaDataTableColumns, useModal } from 'vuestic-ui'
+import { defineVaDataTableColumns } from 'vuestic-ui'
 import { User, UserRole } from '../types'
 import { PropType, computed, toRef } from 'vue'
 import { Pagination, Sorting } from '../../../data/pages/users'
@@ -7,11 +7,11 @@ import { useVModel } from '@vueuse/core'
 import { Project } from '../../projects/types'
 
 const columns = defineVaDataTableColumns([
-  { label: 'Full Name', key: 'fullname', sortable: true },
-  { label: 'Email', key: 'email', sortable: true },
-  { label: 'Username', key: 'username', sortable: true },
-  { label: 'Role', key: 'role', sortable: true },
-  { label: 'Projects', key: 'projects', sortable: true },
+  { label: 'id', key: 'id', sortable: true },
+  { label: 'Code', key: 'code', sortable: true },
+  { label: 'Name', key: 'name', sortable: true },
+  { label: 'Company Name', key: 'rest_code', sortable: true },
+  { label: 'Company Code', key: 'rest_code', sortable: true },
   { label: ' ', key: 'actions', align: 'right' },
 ])
 
