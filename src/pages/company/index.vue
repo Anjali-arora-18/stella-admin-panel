@@ -11,7 +11,7 @@
     <div class="mt-6">
       <Categories v-if="tab === 'Categories'" />
       <MenuItems v-if="tab === 'Menu Items'" />
-      <!-- <ServiceZone v-if="tab === 2" /> -->
+      <ServiceZone v-if="tab === 'Service Zone'" />
     </div>
   </div>
 </template>
@@ -19,11 +19,12 @@
 import Categories from '../categories/index.vue'
 import MenuItems from '../subCategories/index.vue'
 import { ref } from 'vue'
-// import ServiceZone from '../service-zone/index.vue';
+import ServiceZone from '../service-zone/index.vue'
 export default {
   components: {
     Categories,
     MenuItems,
+    ServiceZone,
   },
   setup() {
     const tab = ref('Categories')

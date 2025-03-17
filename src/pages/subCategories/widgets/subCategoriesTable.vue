@@ -1,162 +1,88 @@
 <script setup lang="ts">
 import { defineVaDataTableColumns } from 'vuestic-ui'
-import { subCategories as User } from '../types'
-import { PropType, computed, toRef } from 'vue'
-import { Pagination, Sorting } from '../../../data/pages/users'
-import { useVModel } from '@vueuse/core'
-import { Project } from '../../projects/types'
+import { useRouter } from 'vue-router'
+import { toRef } from 'vue'
 
+const router = useRouter()
 const columns = defineVaDataTableColumns([
-  { label: 'id', key: 'id', sortable: true },
-  { label: 'Code', key: 'code', sortable: true },
-  { label: 'Name', key: 'name', sortable: true },
-  { label: 'Price', key: 'price', sortable: true },
-  { label: 'Category Name', key: 'cat_name', sortable: true },
-  { label: 'Category Code', key: 'cat_code', sortable: true },
-  { label: ' ', key: 'actions', align: 'right' },
+  { label: 'id', key: 'ID', sortable: false },
+  { label: 'Code', key: 'Code', sortable: false },
+  { label: 'Designation', key: 'Designation', sortable: false },
+  { label: 'IsActive', key: 'IsActive', sortable: false },
+  { label: 'Family Code', key: 'FamilyCode', sortable: false },
+  { label: 'Sub Family Code', key: 'SubFamilyCode', sortable: false },
 ])
 
 const props = defineProps({
-  users: {
-    type: Array as PropType<User[]>,
-    required: true,
-  },
-  projects: {
-    type: Array as PropType<Project[]>,
+  items: {
+    type: Array,
     required: true,
   },
   loading: { type: Boolean, default: false },
-  pagination: { type: Object as PropType<Pagination>, required: true },
-  sortBy: { type: String as PropType<Sorting['sortBy']>, required: true },
-  sortingOrder: { type: String as PropType<Sorting['sortingOrder']>, default: null },
 })
 
-const emit = defineEmits<{
-  (event: 'edit-user', user: User): void
-  (event: 'delete-user', user: User): void
-  (event: 'update:sortBy', sortBy: Sorting['sortBy']): void
-  (event: 'update:sortingOrder', sortingOrder: Sorting['sortingOrder']): void
-}>()
-
-const users = toRef(props, 'users')
-const sortByVModel = useVModel(props, 'sortBy', emit)
-const sortingOrderVModel = useVModel(props, 'sortingOrder', emit)
-
-const totalPages = computed(() => Math.ceil(props.pagination.total / props.pagination.perPage))
-
-const formatProjectNames = (projects: Project['id'][]) => {
-  const names = projects.reduce((acc, p) => {
-    const project = props.projects?.find(({ id }) => p === id)
-
-    if (project) {
-      acc.push(project.project_name)
-    }
-
-    return acc
-  }, [] as string[])
-  if (names.length === 0) return 'No projects'
-  if (names.length <= 2) {
-    return names.map((name) => name).join(', ')
-  }
-
-  return (
-    names
-      .slice(0, 2)
-      .map((name) => name)
-      .join(', ') +
-    ' + ' +
-    (names.length - 2) +
-    ' more'
-  )
-}
+const items = toRef(props, 'items')
 </script>
 
 <template>
-  <VaDataTable
-    v-model:sort-by="sortByVModel"
-    v-model:sorting-order="sortingOrderVModel"
-    :columns="columns"
-    :items="users"
-    :loading="$props.loading"
-  >
-    <template #cell(fullname)="{ rowData }">
-      <div class="flex items-center gap-2 max-w-[230px] ellipsis">
-        <UserAvatar :user="rowData as User" size="small" />
-        {{ rowData.fullname }}
-      </div>
-    </template>
-
-    <template #cell(username)="{ rowData }">
+  <VaDataTable :columns="columns" :items="items" :loading="$props.loading">
+    <template #cell(ID)="{ rowData }">
       <div class="max-w-[120px] ellipsis">
-        {{ rowData.username }}
+        {{ rowData.ID }}
       </div>
     </template>
 
-    <template #cell(email)="{ rowData }">
+    <template #cell(Code)="{ rowData }">
+      <div class="max-w-[120px] ellipsis">
+        {{ rowData.Code }}
+      </div>
+    </template>
+
+    <template #cell(Designation)="{ rowData }">
       <div class="ellipsis max-w-[230px]">
-        {{ rowData.email }}
+        {{ rowData.Designation }}
       </div>
     </template>
-
-    <template #cell(role)="{ rowData }">
-      <VaBadge :text="rowData.role" :color="roleColors[rowData.role as UserRole]" />
+    <template #cell(IsActive)="{ rowData }">
+      <div class="ellipsis max-w-[230px]">
+        {{ rowData.IsActive }}
+      </div>
     </template>
-
-    <template #cell(projects)="{ rowData }">
-      <div class="ellipsis max-w-[300px] lg:max-w-[450px]">
-        {{ formatProjectNames(rowData.projects) }}
+    <template #cell(FamilyCode)="{ rowData }">
+      <div class="ellipsis max-w-[230px]">
+        {{ rowData.FamilyCode }}
+      </div>
+    </template>
+    <template #cell(SubFamilyCode)="{ rowData }">
+      <div class="ellipsis max-w-[230px]">
+        {{ rowData.SubFamilyCode }}
       </div>
     </template>
 
     <template #cell(actions)="{ rowData }">
-      <div class="flex gap-2 justify-end">
-        <VaButton
-          preset="primary"
-          size="small"
-          icon="mso-edit"
-          aria-label="Edit user"
-          @click="$emit('edit-user', rowData as User)"
-        />
-      </div>
+      <VaButton
+        preset="primary"
+        size="small"
+        icon="material-icons-visibility"
+        @click="router.push('subCategories/' + rowData['_id'])"
+      />
     </template>
   </VaDataTable>
-
-  <div class="flex flex-col-reverse md:flex-row gap-2 justify-between items-center py-2">
-    <div>
-      <b>{{ $props.pagination.total }} results.</b>
-      Results per page
-      <VaSelect v-model="$props.pagination.perPage" class="!w-20" :options="[10, 50, 100]" />
-    </div>
-
-    <div v-if="totalPages > 1" class="flex">
-      <VaButton
-        preset="secondary"
-        icon="va-arrow-left"
-        aria-label="Previous page"
-        :disabled="$props.pagination.page === 1"
-        @click="$props.pagination.page--"
-      />
-      <VaButton
-        class="mr-2"
-        preset="secondary"
-        icon="va-arrow-right"
-        aria-label="Next page"
-        :disabled="$props.pagination.page === totalPages"
-        @click="$props.pagination.page++"
-      />
-      <VaPagination
-        v-model="$props.pagination.page"
-        buttons-preset="secondary"
-        :pages="totalPages"
-        :visible-pages="5"
-        :boundary-links="false"
-        :direction-links="false"
-      />
-    </div>
-  </div>
 </template>
 
 <style lang="scss" scoped>
+.notification-dropdown {
+  cursor: pointer;
+
+  .notification-dropdown__icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .va-dropdown__anchor {
+    display: inline-block;
+  }
+}
 .va-data-table {
   ::v-deep(.va-data-table__table-tr) {
     border-bottom: 1px solid var(--va-background-border);

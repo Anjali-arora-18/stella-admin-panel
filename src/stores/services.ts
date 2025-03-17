@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
-import { getSubCategories } from '../data/pages/subCategories'
+import { getServices } from '../data/pages/services'
 
-export const useSubCategoriesStore = defineStore('subCategories', {
+export const useServiceStore = defineStore('services', {
   state: () => {
     return {
       items: [],
@@ -10,7 +10,7 @@ export const useSubCategoriesStore = defineStore('subCategories', {
 
   actions: {
     async getAll(payload) {
-      const { data } = await getSubCategories(payload)
+      const { data } = await getServices(payload)
       this.items = data
     },
 

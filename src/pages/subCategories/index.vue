@@ -1,36 +1,22 @@
 <script setup lang="ts">
-import { watchEffect } from 'vue'
+import { ref } from 'vue'
+import { useRoute } from 'vue-router'
 import SubCategoriesTable from './widgets/subCategoriesTable.vue'
-import { useUsers } from './composables/useUsers'
-import { useToast } from 'vuestic-ui'
-
-const { users, isLoading, sorting, pagination, error } = useUsers()
-
-const { init: notify } = useToast()
-
-watchEffect(() => {
-  if (error.value) {
-    notify({
-      message: error.value.message,
-      color: 'danger',
-    })
-  }
+import { useSubCategoriesStore } from '../../stores/subCategories'
+const subCategoriesStore = useSubCategoriesStore()
+const items = ref([])
+const isLoading = ref(true)
+const route = useRoute()
+subCategoriesStore.getAll(route.params.id).then(() => {
+  items.value = subCategoriesStore.items
+  isLoading.value = false
 })
 </script>
 
 <template>
   <VaCard>
     <VaCardContent>
-      <SubCategoriesTable
-        v-model:sort-by="sorting.sortBy"
-        v-model:sorting-order="sorting.sortingOrder"
-        :users="users"
-        :projects="projects"
-        :loading="isLoading"
-        :pagination="pagination"
-        @editUser="showEditUserModal"
-        @deleteUser="onUserDelete"
-      />
+      <SubCategoriesTable :items="items" :loading="isLoading" />
     </VaCardContent>
   </VaCard>
 </template>

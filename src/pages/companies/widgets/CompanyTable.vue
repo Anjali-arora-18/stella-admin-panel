@@ -22,7 +22,6 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
 })
 const items = toRef(props, 'items')
-const loading = toRef(props, 'loading')
 </script>
 
 <template>

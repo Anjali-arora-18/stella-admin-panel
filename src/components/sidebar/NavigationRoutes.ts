@@ -53,6 +53,14 @@ export default {
       },
     },
     {
+      name: 'services',
+      displayName: 'menu.services',
+      visible: false,
+      meta: {
+        icon: 'group',
+      },
+    },
+    {
       name: 'orders',
       visible: true,
       displayName: 'menu.orders',

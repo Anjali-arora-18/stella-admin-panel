@@ -8,7 +8,7 @@ const columns = defineVaDataTableColumns([
   { label: 'Code', key: 'Code', sortable: false },
   { label: 'Designation', key: 'Designation', sortable: false },
   { label: 'IsActive', key: 'IsActive', sortable: false },
-  { label: ' ', key: 'actions', align: 'right' },
+  // { label: ' ', key: 'actions', align: 'right' },
 ])
 
 const props = defineProps({
@@ -20,7 +20,6 @@ const props = defineProps({
 })
 
 const items = toRef(props, 'items')
-const loading = toRef(props, 'loading')
 </script>
 
 <template>

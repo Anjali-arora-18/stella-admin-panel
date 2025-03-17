@@ -5,12 +5,10 @@ import EditUserForm from './widgets/EditUserForm.vue'
 import { User } from './types'
 import { useUsers } from './composables/useUsers'
 import { useModal, useToast } from 'vuestic-ui'
-import { useProjects } from '../projects/composables/useProjects'
 
 const doShowEditUserModal = ref(false)
 
 const { users, isLoading, sorting, pagination, error, ...usersApi } = useUsers()
-const { projects } = useProjects()
 
 const userToEdit = ref<User | null>(null)
 
