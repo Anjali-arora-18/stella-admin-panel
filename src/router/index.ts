@@ -17,6 +17,16 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../pages/admin/dashboard/Dashboard.vue'),
       },
       {
+        name: 'preferences',
+        path: 'preferences',
+        component: () => import('../pages/preferences/Preferences.vue'),
+      },
+      {
+        name: 'settings',
+        path: 'settings',
+        component: () => import('../pages/settings/Settings.vue'),
+      },
+      {
         name: 'companies',
         path: 'companies',
         component: () => import('../pages/companies/index.vue'),
@@ -28,7 +38,12 @@ const routes: Array<RouteRecordRaw> = [
           {
             name: 'view',
             path: 'view',
-            component: () => import('../pages/company/index.vue'),
+            component: () => import('../pages/service-zone/index.vue'),
+          },
+          {
+            name: 'restaurant',
+            path: 'restaurant/:restId?',
+            component: () => import('../pages/service-zone/view.vue'),
           },
         ],
       },

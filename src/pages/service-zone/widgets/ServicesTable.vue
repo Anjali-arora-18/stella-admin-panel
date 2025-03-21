@@ -1,19 +1,20 @@
 <script setup lang="ts">
 import { defineVaDataTableColumns } from 'vuestic-ui'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { toRef } from 'vue'
 
 const router = useRouter()
+const route = useRoute()
 const columns = defineVaDataTableColumns([
   { label: 'Code', key: 'Code', sortable: false },
   { label: 'Designation', key: 'Designation', sortable: false },
   { label: 'IsActive', key: 'IsActive', sortable: false },
   { label: 'Warehouse', key: 'WarehouseCode', sortable: false },
-  { label: 'Allow Articles', key: 'AllowArticlesWithoutCategory', sortable: false },
-  { label: 'SubFamiliesOrSubCategories', key: 'UseSubFamiliesOrSubCategories', sortable: false },
-  { label: 'Tables', key: 'WorkWithTables', sortable: false },
-  { label: 'TableSplits', key: 'CanUseTableSplits', sortable: false },
-  { label: 'DocumentsHeader', key: 'DocumentsHeader', sortable: false },
+  {
+    label: 'Articles/Sub Families/Tables/Table Splits/Documents Header',
+    key: 'AllowArticlesWithoutCategory',
+    sortable: false,
+  },
   { label: '', key: 'POSSaleDocumentTypeCode', sortable: false },
   { label: '', key: 'RetailSaleDocumentTypeCode', sortable: false },
   { label: '', key: 'SupplierPurchaseDocumentTypeCode', sortable: false },
@@ -25,6 +26,7 @@ const columns = defineVaDataTableColumns([
   { label: '', key: 'POSArticlesSortOrder', sortable: false },
   { label: '', key: 'POSArticleHoldsSortOrder', sortable: false },
   { label: '', key: 'POSArticleDescriptivesSortOrder', sortable: false },
+  { label: 'Actions', key: 'actions', sortable: false },
 ])
 
 const props = defineProps({
@@ -68,29 +70,21 @@ const items = toRef(props, 'items')
           :text="rowData.AllowArticlesWithoutCategory ? 'Yes' : 'No'"
         />
       </div>
-    </template>
-    <template #cell(UseSubFamiliesOrSubCategories)="{ rowData }">
       <div class="ellipsis max-w-[230px]">
         <VaBadge
           :color="rowData.UseSubFamiliesOrSubCategories ? 'success' : 'danger'"
           :text="rowData.UseSubFamiliesOrSubCategories ? 'Yes' : 'No'"
         />
       </div>
-    </template>
-    <template #cell(WorkWithTables)="{ rowData }">
       <div class="ellipsis max-w-[230px]">
         <VaBadge :color="rowData.WorkWithTables ? 'success' : 'danger'" :text="rowData.WorkWithTables ? 'Yes' : 'No'" />
       </div>
-    </template>
-    <template #cell(CanUseTableSplits)="{ rowData }">
       <div class="ellipsis max-w-[230px]">
         <VaBadge
           :color="rowData.CanUseTableSplits ? 'success' : 'danger'"
           :text="rowData.CanUseTableSplits ? 'Yes' : 'No'"
         />
       </div>
-    </template>
-    <template #cell(DocumentsHeader)="{ rowData }">
       <div class="ellipsis max-w-[230px]">
         <VaBadge
           :color="rowData.DocumentsHeader ? 'success' : 'danger'"
@@ -104,7 +98,7 @@ const items = toRef(props, 'items')
         preset="primary"
         size="small"
         icon="material-icons-visibility"
-        @click="router.push('service-zone/' + rowData['_id'])"
+        @click="router.push('/company/' + route.params.id + '/restaurant/' + rowData.Code)"
       />
     </template>
   </VaDataTable>

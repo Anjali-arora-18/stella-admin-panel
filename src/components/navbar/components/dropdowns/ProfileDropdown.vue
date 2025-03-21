@@ -83,39 +83,8 @@ withDefaults(
             to: 'preferences',
             icon: 'mso-account_circle',
           },
-          // {
-          //   name: 'settings',
-          //   to: 'settings',
-          //   icon: 'mso-settings',
-          // },
-          // {
-          //   name: 'billing',
-          //   to: 'billing',
-          //   icon: 'mso-receipt_long',
-          // },
-          // {
-          //   name: 'projects',
-          //   to: 'projects',
-          //   icon: 'mso-favorite',
-          // },
         ],
       },
-      // {
-      //   name: 'explore',
-      //   separator: true,
-      //   list: [
-      //     {
-      //       name: 'faq',
-      //       to: 'faq',
-      //       icon: 'mso-quiz',
-      //     },
-      //     {
-      //       name: 'helpAndSupport',
-      //       href: 'https://discord.gg/u7fQdqQt8c',
-      //       icon: 'mso-error',
-      //     },
-      //   ],
-      // },
       {
         name: '',
         separator: false,

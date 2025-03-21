@@ -14,6 +14,7 @@ servicesStore.getAll(route.params.id).then(() => {
 </script>
 
 <template>
+  <h1 class="page-title font-bold">Restaurants</h1>
   <VaCard>
     <VaCardContent>
       <ServicesTable :items="items" :loading="isLoading" />

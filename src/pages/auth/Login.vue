@@ -53,7 +53,8 @@ import axios from 'axios'
 const { validate } = useForm('form')
 const { push } = useRouter()
 const { init } = useToast()
-
+import { useUsersStore } from '../../stores/users'
+const userStore = useUsersStore()
 const formData = reactive({
   email: '',
   password: '',
@@ -70,6 +71,7 @@ const submit = () => {
       })
       .then((response) => {
         window.sessionStorage.setItem('token', response.data.accessToken)
+        userStore.setUserDetails(response.data.user)
         init({ message: "You've successfully logged in", color: 'success' })
         push({ name: 'companies' })
       })

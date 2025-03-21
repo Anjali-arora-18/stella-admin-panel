@@ -15,6 +15,7 @@ export const useUsersStore = defineStore('users', {
   state: () => {
     return {
       items: [] as User[],
+      userDetails: null,
       pagination: { page: 1, perPage: 10, total: 0 },
     }
   },
@@ -50,6 +51,10 @@ export const useUsersStore = defineStore('users', {
         const index = this.items.findIndex(({ id }) => id === user.id)
         this.items.splice(index, 1)
       }
+    },
+
+    async setUserDetails(payload: any) {
+      this.userDetails = payload
     },
 
     async uploadAvatar(formData: FormData) {

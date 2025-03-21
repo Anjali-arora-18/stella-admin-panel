@@ -45,7 +45,7 @@ const items = toRef(props, 'items')
     </template>
     <template #cell(IsActive)="{ rowData }">
       <div class="ellipsis max-w-[230px]">
-        {{ rowData.IsActive }}
+        <VaBadge :color="rowData.IsActive ? 'success' : 'danger'" :text="rowData.IsActive ? 'Yes' : 'No'" />
       </div>
     </template>
     <template #cell(FamilyCode)="{ rowData }">
