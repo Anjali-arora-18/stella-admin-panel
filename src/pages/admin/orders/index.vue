@@ -25,9 +25,7 @@ watchEffect(() => {
       <CompanyTable
         v-model:sort-by="sorting.sortBy"
         v-model:sorting-order="sorting.sortingOrder"
-        :users="users"
         :loading="isLoading"
-        :pagination="pagination"
       />
     </VaCardContent>
   </VaCard>

@@ -3,8 +3,11 @@ import { defineVaDataTableColumns } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
 import { toRef } from 'vue'
 
+const emits = defineEmits(['updateSubCategoriesModal'])
+
 const router = useRouter()
 const columns = defineVaDataTableColumns([
+  { label: 'Update Sub Categories', key: 'actions', align: 'left' },
   { label: 'id', key: 'ID', sortable: false },
   { label: 'Code', key: 'Code', sortable: false },
   { label: 'Designation', key: 'Designation', sortable: false },
@@ -60,12 +63,21 @@ const items = toRef(props, 'items')
     </template>
 
     <template #cell(actions)="{ rowData }">
-      <VaButton
-        preset="primary"
-        size="small"
-        icon="material-icons-visibility"
-        @click="router.push('subCategories/' + rowData['_id'])"
-      />
+      <VaButton class="w-fit h-fit" preset="primary" @click="emits('updateSubCategoriesModal')">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="inline-block"
+        >
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+        </svg>
+      </VaButton>
     </template>
   </VaDataTable>
 </template>
