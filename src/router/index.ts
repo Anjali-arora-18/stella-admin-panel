@@ -26,24 +26,29 @@ const routes: Array<RouteRecordRaw> = [
         path: 'settings',
         component: () => import('../pages/settings/Settings.vue'),
       },
+      // {
+      //   name: 'companies',
+      //   path: 'companies',
+      //   component: () => import('../pages/companies/index.vue'),
+      // },
       {
-        name: 'companies',
-        path: 'companies',
-        component: () => import('../pages/companies/index.vue'),
-      },
-      {
-        name: 'company',
-        path: 'company/:id?',
+        name: 'outlets',
+        path: 'outlets/',
         children: [
           {
-            name: 'view',
-            path: 'view',
+            name: 'list',
+            path: 'list',
             component: () => import('../pages/service-zone/index.vue'),
           },
           {
+            name: 'create-outlet',
+            path: 'create',
+            component: () => import('../pages/service-zone/form.vue'),
+          },
+          {
             name: 'restaurant',
-            path: 'restaurant/:restId?',
-            component: () => import('../pages/service-zone/view.vue'),
+            path: 'update/:id?',
+            component: () => import('../pages/service-zone/form.vue'),
           },
         ],
       },

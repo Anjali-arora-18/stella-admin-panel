@@ -21,7 +21,7 @@ export default {
       },
     },
     {
-      name: 'companies',
+      name: 'list',
       displayName: 'menu.companies',
       visible: true,
       meta: {

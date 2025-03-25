@@ -73,7 +73,7 @@ const submit = () => {
         window.sessionStorage.setItem('token', response.data.accessToken)
         userStore.setUserDetails(response.data.user)
         init({ message: "You've successfully logged in", color: 'success' })
-        push({ name: 'companies' })
+        push({ name: 'outlets' })
       })
       .catch((err) => {
         init({ message: err.response.data.message, color: 'danger' })

@@ -1,7 +1,7 @@
 import api from '../../services/api'
 import axios from 'axios'
-export const getServices = async (payload) => {
-  const { data } = await axios.get(api.allServices(payload))
+export const getServices = async () => {
+  const { data } = await axios.get(api.allServices())
   return {
     data: data,
   }

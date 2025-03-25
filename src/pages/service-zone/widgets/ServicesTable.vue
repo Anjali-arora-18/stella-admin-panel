@@ -6,26 +6,12 @@ import { toRef } from 'vue'
 const router = useRouter()
 const route = useRoute()
 const columns = defineVaDataTableColumns([
-  { label: 'Code', key: 'Code', sortable: false },
-  { label: 'Designation', key: 'Designation', sortable: false },
-  { label: 'IsActive', key: 'IsActive', sortable: false },
-  { label: 'Warehouse', key: 'WarehouseCode', sortable: false },
-  {
-    label: 'Articles/Sub Families/Tables/Table Splits/Documents Header',
-    key: 'AllowArticlesWithoutCategory',
-    sortable: false,
-  },
-  { label: '', key: 'POSSaleDocumentTypeCode', sortable: false },
-  { label: '', key: 'RetailSaleDocumentTypeCode', sortable: false },
-  { label: '', key: 'SupplierPurchaseDocumentTypeCode', sortable: false },
-  { label: '', key: 'SupplierOrderDocumentTypeCode', sortable: false },
-  { label: '', key: 'FabricationDocumentTypeCode', sortable: false },
-  { label: '', key: 'POSCompanyLogoURL', sortable: false },
-  { label: '', key: 'RequestPax', sortable: false },
-  { label: '', key: 'POSFamiliesSortOrder', sortable: false },
-  { label: '', key: 'POSArticlesSortOrder', sortable: false },
-  { label: '', key: 'POSArticleHoldsSortOrder', sortable: false },
-  { label: '', key: 'POSArticleDescriptivesSortOrder', sortable: false },
+  { label: 'Id', key: 'id', sortable: false },
+  { label: 'Name', key: 'name', sortable: false },
+  { label: 'Email', key: 'email', sortable: false },
+  { label: 'Address', key: 'address', sortable: false },
+  { label: 'active', key: 'active', sortable: false },
+  { label: 'Created at', key: 'created_at', sortable: false },
   { label: 'Actions', key: 'actions', sortable: false },
 ])
 
@@ -42,54 +28,35 @@ const items = toRef(props, 'items')
 
 <template>
   <VaDataTable :columns="columns" :items="items" :loading="$props.loading">
-    <template #cell(Code)="{ rowData }">
+    <template #cell(id)="{ rowData }">
       <div class="max-w-[120px] ellipsis">
-        {{ rowData.Code }}
+        {{ rowData._id }}
       </div>
     </template>
 
-    <template #cell(Designation)="{ rowData }">
+    <template #cell(name)="{ rowData }">
       <div class="ellipsis max-w-[230px]">
-        {{ rowData.Designation }}
+        {{ rowData.name }}
       </div>
     </template>
-    <template #cell(IsActive)="{ rowData }">
+    <template #cell(email)="{ rowData }">
       <div class="ellipsis max-w-[230px]">
-        {{ rowData.IsActive }}
+        {{ rowData.email }}
       </div>
     </template>
-    <template #cell(WarehouseCode)="{ rowData }">
+    <template #cell(address)="{ rowData }">
       <div class="ellipsis max-w-[230px]">
-        {{ rowData.WarehouseCode }}
+        {{ rowData.address }}
       </div>
     </template>
-    <template #cell(AllowArticlesWithoutCategory)="{ rowData }">
+    <template #cell(created_at)="{ rowData }">
       <div class="ellipsis max-w-[230px]">
-        <VaBadge
-          :color="rowData.AllowArticlesWithoutCategory ? 'success' : 'danger'"
-          :text="rowData.AllowArticlesWithoutCategory ? 'Yes' : 'No'"
-        />
+        {{ rowData.createdAt }}
       </div>
+    </template>
+    <template #cell(active)="{ rowData }">
       <div class="ellipsis max-w-[230px]">
-        <VaBadge
-          :color="rowData.UseSubFamiliesOrSubCategories ? 'success' : 'danger'"
-          :text="rowData.UseSubFamiliesOrSubCategories ? 'Yes' : 'No'"
-        />
-      </div>
-      <div class="ellipsis max-w-[230px]">
-        <VaBadge :color="rowData.WorkWithTables ? 'success' : 'danger'" :text="rowData.WorkWithTables ? 'Yes' : 'No'" />
-      </div>
-      <div class="ellipsis max-w-[230px]">
-        <VaBadge
-          :color="rowData.CanUseTableSplits ? 'success' : 'danger'"
-          :text="rowData.CanUseTableSplits ? 'Yes' : 'No'"
-        />
-      </div>
-      <div class="ellipsis max-w-[230px]">
-        <VaBadge
-          :color="rowData.DocumentsHeader ? 'success' : 'danger'"
-          :text="rowData.DocumentsHeader ? 'Yes' : 'No'"
-        />
+        <VaBadge :color="rowData.active ? 'success' : 'danger'" :text="rowData.active ? 'Yes' : 'No'" />
       </div>
     </template>
 
@@ -98,7 +65,7 @@ const items = toRef(props, 'items')
         preset="primary"
         size="small"
         icon="material-icons-visibility"
-        @click="router.push('/company/' + route.params.id + '/restaurant/' + rowData.Code)"
+        @click="router.push('/outlets/update/' + rowData._id)"
       />
     </template>
   </VaDataTable>

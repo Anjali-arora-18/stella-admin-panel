@@ -4,7 +4,7 @@ export default {
   allUsers: () => `${apiBaseUrl}/users`,
   allCategories: (payload) => `${apiBaseUrl}/families?companyCode=${payload}`,
   allSubCategories: (payload) => `${apiBaseUrl}/articles?companyCode=${payload}`,
-  allServices: (payload) => `${apiBaseUrl}/serviceZones?companyCode=${payload}`,
+  allServices: () => `${apiBaseUrl}/restaraunts`,
   allCompanies: () => `${apiBaseUrl}/companies`,
   user: (id: string) => `${apiBaseUrl}/users/${id}`,
   users: ({ page, pageSize }: { page: number; pageSize: number }) =>

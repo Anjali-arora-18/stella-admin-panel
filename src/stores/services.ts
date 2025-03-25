@@ -9,8 +9,8 @@ export const useServiceStore = defineStore('services', {
   },
 
   actions: {
-    async getAll(payload) {
-      const { data } = await getServices(payload)
+    async getAll() {
+      const { data } = await getServices()
       this.items = data
     },
 
