@@ -3,9 +3,11 @@
     <div class="flex flex-row justify-between md:items-center">
       <h1 class="mb-3 font-bold">Restaurant Details</h1>
       <div class="flex gap-x-4 ml-auto mb-3">
-        <VaButton :disabled="!restaurantData.name" @click="restaurantId ? updateRestaurant() : createRestaurant()">{{
-          restaurantId ? 'Save' : 'Create'
-        }}</VaButton>
+        <VaButton
+          :disabled="!restaurantData.name"
+          @click.prevent="restaurantId ? updateRestaurant() : createRestaurant()"
+          >{{ restaurantId ? 'Save' : 'Create' }}</VaButton
+        >
         <VaButton preset="primary">Reset</VaButton>
       </div>
     </div>
@@ -150,40 +152,40 @@
             <div class="flex flex-col sm:flex-row w-full mt-2 config">
               <VaSwitch v-model="restaurantData.daily" label="a. Daily" left-label size="small" class="w-fit mr-6" />
               <div v-if="restaurantData.daily">
-                <VaTimeInput v-model="restaurantData.openingTime" ampm class="mr-2" />
-                <VaTimeInput v-model="restaurantData.closingTime" ampm />
+                <VaTimeInput v-model="restaurantData.openingTime" class="mr-2" />
+                <VaTimeInput v-model="restaurantData.closingTime" />
               </div>
             </div>
             <div class="flex flex-col sm:flex-row w-full mt-4 config">
               <VaSwitch v-model="restaurantData.byday" label="b. By Day" left-label size="small" class="w-fit mr-6" />
               <div v-if="restaurantData.byday">
                 <div>
-                  <VaTimeInput v-model="restaurantData.mondayOpening" label="Monday" ampm class="mr-2" />
-                  <VaTimeInput v-model="restaurantData.mondayClosing" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.mondayOpening" label="Monday" class="mr-2" />
+                  <VaTimeInput v-model="restaurantData.mondayClosing" class="mt-4" />
                 </div>
                 <div class="mt-4">
-                  <VaTimeInput v-model="restaurantData.tuesdayOpening" label="Tuesday" ampm class="mr-2" />
-                  <VaTimeInput v-model="restaurantData.tuesdayClosing" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.tuesdayOpening" label="Tuesday" class="mr-2" />
+                  <VaTimeInput v-model="restaurantData.tuesdayClosing" class="mt-4" />
                 </div>
                 <div class="mt-2">
-                  <VaTimeInput v-model="restaurantData.wednesdayOpening" label="Wednesday" ampm class="mr-2" />
-                  <VaTimeInput v-model="restaurantData.wednesdayClosing" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.wednesdayOpening" label="Wednesday" class="mr-2" />
+                  <VaTimeInput v-model="restaurantData.wednesdayClosing" class="mt-4" />
                 </div>
                 <div class="mt-2">
-                  <VaTimeInput v-model="restaurantData.thursdayOpening" label="Thursday" ampm class="mr-2" />
-                  <VaTimeInput v-model="restaurantData.thursdayClosing" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.thursdayOpening" label="Thursday" class="mr-2" />
+                  <VaTimeInput v-model="restaurantData.thursdayClosing" class="mt-4" />
                 </div>
                 <div class="mt-2">
-                  <VaTimeInput v-model="restaurantData.fridayOpening" label="Friday" ampm class="mr-2" />
-                  <VaTimeInput v-model="restaurantData.fridayClosing" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.fridayOpening" label="Friday" class="mr-2" />
+                  <VaTimeInput v-model="restaurantData.fridayClosing" class="mt-4" />
                 </div>
                 <div class="mt-2">
-                  <VaTimeInput v-model="restaurantData.saturdayOpening" label="Saturday" ampm class="mr-2" />
-                  <VaTimeInput v-model="restaurantData.saturdayClosing" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.saturdayOpening" label="Saturday" class="mr-2" />
+                  <VaTimeInput v-model="restaurantData.saturdayClosing" class="mt-4" />
                 </div>
                 <div class="mt-2">
-                  <VaTimeInput v-model="restaurantData.sundayOpening" label="Sunday" ampm class="mr-2" />
-                  <VaTimeInput v-model="restaurantData.sundayClosing" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.sundayOpening" label="Sunday" class="mr-2" />
+                  <VaTimeInput v-model="restaurantData.sundayClosing" class="mt-4" />
                 </div>
               </div>
             </div>
@@ -211,8 +213,8 @@
                 class="w-fit mr-6"
               />
               <div v-if="restaurantData.delivery.daily">
-                <VaTimeInput v-model="restaurantData.delivery.openingTimes.daily.opens" ampm class="mr-2" />
-                <VaTimeInput v-model="restaurantData.delivery.openingTimes.daily.closes" ampm />
+                <VaTimeInput v-model="restaurantData.delivery.openingTimes.daily.opens" class="mr-2" />
+                <VaTimeInput v-model="restaurantData.delivery.openingTimes.daily.closes" />
               </div>
             </div>
             <div class="flex flex-col sm:flex-row w-full mt-4 config">
@@ -228,68 +230,57 @@
                   <VaTimeInput
                     v-model="restaurantData.delivery.openingTimes.byDay.monday.opens"
                     label="Monday"
-                    ampm
                     class="mr-2"
                   />
-                  <VaTimeInput v-model="restaurantData.delivery.openingTimes.byDay.monday.closes" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.delivery.openingTimes.byDay.monday.closes" class="mt-4" />
                 </div>
                 <div class="mt-4">
                   <VaTimeInput
                     v-model="restaurantData.delivery.openingTimes.byDay.tuesday.opens"
                     label="Tuesday"
-                    ampm
                     class="mr-2"
                   />
-                  <VaTimeInput v-model="restaurantData.delivery.openingTimes.byDay.tuesday.closes" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.delivery.openingTimes.byDay.tuesday.closes" class="mt-4" />
                 </div>
                 <div class="mt-2">
                   <VaTimeInput
                     v-model="restaurantData.delivery.openingTimes.byDay.wednesday.opens"
                     label="Wednesday"
-                    ampm
                     class="mr-2"
                   />
-                  <VaTimeInput
-                    v-model="restaurantData.delivery.openingTimes.byDay.wednesday.closes"
-                    ampm
-                    class="mt-4"
-                  />
+                  <VaTimeInput v-model="restaurantData.delivery.openingTimes.byDay.wednesday.closes" class="mt-4" />
                 </div>
                 <div class="mt-2">
                   <VaTimeInput
                     v-model="restaurantData.delivery.openingTimes.byDay.thursday.opens"
                     label="Thursday"
-                    ampm
                     class="mr-2"
                   />
-                  <VaTimeInput v-model="restaurantData.delivery.openingTimes.byDay.thursday.closes" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.delivery.openingTimes.byDay.thursday.closes" class="mt-4" />
                 </div>
                 <div class="mt-2">
                   <VaTimeInput
                     v-model="restaurantData.delivery.openingTimes.byDay.friday.opens"
                     label="Friday"
-                    ampm
                     class="mr-2"
                   />
-                  <VaTimeInput v-model="restaurantData.delivery.openingTimes.byDay.friday.closes" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.delivery.openingTimes.byDay.friday.closes" class="mt-4" />
                 </div>
                 <div class="mt-2">
                   <VaTimeInput
                     v-model="restaurantData.delivery.openingTimes.byDay.saturday.opens"
                     label="Saturday"
-                    ampm
                     class="mr-2"
                   />
-                  <VaTimeInput v-model="restaurantData.delivery.openingTimes.byDay.saturday.closes" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.delivery.openingTimes.byDay.saturday.closes" class="mt-4" />
                 </div>
                 <div class="mt-2">
                   <VaTimeInput
                     v-model="restaurantData.delivery.openingTimes.byDay.sunday.opens"
                     label="Sunday"
-                    ampm
                     class="mr-2"
                   />
-                  <VaTimeInput v-model="restaurantData.delivery.openingTimes.byDay.sunday.closes" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.delivery.openingTimes.byDay.sunday.closes" class="mt-4" />
                 </div>
               </div>
             </div>
@@ -314,8 +305,8 @@
                 class="w-fit mr-6"
               />
               <div v-if="restaurantData.takeaway.enabled">
-                <VaTimeInput v-model="restaurantData.takeaway.openingTimes.daily.opens" ampm class="mr-2" />
-                <VaTimeInput v-model="restaurantData.takeaway.openingTimes.daily.closes" ampm />
+                <VaTimeInput v-model="restaurantData.takeaway.openingTimes.daily.opens" class="mr-2" />
+                <VaTimeInput v-model="restaurantData.takeaway.openingTimes.daily.closes" />
               </div>
             </div>
             <div class="flex flex-col sm:flex-row w-full mt-4 config">
@@ -331,68 +322,57 @@
                   <VaTimeInput
                     v-model="restaurantData.takeaway.openingTimes.byDay.monday.opens"
                     label="Monday"
-                    ampm
                     class="mr-2"
                   />
-                  <VaTimeInput v-model="restaurantData.takeaway.openingTimes.byDay.monday.closes" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.takeaway.openingTimes.byDay.monday.closes" class="mt-4" />
                 </div>
                 <div class="mt-4">
                   <VaTimeInput
                     v-model="restaurantData.takeaway.openingTimes.byDay.tuesday.opens"
                     label="Tuesday"
-                    ampm
                     class="mr-2"
                   />
-                  <VaTimeInput v-model="restaurantData.takeaway.openingTimes.byDay.tuesday.closes" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.takeaway.openingTimes.byDay.tuesday.closes" class="mt-4" />
                 </div>
                 <div class="mt-2">
                   <VaTimeInput
                     v-model="restaurantData.takeaway.openingTimes.byDay.wednesday.opens"
                     label="Wednesday"
-                    ampm
                     class="mr-2"
                   />
-                  <VaTimeInput
-                    v-model="restaurantData.takeaway.openingTimes.byDay.wednesday.closes"
-                    ampm
-                    class="mt-4"
-                  />
+                  <VaTimeInput v-model="restaurantData.takeaway.openingTimes.byDay.wednesday.closes" class="mt-4" />
                 </div>
                 <div class="mt-2">
                   <VaTimeInput
                     v-model="restaurantData.takeaway.openingTimes.byDay.thursday.opens"
                     label="Thursday"
-                    ampm
                     class="mr-2"
                   />
-                  <VaTimeInput v-model="restaurantData.takeaway.openingTimes.byDay.thursday.closes" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.takeaway.openingTimes.byDay.thursday.closes" class="mt-4" />
                 </div>
                 <div class="mt-2">
                   <VaTimeInput
                     v-model="restaurantData.takeaway.openingTimes.byDay.friday.opens"
                     label="Friday"
-                    ampm
                     class="mr-2"
                   />
-                  <VaTimeInput v-model="restaurantData.takeaway.openingTimes.byDay.friday.closes" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.takeaway.openingTimes.byDay.friday.closes" class="mt-4" />
                 </div>
                 <div class="mt-2">
                   <VaTimeInput
                     v-model="restaurantData.takeaway.openingTimes.byDay.saturday.opens"
                     label="Saturday"
-                    ampm
                     class="mr-2"
                   />
-                  <VaTimeInput v-model="restaurantData.takeaway.openingTimes.byDay.saturday.closes" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.takeaway.openingTimes.byDay.saturday.closes" class="mt-4" />
                 </div>
                 <div class="mt-2">
                   <VaTimeInput
                     v-model="restaurantData.takeaway.openingTimes.byDay.sunday.opens"
                     label="Sunday"
-                    ampm
                     class="mr-2"
                   />
-                  <VaTimeInput v-model="restaurantData.takeaway.openingTimes.byDay.sunday.closes" ampm class="mt-4" />
+                  <VaTimeInput v-model="restaurantData.takeaway.openingTimes.byDay.sunday.closes" class="mt-4" />
                 </div>
               </div>
             </div>
@@ -408,8 +388,7 @@
           </div>
           <div class="flex gap-8 flex-col sm:flex-row w-full config mt-4">
             <div class="flex flex-col w-full config mt-1">
-              <VaSwitch v-model="restaurantData.minChange" label="Minimum Charge" left-label size="small" />
-              <div v-if="restaurantData.minChange" class="flex flex-col w-full mt-4">
+              <div class="flex flex-col w-full mt-4">
                 <VaInput
                   v-model="restaurantData.minimumCharge"
                   name="MinimumCharge"
@@ -419,8 +398,7 @@
               </div>
             </div>
             <div class="flex flex-col w-full config mt-1">
-              <VaSwitch v-model="restaurantData.foodArticle" label="Food Article Notes" left-label size="small" />
-              <div v-if="restaurantData.foodArticle" class="flex flex-col w-full mt-4">
+              <div class="flex flex-col w-full mt-4">
                 <VaInput
                   v-model="restaurantData.foodArticleNotes"
                   name="FoodArticleNotes"
@@ -429,8 +407,7 @@
               </div>
             </div>
             <div class="flex flex-col w-full config mt-1">
-              <VaSwitch v-model="restaurantData.drinkArticle" label="Drink Article Notes" left-label size="small" />
-              <div v-if="restaurantData.drinkArticle" class="flex flex-col w-full mt-4">
+              <div class="flex flex-col w-full mt-4">
                 <VaInput
                   v-model="restaurantData.drinkArticleNotes"
                   name="DrinkArticleNotes"
@@ -439,20 +416,31 @@
               </div>
             </div>
             <div class="flex flex-col w-full config mt-1">
-              <VaSwitch v-model="restaurantData.orderNotes" label="Order Notes" left-label size="small" />
-              <div v-if="restaurantData.orderNotes" class="flex flex-col w-full mt-4">
-                <VaInput v-model="restaurantData.orderNotesText" name="OrderNotes" placeholder="Order Notes" />
+              <div class="flex flex-col w-full mt-4">
+                <VaInput v-model="restaurantData.orderNotes" name="OrderNotes" placeholder="Order Notes" />
               </div>
             </div>
           </div>
           <div class="flex gap-8 flex-col sm:flex-row w-full config mt-2">
-            <VaTextarea v-model="restaurantData.dineInMessage" label="Dine-in Confirmation Message" class="w-full" />
+            <VaTextarea
+              v-model="restaurantData.dineInConfirmationMessage"
+              label="Dine-in Confirmation Message"
+              class="w-full"
+            />
           </div>
           <div class="flex gap-8 flex-col sm:flex-row w-full config mt-2">
-            <VaTextarea v-model="restaurantData.deliveryMessage" label="Delivery Confirmation Message" class="w-full" />
+            <VaTextarea
+              v-model="restaurantData.deliveryConfirmationMessage"
+              label="Delivery Confirmation Message"
+              class="w-full"
+            />
           </div>
           <div class="flex gap-8 flex-col sm:flex-row w-full config mt-2">
-            <VaTextarea v-model="restaurantData.takeawayMessage" label="Takeaway Confirmation Message" class="w-full" />
+            <VaTextarea
+              v-model="restaurantData.takeawayConfirmationMessage"
+              label="Takeaway Confirmation Message"
+              class="w-full"
+            />
           </div>
           <div class="flex gap-14 flex-col sm:flex-row w-full config">
             <VaSwitch v-model="restaurantData.tabs" label="Tabs " left-label size="small" />
@@ -500,14 +488,6 @@
         </VaForm>
       </VaCardContent>
     </VaCard>
-
-    <!-- <VaTabs v-model="tab" grow class="mt-8">
-      <template #tabs>
-        <VaTab v-for="title in ['Categories', 'Menu Items']" :key="title" :name="title">
-          {{ title }}
-        </VaTab>
-      </template>
-    </VaTabs> -->
   </div>
 </template>
 
@@ -515,13 +495,12 @@
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
-import { useToast, VaFileUpload, VaInput, VaSwitch } from 'vuestic-ui'
+import { useToast } from 'vuestic-ui'
 export default {
-  components: { VaFileUpload, VaInput, VaSwitch },
   setup() {
     // const tab = ref('Categories')
     const types = ref(['Create New'])
-    const mode = ref(['View Only', 'Online Ordering'])
+    const mode = ref(['viewOnly', 'onlineOrdering'])
     const selectedType = ref(null)
     const selectedTypeMode = ref(null)
     const route = useRoute()
@@ -616,11 +595,10 @@ export default {
       foodArticleNotes: '',
       drinkArticle: false,
       drinkArticleNotes: '',
-      orderNotes: false,
-      orderNotesText: '',
-      dineInMessage: '',
-      deliveryMessage: '',
-      takeawayMessage: '',
+      orderNotes: '',
+      dineInConfirmationMessage: '',
+      deliveryConfirmationMessage: '',
+      takeawayConfirmationMessage: '',
       tabs: false,
       tips: false,
       primaryColor: '',
@@ -630,7 +608,17 @@ export default {
       footerColor: '',
     })
 
-    return { types, mode, selectedType, selectedTypeMode, restaurantData, restaurantId, init }
+    const parseTime = (input) => {
+      // Ensure input follows HH:mm format
+      if (/^\d{2}:\d{2}$/.test(input)) {
+        const [hours, minutes] = input.split(':').map(Number)
+        console.log(hours, mintues)
+        return { hours, minutes }
+      }
+      return null // Invalid input
+    }
+
+    return { parseTime, types, mode, selectedType, selectedTypeMode, restaurantData, restaurantId, init }
   },
   data() {
     return {
@@ -655,12 +643,177 @@ export default {
     this.fetchRestaurantDetails()
   },
   methods: {
+    parseTimeToDate(timeString) {
+      const parseDate = new Date(timeString)
+      if (!isNaN(parseDate.getTime())) {
+        return parseDate
+      }
+
+      if (!/^\d{2}:\d{2}$/.test(timeString)) {
+        throw new Error('Invalid time format. Use HH:mm.')
+      }
+
+      const [hours, minutes] = timeString.split(':').map(Number)
+      const date = new Date()
+
+      // Set time while keeping the current date
+      date.setHours(hours, minutes, 0, 0)
+
+      return date
+    },
     async fetchRestaurantDetails() {
       if (this.restaurantId) {
         const url = import.meta.env.VITE_API_BASE_URL
         try {
           const response = await axios.get(`${url}/outlets?id=${this.restaurantId}`)
-          this.restaurantData = response.data.length ? response.data[0] : null
+          const res = response.data.length ? response.data[0] : null
+          if (res) {
+            res.openingTimes.daily.opens = res.openingTimes.daily.opens
+              ? this.parseTimeToDate(res.openingTimes.daily.opens)
+              : ''
+            res.openingTimes.daily.closes = res.openingTimes.daily.closes
+              ? this.parseTimeToDate(res.openingTimes.daily.closes)
+              : ''
+            res.openingTimes.byDay.monday.opens = res.openingTimes.byDay.monday.opens
+              ? this.parseTimeToDate(res.openingTimes.byDay.monday.opens)
+              : ''
+            res.openingTimes.byDay.monday.closes = res.openingTimes.byDay.monday.closes
+              ? this.parseTimeToDate(res.openingTimes.byDay.monday.closes)
+              : ''
+            res.openingTimes.byDay.tuesday.opens = res.openingTimes.byDay.tuesday.opens
+              ? this.parseTimeToDate(res.openingTimes.byDay.tuesday.opens)
+              : ''
+            res.openingTimes.byDay.tuesday.closes = res.openingTimes.byDay.tuesday.closes
+              ? this.parseTimeToDate(res.openingTimes.byDay.tuesday.closes)
+              : ''
+            res.openingTimes.byDay.wednesday.opens = res.openingTimes.byDay.wednesday.opens
+              ? this.parseTimeToDate(res.openingTimes.byDay.wednesday.opens)
+              : ''
+            res.openingTimes.byDay.wednesday.closes = res.openingTimes.byDay.wednesday.closes
+              ? this.parseTimeToDate(res.openingTimes.byDay.wednesday.closes)
+              : ''
+            res.openingTimes.byDay.thursday.opens = res.openingTimes.byDay.thursday.opens
+              ? this.parseTimeToDate(res.openingTimes.byDay.thursday.opens)
+              : ''
+            res.openingTimes.byDay.thursday.closes = res.openingTimes.byDay.thursday.closes
+              ? this.parseTimeToDate(res.openingTimes.byDay.thursday.closes)
+              : ''
+            res.openingTimes.byDay.friday.opens = res.openingTimes.byDay.friday.opens
+              ? this.parseTimeToDate(res.openingTimes.byDay.friday.opens)
+              : ''
+            res.openingTimes.byDay.friday.closes = res.openingTimes.byDay.friday.closes
+              ? this.parseTimeToDate(res.openingTimes.byDay.friday.closes)
+              : ''
+            res.openingTimes.byDay.saturday.opens = res.openingTimes.byDay.saturday.opens
+              ? this.parseTimeToDate(res.openingTimes.byDay.saturday.opens)
+              : ''
+            res.openingTimes.byDay.saturday.closes = res.openingTimes.byDay.saturday.closes
+              ? this.parseTimeToDate(res.openingTimes.byDay.saturday.closes)
+              : ''
+            res.openingTimes.byDay.sunday.opens = res.openingTimes.byDay.sunday.opens
+              ? this.parseTimeToDate(res.openingTimes.byDay.sunday.opens)
+              : ''
+            res.openingTimes.byDay.sunday.closes = res.openingTimes.byDay.sunday.closes
+              ? this.parseTimeToDate(res.openingTimes.byDay.sunday.closes)
+              : ''
+            res.delivery.openingTimes.daily.opens = res.delivery.openingTimes.daily.opens
+              ? this.parseTimeToDate(res.delivery.openingTimes.daily.opens)
+              : ''
+            res.delivery.openingTimes.daily.closes = res.delivery.openingTimes.daily.closes
+              ? this.parseTimeToDate(res.delivery.openingTimes.daily.closes)
+              : ''
+            res.delivery.openingTimes.byDay.monday.opens = res.delivery.openingTimes.byDay.monday.opens
+              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.monday.opens)
+              : ''
+            res.delivery.openingTimes.byDay.monday.closes = res.delivery.openingTimes.byDay.monday.closes
+              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.monday.closes)
+              : ''
+            res.delivery.openingTimes.byDay.tuesday.opens = res.delivery.openingTimes.byDay.tuesday.opens
+              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.tuesday.opens)
+              : ''
+            res.delivery.openingTimes.byDay.tuesday.closes = res.delivery.openingTimes.byDay.tuesday.closes
+              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.tuesday.closes)
+              : ''
+            res.delivery.openingTimes.byDay.wednesday.opens = res.delivery.openingTimes.byDay.wednesday.opens
+              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.wednesday.opens)
+              : ''
+            res.delivery.openingTimes.byDay.wednesday.closes = res.delivery.openingTimes.byDay.wednesday.closes
+              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.wednesday.closes)
+              : ''
+            res.delivery.openingTimes.byDay.thursday.opens = res.delivery.openingTimes.byDay.thursday.opens
+              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.thursday.opens)
+              : ''
+            res.delivery.openingTimes.byDay.thursday.closes = res.delivery.openingTimes.byDay.thursday.closes
+              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.thursday.closes)
+              : ''
+            res.delivery.openingTimes.byDay.friday.opens = res.delivery.openingTimes.byDay.friday.opens
+              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.friday.opens)
+              : ''
+            res.delivery.openingTimes.byDay.friday.closes = res.delivery.openingTimes.byDay.friday.closes
+              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.friday.closes)
+              : ''
+            res.delivery.openingTimes.byDay.saturday.opens = res.delivery.openingTimes.byDay.saturday.opens
+              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.saturday.opens)
+              : ''
+            res.delivery.openingTimes.byDay.saturday.closes = res.delivery.openingTimes.byDay.saturday.closes
+              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.saturday.closes)
+              : ''
+            res.delivery.openingTimes.byDay.sunday.opens = res.delivery.openingTimes.byDay.sunday.opens
+              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.sunday.opens)
+              : ''
+            res.delivery.openingTimes.byDay.sunday.closes = res.delivery.openingTimes.byDay.sunday.closes
+              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.sunday.closes)
+              : ''
+            res.takeaway.openingTimes.daily.opens = res.takeaway.openingTimes.daily.opens
+              ? this.parseTimeToDate(res.takeaway.openingTimes.daily.opens)
+              : ''
+            res.takeaway.openingTimes.daily.closes = res.takeaway.openingTimes.daily.closes
+              ? this.parseTimeToDate(res.takeaway.openingTimes.daily.closes)
+              : ''
+            res.takeaway.openingTimes.byDay.monday.opens = res.takeaway.openingTimes.byDay.monday.opens
+              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.monday.opens)
+              : ''
+            res.takeaway.openingTimes.byDay.monday.closes = res.takeaway.openingTimes.byDay.monday.closes
+              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.monday.closes)
+              : ''
+            res.takeaway.openingTimes.byDay.tuesday.opens = res.takeaway.openingTimes.byDay.tuesday.opens
+              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.tuesday.opens)
+              : ''
+            res.takeaway.openingTimes.byDay.tuesday.closes = res.takeaway.openingTimes.byDay.tuesday.closes
+              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.tuesday.closes)
+              : ''
+            res.takeaway.openingTimes.byDay.wednesday.opens = res.takeaway.openingTimes.byDay.wednesday.opens
+              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.wednesday.opens)
+              : ''
+            res.takeaway.openingTimes.byDay.wednesday.closes = res.takeaway.openingTimes.byDay.wednesday.closes
+              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.wednesday.closes)
+              : ''
+            res.takeaway.openingTimes.byDay.thursday.opens = res.takeaway.openingTimes.byDay.thursday.opens
+              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.thursday.opens)
+              : ''
+            res.takeaway.openingTimes.byDay.thursday.closes = res.takeaway.openingTimes.byDay.thursday.closes
+              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.thursday.closes)
+              : ''
+            res.takeaway.openingTimes.byDay.friday.opens = res.takeaway.openingTimes.byDay.friday.opens
+              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.friday.opens)
+              : ''
+            res.takeaway.openingTimes.byDay.friday.closes = res.takeaway.openingTimes.byDay.friday.closes
+              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.friday.closes)
+              : ''
+            res.takeaway.openingTimes.byDay.saturday.opens = res.takeaway.openingTimes.byDay.saturday.opens
+              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.saturday.opens)
+              : ''
+            res.takeaway.openingTimes.byDay.saturday.closes = res.takeaway.openingTimes.byDay.saturday.closes
+              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.saturday.closes)
+              : ''
+            res.takeaway.openingTimes.byDay.sunday.opens = res.takeaway.openingTimes.byDay.sunday.opens
+              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.sunday.opens)
+              : ''
+            res.takeaway.openingTimes.byDay.sunday.closes = res.takeaway.openingTimes.byDay.sunday.closes
+              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.sunday.closes)
+              : ''
+          }
+          this.restaurantData = res
           console.log('Restaurant details:', this.restaurantData)
         } catch (error) {
           console.error('Error fetching restaurant details:', error)
@@ -845,10 +998,10 @@ export default {
         minimumCharge: this.restaurantData.minimumCharge || null,
         foodArticleNotes: this.restaurantData.foodArticleNotes || '',
         drinkArticleNotes: this.restaurantData.drinkArticleNotes || '',
-        orderNotes: this.restaurantData.orderNotesText || '',
-        dineInConfirmationMessage: this.restaurantData.dineInMessage || '',
-        deliveryConfirmationMessage: this.restaurantData.deliveryMessage || '',
-        takeawayConfirmationMessage: this.restaurantData.takeawayMessage || '',
+        orderNotes: this.restaurantData.orderNotes || '',
+        dineInConfirmationMessage: this.restaurantData.dineInConfirmationMessage || '',
+        deliveryConfirmationMessage: this.restaurantData.deliveryConfirmationMessage || '',
+        takeawayConfirmationMessage: this.restaurantData.takeawayConfirmationMessage || '',
         tabs: this.restaurantData.tabs || false,
         tips: this.restaurantData.tips || false,
       }
@@ -873,10 +1026,11 @@ export default {
       const url = import.meta.env.VITE_API_BASE_URL
 
       const response = await axios.patch(`${url}/outlets/${this.restaurantId}`, data)
-      this.restaurantData = response.data
 
-      this.init({ message: "You've successfully updated outlet", color: 'success' })
-      this.$router.push({ name: 'list' })
+      if (response.status === 200) {
+        this.init({ message: "You've successfully updated outlet", color: 'success' })
+        this.$router.push({ name: 'list' })
+      }
     },
   },
 }
