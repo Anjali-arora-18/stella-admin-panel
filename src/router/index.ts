@@ -33,7 +33,7 @@ const routes: Array<RouteRecordRaw> = [
       // },
       {
         name: 'outlets',
-        path: 'outlets/',
+        path: 'outlets',
         children: [
           {
             name: 'list',
@@ -46,7 +46,7 @@ const routes: Array<RouteRecordRaw> = [
             component: () => import('../pages/service-zone/form.vue'),
           },
           {
-            name: 'restaurant',
+            name: 'update-outlet',
             path: 'update/:id?',
             component: () => import('../pages/service-zone/form.vue'),
           },

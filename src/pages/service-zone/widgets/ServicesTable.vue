@@ -64,7 +64,7 @@ const items = toRef(props, 'items')
       <VaButton
         preset="primary"
         size="small"
-        icon="material-icons-visibility"
+        icon="material-icons-edit"
         @click="router.push('/outlets/update/' + rowData._id)"
       />
     </template>
