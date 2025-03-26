@@ -665,8 +665,8 @@ export default {
       if (this.restaurantId) {
         const url = import.meta.env.VITE_API_BASE_URL
         try {
-          const response = await axios.get(`${url}/outlets?id=${this.restaurantId}`)
-          const res = response.data.length ? response.data[0] : null
+          const response = await axios.get(`${url}/outlets/${this.restaurantId}`)
+          const res = response.data ? response.data : null
           if (res) {
             res.openingTimes.daily.opens = res.openingTimes.daily.opens
               ? this.parseTimeToDate(res.openingTimes.daily.opens)
