@@ -29,6 +29,14 @@ export default {
       },
     },
     {
+      name: 'areas',
+      visible: true,
+      displayName: 'menu.areas',
+      meta: {
+        icon: 'group',
+      },
+    },
+    {
       name: 'tables',
       displayName: 'menu.tables',
       visible: false,
@@ -76,14 +84,7 @@ export default {
         icon: 'group',
       },
     },
-    // {
-    //   name: 'users',
-    //   visible: true,
-    //   displayName: 'menu.users',
-    //   meta: {
-    //     icon: 'group',
-    //   },
-    // },
+
     // {
     //   name: 'projects',
     //   displayName: 'menu.projects',

@@ -38,6 +38,7 @@
   },
   "menu": {
     "auth": "Auth",
+    "areas": "Areas",
     "buttons": "Buttons",
     "timelines": "Timelines",
     "dashboard": "Dashboard",

@@ -15,7 +15,14 @@
       <VaCardContent>
         <VaForm ref="detail-form" class="flex-col justify-start items-start gap-4 inline-flex w-full">
           <div class="flex gap-8 flex-col sm:flex-row w-full">
-            <VaInput id="name" v-model="restaurantData.name" label="Name" class="w-full sm:w-1/2" name="Name" />
+            <VaInput
+              id="name"
+              v-model="restaurantData.name"
+              label="Name"
+              class="w-full sm:w-1/2"
+              name="Name"
+              required-mark
+            />
             <VaInput
               id="description"
               v-model="restaurantData.description"
@@ -25,7 +32,14 @@
             />
           </div>
           <div class="flex gap-8 flex-col sm:flex-row w-full">
-            <VaSelect id="type" v-model="restaurantData.type" label="Type" class="w-full sm:w-1/2" :options="types" />
+            <VaSelect
+              id="type"
+              v-model="restaurantData.type"
+              label="Type"
+              class="w-full sm:w-1/2"
+              :options="types"
+              required-mark
+            />
             <VaInput
               id="address"
               v-model="restaurantData.address"
@@ -42,6 +56,7 @@
               class="w-full sm:w-1/2"
               name="Postcode"
               type="number"
+              required-mark
             />
             <VaInput
               id="email"
@@ -58,7 +73,7 @@
               v-model="restaurantData.phone"
               label="Phone"
               class="w-full sm:w-1/2"
-              name="Phone"
+              name="phone"
               type="number"
             />
             <VaInput
@@ -98,11 +113,11 @@
               type="url"
             />
             <VaInput
-              id="tripAdvisor"
-              v-model="restaurantData.tripAdvisor"
+              id="tripadvisor"
+              v-model="restaurantData.tripadvisor"
               label="TripAdvisor"
               class="w-full sm:w-1/2"
-              name="TripAdvisor"
+              name="tripadvisor"
             />
           </div>
         </VaForm>
@@ -119,13 +134,23 @@
           <div class="flex flex-col w-full mt-4">
             <div class="font-bold">POS:</div>
             <div class="flex flex-col w-full mt-2 config">
-              <VaSwitch v-model="restaurantData.winmax" class="w-fit" label="1. Winmax" left-label size="small" />
-              <div v-if="restaurantData.winmax" class="grid grid-cols-5 gap-8 w-full mt-4">
-                <VaInput v-model="restaurantData.company" name="Company" placeholder="Company" />
-                <VaInput v-model="restaurantData.user" name="User" placeholder="User" />
-                <VaInput v-model="restaurantData.password" name="Password" placeholder="Password" type="password" />
-                <VaInput v-model="restaurantData.terminal" name="Terminal" placeholder="Terminal" type="number" />
-                <VaInput v-model="restaurantData.restaurant_id" name="id" placeholder="Restaurant_id" />
+              <VaSwitch v-model="restaurantData.winmaxConfig" class="w-fit" label="1. Winmax" left-label size="small" />
+              <div v-if="restaurantData.winmaxConfig" class="grid grid-cols-5 gap-8 w-full mt-4">
+                <VaInput v-model="restaurantData.winmaxConfig.company" name="Company" placeholder="Company" />
+                <VaInput v-model="restaurantData.winmaxConfig.user" name="User" placeholder="User" />
+                <VaInput
+                  v-model="restaurantData.winmaxConfig.password"
+                  name="Password"
+                  placeholder="Password"
+                  type="password"
+                />
+                <VaInput
+                  v-model="restaurantData.winmaxConfig.terminal"
+                  name="Terminal"
+                  placeholder="Terminal"
+                  type="number"
+                />
+                <VaInput v-model="restaurantData.winmaxConfig.restaurant_id" name="id" placeholder="Restaurant_id" />
               </div>
             </div>
             <div class="flex flex-col w-full mt-4 config">
@@ -138,6 +163,7 @@
               label="Operating Mode"
               class="w-full sm:w-1/2"
               :options="mode"
+              required-mark
             />
             <VaInput
               v-model="restaurantData.orderTimeLimit"
@@ -518,7 +544,7 @@ export default {
       instagram: '',
       twitter: '',
       website: '',
-      tripAdvisor: '',
+      tripadvisor: '',
       active: false,
       winmax: false,
       company: '',
@@ -656,7 +682,6 @@ export default {
       const [hours, minutes] = timeString.split(':').map(Number)
       const date = new Date()
 
-      // Set time while keeping the current date
       date.setHours(hours, minutes, 0, 0)
 
       return date
@@ -833,7 +858,7 @@ export default {
         instagram: this.restaurantData.instagram || '',
         twitter: this.restaurantData.twitter || '',
         website: this.restaurantData.website || '',
-        tripadvisor: this.restaurantData.tripAdvisor || '',
+        tripadvisor: this.restaurantData.tripadvisor || '',
         active: this.restaurantData.active || false,
         pos: this.restaurantData.winmax ? 'winmax' : this.restaurantData.restus ? 'restus' : '',
         winmaxConfig: {

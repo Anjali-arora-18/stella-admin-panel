@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ServicesTable from './widgets/ServicesTable.vue'
+import EditTableModal from './modals/EditTableModal.vue'
 import { useServiceStore } from '../../stores/services'
 const servicesStore = useServiceStore()
 const items = ref([])
@@ -12,6 +13,7 @@ servicesStore.getAll().then(() => {
   items.value = servicesStore.items
   isLoading.value = false
 })
+const isEditTableModalOpen = ref(false)
 </script>
 
 <template>
@@ -21,7 +23,13 @@ servicesStore.getAll().then(() => {
   </div>
   <VaCard>
     <VaCardContent>
-      <ServicesTable :items="items" :loading="isLoading" />
+      <ServicesTable
+        :selected-rest="servicesStore.selectedRest"
+        :items="items"
+        :loading="isLoading"
+        @openTableModal="isEditTableModalOpen = true"
+      />
     </VaCardContent>
   </VaCard>
+  <EditTableModal v-if="isEditTableModalOpen" @cancel="isEditTableModalOpen = false" />
 </template>

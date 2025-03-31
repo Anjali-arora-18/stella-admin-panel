@@ -17,6 +17,11 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../pages/admin/dashboard/Dashboard.vue'),
       },
       {
+        name: 'areas',
+        path: 'areas',
+        component: () => import('../pages/areas/index.vue'),
+      },
+      {
         name: 'preferences',
         path: 'preferences',
         component: () => import('../pages/preferences/Preferences.vue'),
@@ -50,8 +55,14 @@ const routes: Array<RouteRecordRaw> = [
             path: 'update/:id?',
             component: () => import('../pages/service-zone/form.vue'),
           },
+          {
+            name: 'create-table',
+            path: 'create',
+            component: () => import('../pages/tables/form.vue'),
+          },
         ],
       },
+
       {
         name: 'orders',
         path: 'orders',

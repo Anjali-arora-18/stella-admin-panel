@@ -2,17 +2,22 @@
 import { defineVaDataTableColumns } from 'vuestic-ui'
 import { useRouter, useRoute } from 'vue-router'
 import { toRef } from 'vue'
+import { useServiceStore } from '../../../stores/services'
 
+const emits = defineEmits(['openTableModal'])
+
+const activeCheck = toRef(true)
+const serviceStore = useServiceStore()
 const router = useRouter()
-const route = useRoute()
 const columns = defineVaDataTableColumns([
   { label: 'Id', key: 'id', sortable: false },
   { label: 'Name', key: 'name', sortable: false },
   { label: 'Email', key: 'email', sortable: false },
   { label: 'Address', key: 'address', sortable: false },
-  { label: 'active', key: 'active', sortable: false },
+  { label: 'Active', key: 'active', sortable: false },
   { label: 'Created at', key: 'created_at', sortable: false },
   { label: 'Actions', key: 'actions', sortable: false },
+  { label: 'Select', key: 'select', sortable: false },
 ])
 
 const props = defineProps({
@@ -20,6 +25,7 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  selectedRest: { type: String, default: '' },
   loading: { type: Boolean, default: false },
 })
 
@@ -49,6 +55,7 @@ const items = toRef(props, 'items')
         {{ rowData.address }}
       </div>
     </template>
+
     <template #cell(created_at)="{ rowData }">
       <div class="ellipsis max-w-[230px]">
         {{ rowData.createdAt }}
@@ -61,12 +68,12 @@ const items = toRef(props, 'items')
     </template>
 
     <template #cell(actions)="{ rowData }">
-      <VaButton
-        preset="primary"
-        size="small"
-        icon="material-icons-edit"
-        @click="router.push('/outlets/update/' + rowData._id)"
-      />
+      <VaButton preset="plain" icon="edit" @click="router.push('/outlets/update/' + rowData._id)" />
+      <VaButton preset="plain" icon="delete" class="ml-3" />
+    </template>
+    <template #cell(select)="{ rowData }">
+      <VaBadge v-if="$props.selectedRest === rowData._id" color="success" class="mr-2" text="Selected"></VaBadge>
+      <VaButton v-else :preset="'primary'" @click.prevent="serviceStore.setRest(rowData._id)"> Select </VaButton>
     </template>
   </VaDataTable>
 </template>
@@ -88,5 +95,10 @@ const items = toRef(props, 'items')
   ::v-deep(.va-data-table__table-tr) {
     border-bottom: 1px solid var(--va-background-border);
   }
+}
+
+.expandable_table {
+  background-color: var(--va-background-element);
+  color: var(--va-on-background-element);
 }
 </style>

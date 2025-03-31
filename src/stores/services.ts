@@ -1,10 +1,20 @@
 import { defineStore } from 'pinia'
-import { getServices } from '../data/pages/services'
+import {
+  getServices,
+  getAreas,
+  saveArea,
+  deleteArea,
+  updateArea,
+  createTable,
+  updateTable,
+  deleteTable,
+} from '../data/pages/services'
 
 export const useServiceStore = defineStore('services', {
   state: () => {
     return {
       items: [],
+      selectedRest: '',
     }
   },
 
@@ -13,12 +23,29 @@ export const useServiceStore = defineStore('services', {
       const { data } = await getServices()
       this.items = data
     },
-
-    // async update(user: User) {
-    //   const [updatedUser] = await updateUser(user)
-    //   const index = this.items.findIndex(({ id }) => id === user.id)
-    //   this.items.splice(index, 1, updatedUser)
-    //   return updatedUser
-    // },
+    async getAreas() {
+      return await getAreas(this.selectedRest)
+    },
+    async saveArea(payload) {
+      return await saveArea(payload)
+    },
+    async updateArea(payload) {
+      return await updateArea(payload)
+    },
+    async deleteArea(payload) {
+      return await deleteArea(payload)
+    },
+    async createTable(payload) {
+      return await createTable(payload)
+    },
+    async updateTable(payload) {
+      return await updateTable(payload)
+    },
+    async deleteTable(payload) {
+      return await deleteTable(payload)
+    },
+    setRest(payload) {
+      this.selectedRest = payload
+    },
   },
 })
