@@ -55,11 +55,6 @@ const routes: Array<RouteRecordRaw> = [
             path: 'update/:id?',
             component: () => import('../pages/service-zone/form.vue'),
           },
-          {
-            name: 'create-table',
-            path: 'create',
-            component: () => import('../pages/tables/form.vue'),
-          },
         ],
       },
 
