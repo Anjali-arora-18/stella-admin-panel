@@ -8,6 +8,7 @@ import {
   createTable,
   updateTable,
   deleteTable,
+  deleteOutlet,
 } from '../data/pages/services'
 
 export const useServiceStore = defineStore('services', {
@@ -22,6 +23,9 @@ export const useServiceStore = defineStore('services', {
     async getAll() {
       const { data } = await getServices()
       this.items = data
+    },
+    async deleteOutlet(payload) {
+      await deleteOutlet(payload)
     },
     async getAreas() {
       return await getAreas(this.selectedRest)

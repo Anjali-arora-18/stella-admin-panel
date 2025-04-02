@@ -6,6 +6,9 @@ export const getServices = async () => {
     data: data,
   }
 }
+export const deleteOutlet = async (payload) => {
+  return await axios.delete(api.allServices() + '/' + payload)
+}
 export const getAreas = async (payload) => {
   const { data } = await axios.get(api.allAreas(payload))
   return {

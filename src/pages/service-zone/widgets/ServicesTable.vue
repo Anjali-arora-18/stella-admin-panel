@@ -4,7 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { toRef } from 'vue'
 import { useServiceStore } from '../../../stores/services'
 
-const emits = defineEmits(['openTableModal'])
+const emits = defineEmits(['openTableModal', 'loadData'])
 
 const activeCheck = toRef(true)
 const serviceStore = useServiceStore()
@@ -30,6 +30,12 @@ const props = defineProps({
 })
 
 const items = toRef(props, 'items')
+
+function deleteOutlet(id) {
+  serviceStore.deleteOutlet(id).then((response) => {
+    emits('loadData')
+  })
+}
 </script>
 
 <template>
@@ -69,7 +75,7 @@ const items = toRef(props, 'items')
 
     <template #cell(actions)="{ rowData }">
       <VaButton preset="plain" icon="edit" @click="router.push('/outlets/update/' + rowData._id)" />
-      <VaButton preset="plain" icon="delete" class="ml-3" />
+      <VaButton preset="plain" icon="delete" class="ml-3" @click="deleteOutlet(rowData._id)" />
     </template>
     <template #cell(select)="{ rowData }">
       <VaBadge v-if="$props.selectedRest === rowData._id" color="success" class="mr-2" text="Selected"></VaBadge>

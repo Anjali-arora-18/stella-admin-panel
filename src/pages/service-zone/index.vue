@@ -9,10 +9,13 @@ const items = ref([])
 const isLoading = ref(true)
 const route = useRoute()
 const { push } = useRouter()
-servicesStore.getAll().then(() => {
-  items.value = servicesStore.items
-  isLoading.value = false
-})
+function loadData() {
+  servicesStore.getAll().then(() => {
+    items.value = servicesStore.items
+    isLoading.value = false
+  })
+}
+loadData()
 const isEditTableModalOpen = ref(false)
 </script>
 
@@ -27,6 +30,7 @@ const isEditTableModalOpen = ref(false)
         :selected-rest="servicesStore.selectedRest"
         :items="items"
         :loading="isLoading"
+        @loadData="loadData"
         @openTableModal="isEditTableModalOpen = true"
       />
     </VaCardContent>
