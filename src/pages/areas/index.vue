@@ -6,6 +6,7 @@ import EditTableModal from './modals/EditTableModal.vue'
 import AreaFormModal from './modals/AreaFormModal.vue'
 import { useServiceStore } from '../../stores/services'
 import { useToast } from 'vuestic-ui'
+
 const servicesStore = useServiceStore()
 const items = ref([])
 const openAreaModal = ref(false)
@@ -55,7 +56,12 @@ function cancelTable() {
 async function getAreas() {
   isLoading.value = true
   await servicesStore.getAreas().then((response) => {
-    items.value = response.data
+    items.value = response.data.map((e) => {
+      return {
+        ...e,
+        filteredTables: e.tables,
+      }
+    })
   })
   isLoading.value = false
 }
@@ -140,16 +146,18 @@ async function deleteArea(payload) {
 
 <template>
   <div>
-    <div class="flex">
+    <div class="flex items-center justify-between">
       <h1 class="page-title font-bold">Areas</h1>
-      <VaButton
-        :disabled="!servicesStore.selectedRest"
-        class="ml-auto h-fit"
-        color="primary"
-        @click="openAreaModal = true"
-        >Create</VaButton
-      >
+      <div class="flex gap-2">
+        <VaButton v-for="row in items" :key="row._id" color="primary" size="small" @click="openTableModal(row._id)">
+          Create Table
+        </VaButton>
+        <VaButton :disabled="!servicesStore.selectedRest" size="small" color="primary" @click="openAreaModal = true">
+          Create Area
+        </VaButton>
+      </div>
     </div>
+
     <VaCard>
       <VaCardContent>
         <AreasTable
@@ -168,13 +176,13 @@ async function deleteArea(payload) {
     <EditTableModal
       v-if="isEditTableModalOpen"
       :table-data="tableData"
-      :area-id="areaId"
+      :area="items"
       @loadAreas="getAreas"
       @cancel="cancelTable"
     />
     <AreaFormModal
       v-if="openAreaModal"
-      :area="area"
+      :area="items"
       :outlet-id="outletId"
       @submitArea="submitArea"
       @updateArea="updateArea"

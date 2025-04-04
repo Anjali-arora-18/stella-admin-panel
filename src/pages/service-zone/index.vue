@@ -35,5 +35,5 @@ const isEditTableModalOpen = ref(false)
       />
     </VaCardContent>
   </VaCard>
-  <EditTableModal v-if="isEditTableModalOpen" @cancel="isEditTableModalOpen = false" />
+  <!-- <EditTableModal v-if="isEditTableModalOpen" @cancel="isEditTableModalOpen = false" /> -->
 </template>

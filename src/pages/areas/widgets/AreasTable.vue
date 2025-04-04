@@ -4,7 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { toRef } from 'vue'
 import { useServiceStore } from '../../../stores/services'
 
-const emits = defineEmits(['openTableModal', 'deleteArea', 'editArea', 'loadArea', 'editTable'])
+const emits = defineEmits(['deleteArea', 'editArea', 'loadArea', 'editTable'])
 const { init } = useToast()
 const serviceStore = useServiceStore()
 const columns = defineVaDataTableColumns([
@@ -24,6 +24,19 @@ const tableColumns = defineVaDataTableColumns([
   { label: 'Active', key: 'active', sortable: false },
   { label: 'Actions', key: 'actions', sortable: false },
 ])
+
+function filterTableData($event, rowData) {
+  const searchInput = $event.target.value
+  const rowIndex = items.value.findIndex((item) => item._id === rowData._id)
+  if (searchInput.length > 0) {
+    items.value[rowIndex].filteredTables = rowData.tables.filter((item) => {
+      console.log(item)
+      return item.name.toLowerCase().includes(searchInput.toLowerCase()) || item.number.toString().includes(searchInput)
+    })
+  } else {
+    items.value[rowIndex].filteredTables = rowData.tables
+  }
+}
 
 const props = defineProps({
   items: {
@@ -83,18 +96,16 @@ const items = toRef(props, 'items')
 
     <template #expandableRow="{ rowData }">
       <div class="expandable_table">
-        <div class="flex">
-          <VaButton
-            class="ml-auto h-fit mt-4 mr-4"
-            preset="primary"
-            size="small"
-            @click="emits('openTableModal', rowData._id)"
-            >Create Table</VaButton
-          >
-        </div>
+        <VaInput
+          class="search-input"
+          placeholder="Search..."
+          type="text"
+          size="small"
+          @input="filterTableData($event, rowData)"
+        />
         <VaDataTable
           style="flex-grow: 1; width: 100%"
-          :items="rowData.tables"
+          :items="rowData.filteredTables"
           :columns="tableColumns"
           :loading="$props.loading"
         >
@@ -115,7 +126,7 @@ const items = toRef(props, 'items')
           </template>
 
           <template #cell(discount)="{ rowData }">
-            <div class="max-w-[120px] ellipsis">{{ rowData.discount }} %</div>
+            <div class="max-w-[120px] ellipsis">{{ rowData.discount }}%</div>
           </template>
 
           <template #cell(active)="{ rowData }">
@@ -180,5 +191,10 @@ const items = toRef(props, 'items')
 .expandable_table {
   background-color: var(--va-background-element);
   color: var(--va-on-background-element);
+}
+.search-input {
+  width: 40%;
+  padding: 6px;
+  font-size: 0.8rem;
 }
 </style>

@@ -3,38 +3,68 @@
     :mobile-fullscreen="false"
     size="small"
     hide-default-actions
-    max-width="380px"
+    max-width="420px"
     model-value
     close-button
     @update:modelValue="emits('cancel')"
   >
-    <h1 class="va-h5 mb-4">Create Table</h1>
+    <h1 class="va-h6">{{ tableData ? 'Edit Table' : 'Create Table' }}</h1>
     <VaForm ref="form" @submit="save">
+      <VaSelect
+        id="area"
+        v-model="table.areaId"
+        :options="areas"
+        :track-by="(option) => option.value"
+        :value-by="(option) => option.value"
+        :rules="[validators.required]"
+        required-mark
+        label="Area"
+        class="w-full mb-1"
+      />
       <VaSelect
         id="type"
         v-model="table.type"
         :rules="[validators.required]"
         label="Type"
         :options="['Table', 'Delivery', 'Takeaway', 'Umbrella', 'Sunbed', 'Office']"
-        class="w-full mb-2"
+        class="w-full mb-1"
       />
+      <div v-if="!tableData" class="mb-1 flex flex-wrap gap-4">
+        <VaInput
+          v-model="table.from"
+          :rules="[validators.required]"
+          class="flex-1 min-w-[120px]"
+          label="Range From"
+          placeholder="From"
+          type="number"
+        />
+        <VaInput
+          v-model="table.to"
+          :rules="[validators.required]"
+          class="flex-1 min-w-[120px]"
+          label="Range To"
+          placeholder="To"
+          type="number"
+        />
+      </div>
       <VaInput
+        v-else
         v-model="table.number"
         :rules="[validators.required]"
-        class="mb-4"
-        label="Numbers"
-        placeholder="Numbers"
-        type="number"
+        class="mb-1"
+        label="Number"
+        placeholder="Number"
+        type="text"
       />
       <VaInput
         v-model="table.name"
         :rules="[validators.required]"
-        class="mb-4"
+        class="mb-1"
         label="Name"
         placeholder="Name"
         type="text"
       />
-      <VaInput v-model="table.prefix" class="mb-4" label="Prefix" placeholder="prefix" type="number" />
+      <VaInput v-model="table.prefix" class="mb-1" label="Prefix" placeholder="prefix" type="number" />
       <VaInput v-model="table.discount" class="mb-4" label="Discount" placeholder="Discount" type="number" />
       <VaCheckbox v-model="table.active" label="Is active?" />
       <div class="flex flex-col-reverse md:flex-row md:items-center md:justify-end md:space-x-4">
@@ -45,12 +75,12 @@
   </VaModal>
 </template>
 <script lang="ts" setup>
-import { ref, defineEmits } from 'vue'
+import { ref, defineEmits, computed } from 'vue'
 import { useToast, useForm } from 'vuestic-ui'
 import { validators } from '../../../services/utils'
 import { useServiceStore } from '../../../stores/services'
 const props = defineProps({
-  areaId: { type: String, default: '' },
+  area: { type: Array, default: null },
   tableData: {
     type: Object,
     default: null,
@@ -61,9 +91,12 @@ const { init } = useToast()
 const emits = defineEmits(['cancel', 'loadAreas'])
 const serviceStore = useServiceStore()
 const table: any = ref({
+  area: '',
   type: '',
   number: 1,
   prefix: '',
+  from: 0,
+  to: 0,
   name: '',
   areaId: '',
   discount: 0,
@@ -73,6 +106,12 @@ const table: any = ref({
 if (props.tableData) {
   table.value = props.tableData
 }
+
+const areas = computed(() =>
+  props.area.map((e: any) => {
+    return { text: e.name, value: e._id }
+  }),
+)
 
 async function save() {
   if (validate()) {
@@ -84,11 +123,10 @@ async function save() {
         },
         id: table.value._id,
       }
-      response = await serviceStore.updateTable({ ...data, areaId: props.areaId })
+      response = await serviceStore.updateTable({ ...data })
     } else {
       const data = {
         ...table.value,
-        areaId: props.areaId,
       }
       response = await serviceStore.createTable(data)
     }

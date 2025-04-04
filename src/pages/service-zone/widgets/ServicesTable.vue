@@ -3,7 +3,7 @@ import { defineVaDataTableColumns } from 'vuestic-ui'
 import { useRouter, useRoute } from 'vue-router'
 import { toRef } from 'vue'
 import { useServiceStore } from '../../../stores/services'
-
+import axios from 'axios'
 const emits = defineEmits(['openTableModal', 'loadData'])
 
 const activeCheck = toRef(true)
@@ -15,7 +15,8 @@ const columns = defineVaDataTableColumns([
   { label: 'Email', key: 'email', sortable: false },
   { label: 'Address', key: 'address', sortable: false },
   { label: 'Active', key: 'active', sortable: false },
-  { label: 'Created at', key: 'created_at', sortable: false },
+  // { label: 'Created at', key: 'created_at', sortable: false },
+  { label: 'Download QR', key: 'download_qr', sortable: false },
   { label: 'Actions', key: 'actions', sortable: false },
   { label: 'Select', key: 'select', sortable: false },
 ])
@@ -34,6 +35,18 @@ const items = toRef(props, 'items')
 function deleteOutlet(id) {
   serviceStore.deleteOutlet(id).then((response) => {
     emits('loadData')
+  })
+}
+
+function downloadQrCode(rowData) {
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+  const data = 'https://' + rowData.name + '.' + import.meta.env.VITE_REST_APP_URL
+  axios.get(`${apiBaseUrl}/qrcode?data=${data}`).then((response) => {
+    const base64Data = response.data.qrCode
+    const a = document.createElement('a')
+    a.href = base64Data
+    a.download = `${rowData.name}`
+    a.click()
   })
 }
 </script>
@@ -62,9 +75,29 @@ function deleteOutlet(id) {
       </div>
     </template>
 
-    <template #cell(created_at)="{ rowData }">
+    <!-- <template #cell(created_at)="{ rowData }">
       <div class="ellipsis max-w-[230px]">
         {{ rowData.createdAt }}
+      </div>
+    </template> -->
+    <template #cell(download_qr)="{ rowData }">
+      <div class="text-center">
+        <VaButton preset="plain" size="small" class="underline text-light text-center" @click="downloadQrCode(rowData)"
+          ><svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+            />
+          </svg>
+        </VaButton>
       </div>
     </template>
     <template #cell(active)="{ rowData }">
