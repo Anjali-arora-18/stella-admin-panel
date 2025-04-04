@@ -105,6 +105,9 @@ const table: any = ref({
 
 if (props.tableData) {
   table.value = props.tableData
+} else {
+  table.value.from = 1
+  table.value.to = 1
 }
 
 const areas = computed(() =>
