@@ -64,7 +64,7 @@
         placeholder="Name"
         type="text"
       />
-      <VaInput v-model="table.prefix" class="mb-1" label="Prefix" placeholder="prefix" type="number" />
+      <VaInput v-if="!tableData" v-model="table.prefix" class="mb-1" label="Prefix" placeholder="prefix" type="text" />
       <VaInput v-model="table.discount" class="mb-4" label="Discount" placeholder="Discount" type="number" />
       <VaCheckbox v-model="table.active" label="Is active?" />
       <div class="flex flex-col-reverse md:flex-row md:items-center md:justify-end md:space-x-4">
@@ -130,6 +130,7 @@ async function save() {
     } else {
       const data = {
         ...table.value,
+        area: table.value.areaId,
       }
       response = await serviceStore.createTable(data)
     }

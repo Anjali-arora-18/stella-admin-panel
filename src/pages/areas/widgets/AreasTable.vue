@@ -1,11 +1,20 @@
 <script setup lang="ts">
-import { defineVaDataTableColumns, useToast } from 'vuestic-ui'
+import { defineVaDataTableColumns, useToast, useModal } from 'vuestic-ui'
 import { useRouter, useRoute } from 'vue-router'
-import { toRef } from 'vue'
+import { toRef, computed } from 'vue'
 import { useServiceStore } from '../../../stores/services'
+import { validators } from '../../../services/utils'
+const props = defineProps({
+  items: {
+    type: Array,
+    required: true,
+  },
+  loading: { type: Boolean, default: false },
+})
 
-const emits = defineEmits(['deleteArea', 'editArea', 'loadArea', 'editTable'])
+const emits = defineEmits(['deleteArea', 'editArea', 'loadArea', 'editTable', 'loadAreaTable'])
 const { init } = useToast()
+const { confirm } = useModal()
 const serviceStore = useServiceStore()
 const columns = defineVaDataTableColumns([
   { label: 'Id', key: 'id', sortable: false },
@@ -17,10 +26,11 @@ const columns = defineVaDataTableColumns([
 
 const tableColumns = defineVaDataTableColumns([
   { label: 'Id', key: 'id', sortable: false },
-  { label: 'Type', key: 'type', sortable: false },
-  { label: 'Number', key: 'number', sortable: false },
-  { label: 'Name', key: 'name', sortable: false },
-  { label: 'Discount', key: 'discount', sortable: false },
+  { label: 'Type', key: 'type', sortable: true },
+  { label: 'Area', key: 'area', sortable: true },
+  { label: 'Number', key: 'number', sortable: true },
+  { label: 'Name', key: 'name', sortable: true },
+  { label: 'Discount', key: 'discount', sortable: true },
   { label: 'Active', key: 'active', sortable: false },
   { label: 'Actions', key: 'actions', sortable: false },
 ])
@@ -38,20 +48,27 @@ function filterTableData($event, rowData) {
   }
 }
 
-const props = defineProps({
-  items: {
-    type: Array,
-    required: true,
-  },
-  loading: { type: Boolean, default: false },
-})
-
 function deleteArea(payload) {
   emits('deleteArea', payload)
 }
 
 function editArea(payload) {
   emits('editArea', payload)
+}
+
+const onButtonClick = async (payload) => {
+  const result = await confirm({
+    message: 'Are you sure you want to see delete this table?',
+    okText: 'Yes',
+    cancelText: 'No',
+    size: 'medium',
+    title: 'Delete Table',
+  })
+  if (result) {
+    deleteTable(payload)
+  } else {
+    init({ message: 'Table deletion cancelled.', color: 'info' })
+  }
 }
 
 async function deleteTable(payload) {
@@ -66,19 +83,47 @@ async function deleteTable(payload) {
     })
 }
 
+function updateTable(rowData, areaId) {
+  const payload = {
+    id: rowData._id,
+    data: {
+      ...rowData,
+      number: rowData.number,
+      name: rowData.name,
+      discount: rowData.discount,
+      active: rowData.active,
+    },
+  }
+  serviceStore
+    .updateTable(payload)
+    .then(() => {
+      init({ message: 'Table updated successfully.', color: 'success' })
+      emits('loadAreaTable', areaId)
+    })
+    .catch((err) => {
+      init({ message: err.response.data, color: 'danger' })
+    })
+}
+
 const items = toRef(props, 'items')
+
+const areas = computed(() =>
+  items.value.map((e: any) => {
+    return { text: e.name, value: e._id }
+  }),
+)
 </script>
 
 <template>
   <VaDataTable :columns="columns" :items="items" :loading="$props.loading">
     <template #cell(id)="{ rowData }">
-      <div class="max-w-[120px] ellipsis">
+      <div class="ellipsis">
         {{ rowData.id }}
       </div>
     </template>
 
     <template #cell(name)="{ rowData }">
-      <div class="ellipsis max-w-[230px]">
+      <div class="ellipsis">
         {{ rowData.name }}
       </div>
     </template>
@@ -94,10 +139,10 @@ const items = toRef(props, 'items')
       </div>
     </template>
 
-    <template #expandableRow="{ rowData }">
-      <div class="expandable_table">
+    <template #expandableRow="{ rowData, itemKey }">
+      <div class="expandable_table rounded p-5">
         <VaInput
-          class="search-input"
+          class="search-input h-12"
           placeholder="Search..."
           type="text"
           size="small"
@@ -110,27 +155,61 @@ const items = toRef(props, 'items')
           :loading="$props.loading"
         >
           <template #cell(id)="{ rowData }">
-            <div class="max-w-[120px] ellipsis">{{ rowData._id }}</div>
+            <div class="ellipsis">{{ rowData._id }}</div>
           </template>
 
           <template #cell(type)="{ rowData }">
-            <div class="max-w-[120px] ellipsis">{{ rowData.type }}</div>
+            <div v-if="!rowData.isEdit" class="ellipsis" @click="rowData.isEdit = true">
+              {{ rowData.type }}
+            </div>
+            <VaSelect
+              v-else
+              id="type"
+              v-model="rowData.type"
+              size="small"
+              :rules="[validators.required]"
+              :options="['Table', 'Delivery', 'Takeaway', 'Umbrella', 'Sunbed', 'Office']"
+              class="mb-1"
+            />
+          </template>
+          <template #cell(area)="{ rowData }">
+            <div v-if="!rowData.isEdit" class="ellipsis" @click="rowData.isEdit = true">
+              {{ areas.find((area) => area.value === rowData.areaId)?.text }}
+            </div>
+            <VaSelect
+              v-else
+              id="area"
+              v-model="rowData.areaId"
+              :options="areas"
+              :track-by="(option) => option.value"
+              :value-by="(option) => option.value"
+              :rules="[validators.required]"
+              required-mark
+              class="mb-1"
+            />
           </template>
 
           <template #cell(number)="{ rowData }">
-            <div class="max-w-[120px] ellipsis">{{ rowData.number }}</div>
+            <div v-if="!rowData.isEdit" class="ellipsis" @click="rowData.isEdit = true">
+              {{ rowData.number }}
+            </div>
+            <VaInput v-else v-model="rowData.number" type="text" size="small" class="no-border-input" />
           </template>
 
           <template #cell(name)="{ rowData }">
-            <div class="ellipsis max-w-[230px]">{{ rowData.name }}</div>
+            <div v-if="!rowData.isEdit" class="ellipsis" @click="rowData.isEdit = true">
+              {{ rowData.name }}
+            </div>
+            <VaInput v-else v-model="rowData.name" type="text" size="small" class="" />
           </template>
 
           <template #cell(discount)="{ rowData }">
-            <div class="max-w-[120px] ellipsis">{{ rowData.discount }}%</div>
+            <div v-if="!rowData.isEdit" class="ellipsis" @click="rowData.isEdit = true">{{ rowData.discount }}%</div>
+            <VaInput v-else v-model="rowData.discount" type="number" size="small" suffix="%" class="" />
           </template>
 
           <template #cell(active)="{ rowData }">
-            <div class="max-w-[120px] ellipsis">
+            <div class="ellipsis">
               <VaBadge
                 :color="rowData.active ? 'success' : 'danger'"
                 :text="rowData.active ? 'Active' : 'Inactive'"
@@ -139,14 +218,29 @@ const items = toRef(props, 'items')
           </template>
 
           <template #cell(actions)="{ rowData }">
-            <VaButton preset="plain" icon="edit" @click="emits('editTable', rowData)" />
-            <VaButton preset="plain" icon="delete" class="ml-3" @click="deleteTable(rowData._id)" />
+            <VaButton preset="primary" size="small" icon="edit" @click="$emit('editTable', rowData)" />
+            <VaButton
+              :disabled="!rowData.isEdit"
+              preset="primary"
+              size="small"
+              icon="save"
+              class="ml-2"
+              @click="updateTable(rowData, itemKey._id)"
+            />
+            <VaButton
+              preset="primary"
+              size="small"
+              icon="mso-delete"
+              color="danger"
+              class="ml-3"
+              @click="onButtonClick(rowData._id)"
+            />
           </template>
         </VaDataTable>
       </div>
     </template>
     <template #cell(disabled)="{ rowData }">
-      <div class="max-w-[120px] ellipsis">
+      <div class="ellipsis">
         <VaBadge
           :color="!rowData.disabled ? 'success' : 'danger'"
           :text="rowData.disabled ? 'Disabled' : 'Enabled'"
@@ -169,7 +263,7 @@ const items = toRef(props, 'items')
   </VaDataTable>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .notification-dropdown {
   cursor: pointer;
 
@@ -196,5 +290,12 @@ const items = toRef(props, 'items')
   width: 40%;
   padding: 6px;
   font-size: 0.8rem;
+}
+.inline-input {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  font-size: 0.875rem;
 }
 </style>

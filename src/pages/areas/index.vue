@@ -6,7 +6,7 @@ import EditTableModal from './modals/EditTableModal.vue'
 import AreaFormModal from './modals/AreaFormModal.vue'
 import { useServiceStore } from '../../stores/services'
 import { useToast } from 'vuestic-ui'
-
+import axios from 'axios'
 const servicesStore = useServiceStore()
 const items = ref([])
 const openAreaModal = ref(false)
@@ -27,8 +27,7 @@ watch(
   },
 )
 
-function openTableModal(payload) {
-  areaId.value = payload
+function openTableModal() {
   isEditTableModalOpen.value = true
 }
 function editArea(payload) {
@@ -41,6 +40,27 @@ function editTable(payload) {
   areaId.value = payload.areaId
   tableData.value = payload
 }
+
+// function loadAreaTable(payload) {
+//   const url = import.meta.env.VITE_API_BASE_URL
+//   axios.get(`${url}/tables/?areaId=${payload}`).then((response) => {
+//     items.value = items.value.map((e) => {
+//       if (e._id === payload) {
+//         return {
+//           ...e,
+//           filteredTables: response.data.map((a) => {
+//             return {
+//               ...a,
+//               isEdit: false,
+//             }
+//           }),
+//         }
+//       }
+//       return e
+//     })
+//   })
+// }
+
 function cancelArea() {
   getAreas()
   openAreaModal.value = false
@@ -53,13 +73,20 @@ function cancelTable() {
   areaId.value = ''
   tableData.value = ''
 }
-async function getAreas() {
-  isLoading.value = true
+async function getAreas(loader = true) {
+  if (loader) {
+    isLoading.value = true
+  }
   await servicesStore.getAreas().then((response) => {
     items.value = response.data.map((e) => {
       return {
         ...e,
-        filteredTables: e.tables,
+        filteredTables: e.tables.map((a) => {
+          return {
+            ...a,
+            isEdit: false,
+          }
+        }),
       }
     })
   })
@@ -149,9 +176,7 @@ async function deleteArea(payload) {
     <div class="flex items-center justify-between">
       <h1 class="page-title font-bold">Areas</h1>
       <div class="flex gap-2">
-        <VaButton v-for="row in items" :key="row._id" color="primary" size="small" @click="openTableModal(row._id)">
-          Create Table
-        </VaButton>
+        <VaButton color="primary" size="small" @click="openTableModal()"> Create Table </VaButton>
         <VaButton :disabled="!servicesStore.selectedRest" size="small" color="primary" @click="openAreaModal = true">
           Create Area
         </VaButton>
@@ -167,6 +192,7 @@ async function deleteArea(payload) {
           @loadArea="getAreas"
           @editArea="editArea"
           @deleteArea="deleteArea"
+          @loadAreaTable="getAreas(false)"
           @editTable="editTable"
           @openTableModal="openTableModal"
         />

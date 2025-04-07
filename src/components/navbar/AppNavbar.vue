@@ -32,6 +32,8 @@ import { useGlobalStore } from '../../stores/global-store'
 import AppNavbarActions from './components/AppNavbarActions.vue'
 import VuesticLogo from '../VuesticLogo.vue'
 import { useServiceStore } from '../../stores/services'
+import { useRoute } from 'vue-router'
+const route = useRoute()
 const servicesStore = useServiceStore()
 defineProps({
   isMobile: { type: Boolean, default: false },
@@ -44,15 +46,24 @@ const restOptions = ref([])
 const restlist = ref([])
 const { isSidebarMinimized } = storeToRefs(GlobalStore)
 
-servicesStore.getAll().then(() => {
-  restlist.value = servicesStore.items
-  restOptions.value = servicesStore.items.map((e) => e.name)
-})
+const getOutlets = () => {
+  servicesStore.getAll().then(() => {
+    restlist.value = servicesStore.items
+    restOptions.value = servicesStore.items.map((e) => e.name)
+  })
+}
+getOutlets()
 
 watch(
   () => servicesStore.selectedRest,
   () => {
     selectedRest.value = restlist.value.find((a) => a._id === servicesStore.selectedRest).name
+  },
+)
+watch(
+  () => route.name,
+  () => {
+    getOutlets()
   },
 )
 
