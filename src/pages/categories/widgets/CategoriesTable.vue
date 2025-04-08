@@ -18,11 +18,11 @@ const columns = defineVaDataTableColumns([
 
 const onButtonCategoryDelete = async (payload) => {
   const result = await confirm({
-    message: 'Are you sure you want to see delete this Area?',
+    message: 'Are you sure you want to see delete this Category?',
     okText: 'Yes',
     cancelText: 'No',
     size: 'medium',
-    title: 'Delete Area',
+    title: 'Delete Category',
   })
   if (result) {
     deleteCategory(payload)
