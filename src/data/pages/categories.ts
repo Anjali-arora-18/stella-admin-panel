@@ -7,6 +7,13 @@ export const getCategories = async (payload) => {
   }
 }
 
+export const deleteCategory = async (payload) => {
+  const { data } = await axios.delete(api.deleteCategory(payload))
+  return {
+    data: data,
+  }
+}
+
 // export const updateUser = async (user: User) => {
 //   const headers = new Headers()
 //   headers.append('Content-Type', 'application/json')

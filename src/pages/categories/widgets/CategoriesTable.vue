@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { defineVaDataTableColumns } from 'vuestic-ui'
+import { defineVaDataTableColumns, useModal } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
 import { toRef } from 'vue'
 
 const emits = defineEmits(['updateCategoryModal'])
-
+const { confirm } = useModal()
 const router = useRouter()
 const columns = defineVaDataTableColumns([
   { label: 'ID', key: 'id' },
@@ -15,6 +15,22 @@ const columns = defineVaDataTableColumns([
   { label: 'Schedule', key: 'schedule', sortable: false },
   { label: 'Actions', key: 'actions', sortable: false },
 ])
+
+const onButtonCategoryDelete = async (payload) => {
+  const result = await confirm({
+    message: 'Are you sure you want to see delete this Area?',
+    okText: 'Yes',
+    cancelText: 'No',
+    size: 'medium',
+    title: 'Delete Area',
+  })
+  if (result) {
+    deleteCategory(payload)
+  }
+}
+function deleteCategory(payload) {
+  emits('deleteCategory', payload)
+}
 
 const props = defineProps({
   items: {
@@ -57,7 +73,14 @@ const items = toRef(props, 'items')
 
     <template #cell(actions)="{ rowData }">
       <VaButton preset="primary" size="small" icon="mso-edit" @click="emits('updateCategoryModal', rowData)" />
-      <VaButton preset="primary" size="small" color="danger" icon="mso-delete" class="ml-2" />
+      <VaButton
+        preset="primary"
+        size="small"
+        color="danger"
+        icon="mso-delete"
+        class="ml-2"
+        @click="onButtonCategoryDelete(rowData)"
+      />
     </template>
   </VaDataTable>
 </template>

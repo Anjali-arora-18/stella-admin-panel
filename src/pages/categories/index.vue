@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useToast } from 'vuestic-ui'
 import { useRoute } from 'vue-router'
 import CategoriesTable from './widgets/CategoriesTable.vue'
 import { useCategoryStore } from '../../stores/categories'
@@ -8,7 +9,7 @@ import EditCategoryModal from './modals/EditCategoryModal.vue'
 import ImportCategoryModal from './modals/ImportCategoryModal.vue'
 const isEditCategoryModalOpen = ref(false)
 const categoriesStore = useCategoryStore()
-
+const { init } = useToast()
 const serviceStore = useServiceStore()
 const items = ref([])
 const selectedCategory = ref('')
@@ -37,6 +38,32 @@ watch(
   { immediate: true },
 )
 
+async function deleteCategory(payload) {
+  const data = {
+    id: payload._id,
+  }
+  categoriesStore
+    .deleteCategory(data)
+    .then((response) => {
+      init({
+        message: "You've successfully deleted Category",
+        color: 'success',
+      })
+      getCategories(serviceStore.selectedRest)
+    })
+    .catch((err) => {
+      init({
+        message: err.response.data,
+        color: 'error',
+      })
+    })
+}
+
+const closeImportCategoryModal = () => {
+  isImportCategoryModalOpen.value = false
+  getCategories(serviceStore.selectedRest)
+}
+
 const isImportCategoryModalOpen = ref(false)
 </script>
 
@@ -51,17 +78,19 @@ const isImportCategoryModalOpen = ref(false)
 
   <VaCard>
     <VaCardContent>
-      <CategoriesTable :items="items" :loading="isLoading" @updateCategoryModal="updateCategory" />
+      <CategoriesTable
+        :items="items"
+        :loading="isLoading"
+        @deleteCategory="deleteCategory"
+        @updateCategoryModal="updateCategory"
+      />
     </VaCardContent>
   </VaCard>
 
   <EditCategoryModal
     v-if="isEditCategoryModalOpen"
     :selected-category="selectedCategory"
-    @cancel="isEditCategoryModalOpen = false"
+    @cancel="(isEditCategoryModalOpen = false), getCategories(serviceStore.selectedRest)"
   />
-  <ImportCategoryModal
-    v-if="isImportCategoryModalOpen"
-    @cancel="(isImportCategoryModalOpen = false), getCategories(serviceStore.selectedRest)"
-  />
+  <ImportCategoryModal v-if="isImportCategoryModalOpen" @cancel="closeImportCategoryModal" />
 </template>

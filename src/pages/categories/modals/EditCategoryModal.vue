@@ -266,7 +266,7 @@ const submit = () => {
       axios
         .post(`${url}/menuCategories`, data)
         .then((response) => {
-          init({ message: "You've successfully updated", color: 'success' })
+          init({ message: "You've successfully created", color: 'success' })
           emits('cancel')
         })
         .catch((err) => {

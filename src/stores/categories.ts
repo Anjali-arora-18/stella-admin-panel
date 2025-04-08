@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { getCategories } from '../data/pages/categories'
+import { deleteCategory, getCategories } from '../data/pages/categories'
 
 export const useCategoryStore = defineStore('categories', {
   state: () => {
@@ -14,11 +14,8 @@ export const useCategoryStore = defineStore('categories', {
       this.items = data
     },
 
-    // async update(user: User) {
-    //   const [updatedUser] = await updateUser(user)
-    //   const index = this.items.findIndex(({ id }) => id === user.id)
-    //   this.items.splice(index, 1, updatedUser)
-    //   return updatedUser
-    // },
+    async deleteCategory(payload) {
+      return await await deleteCategory(payload)
+    },
   },
 })
