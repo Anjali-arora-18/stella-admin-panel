@@ -107,8 +107,15 @@ function downloadQrCode(rowData) {
     </template>
 
     <template #cell(actions)="{ rowData }">
-      <VaButton preset="plain" icon="edit" @click="router.push('/outlets/update/' + rowData._id)" />
-      <VaButton preset="plain" icon="delete" class="ml-3" @click="deleteOutlet(rowData._id)" />
+      <VaButton preset="primary" size="small" icon="mso-edit" @click="router.push('/outlets/update/' + rowData._id)" />
+      <VaButton
+        preset="primary"
+        size="small"
+        color="danger"
+        icon="mso-delete"
+        class="ml-2"
+        @click="deleteOutlet(rowData._id)"
+      />
     </template>
     <template #cell(select)="{ rowData }">
       <VaBadge v-if="$props.selectedRest === rowData._id" color="success" class="mr-2" text="Selected"></VaBadge>

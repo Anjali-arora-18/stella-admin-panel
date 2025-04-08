@@ -14,8 +14,15 @@
     "lib": ["esnext", "dom"],
     "skipLibCheck": true,
     "types": ["vite/client"],
-    "allowJs": true
+    "allowJs": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@@/*": ["./src/*"],
+      "@stores/*": ["./src/stores/*"],
+      "vuestic-ui": ["./node_modules/vuestic-ui/src/index.ts"]
+    }
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "vite.config.ts", "node_modules/vuestic-ui"],
-  "exclude": ["node_modules/**/*"]
+  "exclude": ["node_modules/**/*"],
+
 }

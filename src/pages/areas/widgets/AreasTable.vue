@@ -40,7 +40,6 @@ function filterTableData($event, rowData) {
   const rowIndex = items.value.findIndex((item) => item._id === rowData._id)
   if (searchInput.length > 0) {
     items.value[rowIndex].filteredTables = rowData.tables.filter((item) => {
-      console.log(item)
       return item.name.toLowerCase().includes(searchInput.toLowerCase()) || item.number.toString().includes(searchInput)
     })
   } else {
@@ -48,6 +47,18 @@ function filterTableData($event, rowData) {
   }
 }
 
+const onButtonAreaDelete = async (payload) => {
+  const result = await confirm({
+    message: 'Are you sure you want to see delete this Area?',
+    okText: 'Yes',
+    cancelText: 'No',
+    size: 'medium',
+    title: 'Delete Area',
+  })
+  if (result) {
+    deleteArea(payload)
+  }
+}
 function deleteArea(payload) {
   emits('deleteArea', payload)
 }
@@ -67,7 +78,7 @@ const onButtonClick = async (payload) => {
   if (result) {
     deleteTable(payload)
   } else {
-    init({ message: 'Table deletion cancelled.', color: 'info' })
+    // init({ message: 'Table deletion cancelled.', color: 'info' })
   }
 }
 
@@ -218,7 +229,13 @@ const areas = computed(() =>
           </template>
 
           <template #cell(actions)="{ rowData }">
-            <VaButton preset="primary" size="small" icon="edit" @click="$emit('editTable', rowData)" />
+            <VaButton
+              preset="primary"
+              size="small"
+              icon="mso-edit"
+              aria-label="Edit table"
+              @click="$emit('editTable', rowData)"
+            />
             <VaButton
               :disabled="!rowData.isEdit"
               preset="primary"
@@ -232,7 +249,7 @@ const areas = computed(() =>
               size="small"
               icon="mso-delete"
               color="danger"
-              class="ml-3"
+              class="ml-2"
               @click="onButtonClick(rowData._id)"
             />
           </template>
@@ -256,7 +273,7 @@ const areas = computed(() =>
           icon="mso-delete"
           color="danger"
           aria-label="Delete area"
-          @click="deleteArea(rowData)"
+          @click="onButtonAreaDelete(rowData)"
         />
       </div>
     </template>

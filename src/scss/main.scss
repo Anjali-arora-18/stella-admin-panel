@@ -57,6 +57,7 @@ pre {
 }
 
 table,
+.big-form,
 td .va-button__content, .va-select-option {
   font-size: 12px !important;
 }
@@ -64,7 +65,7 @@ td {
   max-width: 150px;
 }
 
-table {
+table,  {
   .va-select, .va-input:not(.search-input) {
     .va-input-wrapper__field  {
       padding: 0 0.25rem;

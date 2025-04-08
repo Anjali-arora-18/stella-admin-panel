@@ -2,7 +2,7 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 
 export default {
   allUsers: () => `${apiBaseUrl}/users`,
-  allCategories: (payload) => `${apiBaseUrl}/families?companyCode=${payload}`,
+  allCategories: (payload) => `${apiBaseUrl}/menuCategories?outletId=${payload}`,
   allSubCategories: (payload) => `${apiBaseUrl}/articles?companyCode=${payload}`,
   allServices: () => `${apiBaseUrl}/outlets`,
   allAreas: (payload) => `${apiBaseUrl}/areas?outletId=${payload}`,

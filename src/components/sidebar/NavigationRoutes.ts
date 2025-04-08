@@ -47,7 +47,7 @@ export default {
     {
       name: 'categories',
       displayName: 'menu.categories',
-      visible: false,
+      visible: true,
       meta: {
         icon: 'group',
       },
@@ -60,93 +60,28 @@ export default {
         icon: 'group',
       },
     },
-    {
-      name: 'services',
-      displayName: 'menu.services',
-      visible: false,
-      meta: {
-        icon: 'group',
-      },
-    },
-    {
-      name: 'orders',
-      visible: true,
-      displayName: 'menu.orders',
-      meta: {
-        icon: 'group',
-      },
-    },
-    {
-      name: 'configurations',
-      visible: false,
-      displayName: 'menu.configurations',
-      meta: {
-        icon: 'group',
-      },
-    },
-
     // {
-    //   name: 'projects',
-    //   displayName: 'menu.projects',
+    //   name: 'services',
+    //   displayName: 'menu.services',
+    //   visible: false,
     //   meta: {
-    //     icon: 'folder_shared',
+    //     icon: 'group',
     //   },
     // },
     // {
-    //   name: 'payments',
-    //   displayName: 'menu.payments',
+    //   name: 'orders',
+    //   visible: true,
+    //   displayName: 'menu.orders',
     //   meta: {
-    //     icon: 'credit_card',
-    //   },
-    //   children: [
-    //     {
-    //       name: 'payment-methods',
-    //       displayName: 'menu.payment-methods',
-    //     },
-    //     {
-    //       name: 'pricing-plans',
-    //       displayName: 'menu.pricing-plans',
-    //     },
-    //     {
-    //       name: 'billing',
-    //       displayName: 'menu.billing',
-    //     },
-    //   ],
-    // },
-    // {
-    //   name: 'auth',
-    //   displayName: 'menu.auth',
-    //   meta: {
-    //     icon: 'login',
-    //   },
-    //   children: [
-    //     {
-    //       name: 'login',
-    //       displayName: 'menu.login',
-    //     },
-    //     {
-    //       name: 'signup',
-    //       displayName: 'menu.signup',
-    //     },
-    //     {
-    //       name: 'recover-password',
-    //       displayName: 'menu.recover-password',
-    //     },
-    //   ],
-    // },
-
-    // {
-    //   name: 'faq',
-    //   displayName: 'menu.faq',
-    //   meta: {
-    //     icon: 'quiz',
+    //     icon: 'group',
     //   },
     // },
     // {
-    //   name: '404',
-    //   displayName: 'menu.404',
+    //   name: 'configurations',
+    //   visible: false,
+    //   displayName: 'menu.configurations',
     //   meta: {
-    //     icon: 'vuestic-iconset-files',
+    //     icon: 'group',
     //   },
     // },
     {
@@ -156,12 +91,5 @@ export default {
         icon: 'manage_accounts',
       },
     },
-    // {
-    //   name: 'settings',
-    //   displayName: 'menu.settings',
-    //   meta: {
-    //     icon: 'settings',
-    //   },
-    // },
   ] as INavigationRoute[],
 }

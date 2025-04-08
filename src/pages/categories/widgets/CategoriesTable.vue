@@ -7,10 +7,13 @@ const emits = defineEmits(['updateCategoryModal'])
 
 const router = useRouter()
 const columns = defineVaDataTableColumns([
-  { label: 'Update Categories', key: 'actions', align: 'left' },
-  { label: 'Code', key: 'Code', sortable: false },
-  { label: 'Designation', key: 'Designation', sortable: false },
-  { label: 'IsActive', key: 'IsActive', sortable: false },
+  { label: 'ID', key: 'id' },
+  { label: 'Code', key: 'code', sortable: false },
+  { label: 'Name', key: 'name', sortable: false },
+  { label: 'Sub-Categories', key: 'sub_categories', sortable: false },
+  { label: 'Area', key: 'area', sortable: false },
+  { label: 'Schedule', key: 'schedule', sortable: false },
+  { label: 'Actions', key: 'actions', sortable: false },
 ])
 
 const props = defineProps({
@@ -26,15 +29,24 @@ const items = toRef(props, 'items')
 
 <template>
   <VaDataTable :columns="columns" :items="items" :loading="$props.loading">
-    <template #cell(Code)="{ rowData }">
+    <template #cell(id)="{ rowData }">
       <div class="max-w-[120px] ellipsis">
-        {{ rowData.Code }}
+        {{ rowData._id }}
       </div>
     </template>
-
-    <template #cell(Designation)="{ rowData }">
+    <template #cell(code)="{ rowData }">
+      <div class="max-w-[120px] ellipsis">
+        {{ rowData.wCode }}
+      </div>
+    </template>
+    <template #cell(sub_categories)="{ rowData }">
       <div class="ellipsis max-w-[230px]">
-        {{ rowData.Designation }}
+        {{ rowData.subCategories ? rowData.subCategories.map((e) => e.wCode + ' - ' + e.name).join(', ') : '' }}
+      </div>
+    </template>
+    <template #cell(schedule)="{ rowData }">
+      <div class="uppercase ellipsis max-w-[230px]">
+        {{ rowData.schedule ? (rowData.schedule.selected === 'is24h' ? '24 Hours' : rowData.schedule.selected) : '-' }}
       </div>
     </template>
     <template #cell(IsActive)="{ rowData }">
@@ -44,21 +56,8 @@ const items = toRef(props, 'items')
     </template>
 
     <template #cell(actions)="{ rowData }">
-      <VaButton  class="w-fit h-fit" preset="primary" @click="emits('updateCategoryModal')">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="inline-block"
-        >
-          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-        </svg>
-      </VaButton>
+      <VaButton preset="primary" size="small" icon="mso-edit" @click="emits('updateCategoryModal', rowData)" />
+      <VaButton preset="primary" size="small" color="danger" icon="mso-delete" class="ml-2" />
     </template>
   </VaDataTable>
 </template>

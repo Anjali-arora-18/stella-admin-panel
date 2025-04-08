@@ -45,8 +45,8 @@ const props = defineProps({
 
 const areaName = ref('')
 const areaDisabled = ref(false)
-
-if (props.outletId) {
+console.log(props.area)
+if (props.area) {
   areaName.value = props.area.name
   areaDisabled.value = props.area.disabled
 }

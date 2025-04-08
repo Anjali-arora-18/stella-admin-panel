@@ -47,7 +47,7 @@ export default defineVuesticConfig({
           placement: 'bottom-end',
           width: 'min(100%, 150px)',
           style:
-            '--va-input-wrapper-min-height: 24px; --va-input-wrapper-border-radius: 2px; --va-input-wrapper-width: 100px;',
+            '--va-input-wrapper-min-height: 22px; --va-input-wrapper-border-radius: 2px; --va-input-wrapper-width: 100px;',
         },
       },
     },

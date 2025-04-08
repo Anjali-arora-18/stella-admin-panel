@@ -208,7 +208,7 @@ async function deleteArea(payload) {
     />
     <AreaFormModal
       v-if="openAreaModal"
-      :area="items"
+      :area="area"
       :outlet-id="outletId"
       @submitArea="submitArea"
       @updateArea="updateArea"
