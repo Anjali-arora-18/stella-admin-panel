@@ -53,6 +53,14 @@ export default {
       },
     },
     {
+      name: 'articles',
+      displayName: 'menu.articles',
+      visible: true,
+      meta: {
+        icon: 'group',
+      },
+    },
+    {
       name: 'menuItems',
       displayName: 'menu.subCategories',
       visible: false,

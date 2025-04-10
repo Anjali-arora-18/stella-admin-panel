@@ -7,6 +7,7 @@ import { useCategoryStore } from '../../stores/categories'
 import { useServiceStore } from '@/stores/services'
 import EditCategoryModal from './modals/EditCategoryModal.vue'
 import ImportCategoryModal from './modals/ImportCategoryModal.vue'
+import axios from 'axios'
 const isEditCategoryModalOpen = ref(false)
 const categoriesStore = useCategoryStore()
 const { init } = useToast()
@@ -18,7 +19,17 @@ const route = useRoute()
 
 const getCategories = (outletId) => {
   categoriesStore.getAll(outletId).then(() => {
-    items.value = categoriesStore.items
+    items.value = categoriesStore.items.map((item) => ({
+      editCode: false,
+      editName: false,
+      editSchedule: false,
+      _id: item._id || '',
+      name: item.name || '',
+      code: item.code || '',
+      schedule: item.schedule || { selected: '' },
+      ...item,
+    }))
+    console.log(items.value)
     isLoading.value = false
   })
 }
@@ -26,6 +37,21 @@ const getCategories = (outletId) => {
 const updateCategory = (payload) => {
   isEditCategoryModalOpen.value = true
   selectedCategory.value = payload
+}
+
+const updateCategoryDirectly = (payload) => {
+  const data = payload
+  data.outletId = serviceStore.selectedRest
+  const url: any = import.meta.env.VITE_API_BASE_URL
+  axios
+    .patch(`${url}/menuCategories/${payload._id}`, data)
+    .then(() => {
+      getCategories(serviceStore.selectedRest)
+      init({ message: "You've successfully updated", color: 'success' })
+    })
+    .catch((err) => {
+      init({ message: err.response.data.message, color: 'danger' })
+    })
 }
 
 watch(
@@ -83,6 +109,7 @@ const isImportCategoryModalOpen = ref(false)
         :loading="isLoading"
         @deleteCategory="deleteCategory"
         @updateCategoryModal="updateCategory"
+        @updateCategory="updateCategoryDirectly"
       />
     </VaCardContent>
   </VaCard>
