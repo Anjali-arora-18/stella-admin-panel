@@ -117,7 +117,7 @@ const isImportCategoryModalOpen = ref(false)
   <EditCategoryModal
     v-if="isEditCategoryModalOpen"
     :selected-category="selectedCategory"
-    @cancel="(isEditCategoryModalOpen = false), getCategories(serviceStore.selectedRest)"
+    @cancel="(isEditCategoryModalOpen = false), (selectedCategory = ''), getCategories(serviceStore.selectedRest)"
   />
   <ImportCategoryModal v-if="isImportCategoryModalOpen" @cancel="closeImportCategoryModal" />
 </template>

@@ -13,7 +13,7 @@ const columns = defineVaDataTableColumns([
   { label: 'Sub-Categories', key: 'sub_categories', sortable: false },
   { label: 'Area', key: 'area', sortable: false },
   { label: 'Schedule', key: 'schedule', sortable: false },
-  { label: 'Active', key: 'IsActive', sortable: false },
+  { label: 'Active', key: 'isActive', sortable: false },
   { label: 'Actions', key: 'actions', sortable: false },
 ])
 
@@ -87,15 +87,24 @@ const items = toRef(props, 'items')
           :text="` ${sub.wCode} - ${sub.name}`"
           color="secondary"
           class="px-2"
+          @click="emits('updateCategoryModal', { ...rowData, updating: 'subCategory' })"
         >
         </VaBadge>
       </div>
     </template>
-    <template #cell(schedule)="{ rowData }">
-      <div v-if="!rowData.editSchedule" class="table-cell-content" @click="rowData.editSchedule = true">
-        {{ rowData.schedule.selected }}
+    <template #cell(area)="{ rowData }">
+      <div class="uppercase ellipsis max-w-[230px]">
+        {{ rowData.areaId }}
       </div>
-      <VaSelect
+    </template>
+    <template #cell(schedule)="{ rowData }">
+      <div
+        class="uppercase ellipsis max-w-[230px]"
+        @click="emits('updateCategoryModal', { ...rowData, updating: 'schedule' })"
+      >
+        {{ rowData.schedule ? (rowData.schedule.selected === 'is24h' ? '24 Hours' : rowData.schedule.selected) : '-' }}
+      </div>
+      <!-- <VaSelect
         v-else
         v-model="rowData.schedule.selected"
         v-focus
@@ -104,16 +113,21 @@ const items = toRef(props, 'items')
         size="small"
         @update:modelValue="emits('updateCategory', rowData)"
         @blur="rowData.editSchedule = false"
-      />
+      /> -->
     </template>
-    <template #cell(IsActive)="{ rowData }">
+    <template #cell(isActive)="{ rowData }">
       <div class="table-cell-content">
         <VaCheckbox v-model="rowData.isActive" size="small" @click="emits('updateCategory', rowData)" />
       </div>
     </template>
     <template #cell(actions)="{ rowData }">
       <div class="flex gap-2">
-        <VaButton preset="primary" size="small" icon="mso-edit" @click="emits('updateCategoryModal', rowData)" />
+        <VaButton
+          preset="primary"
+          size="small"
+          icon="mso-edit"
+          @click="emits('updateCategoryModal', { ...rowData, updating: 'all' })"
+        />
         <VaButton
           preset="primary"
           size="small"

@@ -12,7 +12,7 @@
       <h1 class="sticky va-h6 mb-4">{{ selectedCategory ? 'Update' : 'Add' }} Item</h1>
     </template>
     <VaForm ref="form" @submit.prevent="submit">
-      <div class="flex items-center gap-x-10">
+      <div v-if="formData.updating === '' || formData.updating === 'all'" class="flex items-center gap-x-10">
         <VaInput v-model="formData.wCode" class="mb-1 max-w-[100px]" label="Code" placeholder="Code" type="number" />
         <VaInput
           v-model="formData.name"
@@ -44,6 +44,7 @@
         />
       </div>
       <div
+        v-if="formData.updating === '' || formData.updating === 'all' || formData.updating === 'subCategory'"
         class="cursor-pointer text-primary font-semibold underline flex justify-end items-center"
         @click="formData.subCategories.push({ wCode: '', name: '', description: '' })"
       >
@@ -59,7 +60,13 @@
         </svg>
         Add Sub Category
       </div>
-      <div v-if="formData.subCategories.length" class="p-4 my-2 bg-gray-50 shadow-md">
+      <div
+        v-if="
+          formData.subCategories.length &&
+          (formData.updating === '' || formData.updating === 'all' || formData.updating === 'subCategory')
+        "
+        class="p-4 my-2 bg-gray-50 shadow-md"
+      >
         <div class="flex justify-end mb-2"></div>
         <div v-for="(subCategory, index) in formData.subCategories" :key="index" class="mb-4">
           <div class="grid grid-cols-12 gap-4 items-center">
@@ -90,7 +97,10 @@
           </div>
         </div>
       </div>
-      <div class="mb-5 flex-1">
+      <div
+        v-if="formData.updating === '' || formData.updating === 'all' || formData.updating === 'schedule'"
+        class="mb-5 flex-1"
+      >
         <div class="schedule">Schedule:</div>
         <div class="mt-1">
           <VaRadio
@@ -106,7 +116,10 @@
           />
         </div>
       </div>
-      <div class="mb-4">
+      <div
+        v-if="formData.updating === '' || formData.updating === 'all' || formData.updating === 'schedule'"
+        class="mb-4"
+      >
         <div v-if="formData.schedule.selected === 'byDay'" class="flex flex-col space-y-2">
           <div class="grid grid-cols-1 gap-2">
             <div
@@ -200,6 +213,7 @@ const formData = ref({
   sortOrder: 0,
   outletId: '',
   subCategories: [],
+  updating: '',
   schedule: {
     selected: 'daily',
     daily: {
@@ -243,6 +257,7 @@ const formData = ref({
 if (props.selectedCategory) {
   formData.value = {
     ...formData.value,
+    updating: '',
     ...props.selectedCategory,
     areaId: [props.selectedCategory.areaId],
   }
