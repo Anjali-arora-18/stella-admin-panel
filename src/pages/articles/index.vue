@@ -7,6 +7,7 @@ import { useCategoryStore } from '../../stores/categories'
 import { useServiceStore } from '@/stores/services'
 import EditArticleModal from './modals/EditArticleModal.vue'
 import ImportArticleModal from './modals/ImportArticleModal.vue'
+import axios from 'axios'
 const isEditArticleModalOpen = ref(false)
 const categoriesStore = useCategoryStore()
 const { init } = useToast()
@@ -16,53 +17,54 @@ const selectedArticle = ref('')
 const isLoading = ref(true)
 const route = useRoute()
 
-// const getCategories = (outletId) => {
-//   categoriesStore.getAll(outletId).then(() => {
-//     items.value = categoriesStore.items
-//     isLoading.value = false
-//   })
-// }
+const getArticles = (outletId) => {
+  const url = import.meta.env.VITE_API_BASE_URL
+  axios.get(`${url}/menuItems?outletId=${outletId}`).then((response) => {
+    items.value = response.data
+    isLoading.value = false
+  })
+}
 
-// const updateCategory = (payload) => {
-//   isEditCategoryModalOpen.value = true
-//   selectedCategory.value = payload
-// }
+const updateCategory = (payload) => {
+  isEditCategoryModalOpen.value = true
+  selectedCategory.value = payload
+}
 
-// watch(
-//   () => serviceStore.selectedRest,
-//   (newId) => {
-//     if (newId) {
-//       getCategories(serviceStore.selectedRest)
-//     }
-//   },
-//   { immediate: true },
-// )
+watch(
+  () => serviceStore.selectedRest,
+  (newId) => {
+    if (newId) {
+      getArticles(serviceStore.selectedRest)
+    }
+  },
+  { immediate: true },
+)
 
-// async function deleteArticle(payload) {
-//   const data = {
-//     id: payload._id,
-//   }
-//   articlesStore
-//     .deleteArticle(data)
-//     .then((response) => {
-//       init({
-//         message: "You've successfully deleted Article",
-//         color: 'success',
-//       })
-//       getArticles(serviceStore.selectedRest)
-//     })
-//     .catch((err) => {
-//       init({
-//         message: err.response.data,
-//         color: 'error',
-//       })
-//     })
-// }
-
-// const closeImportCategoryModal = () => {
-//   isImportCategoryModalOpen.value = false
-//   getCategories(serviceStore.selectedRest)
-// }
+async function deleteArticle(payload) {
+  const data = {
+    id: payload._id,
+  }
+  const url = import.meta.env.VITE_API_BASE_URL
+  axios
+    .delete(`${url}/menuItems/${payload._id}`)
+    .then((response) => {
+      items.value = response.data
+      isLoading.value = false
+    })
+    .then((response) => {
+      init({
+        message: "You've successfully deleted Article",
+        color: 'success',
+      })
+      getArticles(serviceStore.selectedRest)
+    })
+    .catch((err) => {
+      init({
+        message: err.response.data.error,
+        color: 'danger',
+      })
+    })
+}
 
 const isImportArticleModalOpen = ref(false)
 </script>
@@ -78,7 +80,7 @@ const isImportArticleModalOpen = ref(false)
 
   <VaCard>
     <VaCardContent>
-      <ArticlesTable :items="items" :loading="isLoading" />
+      <ArticlesTable :items="items" :loading="isLoading" @deleteArticle="deleteArticle" />
     </VaCardContent>
   </VaCard>
 

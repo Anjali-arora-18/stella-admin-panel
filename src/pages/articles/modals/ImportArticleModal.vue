@@ -6,9 +6,12 @@
         <template #step-content-0>
           <div>
             <div v-if="!loading">
-              <VaForm ref="form" class="max-h-[200px] overflow-y-auto mb-2">
+              <div class="mb-4">
+                <VaInput v-model="searchFamiliy" placeholder="Search by name or code" class="w-full" size="small" />
+              </div>
+              <VaForm ref="form" class="max-h-[150px] overflow-y-auto mb-2">
                 <div class="bg-blue-50 p-5 rounded-lg">
-                  <div v-for="family in families" :key="family.Code" class="mb-2">
+                  <div v-for="family in filteredFamilies" :key="family.Code" class="mb-2">
                     <VaCheckbox v-model="family.isChecked" :label="family.Code + ' - ' + family.Designation" />
                     <div v-if="family.SubFamilies.length" class="ml-4 space-y-2 flex flex-col">
                       <VaCheckbox
@@ -43,15 +46,20 @@
         </template>
         <template #step-content-1>
           <div class="mb-4">
-            <VaInput v-model="searchQuery" placeholder="Search articles..." class="w-full" size="small" />
+            <VaInput
+              v-model="searchQuery"
+              placeholder="Search articles by name or code..."
+              class="w-full"
+              size="small"
+            />
           </div>
-          <div class="max-h-[200px] overflow-y-auto">
-            <div v-for="family in filteredFamilies" :key="family.code" class="mb-2">
+          <div class="max-h-[200px] overflow-y-auto bg-blue-50 p-5 rounded-lg">
+            <div v-for="family in filteredArticles" :key="family.code" class="mb-2">
               <VaCheckbox v-model="family.isChecked" :label="`${family.Code} - ${family.Designation}`" />
             </div>
           </div>
           <div class="flex flex-col-reverse md:flex-row md:items-center md:justify-end md:space-x-4">
-            <VaButton class="my-4 md:mb-0" :loading="isLoading" :disabled="isLoading" @click="importData"
+            <VaButton class="my-4 md:mb-0" :loading="isLoading" :disabled="isLoading" @click="importArticles"
               >Import</VaButton
             >
           </div>
@@ -65,6 +73,7 @@ import { ref, computed } from 'vue'
 import axios from 'axios'
 import { useToast, useForm } from 'vuestic-ui'
 import { useServiceStore } from '@/stores/services'
+import { emit } from 'process'
 const { init } = useToast()
 const emits = defineEmits(['cancel'])
 const serviceStore = useServiceStore()
@@ -83,13 +92,24 @@ const formData = ref({
 })
 const searchQuery = ref('')
 
-const filteredFamilies = computed(() => {
+const filteredArticles = computed(() => {
   return fetchedFamilies.value.filter(
     (family) =>
       family.Code.toString().toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       family.Designation.toLowerCase().includes(searchQuery.value.toLowerCase()),
   )
 })
+
+const searchFamiliy = ref('')
+
+const filteredFamilies = computed(() => {
+  return families.value.filter(
+    (family) =>
+      family.Code.toString().toLowerCase().includes(searchFamiliy.value.toLowerCase()) ||
+      family.Designation.toLowerCase().includes(searchFamiliy.value.toLowerCase()),
+  )
+})
+
 const getfamilies = async () => {
   loading.value = true
   const url: any = import.meta.env.VITE_API_BASE_URL
@@ -150,6 +170,47 @@ const importData = async () => {
         }
       })
       step.value = 1
+    })
+    .catch((err) => {
+      init({ message: err.response.data.message, color: 'danger' })
+    })
+
+  isLoading.value = false
+}
+
+const importArticles = async () => {
+  isLoading.value = true
+  const url: any = import.meta.env.VITE_API_BASE_URL
+  const filteredPayload = fetchedFamilies.value.filter((article) => article.isChecked)
+
+  const payload = {
+    selectedArticles: filteredPayload.map((article) => article.ID),
+    articles: filteredPayload,
+    outletId: serviceStore.selectedRest,
+  }
+  await axios
+    .post(`${url}/menuItems/import`, payload)
+    .then((response) => {
+      if (response.data.importedItems.length) {
+        init({
+          message: 'Articles Imported Successfully',
+          color: 'success',
+        })
+      }
+      if (response.data.updatedItems.length) {
+        init({
+          message: 'Articles Updated Successfully',
+          color: 'success',
+        })
+      }
+      if (response.data.failedItems.length) {
+        init({
+          message: 'Few Articles Failed to Import',
+          color: 'danger',
+        })
+      }
+      emits('cancel')
+      step.value = 0
     })
     .catch((err) => {
       init({ message: err.response.data.message, color: 'danger' })
