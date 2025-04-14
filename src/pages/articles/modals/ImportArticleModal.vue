@@ -85,10 +85,10 @@ const step = ref(0)
 const steps = [{ label: 'Fetch Families' }, { label: 'Import Articles' }]
 const fetchedFamilies = ref([])
 const formData = ref({
-  includeCategories: false,
-  includeExtras: false,
-  includeHolds: false,
-  includeDescriptives: false,
+  includeCategories: true,
+  includeExtras: true,
+  includeHolds: true,
+  includeDescriptives: true,
 })
 const searchQuery = ref('')
 

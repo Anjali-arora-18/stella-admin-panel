@@ -12,6 +12,7 @@ export const useCategoryStore = defineStore('categories', {
     async getAll(payload) {
       const { data } = await getCategories(payload)
       this.items = data
+      return data
     },
 
     async deleteCategory(payload) {

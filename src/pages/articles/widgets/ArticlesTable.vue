@@ -17,12 +17,10 @@ const columns = defineVaDataTableColumns([
   { label: 'Options', key: 'options', sortable: false },
   { label: 'Image', key: 'image', sortable: false },
   { label: 'Allergens', key: 'allergens', sortable: false },
-  { label: 'Active', key: 'IsActive', sortable: false },
+  { label: 'Active', key: 'isActive', sortable: false },
   { label: 'Stock', key: 'stock', sortable: false },
   { label: 'Actions', key: 'actions', sortable: false },
 ])
-
-const IsActive = ref(true)
 
 const onButtonArticleDelete = async (payload) => {
   const result = await confirm({
@@ -104,10 +102,19 @@ const filteredItems = computed(() => {
       </template>
       <template #cell(image)="{ rowData }">
         <div class="max-w-[120px] ellipsis" @click="rowData.editing = 'name'">
-          <img :src="rowData.imageUrl" alt="Article Image" class="w-52 object-cover rounded" />
+          <img :src="rowData.imageUrl" alt="Article Image" class="w-12 object-cover rounded" />
         </div>
       </template>
-      <!-- Similar pattern for other editable fields -->
+      <template #cell(isActive)="{ rowData }">
+        <div class="table-cell-content">
+          <VaCheckbox v-model="rowData.isActive" size="small" @click="emits('updateArticleModal', rowData)" />
+        </div>
+      </template>
+      <template #cell(stock)="{ rowData }">
+        <div class="table-cell-content">
+          <VaCheckbox v-model="rowData.inStock" size="small" @click="emits('updateArticleModal', rowData)" />
+        </div>
+      </template>
       <template #cell(actions)="{ rowData }">
         <VaButton preset="primary" size="small" icon="mso-edit" @click="emits('updateArticleModal', rowData)" />
         <VaButton

@@ -2,11 +2,11 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 
 export default {
   allUsers: () => `${apiBaseUrl}/users`,
-  allCategories: (payload) => `${apiBaseUrl}/menuCategories?outletId=${payload}`,
+  allCategories: (payload) => `${apiBaseUrl}/menuCategories?outletId=${payload}&limit=100000`,
   deleteCategory: (payload) => `${apiBaseUrl}/menuCategories/${payload.id}`,
-  allSubCategories: (payload) => `${apiBaseUrl}/articles?companyCode=${payload}`,
+  allSubCategories: (payload) => `${apiBaseUrl}/articles?companyCode=${payload}&limit=100000`,
   allServices: () => `${apiBaseUrl}/outlets`,
-  allAreas: (payload) => `${apiBaseUrl}/areas?outletId=${payload}`,
+  allAreas: (payload) => `${apiBaseUrl}/areas?outletId=${payload}&limit=100000`,
   saveArea: () => `${apiBaseUrl}/areas`,
   createTable: () => `${apiBaseUrl}/tables`,
   deleteArea: (payload) => `${apiBaseUrl}/areas/${payload.id}`,

@@ -14,7 +14,7 @@
     <VaForm ref="form" @submit.prevent="submit">
       <div class="flex items-center gap-x-10 mb-2">
         <VaInput
-          v-model="formData.wCode"
+          v-model="formData.code"
           class="mb-1 max-w-[200px]"
           label="Code"
           :rules="[validators.required]"
@@ -43,7 +43,7 @@
       <div class="flex items-center gap-x-10">
         <VaSelect
           id="categories"
-          v-model="formData.areaId"
+          v-model="formData.categories"
           label="Category"
           :options="categories"
           :multiple="true"
@@ -52,27 +52,18 @@
         />
         <VaSelect
           id="sub_categories"
-          v-model="formData.areaId"
+          v-model="formData.subCategories"
           label="Sub-Category"
-          :options="sub_categories"
+          :options="subCategories"
           :multiple="true"
           value-by="value"
           class="mb-1 max-w-[200px]"
         />
-        <VaSelect
-          id="options"
-          v-model="formData.areaId"
-          label="Options"
-          :options="options"
-          :multiple="true"
-          value-by="value"
-          class="mb-1 max-w-[200px]"
-        />
+        <VaSelect id="options" disabled label="Options" :multiple="true" value-by="value" class="mb-1 max-w-[200px]" />
         <VaSelect
           id="allergens"
-          v-model="formData.areaId"
+          disabled
           label="Allergens"
-          :options="allergens"
           :multiple="true"
           value-by="value"
           class="mb-1 max-w-[200px]"
@@ -89,11 +80,14 @@
   </VaModal>
 </template>
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import axios from 'axios'
 import { validators } from '@/services/utils'
+import { useCategoryStore } from '@/stores/categories'
 import { useServiceStore } from '@/stores/services'
 import { useToast, useForm } from 'vuestic-ui'
+const categoryStore = useCategoryStore()
+const categories = ref([])
 const emits = defineEmits(['cancel'])
 const props = defineProps({
   selectedCategory: {
@@ -103,25 +97,16 @@ const props = defineProps({
 })
 const { validate } = useForm('form')
 const { init } = useToast()
-
-const servicesStore = useServiceStore()
-const areas = ref([])
-servicesStore.getAreas().then((response) => {
-  areas.value = response.data.map((e) => {
-    return {
-      text: e.name,
-      value: e._id,
-    }
-  })
-})
-
 const formData = ref({
   name: '',
-  wCode: '',
-  areaId: [],
+  code: '',
+  isDeleted: false,
+  price: 0,
+  categories: [],
   isActive: true,
   description: '',
-  sortOrder: 0,
+  imageUrl: '',
+  inStock: true,
   outletId: '',
   subCategories: [],
 })
@@ -132,14 +117,51 @@ if (props.selectedCategory) {
     areaId: [props.selectedCategory.areaId],
   }
 }
+const servicesStore = useServiceStore()
+categoryStore.getAll(servicesStore.selectedRest).then((response) => {
+  categories.value = response.map((e) => {
+    return {
+      ...e,
+      text: e.name,
+      value: e.wCode,
+    }
+  })
+})
+
+const subCategories = computed(() => {
+  if (!formData.value.categories.length) {
+    return []
+  } else {
+    const selectedCategories = categories.value.filter((e) => formData.value.categories.includes(e.wCode))
+    const allSubCategories = selectedCategories.flatMap((category) =>
+      (category.subCategories || []).map((sub) => ({
+        text: sub.name,
+        value: sub.wCode,
+      })),
+    )
+    return allSubCategories
+  }
+})
+
 const submit = () => {
   if (validate()) {
     const data = formData.value
+    data.code = formData.value.code.toString()
+    data.categories = formData.value.categories.map((e) => {
+      {
+        return { code: e }
+      }
+    })
+    data.subCategories = formData.value.subCategories.map((e) => {
+      {
+        return { code: e }
+      }
+    })
     data.outletId = servicesStore.selectedRest
     const url: any = import.meta.env.VITE_API_BASE_URL
     if (props.selectedCategory) {
       axios
-        .patch(`${url}/menuCategories/${formData.value._id}`, data)
+        .patch(`${url}/menuItems/${formData.value._id}`, data)
         .then((response) => {
           init({ message: "You've successfully updated", color: 'success' })
           emits('cancel')
@@ -149,7 +171,7 @@ const submit = () => {
         })
     } else {
       axios
-        .post(`${url}/menuCategories`, data)
+        .post(`${url}/menuItems`, data)
         .then((response) => {
           init({ message: "You've successfully created", color: 'success' })
           emits('cancel')

@@ -259,13 +259,16 @@ if (props.selectedCategory) {
     ...formData.value,
     updating: '',
     ...props.selectedCategory,
-    areaId: [props.selectedCategory.areaId],
+    areaId: Array.isArray(props.selectedCategory.areaId)
+      ? props.selectedCategory.areaId
+      : [props.selectedCategory.areaId],
   }
 }
 const submit = () => {
   if (validate()) {
     const data = formData.value
     data.outletId = servicesStore.selectedRest
+    data.areaId = formData.value.areaId.filter((a: any) => a !== null)
     const url: any = import.meta.env.VITE_API_BASE_URL
     if (props.selectedCategory) {
       axios
@@ -275,7 +278,7 @@ const submit = () => {
           emits('cancel')
         })
         .catch((err) => {
-          init({ message: err.response.data.message, color: 'danger' })
+          init({ message: err.response.data.error, color: 'danger' })
         })
     } else {
       axios
@@ -285,7 +288,7 @@ const submit = () => {
           emits('cancel')
         })
         .catch((err) => {
-          init({ message: err.response.data.message, color: 'danger' })
+          init({ message: err.response.data.error, color: 'danger' })
         })
     }
   }
