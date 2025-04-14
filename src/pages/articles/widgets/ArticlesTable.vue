@@ -3,7 +3,7 @@ import { defineVaDataTableColumns, useModal } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
 import { ref, computed, toRef } from 'vue'
 
-const emits = defineEmits(['updateArticleModal'])
+const emits = defineEmits(['updateArticle', 'updateArticleModal'])
 const { confirm } = useModal()
 const router = useRouter()
 const columns = defineVaDataTableColumns([
@@ -69,24 +69,37 @@ const filteredItems = computed(() => {
         </div>
       </template>
       <template #cell(code)="{ rowData }">
-        <div class="max-w-[120px] ellipsis" @click="rowData.editing = 'code'">
+        <div class="max-w-[120px] ellipsis">
           <input
             v-if="rowData.editing === 'code'"
-            v-model="rowData.wCode"
+            v-model="rowData.code"
             class="w-full p-1 border rounded"
             autofocus
+            @blur="emits('updateArticle', rowData)"
           />
-          <span v-else>{{ rowData.wCode }}</span>
+          <span v-else>{{ rowData.code }}</span>
         </div>
       </template>
       <template #cell(name)="{ rowData }">
         <div class="max-w-[120px] ellipsis" @click="rowData.editing = 'name'">
-          <input v-if="rowData.editing === 'name'" v-model="rowData.name" class="w-full p-1 border rounded" autofocus />
+          <input
+            v-if="rowData.editing === 'name'"
+            v-model="rowData.name"
+            class="w-full p-1 border rounded"
+            autofocus
+            @blur="$emit('updateArticle', rowData), (rowData.editing = '')"
+          />
           <span v-else>{{ rowData.name }}</span>
         </div>
       </template>
+      <template #cell(category)="{ rowData }">
+        <span>{{ rowData.categories.map((e) => e.wCode + ' - ' + e.name).join(', ') }}</span>
+      </template>
+      <template #cell(sub_category)="{ rowData }">
+        <span>{{ rowData.subCategories.map((e) => e.wCode + ' - ' + e.name).join(', ') }}</span>
+      </template>
       <template #cell(options)="{ rowData }">
-        <div class="max-w-[120px] ellipsis" @click="rowData.editing = 'name'">
+        <div class="max-w-[120px] ellipsis">
           <div v-if="rowData.options">
             <template v-for="(value, key) in rowData.options" :key="key">
               <div class="text-sm">
@@ -107,12 +120,12 @@ const filteredItems = computed(() => {
       </template>
       <template #cell(isActive)="{ rowData }">
         <div class="table-cell-content">
-          <VaCheckbox v-model="rowData.isActive" size="small" @click="emits('updateArticleModal', rowData)" />
+          <VaCheckbox v-model="rowData.isActive" size="small" @click="emits('updateArticle', rowData)" />
         </div>
       </template>
       <template #cell(stock)="{ rowData }">
         <div class="table-cell-content">
-          <VaCheckbox v-model="rowData.inStock" size="small" @click="emits('updateArticleModal', rowData)" />
+          <VaCheckbox v-model="rowData.inStock" size="small" @click="emits('updateArticle', rowData)" />
         </div>
       </template>
       <template #cell(actions)="{ rowData }">

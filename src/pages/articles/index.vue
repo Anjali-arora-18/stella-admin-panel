@@ -25,9 +25,24 @@ const getArticles = (outletId) => {
   })
 }
 
-const updateCategory = (payload) => {
-  isEditCategoryModalOpen.value = true
-  selectedCategory.value = payload
+const updateArticleModal = (payload) => {
+  isEditArticleModalOpen.value = true
+  selectedArticle.value = payload
+}
+
+const updateArticleDirectly = (payload) => {
+  const data = payload
+  data.outletId = serviceStore.selectedRest
+  const url: any = import.meta.env.VITE_API_BASE_URL
+  axios
+    .patch(`${url}/menuItems/${payload._id}`, data)
+    .then(() => {
+      getArticles(serviceStore.selectedRest)
+      init({ message: "You've successfully updated", color: 'success' })
+    })
+    .catch((err) => {
+      init({ message: err.response.data.message, color: 'danger' })
+    })
 }
 
 watch(
@@ -80,13 +95,19 @@ const isImportArticleModalOpen = ref(false)
 
   <VaCard>
     <VaCardContent>
-      <ArticlesTable :items="items" :loading="isLoading" @deleteArticle="deleteArticle" />
+      <ArticlesTable
+        :items="items"
+        :loading="isLoading"
+        @updateArticleModal="updateArticleModal"
+        @deleteArticle="deleteArticle"
+        @updateArticle="updateArticleDirectly"
+      />
     </VaCardContent>
   </VaCard>
 
   <EditArticleModal
     v-if="isEditArticleModalOpen"
-    :selected-category="selectedCategory"
+    :selected-category="selectedArticle"
     @cancel="(isEditArticleModalOpen = false), getArticles(serviceStore.selectedRest)"
   />
   <ImportArticleModal v-if="isImportArticleModalOpen" @cancel="isImportArticleModalOpen = false" />

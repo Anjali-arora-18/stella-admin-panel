@@ -20,7 +20,7 @@
           :rules="[validators.required]"
           placeholder="Code"
           required-mark
-          type="number"
+          type="text"
         />
         <VaInput
           v-model="formData.name"
@@ -114,7 +114,6 @@ if (props.selectedCategory) {
   formData.value = {
     ...formData.value,
     ...props.selectedCategory,
-    areaId: [props.selectedCategory.areaId],
   }
 }
 const servicesStore = useServiceStore()
