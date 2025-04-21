@@ -88,3 +88,14 @@
     margin-top: 32px;
   }
 }
+
+.big-modal .va-modal__dialog {
+  height: calc(100vh - 20px);
+  max-width: calc(100vw - 20px) !important;
+  width: calc(100vw - 20px);
+}
+
+.big-modal .va-modal__dialog .va-stepper__step-content {
+  margin-bottom: 0px !important;
+  margin-top: 0px !important;
+}

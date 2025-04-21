@@ -1,18 +1,36 @@
 <template>
-  <VaModal size="large" hide-default-actions model-value close-button @update:modelValue="emits('cancel')">
-    <h1 class="va-h6 mb-2 mt-0">Import Articles</h1>
+  <VaModal
+    size="large"
+    class="big-modal"
+    hide-default-actions
+    model-value
+    close-button
+    @update:modelValue="emits('cancel')"
+  >
     <div>
       <VaStepper v-model="step" controls-hidden :steps="steps">
         <template #step-content-0>
           <div>
             <div v-if="!loading">
               <div class="mb-4">
-                <VaInput v-model="searchFamiliy" placeholder="Search by name or code" class="w-full" size="small" />
+                <VaInput
+                  v-model="searchFamiliy"
+                  placeholder="Search by name or code"
+                  class="max-w-[400px]"
+                  size="small"
+                />
               </div>
-              <VaForm ref="form" class="max-h-[150px] overflow-y-auto mb-2">
+              <VaForm ref="form" class="max-h-[50vh] overflow-y-auto mb-2">
                 <div class="bg-blue-50 p-5 rounded-lg">
                   <div v-for="family in filteredFamilies" :key="family.Code" class="mb-2">
-                    <VaCheckbox v-model="family.isChecked" :label="family.Code + ' - ' + family.Designation" />
+                    <VaCheckbox
+                      v-model="family.isChecked"
+                      :label="family.Code + ' - ' + family.Designation"
+                      @update:modelValue="
+                        ($event) =>
+                          family.SubFamilies.length ? family.SubFamilies.map((e) => (e.isChecked = $event)) : null
+                      "
+                    />
                     <div v-if="family.SubFamilies.length" class="ml-4 space-y-2 flex flex-col">
                       <VaCheckbox
                         v-for="SubFamily in family.SubFamilies"
@@ -26,18 +44,17 @@
                 </div>
               </VaForm>
               <VaForm ref="form">
-                <div class="mb-0 bg-blue-50 p-5 rounded-lg">
-                  <VaCheckbox v-model="formData.includeCategories" label="IncludeCategories" class="mr-3" />
-                  <VaCheckbox v-model="formData.includeExtras" label="IncludeExtras" class="mr-3" />
-                  <VaCheckbox v-model="formData.includeHolds" label="IncludeHolds" class="mr-3" />
-                  <VaCheckbox v-model="formData.includeDescriptives" label="IncludeDescriptives" />
+                <div class="flex justify-between items-center mb-0 bg-blue-50 p-3 rounded-lg">
+                  <VaSelect v-model="formData.price" :options="prices" label="prices" class="max-w-[300px] mr-3" />
+                  <VaCheckbox v-model="formData.includeCategories" label="Categories" class="mr-3 mt-2" />
+                  <VaCheckbox v-model="formData.includeExtras" label="Extras" class="mr-3" />
+                  <VaCheckbox v-model="formData.includeHolds" label="Holds" class="mr-3" />
+                  <VaCheckbox v-model="formData.includeDescriptives" label="Modifiers" />
+                  <div class="flex flex-col-reverse md:flex-row md:items-center md:justify-end md:space-x-4">
+                    <VaButton :loading="isLoading" :disabled="isLoading" @click="importData">Get Articles</VaButton>
+                  </div>
                 </div>
               </VaForm>
-              <div class="flex flex-col-reverse md:flex-row md:items-center md:justify-end md:space-x-4">
-                <VaButton class="my-4 md:mb-0" :loading="isLoading" :disabled="isLoading" @click="importData"
-                  >Fetch</VaButton
-                >
-              </div>
             </div>
             <div v-else>
               <VaSkeleton variant="text" :lines="5" />
@@ -49,11 +66,11 @@
             <VaInput
               v-model="searchQuery"
               placeholder="Search articles by name or code..."
-              class="w-full"
+              class="max-w-[400px]"
               size="small"
             />
           </div>
-          <div class="max-h-[200px] overflow-y-auto bg-blue-50 p-5 rounded-lg">
+          <div class="max-h-[55vh] overflow-y-auto bg-blue-50 p-5 rounded-lg">
             <div v-for="family in filteredArticles" :key="family.code" class="mb-2">
               <VaCheckbox v-model="family.isChecked" :label="`${family.Code} - ${family.Designation}`" />
             </div>
@@ -82,15 +99,27 @@ const isLoading = ref<boolean>(false)
 const families = ref<any[]>([])
 const step = ref(0)
 
-const steps = [{ label: 'Fetch Families' }, { label: 'Import Articles' }]
+const steps = [{ label: 'Select Families' }, { label: 'Import Articles' }]
 const fetchedFamilies = ref([])
 const formData = ref({
+  price: null,
   includeCategories: true,
   includeExtras: true,
   includeHolds: true,
   includeDescriptives: true,
 })
 const searchQuery = ref('')
+const prices = [
+  { value: '1', text: 'SalesPrice1WithTaxes' },
+  { value: '2', text: 'SalesPrice2WithTaxes' },
+  { value: '3', text: 'SalesPrice3WithTaxes' },
+  { value: '4', text: 'SalesPrice4WithTaxes' },
+  { value: '5', text: 'SalesPrice5WithTaxes' },
+  { value: '6', text: 'SalesPrice6WithTaxes' },
+  { value: '7', text: 'SalesPrice7WithTaxes' },
+  { value: '8', text: 'SalesPrice8WithTaxes' },
+  { value: '9', text: 'SalesPrice9WithTaxes' },
+]
 
 const filteredArticles = computed(() => {
   return fetchedFamilies.value.filter(
@@ -157,7 +186,7 @@ const importData = async () => {
     includeDescriptives: formData.value.includeDescriptives,
   }
   await axios
-    .post(`${url}/winmax/articles?outletId=${serviceStore.selectedRest}`, payload)
+    .post(`${url}/winmax/articles?outletId=${serviceStore.selectedRest}&limit=100000`, payload)
     .then((response) => {
       init({
         message: response.data.message,
@@ -220,9 +249,9 @@ const importArticles = async () => {
 }
 </script>
 
-<style lang="scss">
-.va-modal__inner {
-  min-width: 326px;
+<style lang="scss" scoped>
+.va-modal__message {
+  margin-bottom: 0 !important;
 }
 .va-stepper__step-content {
   margin-bottom: 0px !important;

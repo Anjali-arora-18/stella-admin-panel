@@ -60,7 +60,12 @@ const filteredItems = computed(() => {
 <template>
   <div>
     <div class="mb-4">
-      <VaInput v-model="searchQuery" placeholder="Search articles by code or name..." class="w-full" size="small" />
+      <VaInput
+        v-model="searchQuery"
+        placeholder="Search articles by code or name..."
+        class="max-w-[400px]"
+        size="small"
+      />
     </div>
     <VaDataTable :columns="columns" :items="filteredItems" :loading="$props.loading">
       <template #cell(id)="{ rowData }">
@@ -93,7 +98,11 @@ const filteredItems = computed(() => {
         </div>
       </template>
       <template #cell(category)="{ rowData }">
-        <span>{{ rowData.categories.map((e) => e.wCode + ' - ' + e.name).join(', ') }}</span>
+        <div class="space-y-1">
+          <div v-for="e in rowData.categories" :key="e.Wcode" class="flex flex-col">
+            <VaBadge color="plain" :text="`${e.wCode} -  ${e.name} `"></VaBadge>
+          </div>
+        </div>
       </template>
       <template #cell(sub_category)="{ rowData }">
         <span>{{ rowData.subCategories.map((e) => e.wCode + ' - ' + e.name).join(', ') }}</span>

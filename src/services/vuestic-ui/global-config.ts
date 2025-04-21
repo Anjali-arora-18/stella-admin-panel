@@ -29,7 +29,7 @@ export default defineVuesticConfig({
     },
     VaModal: {
       mobileFullscreen: false,
-      maxHeight: 'calc(100% - 2rem)',
+      maxHeight: 'calc(100% - 2rem) !important',
     },
     VaPagination: {
       activeButtonProps: {

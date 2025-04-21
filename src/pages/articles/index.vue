@@ -19,7 +19,7 @@ const route = useRoute()
 
 const getArticles = (outletId) => {
   const url = import.meta.env.VITE_API_BASE_URL
-  axios.get(`${url}/menuItems?outletId=${outletId}&limit=100000`).then((response) => {
+  axios.get(`${url}/menuItems?outletId=${outletId}&limit=100`).then((response) => {
     items.value = response.data
     isLoading.value = false
   })
