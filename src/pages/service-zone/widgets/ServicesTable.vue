@@ -118,7 +118,7 @@ function downloadQrCode(rowData) {
       />
     </template>
     <template #cell(select)="{ rowData }">
-      <VaBadge v-if="$props.selectedRest === rowData._id" color="success" class="mr-2" text="Selected"></VaBadge>
+      <VaBadge v-if="$props.selectedRest === rowData._id" color="primary" class="mr-2" text="Selected"></VaBadge>
       <VaButton v-else :preset="'primary'" @click.prevent="serviceStore.setRest(rowData._id)"> Select </VaButton>
     </template>
   </VaDataTable>

@@ -134,13 +134,6 @@
                   placeholder="Terminal"
                   type="number"
                 />
-                <VaInput
-                  v-model="restaurantData.winmaxConfig.serviceZoneId"
-                  name="ServiceZoneId"
-                  label="Service Zone Id"
-                  placeholder="Service Zone Id"
-                  type="number"
-                />
               </div>
             </div>
 
@@ -562,7 +555,6 @@ export default {
           user: '',
           password: '',
           terminal: '',
-          serviceZoneId: '',
         },
         openingTimes: {
           selected: '',

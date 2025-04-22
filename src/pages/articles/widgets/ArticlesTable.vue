@@ -105,7 +105,11 @@ const filteredItems = computed(() => {
         </div>
       </template>
       <template #cell(sub_category)="{ rowData }">
-        <span>{{ rowData.subCategories.map((e) => e.wCode + ' - ' + e.name).join(', ') }}</span>
+        <div class="space-y-1">
+          <div v-for="e in rowData.subCategories" :key="e.Wcode" class="flex flex-col">
+            <VaBadge color="#B3D943" :text="`${e.wCode} -  ${e.name} `"></VaBadge>
+          </div>
+        </div>
       </template>
       <template #cell(options)="{ rowData }">
         <div class="max-w-[120px] ellipsis">

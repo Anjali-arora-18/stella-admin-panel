@@ -46,10 +46,10 @@
               <VaForm ref="form">
                 <div class="flex justify-between items-center mb-0 bg-blue-50 p-3 rounded-lg">
                   <VaSelect v-model="formData.price" :options="prices" label="prices" class="max-w-[300px] mr-3" />
-                  <VaCheckbox v-model="formData.includeCategories" label="Categories" class="mr-3 mt-2" />
-                  <VaCheckbox v-model="formData.includeExtras" label="Extras" class="mr-3" />
-                  <VaCheckbox v-model="formData.includeHolds" label="Holds" class="mr-3" />
-                  <VaCheckbox v-model="formData.includeDescriptives" label="Modifiers" />
+                  <VaCheckbox v-model="formData.includeCategories" label="Categories" class="mr-3 mt-3" />
+                  <VaCheckbox v-model="formData.includeExtras" label="Extras" class="mr-3 mt-3" />
+                  <VaCheckbox v-model="formData.includeHolds" label="Holds" class="mr-3 mt-3" />
+                  <VaCheckbox v-model="formData.includeDescriptives" label="Modifiers" class="mt-3" />
                   <div class="flex flex-col-reverse md:flex-row md:items-center md:justify-end md:space-x-4">
                     <VaButton :loading="isLoading" :disabled="isLoading" @click="importData">Get Articles</VaButton>
                   </div>

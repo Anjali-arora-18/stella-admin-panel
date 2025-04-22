@@ -2,7 +2,7 @@
   <VaModal size="medium" hide-default-actions model-value close-button @update:modelValue="emits('cancel')">
     <h1 class="va-h6 mb-4">Import Categories</h1>
     <div v-if="!loading">
-      <VaForm ref="form" @submit.prevent="importData">
+      <VaForm ref="form" class="max-h-[70vh] overflow-y-auto mb-2" @submit.prevent="importData">
         <div class="mb-4 bg-blue-50 p-5 rounded-lg">
           <div v-for="category in categories" :key="category.Code" class="mb-2">
             <VaCheckbox v-model="category.isChecked" :label="category.Code + ' - ' + category.Designation" />
