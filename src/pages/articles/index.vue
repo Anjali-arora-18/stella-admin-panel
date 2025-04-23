@@ -33,6 +33,9 @@ const updateArticleModal = (payload) => {
 const updateArticleDirectly = (payload) => {
   const data = payload
   data.outletId = serviceStore.selectedRest
+  delete data.createdAt // delete createdAt key for unnecessary used
+  delete data.updatedAt // delete updatedAt key for unnecessary used
+  delete data.__v // delete __v key for unnecessary used
   const url: any = import.meta.env.VITE_API_BASE_URL
   axios
     .patch(`${url}/menuItems/${payload._id}`, data)

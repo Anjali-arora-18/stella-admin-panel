@@ -41,7 +41,7 @@
                 v-model="restaurantData.postcode"
                 label="Postcode"
                 name="Postcode"
-                type="number"
+                type="text"
                 :rules="[validators.required]"
                 required-mark
               />
@@ -478,7 +478,7 @@ import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { useToast, useForm } from 'vuestic-ui'
 const { validate } = useForm()
-import { validators } from '../../services/utils.ts'
+import { validators,removeNulls } from '../../services/utils.ts'
 export default {
   setup() {
     const types = ref(['Outlet'])
@@ -829,6 +829,8 @@ export default {
         operatingMode: this.restaurantData.operatingMode,
         winmaxConfig: {
           ...this.restaurantData.winmaxConfig,
+          terminal: this.restaurantData.winmaxConfig.terminal || null,
+          serviceZoneId : this.restaurantData.winmaxConfig.serviceZoneId || null,
         },
         restusConfig: {
           operatingMode: this.restaurantData.operatingMode || '',
@@ -1005,7 +1007,7 @@ export default {
     },
     async createRestaurant() {
       if (this.$refs.form.validate()) {
-        const data = this.createPayload()
+        const data = removeNulls(this.createPayload())
         const url = import.meta.env.VITE_API_BASE_URL
         console.log(url)
         try {
@@ -1021,7 +1023,7 @@ export default {
     },
     async updateRestaurant() {
       if (this.$refs.form.validate()) {
-        const data = this.createPayload()
+        const data = removeNulls(this.createPayload())
         const url = import.meta.env.VITE_API_BASE_URL
 
         const response = await axios.patch(`${url}/outlets/${this.restaurantId}`, data)
