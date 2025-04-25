@@ -10,3 +10,21 @@ export const validators = {
   },
   required: (v: any) => !!v || 'This field is required',
 }
+
+export function removeNulls(obj) {
+  if (Array.isArray(obj)) {
+      return obj
+          .map(item => removeNulls(item))
+          .filter(item => item !== null && item !== undefined);
+  } else if (typeof obj === 'object' && obj !== null) {
+      return Object.entries(obj).reduce((acc, [key, value]) => {
+          const cleanedValue = removeNulls(value);
+          if (cleanedValue !== null && cleanedValue !== undefined &&
+              !(typeof cleanedValue === 'object' && Object.keys(cleanedValue).length === 0)) {
+              acc[key] = cleanedValue;
+          }
+          return acc;
+      }, {});
+  }
+  return obj;
+}

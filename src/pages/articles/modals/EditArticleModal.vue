@@ -157,6 +157,9 @@ const submit = () => {
       }
     })
     data.outletId = servicesStore.selectedRest
+    delete data.createdAt;
+    delete data.updatedAt;
+    delete data.__v;
     const url: any = import.meta.env.VITE_API_BASE_URL
     if (props.selectedCategory) {
       axios

@@ -91,7 +91,7 @@ const { init } = useToast()
 const emits = defineEmits(['cancel', 'loadAreas'])
 const serviceStore = useServiceStore()
 const table: any = ref({
-  area: '',
+  // area: '',
   type: '',
   number: 1,
   prefix: '',
@@ -126,11 +126,13 @@ async function save() {
         },
         id: table.value._id,
       }
+      delete data.data.updatedAt;
+      delete data.data.createdAt;
       response = await serviceStore.updateTable({ ...data })
     } else {
       const data = {
         ...table.value,
-        area: table.value.areaId,
+        // area: table.value.areaId,
       }
       response = await serviceStore.createTable(data)
     }
