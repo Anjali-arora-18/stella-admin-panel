@@ -2,8 +2,9 @@
 import { defineVaDataTableColumns, useModal } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
 import { ref, computed, toRef } from 'vue'
-import { useAlign } from 'vuestic-ui/dist/types/composables/useAlign.js'
-
+import { useServiceStore } from '@/stores/services'
+import { useCategoryStore } from '@/stores/categories'
+import Categories from '@/pages/admin/orders/categories.vue'
 const emits = defineEmits(['updateArticle', 'updateArticleModal'])
 const { confirm } = useModal()
 const router = useRouter()
@@ -45,6 +46,10 @@ const props = defineProps({
     required: true,
   },
   loading: { type: Boolean, default: false },
+  categories: {
+    type: Array,
+    required: true,
+  },
 })
 
 const items = toRef(props, 'items')
@@ -56,6 +61,29 @@ const filteredItems = computed(() => {
     (item) => item.wCode?.toLowerCase().includes(query) || item.name?.toLowerCase().includes(query),
   )
 })
+
+const subCategories = computed(() => {
+  if (!props.categories.length) {
+    return []
+  } else {
+    const allSubCategories = props.categories.flatMap((category) =>
+      (category.subCategories || []).map((sub) => ({
+        id: sub._id,
+        ...sub,
+      })),
+    )
+    return allSubCategories
+  }
+})
+
+const getSubCategory = (item) => {
+  if (subCategories.value.find((a) => a._id === item)) {
+    return `${subCategories.value.find((a) => a._id === item).wCode} -  ${
+      subCategories.value.find((a) => a._id === item).name
+    }`
+  }
+  return ''
+}
 </script>
 
 <template>
@@ -107,8 +135,9 @@ const filteredItems = computed(() => {
       </template>
       <template #cell(sub_category)="{ rowData }">
         <div class="space-y-1">
+          {{}}
           <div v-for="e in rowData.subCategories" :key="e.Wcode" class="flex flex-col">
-            <VaBadge color="#B3D943" :text="`${e.wCode} -  ${e.name} `"></VaBadge>
+            <VaBadge color="#B3D943" :text="getSubCategory(e)"></VaBadge>
           </div>
         </div>
       </template>

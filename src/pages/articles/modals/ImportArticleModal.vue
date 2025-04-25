@@ -50,7 +50,7 @@
                   <VaCheckbox v-model="formData.includeExtras" label="Extras" class="mr-3 mt-3" />
                   <VaCheckbox v-model="formData.includeHolds" label="Holds" class="mr-3 mt-3" />
                   <VaCheckbox v-model="formData.includeDescriptives" label="Modifiers" class="mt-3" />
-                  <div class="flex flex-col-reverse md:flex-row md:items-center md:justify-end md:space-x-4">
+                  <div class="flex flex-col-reverse md:flex-row md:items-center md:justify-end md:space-x-4 mt-3">
                     <VaButton :loading="isLoading" :disabled="isLoading" @click="importData">Get Articles</VaButton>
                   </div>
                 </div>

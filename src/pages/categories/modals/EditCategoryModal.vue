@@ -267,12 +267,15 @@ if (props.selectedCategory) {
 const submit = () => {
   if (validate()) {
     const data = formData.value
-    delete data.code  // delete code key for unnecessary used
+    delete data.code // delete code key for unnecessary used
     delete data.createdAt // delete createdAt key for unnecessary used
     delete data.updatedAt // delete updatedAt key for unnecessary used
     delete data.__v // delete __v key for unnecessary used
     data.outletId = servicesStore.selectedRest
     data.areaId = formData.value.areaId.filter((a: any) => a !== null)
+    data.subCategories = formData.value.subCategories.map(
+      ({ sortOrder, _id, createdAt, updatedAt, __v, ...rest }) => rest,
+    )
     const url: any = import.meta.env.VITE_API_BASE_URL
     if (props.selectedCategory) {
       axios

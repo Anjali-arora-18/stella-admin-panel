@@ -9,6 +9,7 @@ import EditArticleModal from './modals/EditArticleModal.vue'
 import ImportArticleModal from './modals/ImportArticleModal.vue'
 import axios from 'axios'
 const isEditArticleModalOpen = ref(false)
+
 const categoriesStore = useCategoryStore()
 const { init } = useToast()
 const serviceStore = useServiceStore()
@@ -16,7 +17,7 @@ const items = ref([])
 const selectedArticle = ref('')
 const isLoading = ref(true)
 const route = useRoute()
-
+const categories = ref([])
 const getArticles = (outletId) => {
   const url = import.meta.env.VITE_API_BASE_URL
   axios.get(`${url}/menuItems?outletId=${outletId}&limit=100`).then((response) => {
@@ -53,6 +54,15 @@ watch(
   (newId) => {
     if (newId) {
       getArticles(serviceStore.selectedRest)
+      categoriesStore.getAll(serviceStore.selectedRest).then((response) => {
+        categories.value = response.map((e) => {
+          return {
+            ...e,
+            text: e.name,
+            value: e.wCode,
+          }
+        })
+      })
     }
   },
   { immediate: true },
@@ -101,6 +111,7 @@ const isImportArticleModalOpen = ref(false)
       <ArticlesTable
         :items="items"
         :loading="isLoading"
+        :categories="categories"
         @updateArticleModal="updateArticleModal"
         @deleteArticle="deleteArticle"
         @updateArticle="updateArticleDirectly"
@@ -111,7 +122,7 @@ const isImportArticleModalOpen = ref(false)
   <EditArticleModal
     v-if="isEditArticleModalOpen"
     :selected-category="selectedArticle"
-    @cancel="(isEditArticleModalOpen = false), getArticles(serviceStore.selectedRest)"
+    @cancel="(selectedArticle = ''), (isEditArticleModalOpen = false), getArticles(serviceStore.selectedRest)"
   />
   <ImportArticleModal v-if="isImportArticleModalOpen" @cancel="isImportArticleModalOpen = false" />
 </template>

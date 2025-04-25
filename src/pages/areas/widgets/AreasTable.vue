@@ -105,6 +105,10 @@ function updateTable(rowData, areaId) {
       active: rowData.active,
     },
   }
+  delete payload.data.code // delete code key for unnecessary used
+  delete payload.data.createdAt // delete createdAt key for unnecessary used
+  delete payload.data.updatedAt // delete updatedAt key for unnecessary used
+  delete payload.data.__v // delete __v key for unnecessary used
   serviceStore
     .updateTable(payload)
     .then(() => {

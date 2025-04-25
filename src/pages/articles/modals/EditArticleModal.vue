@@ -9,7 +9,7 @@
     @update:modelValue="emits('cancel')"
   >
     <template #header>
-      <h1 class="sticky va-h6 mb-4">{{ selectedArticle ? 'Update' : 'Add' }}</h1>
+      <h1 class="sticky va-h6 mb-4">{{ selectedCategory ? 'Update' : 'Add' }}</h1>
     </template>
     <VaForm ref="form" @submit.prevent="submit">
       <div class="flex items-center gap-x-10 mb-2">
@@ -114,6 +114,7 @@ if (props.selectedCategory) {
   formData.value = {
     ...formData.value,
     ...props.selectedCategory,
+    categories: props.selectedCategory.categories.map((e) => e.wCode),
   }
 }
 const servicesStore = useServiceStore()
@@ -135,7 +136,22 @@ const subCategories = computed(() => {
     const allSubCategories = selectedCategories.flatMap((category) =>
       (category.subCategories || []).map((sub) => ({
         text: sub.name,
-        value: sub.wCode,
+        value: sub._id,
+        code: sub.wCode,
+      })),
+    )
+    return allSubCategories
+  }
+})
+
+const allSubCategories = computed(() => {
+  if (!categories.value.length) {
+    return []
+  } else {
+    const allSubCategories = categories.value.flatMap((category) =>
+      (category.subCategories || []).map((sub) => ({
+        id: sub._id,
+        ...sub,
       })),
     )
     return allSubCategories
@@ -153,13 +169,13 @@ const submit = () => {
     })
     data.subCategories = formData.value.subCategories.map((e) => {
       {
-        return { code: e }
+        return { code: allSubCategories.value.find((a) => a._id === e).wCode }
       }
     })
     data.outletId = servicesStore.selectedRest
-    delete data.createdAt;
-    delete data.updatedAt;
-    delete data.__v;
+    delete data.createdAt
+    delete data.updatedAt
+    delete data.__v
     const url: any = import.meta.env.VITE_API_BASE_URL
     if (props.selectedCategory) {
       axios
