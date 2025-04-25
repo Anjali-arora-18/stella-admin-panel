@@ -93,7 +93,7 @@ const routes: Array<RouteRecordRaw> = [
         name: 'logout',
         path: 'logout',
         beforeEnter: (to, from, next) => {
-          window.sessionStorage.removeItem('token')
+          window.localStorage.removeItem('selectedRest'), window.sessionStorage.removeItem('token')
           next('/auth/login')
         },
       },

@@ -41,7 +41,7 @@ defineProps({
 
 const GlobalStore = useGlobalStore()
 
-const selectedRest = ref('')
+const selectedRest = ref(localStorage.getItem('selectedRest') || '')
 const restOptions = ref([])
 const restlist = ref([])
 const { isSidebarMinimized } = storeToRefs(GlobalStore)
@@ -50,6 +50,15 @@ const getOutlets = () => {
   servicesStore.getAll().then(() => {
     restlist.value = servicesStore.items
     restOptions.value = servicesStore.items.map((e) => e.name)
+
+    const storedRest = localStorage.getItem('selectedRest')
+    if (storedRest) {
+      const found = servicesStore.items.find((a) => a.name === storedRest)
+      if (found) {
+        selectedRest.value = found.name
+        servicesStore.setRest(found._id)
+      }
+    }
   })
 }
 getOutlets()
@@ -67,8 +76,12 @@ watch(
   },
 )
 
-watch(selectedRest, (newValue, oldValue) => {
-  servicesStore.setRest(restlist.value.find((a) => a.name === newValue)['_id'])
+watch(selectedRest, (newValue) => {
+  const foundRest = restlist.value.find((a) => a.name === newValue)
+  if (foundRest) {
+    servicesStore.setRest(foundRest._id)
+    localStorage.setItem('selectedRest', newValue)
+  }
 })
 </script>
 

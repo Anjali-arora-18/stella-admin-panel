@@ -8,7 +8,7 @@
     @update:modelValue="emits('cancel')"
   >
     <div>
-      <VaStepper v-model="step" controls-hidden :steps="steps">
+      <VaStepper v-model="step" controls-hidden :steps="steps" class="mt-2">
         <template #step-content-0>
           <div>
             <div v-if="!loading">
@@ -110,15 +110,15 @@ const formData = ref({
 })
 const searchQuery = ref('')
 const prices = [
-  { value: '1', text: 'SalesPrice1WithTaxes' },
-  { value: '2', text: 'SalesPrice2WithTaxes' },
-  { value: '3', text: 'SalesPrice3WithTaxes' },
-  { value: '4', text: 'SalesPrice4WithTaxes' },
-  { value: '5', text: 'SalesPrice5WithTaxes' },
-  { value: '6', text: 'SalesPrice6WithTaxes' },
-  { value: '7', text: 'SalesPrice7WithTaxes' },
-  { value: '8', text: 'SalesPrice8WithTaxes' },
-  { value: '9', text: 'SalesPrice9WithTaxes' },
+  { value: '1', text: 'Price 1' },
+  { value: '2', text: 'Price 2' },
+  { value: '3', text: 'Price 3' },
+  { value: '4', text: 'Price 4' },
+  { value: '5', text: 'Price 5' },
+  { value: '6', text: 'Price 6' },
+  { value: '7', text: 'Price 7' },
+  { value: '8', text: 'Price 7' },
+  { value: '9', text: 'Price 9' },
 ]
 
 const filteredArticles = computed(() => {

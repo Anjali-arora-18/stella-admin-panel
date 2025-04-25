@@ -229,29 +229,31 @@ const areas = computed(() =>
           </template>
 
           <template #cell(actions)="{ rowData }">
-            <VaButton
-              preset="primary"
-              size="small"
-              icon="mso-edit"
-              aria-label="Edit table"
-              @click="$emit('editTable', rowData)"
-            />
-            <VaButton
-              :disabled="!rowData.isEdit"
-              preset="primary"
-              size="small"
-              icon="save"
-              class="ml-2"
-              @click="updateTable(rowData, itemKey._id)"
-            />
-            <VaButton
-              preset="primary"
-              size="small"
-              icon="mso-delete"
-              color="danger"
-              class="ml-2"
-              @click="onButtonClick(rowData._id)"
-            />
+            <div class="flex justify-center">
+              <VaButton
+                preset="primary"
+                size="small"
+                icon="mso-edit"
+                aria-label="Edit table"
+                @click="$emit('editTable', rowData)"
+              />
+              <VaButton
+                :disabled="!rowData.isEdit"
+                preset="primary"
+                size="small"
+                icon="save"
+                class="ml-2"
+                @click="updateTable(rowData, itemKey._id)"
+              />
+              <VaButton
+                preset="primary"
+                size="small"
+                icon="mso-delete"
+                color="danger"
+                class="ml-2"
+                @click="onButtonClick(rowData._id)"
+              />
+            </div>
           </template>
         </VaDataTable>
       </div>
@@ -265,7 +267,7 @@ const areas = computed(() =>
       </div>
     </template>
     <template #cell(actions)="{ rowData }">
-      <div class="flex gap-2 justify-start">
+      <div class="flex gap-2 justify-center">
         <VaButton preset="primary" size="small" icon="mso-edit" aria-label="Edit area" @click="editArea(rowData)" />
         <VaButton
           preset="primary"
@@ -280,7 +282,7 @@ const areas = computed(() =>
   </VaDataTable>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .notification-dropdown {
   cursor: pointer;
 
@@ -314,5 +316,8 @@ const areas = computed(() =>
   background: transparent !important;
   padding: 0 !important;
   font-size: 0.875rem;
+}
+::v-deep(.va-data-table__table thead th:last-child) {
+  text-align: center !important;
 }
 </style>

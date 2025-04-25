@@ -2,6 +2,7 @@
 import { defineVaDataTableColumns, useModal } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
 import { ref, computed, toRef } from 'vue'
+import { useAlign } from 'vuestic-ui/dist/types/composables/useAlign.js'
 
 const emits = defineEmits(['updateArticle', 'updateArticleModal'])
 const { confirm } = useModal()
@@ -128,7 +129,16 @@ const filteredItems = computed(() => {
       </template>
       <template #cell(image)="{ rowData }">
         <div class="max-w-[120px] ellipsis" @click="rowData.editing = 'name'">
-          <img :src="rowData.imageUrl" alt="Article Image" class="w-12 object-cover rounded" />
+          <img
+            :src="rowData.imageUrl || '/missing-image.png'"
+            alt="Article Image"
+            class="w-8 h-8 object-cover rounded"
+            @error="
+              (e) => {
+                e.target.src = '/missing-image.png'
+              }
+            "
+          />
         </div>
       </template>
       <template #cell(isActive)="{ rowData }">
@@ -142,15 +152,17 @@ const filteredItems = computed(() => {
         </div>
       </template>
       <template #cell(actions)="{ rowData }">
-        <VaButton preset="primary" size="small" icon="mso-edit" @click="emits('updateArticleModal', rowData)" />
-        <VaButton
-          preset="primary"
-          size="small"
-          color="danger"
-          icon="mso-delete"
-          class="ml-2"
-          @click="onButtonArticleDelete(rowData)"
-        />
+        <div class="flex justify-end">
+          <VaButton preset="primary" size="small" icon="mso-edit" @click="emits('updateArticleModal', rowData)" />
+          <VaButton
+            preset="primary"
+            size="small"
+            color="danger"
+            icon="mso-delete"
+            class="ml-2"
+            @click="onButtonArticleDelete(rowData)"
+          />
+        </div>
       </template>
     </VaDataTable>
   </div>
@@ -173,5 +185,8 @@ const filteredItems = computed(() => {
   ::v-deep(.va-data-table__table-tr) {
     border-bottom: 1px solid var(--va-background-border);
   }
+}
+::v-deep(.va-data-table__table thead th:last-child) {
+  text-align: right !important;
 }
 </style>

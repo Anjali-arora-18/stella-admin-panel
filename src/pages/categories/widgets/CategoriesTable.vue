@@ -153,7 +153,7 @@ const filteredItems = computed(() => {
         </div>
       </template>
       <template #cell(actions)="{ rowData }">
-        <div class="flex gap-2">
+        <div class="flex gap-2 justify-end">
           <VaButton
             preset="primary"
             size="small"
@@ -190,5 +190,8 @@ const filteredItems = computed(() => {
   ::v-deep(.va-data-table__table-tr) {
     border-bottom: 1px solid var(--va-background-border);
   }
+}
+::v-deep(.va-data-table__table thead th:last-child) {
+  text-align: right !important;
 }
 </style>

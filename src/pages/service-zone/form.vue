@@ -139,7 +139,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full mt-4">
               <div class="space-y-4" :rules="[validators.required]">
-                <div class="font-bold">Opening Times:</div>
+                <div class="font-bold mb-5">Opening Times:</div>
                 <div class="flex flex-col space-y-2">
                   <VaRadio
                     :key="restaurantData.operatingMode"
@@ -156,21 +156,22 @@
                     :rules="restaurantData.operatingMode === 'onlineOrdering' ? [validators.required] : []"
                   />
 
-                  <div v-if="restaurantData.openingTimes.selected === 'daily'" class="grid grid-cols-1 gap-2">
+                  <div v-if="restaurantData.openingTimes.selected === 'daily'" class="flex items-center gap-4">
                     <input
                       :key="restaurantData.operatingMode"
                       v-model="restaurantData.openingTime"
                       type="time"
                       :required-mark="restaurantData.operatingMode === 'onlineOrdering'"
                       :rules="restaurantData.operatingMode === 'onlineOrdering' ? [validators.required] : []"
-                      class="border border-1 h-8 min-w-[120px] p-4 rounded"
+                      class="border border-1 h-8 min-w-[140px] p-4 rounded"
                     />
+                    <span class="font-semibold">to</span>
                     <input
                       v-model="restaurantData.closingTime"
                       type="time"
                       :required-mark="restaurantData.operatingMode === 'onlineOrdering'"
                       :rules="restaurantData.operatingMode === 'onlineOrdering' ? [validators.required] : []"
-                      class="border border-1 h-8 min-w-[120px] p-4 rounded"
+                      class="border border-1 h-8 min-w-[140px] p-4 rounded"
                     />
                   </div>
                 </div>
@@ -188,17 +189,19 @@
                         'Sunday',
                       ]"
                       :key="index"
-                      class="flex flex-col space-y-2"
+                      class="flex items-center space-x-2"
                     >
+                      <span class="w-20 day">{{ day }}</span>
                       <input
                         v-model="restaurantData[`${day.toLowerCase()}Opening`]"
                         type="time"
-                        class="border border-1 h-8 min-w-[120px] p-4 rounded"
+                        class="border border-1 h-8 min-w-[120px] px-2 rounded"
                       />
+                      <span class="font-semibold">-</span>
                       <input
                         v-model="restaurantData[`${day.toLowerCase()}Closing`]"
                         type="time"
-                        class="border border-1 h-8 min-w-[120px] p-4 rounded"
+                        class="border border-1 h-8 min-w-[120px] px-2 rounded"
                       />
                     </div>
                   </div>
@@ -225,22 +228,23 @@
                     />
                     <div
                       v-if="restaurantData.delivery.openingTimes.selected === 'daily'"
-                      class="grid grid-cols-1 gap-2"
+                      class="flex items-center gap-4"
                     >
                       <input
                         v-model="restaurantData.delivery.openingTimes.daily.opens"
                         type="time"
-                        class="border border-1 h-8 min-w-[120px] p-4 rounded"
+                        class="border border-1 h-8 min-w-[140px] p-4 rounded"
                       />
+                      <span class="font-semibold">to</span>
                       <input
                         v-model="restaurantData.delivery.openingTimes.daily.closes"
                         type="time"
-                        class="border border-1 h-8 min-w-[120px] p-4 rounded"
+                        class="border border-1 h-8 min-w-[140px] p-4 rounded"
                       />
                     </div>
                   </div>
 
-                  <div class="flex flex-col space-y-2">
+                  <div class="flex flex-col space-y-2 mt-4">
                     <div
                       v-if="restaurantData.delivery.openingTimes.selected === 'byDay'"
                       class="grid grid-cols-1 gap-2"
@@ -256,18 +260,20 @@
                           'Sunday',
                         ]"
                         :key="'delivery-' + index"
-                        class="flex flex-col space-y-2"
+                        class="flex items-center space-x-2"
                       >
+                        <span class="w-20 day">{{ day }}</span>
                         <input
                           v-model="restaurantData.delivery.openingTimes.byDay[day.toLowerCase()].opens"
                           type="time"
                           :label="day"
-                          class="border border-1 h-8 min-w-[120px] p-4 rounded"
+                          class="border border-1 h-8 min-w-[120px] px-2 rounded"
                         />
+                        <span class="font-semibold">-</span>
                         <input
                           v-model="restaurantData.delivery.openingTimes.byDay[day.toLowerCase()].closes"
                           type="time"
-                          class="border border-1 h-8 min-w-[120px] p-4 rounded"
+                          class="border border-1 h-8 min-w-[120px] px-2 rounded"
                         />
                       </div>
                     </div>
@@ -295,22 +301,23 @@
                     />
                     <div
                       v-if="restaurantData.takeaway.openingTimes.selected === 'daily'"
-                      class="grid grid-cols-1 gap-2"
+                      class="flex items-center gap-4"
                     >
                       <input
                         v-model="restaurantData.takeaway.openingTimes.daily.opens"
                         type="time"
-                        class="border border-1 h-8 min-w-[120px] p-4 rounded"
+                        class="border border-1 h-8 min-w-[140px] p-4 rounded"
                       />
+                      <span class="font-semibold">to</span>
                       <input
                         v-model="restaurantData.takeaway.openingTimes.daily.closes"
                         type="time"
-                        class="border border-1 h-8 min-w-[120px] p-4 rounded"
+                        class="border border-1 h-8 min-w-[140px] p-4 rounded"
                       />
                     </div>
                   </div>
 
-                  <div class="flex flex-col space-y-2">
+                  <div class="flex flex-col space-y-2 mt-4">
                     <div
                       v-if="restaurantData.takeaway.openingTimes.selected === 'byDay'"
                       class="grid grid-cols-1 gap-2"
@@ -326,18 +333,20 @@
                           'Sunday',
                         ]"
                         :key="index"
-                        class="flex flex-col space-y-2"
+                        class="flex items-center space-x-2"
                       >
+                        <span class="w-20 day">{{ day }}</span>
                         <input
                           v-model="restaurantData.takeaway.openingTimes.byDay[day.toLowerCase()].opens"
                           type="time"
                           :label="day"
-                          class="border border-1 h-8 min-w-[120px] p-4 rounded"
+                          class="border border-1 h-8 min-w-[120px] px-2 rounded"
                         />
+                        <span class="font-semibold">-</span>
                         <input
                           v-model="restaurantData.takeaway.openingTimes.byDay[day.toLowerCase()].closes"
                           type="time"
-                          class="border border-1 h-8 min-w-[120px] p-4 rounded"
+                          class="border border-1 h-8 min-w-[120px] px-2 rounded"
                         />
                       </div>
                     </div>
@@ -434,30 +443,34 @@
               <VaColorInput v-model="restaurantData.headerColor" label="Header Color" class="w-28" />
               <VaColorInput v-model="restaurantData.footerColor" label="Footer Color" class="w-28" />
             </div>
-            <!-- <div class="flex flex-col sm:flex-row w-full">
-            <VaFileUpload
-              v-model="logo"
-              undo
-              :type="galleryType"
-              :undo-duration="undoDuration"
-              :undo-button-text="undoButtonText"
-              :deleted-file-message="deletedFileMessage"
-              :upload-button-text="uploadLogoText"
-              file-types="jpg,png"
-            />
-          </div>
-          <div class="flex flex-col sm:flex-row w-full">
-            <VaFileUpload
-              v-model="header"
-              undo
-              :type="galleryType"
-              :undo-duration="undoDuration"
-              :undo-button-text="undoButtonText"
-              :deleted-file-message="deletedFileMessage"
-              :upload-button-text="uploadHeaderText"
-              file-types="jpg,png"
-            />
-          </div> -->
+            <div class="flex flex-col sm:flex-row w-full gap-1">
+              <div class="flex-1">
+                <VaFileUpload
+                  v-model="logo"
+                  undo
+                  :type="galleryType"
+                  :undo-duration="undoDuration"
+                  :undo-button-text="undoButtonText"
+                  :deleted-file-message="deletedFileMessage"
+                  :upload-button-text="uploadLogoText"
+                  file-types="jpg,png"
+                  class="w-full h-full"
+                />
+              </div>
+              <div class="flex-1">
+                <VaFileUpload
+                  v-model="header"
+                  undo
+                  :type="galleryType"
+                  :undo-duration="undoDuration"
+                  :undo-button-text="undoButtonText"
+                  :deleted-file-message="deletedFileMessage"
+                  :upload-button-text="uploadHeaderText"
+                  file-types="jpg,png"
+                  class="w-full h-full"
+                />
+              </div>
+            </div>
           </div>
         </VaCardContent>
       </VaCard>
@@ -492,7 +505,7 @@ export default {
 
         return { hours, minutes }
       }
-      return null // Invalid input
+      return null
     }
 
     return {
@@ -1032,5 +1045,8 @@ export default {
 <style scoped>
 .config {
   --va-switch-label-left-padding: 0.8rem;
+}
+.day {
+  font-size: 12px;
 }
 </style>
