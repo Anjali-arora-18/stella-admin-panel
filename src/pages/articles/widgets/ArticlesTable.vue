@@ -6,6 +6,10 @@ import { ref, computed, toRef } from 'vue'
 const emits = defineEmits(['updateArticle', 'updateArticleModal'])
 const { confirm } = useModal()
 const router = useRouter()
+const userDetails = JSON.parse(sessionStorage.getItem('userDetails') || '{}')
+const userRole = ref(userDetails.role || '')
+const isSuperAdmin = computed(() => userRole.value === 'super-admin')
+
 const columns = defineVaDataTableColumns([
   { label: 'ID', key: 'id' },
   { label: 'Code', key: 'code', sortable: false },
@@ -23,6 +27,7 @@ const columns = defineVaDataTableColumns([
 ])
 
 const onButtonArticleDelete = async (payload) => {
+  if (!isSuperAdmin.value) return
   const result = await confirm({
     message: 'Are you sure you want to see delete this Article?',
     okText: 'Yes',
@@ -36,6 +41,16 @@ const onButtonArticleDelete = async (payload) => {
 }
 function deleteArticle(payload) {
   emits('deleteArticle', payload)
+}
+
+function handleCheckboxClick(rowData) {
+  if (!isSuperAdmin.value) return
+  emits('updateArticle', rowData)
+}
+
+function handleEditClick(rowData) {
+  if (!isSuperAdmin.value) return
+  emits('updateArticleModal', rowData)
 }
 
 const props = defineProps({
@@ -86,9 +101,9 @@ const filteredItems = computed(() => {
         </div>
       </template>
       <template #cell(name)="{ rowData }">
-        <div class="max-w-[120px] ellipsis" @click="rowData.editing = 'name'">
+        <div class="max-w-[120px] ellipsis" @click="isSuperAdmin && (rowData.editing = 'name')">
           <input
-            v-if="rowData.editing === 'name'"
+            v-if="rowData.editing === 'name' && isSuperAdmin"
             v-model="rowData.name"
             class="w-full p-1 border rounded"
             autofocus
@@ -133,22 +148,23 @@ const filteredItems = computed(() => {
       </template>
       <template #cell(isActive)="{ rowData }">
         <div class="table-cell-content">
-          <VaCheckbox v-model="rowData.isActive" size="small" @click="emits('updateArticle', rowData)" />
+          <VaCheckbox v-model="rowData.isActive" size="small" :disabled="!isSuperAdmin" @click="handleCheckboxClick( rowData)" />
         </div>
       </template>
       <template #cell(stock)="{ rowData }">
         <div class="table-cell-content">
-          <VaCheckbox v-model="rowData.inStock" size="small" @click="emits('updateArticle', rowData)" />
+          <VaCheckbox v-model="rowData.inStock" size="small" :disabled="!isSuperAdmin" @click="handleCheckboxClick(rowData)" />
         </div>
       </template>
       <template #cell(actions)="{ rowData }">
-        <VaButton preset="primary" size="small" icon="mso-edit" @click="emits('updateArticleModal', rowData)" />
+        <VaButton preset="primary" size="small" icon="mso-edit" :disabled="!isSuperAdmin" @click="handleEditClick(rowData)" />
         <VaButton
           preset="primary"
           size="small"
           color="danger"
           icon="mso-delete"
           class="ml-2"
+          :disabled="!isSuperAdmin"
           @click="onButtonArticleDelete(rowData)"
         />
       </template>

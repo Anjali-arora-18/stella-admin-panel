@@ -3,7 +3,8 @@
     <p class="font-bold w-[200px]">Name</p>
     <div class="flex-1">
       <div class="max-w-[748px]">
-        {{ store.userName }}
+        {{ store.firstName.charAt(0).toUpperCase() + store.firstName.slice(1) + ' ' +
+          store.lastName.charAt(0).toUpperCase() + store.lastName.slice(1) }}
       </div>
     </div>
     <VaButton :style="buttonStyles" class="w-fit h-fit" preset="primary" @click="emits('openNameModal')">
@@ -33,12 +34,12 @@ import { computed } from 'vue'
 
 import { useToast } from 'vuestic-ui'
 
-import { useUserStore } from '../../../stores/user-store'
+// import { useUserStore } from '../../../stores/user-store'
 
 import { buttonStyles } from '../styles'
 
-const store = useUserStore()
-
+// const store = useUserStore()
+const store = JSON.parse(sessionStorage.getItem("userDetails"));
 const { init } = useToast()
 
 const emits = defineEmits(['openNameModal', 'openResetPasswordModal'])

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useToast } from 'vuestic-ui'
 import { useRoute } from 'vue-router'
 import ArticlesTable from './widgets/ArticlesTable.vue'
@@ -80,14 +80,16 @@ async function deleteArticle(payload) {
       })
     })
 }
-
+const userDetails = JSON.parse(sessionStorage.getItem('userDetails') || '{}')
+const userRole = ref(userDetails.role || '')
+const isSuperAdmin = computed(() => userRole.value === 'super-admin')
 const isImportArticleModalOpen = ref(false)
 </script>
 
 <template>
   <div class="flex items-center justify-between">
     <h1 class="page-title font-bold">Articles</h1>
-    <div class="flex gap-2">
+    <div class="flex gap-2" v-if="isSuperAdmin">
       <VaButton color="primary" size="small" @click="isImportArticleModalOpen = true"> Import</VaButton>
       <VaButton size="small" color="primary" @click="isEditArticleModalOpen = true"> Add Article </VaButton>
     </div>

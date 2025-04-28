@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useToast } from 'vuestic-ui'
 import { useRoute } from 'vue-router'
 import CategoriesTable from './widgets/CategoriesTable.vue'
@@ -16,7 +16,9 @@ const items = ref([])
 const selectedCategory = ref('')
 const isLoading = ref(true)
 const route = useRoute()
-
+const userDetails = JSON.parse(sessionStorage.getItem('userDetails') || '{}')
+const userRole = ref(userDetails.role || '')
+const isAdmin = computed(() => userRole.value === 'admin')
 const getCategories = (outletId) => {
   categoriesStore.getAll(outletId).then(() => {
     items.value = categoriesStore.items.map((item) => ({
@@ -96,7 +98,7 @@ const isImportCategoryModalOpen = ref(false)
 <template>
   <div class="flex items-center justify-between">
     <h1 class="page-title font-bold">Categories</h1>
-    <div class="flex gap-2">
+    <div class="flex gap-2" v-if="!isAdmin">
       <VaButton color="primary" size="small" @click="isImportCategoryModalOpen = true"> Import</VaButton>
       <VaButton size="small" color="primary" @click="isEditCategoryModalOpen = true"> Add Item </VaButton>
     </div>

@@ -6,6 +6,9 @@ import { useServiceStore } from '@/stores/services'
 const emits = defineEmits(['updateCategoryModal', 'updateCategory'])
 const { confirm } = useModal()
 const router = useRouter()
+const userDetails = JSON.parse(sessionStorage.getItem('userDetails') || '{}')
+const userRole = ref(userDetails.role || '')
+const isAdmin = computed(() => userRole.value === 'admin')
 const servicesStore = useServiceStore()
 const columns = defineVaDataTableColumns([
   { label: 'ID', key: 'id' },
@@ -21,6 +24,7 @@ const columns = defineVaDataTableColumns([
 const IsActive = ref(true)
 
 const onButtonCategoryDelete = async (payload) => {
+  if (isAdmin.value) return
   const result = await confirm({
     message: 'Are you sure you want to see delete this Category?',
     okText: 'Yes',
@@ -34,6 +38,16 @@ const onButtonCategoryDelete = async (payload) => {
 }
 function deleteCategory(payload) {
   emits('deleteCategory', payload)
+}
+
+function handleCheckboxClick(rowData) {
+  if (isAdmin.value) return
+  emits('updateCategory', rowData)
+}
+
+function handleEditClick(rowData) {
+  if (isAdmin.value) return
+  emits('updateCategoryModal', rowData)
 }
 
 const areas = ref([])
@@ -89,7 +103,7 @@ const filteredItems = computed(() => {
         </div>
       </template>
       <template #cell(code)="{ rowData }">
-        <div v-if="!rowData.editCode" class="table-cell-content" @click="rowData.editCode = true">
+        <div v-if="!rowData.editCode" class="table-cell-content" @click="!isAdmin && (rowData.editCode = true)">
           {{ rowData.wCode }}
         </div>
         <VaInput
@@ -98,11 +112,11 @@ const filteredItems = computed(() => {
           v-focus
           class="editable-cell w-full"
           size="small"
-          @blur="(rowData.editCode = false), emits('updateCategory', rowData)"
+          @blur="(rowData.editCode = false); !isAdmin && emits('updateCategory', rowData)"
         />
       </template>
       <template #cell(name)="{ rowData }">
-        <div v-if="!rowData.editName" class="table-cell-content" @click="rowData.editName = true">
+        <div v-if="!rowData.editName" class="table-cell-content" @click="!isAdmin && (rowData.editName = true)">
           {{ rowData.name }}
         </div>
         <VaInput
@@ -111,7 +125,7 @@ const filteredItems = computed(() => {
           v-focus
           class="editable-cell w-full"
           size="small"
-          @blur="(rowData.editName = false), emits('updateCategory', rowData)"
+          @blur="(rowData.editName = false); !isAdmin && emits('updateCategory', rowData)"
         />
       </template>
       <template #cell(sub_categories)="{ rowData }">
@@ -122,7 +136,7 @@ const filteredItems = computed(() => {
             :text="` ${sub.wCode} - ${sub.name}`"
             color="secondary"
             class="px-2"
-            @click="emits('updateCategoryModal', { ...rowData, updating: 'subCategory' })"
+            @click="!isAdmin && emits('updateCategoryModal', { ...rowData, updating: 'subCategory' })"
           >
           </VaBadge>
         </div>
@@ -140,7 +154,7 @@ const filteredItems = computed(() => {
       <template #cell(schedule)="{ rowData }">
         <div
           class="uppercase ellipsis max-w-[230px]"
-          @click="emits('updateCategoryModal', { ...rowData, updating: 'schedule' })"
+          @click="!isAdmin && emits('updateCategoryModal', { ...rowData, updating: 'schedule' })"
         >
           {{
             rowData.schedule ? (rowData.schedule.selected === 'is24h' ? '24 Hours' : rowData.schedule.selected) : '-'
@@ -149,7 +163,7 @@ const filteredItems = computed(() => {
       </template>
       <template #cell(isActive)="{ rowData }">
         <div class="table-cell-content">
-          <VaCheckbox v-model="rowData.isActive" size="small" @click="emits('updateCategory', rowData)" />
+          <VaCheckbox v-model="rowData.isActive" size="small" :disabled="isAdmin" @click=" !isAdmin &&  emits('updateCategory', rowData)" />
         </div>
       </template>
       <template #cell(actions)="{ rowData }">
@@ -158,6 +172,7 @@ const filteredItems = computed(() => {
             preset="primary"
             size="small"
             icon="mso-edit"
+            :disabled="isAdmin"
             @click="emits('updateCategoryModal', { ...rowData, updating: 'all' })"
           />
           <VaButton
@@ -165,6 +180,7 @@ const filteredItems = computed(() => {
             size="small"
             color="danger"
             icon="mso-delete"
+            :disabled="isAdmin"
             @click="onButtonCategoryDelete(rowData)"
           />
         </div>

@@ -2,7 +2,7 @@
   <VaSidebar v-model="writableVisible" :width="sidebarWidth" :color="color" minimized-width="0">
     <VaAccordion v-model="value" multiple>
       <VaCollapse
-        v-for="(route, index) in navigationRoutes.routes.filter((a) => a.name !== 'auth' && a.visible)"
+         v-for="(route, index) in filteredRoutes"
         :key="index"
       >
         <template #header="{ value: isCollapsed }">
@@ -37,7 +37,7 @@
               :active="isActiveChildRoute(childRoute)"
               :active-color="activeColor"
               :text-color="textColor(childRoute)"
-              :aria-label="`Visit ${t(route.displayName)}`"
+              :aria-label="`Visit ${t(childRoute.displayName)}`"
               hover-opacity="0.10"
             >
               <VaSidebarItemContent class="py-3 pr-2 pl-11">
@@ -73,6 +73,7 @@ export default defineComponent({
     const { getColor, colorToRgba } = useColors()
     const route = useRoute()
     const { t } = useI18n()
+    const store = JSON.parse(sessionStorage.getItem("userDetails"));
 
     const value = ref<boolean[]>([])
 
@@ -80,6 +81,24 @@ export default defineComponent({
       get: () => props.visible,
       set: (v: boolean) => emit('update:visible', v),
     })
+    const userRole = computed(() => store.role ?? '')
+  
+    const isRouteAllowed = (route: INavigationRoute): boolean => {
+      if (!route.visible) return false
+      if (!route.allowedRoles) return true
+      return route.allowedRoles.includes(userRole.value)
+    }
+
+    const filterRoutesByRole = (routes: INavigationRoute[]) => {
+      return routes
+        .filter((route) => isRouteAllowed(route))
+        .map((route) => ({
+          ...route,
+          children: route.children ? filterRoutesByRole(route.children) : undefined,
+        }))
+    }
+
+    const filteredRoutes = computed(() => filterRoutesByRole(navigationRoutes.routes))
 
     const isActiveChildRoute = (child: INavigationRoute) => route.name === child.name
 
@@ -110,6 +129,7 @@ export default defineComponent({
       value,
       color,
       activeColor,
+      filteredRoutes,
       navigationRoutes,
       routeHasActiveChild,
       isActiveChildRoute,

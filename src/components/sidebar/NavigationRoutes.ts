@@ -3,6 +3,7 @@ export interface INavigationRoute {
   displayName: string
   meta: { icon: string }
   visible: boolean
+  allowedRoles?: string[]
   children?: INavigationRoute[]
 }
 
@@ -19,6 +20,7 @@ export default {
       meta: {
         icon: 'group',
       },
+      allowedRoles: ['super-admin'],
     },
     {
       name: 'list',
@@ -27,6 +29,7 @@ export default {
       meta: {
         icon: 'group',
       },
+      allowedRoles: ['super-admin'],
     },
     {
       name: 'areas',
@@ -35,6 +38,7 @@ export default {
       meta: {
         icon: 'group',
       },
+      allowedRoles: ['super-admin'],
     },
     {
       name: 'tables',
@@ -51,6 +55,7 @@ export default {
       meta: {
         icon: 'group',
       },
+      allowedRoles: ['super-admin','admin'],
     },
     {
       name: 'articles',
@@ -59,6 +64,7 @@ export default {
       meta: {
         icon: 'group',
       },
+      allowedRoles: ['super-admin','admin', 'editor'],
     },
     {
       name: 'menuItems',
