@@ -3,14 +3,14 @@ import { defineVaDataTableColumns, useModal } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
 import { ref, computed, toRef, watch } from 'vue'
 import { useServiceStore } from '@/stores/services'
-const emits = defineEmits(['updateCategoryModal', 'updateCategory'])
+const emits = defineEmits(['updateCategoryModal', 'updateCategory', 'sortBy', 'sortingOrder'])
 const { confirm } = useModal()
 const router = useRouter()
 const servicesStore = useServiceStore()
 const columns = defineVaDataTableColumns([
-  { label: 'ID', key: 'id' },
-  { label: 'Code', key: 'code', sortable: false },
-  { label: 'Name', key: 'name', sortable: false },
+  { label: 'ID', key: 'numericId', sortable: true },
+  { label: 'Code', key: 'wCode', sortable: true },
+  { label: 'Name', key: 'name', sortable: true },
   { label: 'Sub-Categories', key: 'sub_categories', sortable: false },
   { label: 'Area', key: 'area', sortable: false },
   { label: 'Schedule', key: 'schedule', sortable: false },
@@ -82,13 +82,20 @@ const filteredItems = computed(() => {
         size="small"
       />
     </div>
-    <VaDataTable :columns="columns" :items="filteredItems" :loading="$props.loading">
-      <template #cell(id)="{ rowData }">
+    <VaDataTable
+      :columns="columns"
+      :items="filteredItems"
+      :loading="$props.loading"
+      :disable-client-side-sorting="true"
+      @update:sortBy="(sortBy) => $emit('sortBy', sortBy)"
+      @update:sortingOrder="(sortDesc) => $emit('sortingOrder', sortDesc)"
+    >
+      <template #cell(numericId)="{ rowData }">
         <div class="max-w-[120px] ellipsis">
-          {{ rowData._id }}
+          {{ rowData.numericId }}
         </div>
       </template>
-      <template #cell(code)="{ rowData }">
+      <template #cell(wCode)="{ rowData }">
         <div v-if="!rowData.editCode" class="table-cell-content" @click="rowData.editCode = true">
           {{ rowData.wCode }}
         </div>

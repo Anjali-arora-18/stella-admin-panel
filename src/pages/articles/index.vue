@@ -14,16 +14,44 @@ const categoriesStore = useCategoryStore()
 const { init } = useToast()
 const serviceStore = useServiceStore()
 const items = ref([])
+const count = ref(0)
+const pageNumber = ref(1)
+const searchQuery = ref('')
+const sortBy = ref('name')
+const sortOrder = ref('asc')
 const selectedArticle = ref('')
 const isLoading = ref(true)
 const route = useRoute()
 const categories = ref([])
+
 const getArticles = (outletId) => {
+  items.value = []
+  isLoading.value = true
   const url = import.meta.env.VITE_API_BASE_URL
-  axios.get(`${url}/menuItems?outletId=${outletId}&limit=100`).then((response) => {
-    items.value = response.data
-    isLoading.value = false
+  axios
+    .get(
+      `${url}/menuItems?outletId=${outletId}&limit=50&page=${pageNumber.value}&search=${searchQuery.value}&sortKey=${sortBy.value}&sortValue=${sortOrder.value}`,
+    )
+    .then((response) => {
+      items.value = response.data
+      isLoading.value = false
+    })
+}
+
+const getArticlesCount = (outletId) => {
+  const url = import.meta.env.VITE_API_BASE_URL
+  axios.get(`${url}/menuItems/count?outletId=${outletId}&search=${searchQuery.value}`).then((response) => {
+    count.value = Number(response.data.totalNoRec)
   })
+}
+
+function updateSortBy(payload) {
+  sortBy.value = payload
+  getArticles(serviceStore.selectedRest)
+}
+function updateSortOrder(payload) {
+  sortOrder.value = payload
+  getArticles(serviceStore.selectedRest)
 }
 
 const updateArticleModal = (payload) => {
@@ -34,9 +62,9 @@ const updateArticleModal = (payload) => {
 const updateArticleDirectly = (payload) => {
   const data = payload
   data.outletId = serviceStore.selectedRest
-  delete data.createdAt // delete createdAt key for unnecessary used
-  delete data.updatedAt // delete updatedAt key for unnecessary used
-  delete data.__v // delete __v key for unnecessary used
+  delete data.createdAt
+  delete data.updatedAt
+  delete data.__v
   const url: any = import.meta.env.VITE_API_BASE_URL
   axios
     .patch(`${url}/menuItems/${payload._id}`, data)
@@ -54,6 +82,7 @@ watch(
   (newId) => {
     if (newId) {
       getArticles(serviceStore.selectedRest)
+      getArticlesCount(serviceStore.selectedRest)
       categoriesStore.getAll(serviceStore.selectedRest).then((response) => {
         categories.value = response.map((e) => {
           return {
@@ -67,6 +96,9 @@ watch(
   },
   { immediate: true },
 )
+watch(searchQuery, (search) => {
+  getArticlesCount(serviceStore.selectedRest)
+})
 
 async function deleteArticle(payload) {
   const data = {
@@ -94,6 +126,12 @@ async function deleteArticle(payload) {
     })
 }
 
+function getArticlesForPagination(payload) {
+  pageNumber.value = payload.page
+  searchQuery.value = payload.searchQuery
+  getArticles(serviceStore.selectedRest)
+}
+
 const isImportArticleModalOpen = ref(false)
 </script>
 
@@ -112,8 +150,14 @@ const isImportArticleModalOpen = ref(false)
         :items="items"
         :loading="isLoading"
         :categories="categories"
+        :count="count"
+        :sort-by="sortBy"
+        :sort-order="sortOrder"
+        @sortBy="updateSortBy"
+        @sortingOrder="updateSortOrder"
         @updateArticleModal="updateArticleModal"
         @deleteArticle="deleteArticle"
+        @getArticlesForPagination="getArticlesForPagination"
         @updateArticle="updateArticleDirectly"
       />
     </VaCardContent>

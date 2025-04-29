@@ -10,7 +10,7 @@ const activeCheck = toRef(true)
 const serviceStore = useServiceStore()
 const router = useRouter()
 const columns = defineVaDataTableColumns([
-  { label: 'Id', key: 'id', sortable: false },
+  { label: 'Id', key: 'numericId', sortable: false },
   { label: 'Name', key: 'name', sortable: false },
   { label: 'Email', key: 'email', sortable: false },
   { label: 'Address', key: 'address', sortable: false },
@@ -53,9 +53,9 @@ function downloadQrCode(rowData) {
 
 <template>
   <VaDataTable :columns="columns" :items="items" :loading="$props.loading">
-    <template #cell(id)="{ rowData }">
+    <template #cell(numericId)="{ rowData }">
       <div class="max-w-[120px] ellipsis">
-        {{ rowData._id }}
+        {{ rowData.numericId }}
       </div>
     </template>
 

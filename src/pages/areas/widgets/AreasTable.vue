@@ -17,7 +17,7 @@ const { init } = useToast()
 const { confirm } = useModal()
 const serviceStore = useServiceStore()
 const columns = defineVaDataTableColumns([
-  { label: 'Id', key: 'id', sortable: false },
+  { label: 'Id', key: 'numericId', sortable: false },
   { label: 'Name', key: 'name', sortable: false },
   { label: 'Tables', key: 'tables', sortable: false },
   { label: 'Disabled', key: 'disabled', sortable: false },
@@ -25,7 +25,7 @@ const columns = defineVaDataTableColumns([
 ])
 
 const tableColumns = defineVaDataTableColumns([
-  { label: 'Id', key: 'id', sortable: false },
+  { label: 'Id', key: 'numericId', sortable: false },
   { label: 'Type', key: 'type', sortable: true },
   { label: 'Area', key: 'area', sortable: true },
   { label: 'Number', key: 'number', sortable: true },
@@ -105,10 +105,10 @@ function updateTable(rowData, areaId) {
       active: rowData.active,
     },
   }
-  delete payload.data.code // delete code key for unnecessary used
-  delete payload.data.createdAt // delete createdAt key for unnecessary used
-  delete payload.data.updatedAt // delete updatedAt key for unnecessary used
-  delete payload.data.__v // delete __v key for unnecessary used
+  delete payload.data.code
+  delete payload.data.createdAt
+  delete payload.data.updatedAt
+  delete payload.data.__v
   serviceStore
     .updateTable(payload)
     .then(() => {
@@ -131,9 +131,9 @@ const areas = computed(() =>
 
 <template>
   <VaDataTable :columns="columns" :items="items" :loading="$props.loading">
-    <template #cell(id)="{ rowData }">
+    <template #cell(numericId)="{ rowData }">
       <div class="ellipsis">
-        {{ rowData.id }}
+        {{ rowData.numericId }}
       </div>
     </template>
 
@@ -163,14 +163,9 @@ const areas = computed(() =>
           size="small"
           @input="filterTableData($event, rowData)"
         />
-        <VaDataTable
-          style="flex-grow: 1; width: 100%"
-          :items="rowData.filteredTables"
-          :columns="tableColumns"
-          :loading="$props.loading"
-        >
-          <template #cell(id)="{ rowData }">
-            <div class="ellipsis">{{ rowData._id }}</div>
+        <VaDataTable style="flex-grow: 1; width: 100%" :items="rowData.filteredTables" :columns="tableColumns">
+          <template #cell(numericId)="{ rowData }">
+            <div class="ellipsis">{{ rowData.numericId }}</div>
           </template>
 
           <template #cell(type)="{ rowData }">

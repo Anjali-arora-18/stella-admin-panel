@@ -9,8 +9,8 @@ export const useCategoryStore = defineStore('categories', {
   },
 
   actions: {
-    async getAll(payload) {
-      const { data } = await getCategories(payload)
+    async getAll(payload, sortBy = 'name', order = 'asc') {
+      const { data } = await getCategories(payload, sortBy, order)
       this.items = data
       return data
     },

@@ -1,19 +1,57 @@
 <script setup lang="ts">
 import { defineVaDataTableColumns, useModal } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
-import { ref, computed, toRef } from 'vue'
+import { ref, computed, toRef, watch } from 'vue'
 import { useServiceStore } from '@/stores/services'
 import { useCategoryStore } from '@/stores/categories'
 import Categories from '@/pages/admin/orders/categories.vue'
-const emits = defineEmits(['updateArticle', 'updateArticleModal'])
+const props = defineProps({
+  items: {
+    type: Array,
+    required: true,
+  },
+  loading: { type: Boolean, default: false },
+  categories: {
+    type: Array,
+    required: true,
+  },
+  count: {
+    type: Number,
+    default: 0,
+  },
+})
+const emits = defineEmits([
+  'updateArticle',
+  'updateArticleModal',
+  'deleteArticle',
+  'sortBy',
+  'sortingOrder',
+  'getArticlesForPagination',
+])
+
 const { confirm } = useModal()
 const router = useRouter()
+
+const currentPage = ref(1)
+const items = toRef(props, 'items')
+const searchQuery = ref('')
+
+watch(currentPage, (newPage) => {
+  emits('getArticlesForPagination', { page: currentPage.value, searchQuery: searchQuery.value })
+})
+watch(searchQuery, (search) => {
+  emits('getArticlesForPagination', { page: currentPage.value, searchQuery: searchQuery.value })
+})
+const pages = computed(() => {
+  return Math.ceil(props.count / 50)
+})
+
 const columns = defineVaDataTableColumns([
-  { label: 'ID', key: 'id' },
-  { label: 'Code', key: 'code', sortable: false },
-  { label: 'Name', key: 'name', sortable: false },
-  { label: 'Description', key: 'description', sortable: false },
-  { label: 'Price', key: 'price', sortable: false },
+  { label: 'ID', key: 'numericId' },
+  { label: 'Code', key: 'code', sortable: true, sortingOptions: ['desc', 'asc'] },
+  { label: 'Name', key: 'name', sortable: true, sortingOptions: ['desc', 'asc'] },
+  { label: 'Description', key: 'description', sortable: true, sortingOptions: ['desc', 'asc'] },
+  { label: 'Price', key: 'price', sortable: true, sortingOptions: ['desc', 'asc'] },
   { label: 'Category', key: 'category', sortable: false },
   { label: 'Sub-Category', key: 'sub_category', sortable: false },
   { label: 'Options', key: 'options', sortable: false },
@@ -39,51 +77,6 @@ const onButtonArticleDelete = async (payload) => {
 function deleteArticle(payload) {
   emits('deleteArticle', payload)
 }
-
-const props = defineProps({
-  items: {
-    type: Array,
-    required: true,
-  },
-  loading: { type: Boolean, default: false },
-  categories: {
-    type: Array,
-    required: true,
-  },
-})
-
-const items = toRef(props, 'items')
-const searchQuery = ref('')
-
-const filteredItems = computed(() => {
-  const query = searchQuery.value.toLowerCase()
-  return items.value.filter(
-    (item) => item.wCode?.toLowerCase().includes(query) || item.name?.toLowerCase().includes(query),
-  )
-})
-
-const subCategories = computed(() => {
-  if (!props.categories.length) {
-    return []
-  } else {
-    const allSubCategories = props.categories.flatMap((category) =>
-      (category.subCategories || []).map((sub) => ({
-        id: sub._id,
-        ...sub,
-      })),
-    )
-    return allSubCategories
-  }
-})
-
-const getSubCategory = (item) => {
-  if (subCategories.value.find((a) => a._id === item)) {
-    return `${subCategories.value.find((a) => a._id === item).wCode} -  ${
-      subCategories.value.find((a) => a._id === item).name
-    }`
-  }
-  return ''
-}
 </script>
 
 <template>
@@ -96,10 +89,17 @@ const getSubCategory = (item) => {
         size="small"
       />
     </div>
-    <VaDataTable :columns="columns" :items="filteredItems" :loading="$props.loading">
-      <template #cell(id)="{ rowData }">
+    <VaDataTable
+      :columns="columns"
+      :items="items"
+      :loading="$props.loading"
+      :disable-client-side-sorting="true"
+      @update:sortBy="(sortBy) => $emit('sortBy', sortBy)"
+      @update:sortingOrder="(sortDesc) => $emit('sortingOrder', sortDesc)"
+    >
+      <template #cell(numericId)="{ rowData }">
         <div class="max-w-[120px] ellipsis">
-          {{ rowData._id }}
+          {{ rowData.numericId }}
         </div>
       </template>
       <template #cell(code)="{ rowData }">
@@ -128,16 +128,15 @@ const getSubCategory = (item) => {
       </template>
       <template #cell(category)="{ rowData }">
         <div class="space-y-1">
-          <div v-for="e in rowData.categories" :key="e.Wcode" class="flex flex-col">
-            <VaBadge color="plain" :text="`${e.wCode} -  ${e.name} `"></VaBadge>
+          <div v-for="e in rowData.categories" :key="e.wCode" class="flex flex-col">
+            <VaBadge color="primary" :text="`${e.wCode} -  ${e.name} `"></VaBadge>
           </div>
         </div>
       </template>
       <template #cell(sub_category)="{ rowData }">
         <div class="space-y-1">
-          {{}}
-          <div v-for="e in rowData.subCategories" :key="e.Wcode" class="flex flex-col">
-            <VaBadge color="#B3D943" :text="getSubCategory(e)"></VaBadge>
+          <div v-for="e in rowData.subCategories" :key="e" class="flex flex-col">
+            <VaBadge color="#B3D943" :text="e.wCode + ' - ' + e.name"></VaBadge>
           </div>
         </div>
       </template>
@@ -194,6 +193,16 @@ const getSubCategory = (item) => {
         </div>
       </template>
     </VaDataTable>
+    <div class="mt-5 flex justify-end">
+      <VaPagination
+        v-model="currentPage"
+        :pages="pages"
+        buttons-preset="default"
+        gapped
+        :visible-pages="4"
+        class="justify-center sm:justify-start"
+      />
+    </div>
   </div>
 </template>
 

@@ -115,6 +115,7 @@ if (props.selectedCategory) {
     ...formData.value,
     ...props.selectedCategory,
     categories: props.selectedCategory.categories.map((e) => e.wCode),
+    subCategories: props.selectedCategory.subCategories.map((e) => e.wCode),
   }
 }
 const servicesStore = useServiceStore()
@@ -136,22 +137,8 @@ const subCategories = computed(() => {
     const allSubCategories = selectedCategories.flatMap((category) =>
       (category.subCategories || []).map((sub) => ({
         text: sub.name,
-        value: sub._id,
+        value: sub.wCode,
         code: sub.wCode,
-      })),
-    )
-    return allSubCategories
-  }
-})
-
-const allSubCategories = computed(() => {
-  if (!categories.value.length) {
-    return []
-  } else {
-    const allSubCategories = categories.value.flatMap((category) =>
-      (category.subCategories || []).map((sub) => ({
-        id: sub._id,
-        ...sub,
       })),
     )
     return allSubCategories
@@ -169,7 +156,7 @@ const submit = () => {
     })
     data.subCategories = formData.value.subCategories.map((e) => {
       {
-        return { code: allSubCategories.value.find((a) => a._id === e).wCode }
+        return { code: e }
       }
     })
     data.outletId = servicesStore.selectedRest

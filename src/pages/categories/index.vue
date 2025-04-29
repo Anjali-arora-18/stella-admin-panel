@@ -13,12 +13,16 @@ const categoriesStore = useCategoryStore()
 const { init } = useToast()
 const serviceStore = useServiceStore()
 const items = ref([])
+const sortBy = ref('name')
+const sortOrder = ref('asc')
 const selectedCategory = ref('')
 const isLoading = ref(true)
 const route = useRoute()
 
 const getCategories = (outletId) => {
-  categoriesStore.getAll(outletId).then(() => {
+  isLoading.value = true
+  items.value = []
+  categoriesStore.getAll(outletId, sortBy.value, sortOrder.value).then(() => {
     items.value = categoriesStore.items.map((item) => ({
       editCode: false,
       editName: false,
@@ -31,6 +35,15 @@ const getCategories = (outletId) => {
     }))
     isLoading.value = false
   })
+}
+
+function updateSortBy(payload) {
+  sortBy.value = payload
+  getCategories(serviceStore.selectedRest)
+}
+function updateSortOrder(payload) {
+  sortOrder.value = payload
+  getCategories(serviceStore.selectedRest)
 }
 
 const updateCategory = (payload) => {
@@ -112,6 +125,10 @@ const isImportCategoryModalOpen = ref(false)
       <CategoriesTable
         :items="items"
         :loading="isLoading"
+        :sort-by="sortBy"
+        :sort-order="sortOrder"
+        @sortBy="updateSortBy"
+        @sortingOrder="updateSortOrder"
         @deleteCategory="deleteCategory"
         @updateCategoryModal="updateCategory"
         @updateCategory="updateCategoryDirectly"
