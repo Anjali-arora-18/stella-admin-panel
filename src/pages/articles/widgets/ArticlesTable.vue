@@ -103,13 +103,13 @@ function deleteArticle(payload) {
         </div>
       </template>
       <template #cell(code)="{ rowData }">
-        <div class="max-w-[120px] ellipsis">
+        <div class="max-w-[120px] ellipsis" @click="rowData.editing = 'code'">
           <input
             v-if="rowData.editing === 'code'"
             v-model="rowData.code"
             class="w-full p-1 border rounded"
             autofocus
-            @blur="emits('updateArticle', rowData)"
+            @keyup.enter="emits('updateArticle', rowData), (rowData.editing = '')"
           />
           <span v-else>{{ rowData.code }}</span>
         </div>
@@ -121,16 +121,57 @@ function deleteArticle(payload) {
             v-model="rowData.name"
             class="w-full p-1 border rounded"
             autofocus
-            @blur="$emit('updateArticle', rowData), (rowData.editing = '')"
+            @keyup.enter="$emit('updateArticle', rowData), (rowData.editing = '')"
           />
           <span v-else>{{ rowData.name }}</span>
         </div>
       </template>
+      <template #cell(description)="{ rowData }">
+        <div class="max-w-[120px] ellipsis" @click="rowData.editing = 'description'">
+          <input
+            v-if="rowData.editing === 'description'"
+            v-model="rowData.description"
+            class="w-full p-1 border rounded"
+            autofocus
+            @keyup.enter="$emit('updateArticle', rowData), (rowData.editing = '')"
+          />
+          <span v-else>{{ rowData.description }}</span>
+        </div>
+      </template>
+      <template #cell(price)="{ rowData }">
+        <div class="max-w-[120px] ellipsis" @click="rowData.editing = 'price'">
+          <input
+            v-if="rowData.editing === 'price'"
+            v-model="rowData.price"
+            class="w-full p-1 border rounded"
+            autofocus
+            @keyup.enter="$emit('updateArticle', rowData), (rowData.editing = '')"
+          />
+          <span v-else>{{ rowData.price }}</span>
+        </div>
+      </template>
+      <!-- <template #cell(allergens)="{ rowData }">
+        <div class="max-w-[120px] ellipsis" @click="rowData.editing = 'allergens'">
+          <input
+            v-if="rowData.editing === 'allergens'"
+            v-model="rowData.allergens"
+            class="w-full p-1 border rounded"
+            autofocus
+            @keyup.enter="$emit('updateArticle', rowData), (rowData.editing = '')"
+          />
+          <span v-else>{{ rowData.allergens }}</span>
+        </div>
+      </template> -->
       <template #cell(category)="{ rowData }">
-        <div class="space-y-1">
-          <div v-for="e in rowData.categories" :key="e.wCode" class="flex flex-col">
-            <VaBadge color="primary" :text="`${e.wCode} -  ${e.name} `"></VaBadge>
-          </div>
+        <div class="flex flex-col flex-wrap gap-1">
+          <VaBadge
+            v-for="e in rowData.categories"
+            :key="e.wCode"
+            class="px-2"
+            color="primary"
+            :text="`${e.wCode} -  ${e.name} `"
+            @click="emits('updateArticleModal', { ...rowData, updating: 'category' })"
+          ></VaBadge>
         </div>
       </template>
       <template #cell(sub_category)="{ rowData }">
