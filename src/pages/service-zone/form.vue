@@ -1,6 +1,6 @@
 <template>
   <div>
-    <VaForm ref="form" @submit="restaurantId ? updateRestaurant() : createRestaurant()">
+    <VaForm v-if="!loading" ref="form" @submit="restaurantId ? updateRestaurant() : createRestaurant()">
       <div class="flex flex-row justify-between md:items-center">
         <h1 class="mb-3 font-bold">Restaurant Details</h1>
         <div class="flex gap-x-4 ml-auto mb-3">
@@ -86,7 +86,7 @@
             <div class="flex flex-col w-full mt-3" :rules="[validators.required]">
               <div class="font-bold">
                 POS:
-                <sup v-if="restaurantData.operatingMode === 'onlineOrdering'">*</sup>
+                <sup v-if="restaurantData.operatingMode === 'onlineOrdering'" class="red">*</sup>
               </div>
               <div class="flex gap-8 flex-col sm:flex-row w-full config mt-2">
                 <VaSwitch
@@ -192,6 +192,7 @@
                       class="flex items-center space-x-2"
                     >
                       <span class="w-20 day">{{ day }}</span>
+
                       <input
                         v-model="restaurantData[`${day.toLowerCase()}Opening`]"
                         type="time"
@@ -378,7 +379,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 lg:grid-cols-6 gap-4 w-full mt-4">
               <VaInput v-model="restaurantData.orderTimeLimit" label="Order Time Limit" type="number" class="w-full" />
 
-              <VaInput v-model="restaurantData.closingSoon" label="Closing Soon" type="number" class="w-full" />
+              <VaInput v-model="restaurantData.closingSoonMinutes" label="Closing Soon" type="number" class="w-full" />
 
               <VaInput v-model="restaurantData.minimumCharge" label="Minimum Charge" type="number" class="w-full" />
 
@@ -437,37 +438,39 @@
         <VaCardContent>
           <div class="flex-col justify-start items-start gap-4 inline-flex w-full">
             <div class="flex gap-8 flex-col sm:flex-row w-full">
-              <VaColorInput v-model="restaurantData.primaryColor" label="Primary Color" class="w-28" />
-              <VaColorInput v-model="restaurantData.secondaryColor" label="Secondary Color" class="w-28" />
-              <VaColorInput v-model="restaurantData.backgroundColor" label="Background Color" class="w-28" />
-              <VaColorInput v-model="restaurantData.headerColor" label="Header Color" class="w-28" />
-              <VaColorInput v-model="restaurantData.footerColor" label="Footer Color" class="w-28" />
+              <VaColorInput
+                v-model="restaurantData.primaryColor"
+                label="Primary Color"
+                placeholder="#000"
+                class="w-28"
+              />
+              <VaColorInput
+                v-model="restaurantData.secondaryColor"
+                label="Secondary Color"
+                placeholder="#000"
+                class="w-28"
+              />
+              <VaColorInput
+                v-model="restaurantData.backgroundColor"
+                label="Background Color"
+                placeholder="#000"
+                class="w-28"
+              />
+              <VaColorInput v-model="restaurantData.headerColor" label="Header Color" placeholder="#000" class="w-28" />
+              <VaColorInput v-model="restaurantData.footerColor" label="Footer Color" placeholder="#000" class="w-28" />
             </div>
             <div class="flex flex-col sm:flex-row w-full gap-1">
               <div class="flex-1">
-                <VaFileUpload
-                  v-model="logo"
-                  undo
-                  :type="galleryType"
-                  :undo-duration="undoDuration"
-                  :undo-button-text="undoButtonText"
-                  :deleted-file-message="deletedFileMessage"
-                  :upload-button-text="uploadLogoText"
-                  file-types="jpg,png"
-                  class="w-full h-full"
-                />
+                <VaInput v-model="restaurantData.logoUrl" label="Logo URL" type="url" />
+                <img v-if="restaurantData.logoUrl" :src="restaurantData.logoUrl" alt="Logo" class="w-32 h-32 mt-2" />
               </div>
               <div class="flex-1">
-                <VaFileUpload
-                  v-model="header"
-                  undo
-                  :type="galleryType"
-                  :undo-duration="undoDuration"
-                  :undo-button-text="undoButtonText"
-                  :deleted-file-message="deletedFileMessage"
-                  :upload-button-text="uploadHeaderText"
-                  file-types="jpg,png"
-                  class="w-full h-full"
+                <VaInput v-model="restaurantData.headerUrl" label="Header URL" type="url" />
+                <img
+                  v-if="restaurantData.headerUrl"
+                  :src="restaurantData.headerUrl"
+                  alt="Logo"
+                  class="w-32 h-32 mt-2"
                 />
               </div>
             </div>
@@ -475,6 +478,22 @@
         </VaCardContent>
       </VaCard>
     </VaForm>
+    <VaSkeletonGroup v-else>
+      <VaCard>
+        <VaSkeleton variant="squared" height="120px" />
+        <VaCardContent class="flex items-center">
+          <VaSkeleton variant="circle" width="1rem" height="48px" />
+          <VaSkeleton variant="text" class="ml-2" :lines="2" />
+        </VaCardContent>
+        <VaCardContent>
+          <VaSkeleton variant="text" :lines="4" text-width="50%" />
+        </VaCardContent>
+        <VaCardActions class="flex justify-end">
+          <VaSkeleton class="mr-2" variant="rounded" inline width="64px" height="32px" />
+          <VaSkeleton variant="rounded" inline width="64px" height="32px" />
+        </VaCardActions>
+      </VaCard>
+    </VaSkeletonGroup>
   </div>
 </template>
 
@@ -484,7 +503,7 @@ import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { useToast, useForm } from 'vuestic-ui'
 const { validate } = useForm()
-import { validators,removeNulls } from '../../services/utils.ts'
+import { validators, removeNulls } from '../../services/utils.ts'
 export default {
   setup() {
     const types = ref(['Outlet'])
@@ -497,9 +516,8 @@ export default {
     const route = useRoute()
     const restaurantId = route.params.id
     const { init } = useToast()
-
+    const loading = ref(false)
     const parseTime = (input) => {
-      // Ensure input follows HH:mm format
       if (/^\d{2}:\d{2}$/.test(input)) {
         const [hours, minutes] = input.split(':').map(Number)
 
@@ -514,7 +532,7 @@ export default {
       mode,
       selectedType,
       selectedTypeMode,
-
+      loading,
       restaurantId,
       init,
       validators,
@@ -538,6 +556,8 @@ export default {
         active: false,
         winmax: false,
         company: '',
+        logoUrl: '',
+        headerUrl: '',
         user: '',
         password: '',
         terminal: null,
@@ -562,7 +582,7 @@ export default {
         sundayOpening: '',
         sundayClosing: '',
         hours: false,
-        closingSoon: null,
+        closingSoonMinutes: null,
         winmaxConfig: {
           company: '',
           user: '',
@@ -571,6 +591,15 @@ export default {
         },
         openingTimes: {
           selected: '',
+          byDay: {
+            monday: { opens: '', closes: '' },
+            tuesday: { opens: '', closes: '' },
+            wednesday: { opens: '', closes: '' },
+            thursday: { opens: '', closes: '' },
+            friday: { opens: '', closes: '' },
+            saturday: { opens: '', closes: '' },
+            sunday: { opens: '', closes: '' },
+          },
         },
         delivery: {
           enabled: false,
@@ -639,8 +668,6 @@ export default {
       undoDuration: 5000,
       deletedFileMessage: 'File exterminated',
       undoButtonText: 'Cancel',
-      logo: [],
-      header: [],
       uploadLogoText: 'Upload Logo',
       uploadHeaderText: 'Upload Header',
       colorPicker: '#FF002',
@@ -663,6 +690,7 @@ export default {
     },
     async fetchRestaurantDetails() {
       if (this.restaurantId) {
+        this.loading = true
         const url = import.meta.env.VITE_API_BASE_URL
         try {
           const response = await axios.get(`${url}/outlets/${this.restaurantId}`)
@@ -670,46 +698,46 @@ export default {
           if (res) {
             res.openingTime = res.openingTimes.daily.opens ? this.parseTimeToDate(res.openingTimes.daily.opens) : ''
             res.closingTime = res.openingTimes.daily.closes ? this.parseTimeToDate(res.openingTimes.daily.closes) : ''
-            res.openingTimes.byDay.mondayOpening = res.openingTimes.byDay.monday.opens
+            res.mondayOpening = res.openingTimes.byDay.monday.opens
               ? this.parseTimeToDate(res.openingTimes.byDay.monday.opens)
               : ''
-            res.openingTimes.byDay.mondayClosing = res.openingTimes.byDay.monday.closes
+            res.mondayClosing = res.openingTimes.byDay.monday.closes
               ? this.parseTimeToDate(res.openingTimes.byDay.monday.closes)
               : ''
-            res.openingTimes.byDay.tuesdayOpening = res.openingTimes.byDay.tuesday.opens
+            res.tuesdayOpening = res.openingTimes.byDay.tuesday.opens
               ? this.parseTimeToDate(res.openingTimes.byDay.tuesday.opens)
               : ''
-            res.openingTimes.byDay.tuesdayClosing = res.openingTimes.byDay.tuesday.closes
+            res.tuesdayClosing = res.openingTimes.byDay.tuesday.closes
               ? this.parseTimeToDate(res.openingTimes.byDay.tuesday.closes)
               : ''
-            res.openingTimes.byDay.wednesdayOpening = res.openingTimes.byDay.wednesday.opens
+            res.wednesdayOpening = res.openingTimes.byDay.wednesday.opens
               ? this.parseTimeToDate(res.openingTimes.byDay.wednesday.opens)
               : ''
-            res.openingTimes.byDay.wednesdayClosing = res.openingTimes.byDay.wednesday.closes
+            res.wednesdayClosing = res.openingTimes.byDay.wednesday.closes
               ? this.parseTimeToDate(res.openingTimes.byDay.wednesday.closes)
               : ''
-            res.openingTimes.byDay.thursdayOpening = res.openingTimes.byDay.thursday.opens
+            res.thursdayOpening = res.openingTimes.byDay.thursday.opens
               ? this.parseTimeToDate(res.openingTimes.byDay.thursday.opens)
               : ''
-            res.openingTimes.byDay.thursdayClosing = res.openingTimes.byDay.thursday.closes
+            res.thursdayClosing = res.openingTimes.byDay.thursday.closes
               ? this.parseTimeToDate(res.openingTimes.byDay.thursday.closes)
               : ''
-            res.openingTimes.byDay.fridayOpening = res.openingTimes.byDay.friday.opens
+            res.fridayOpening = res.openingTimes.byDay.friday.opens
               ? this.parseTimeToDate(res.openingTimes.byDay.friday.opens)
               : ''
-            res.openingTimes.byDay.fridayClosing = res.openingTimes.byDay.friday.closes
+            res.fridayClosing = res.openingTimes.byDay.friday.closes
               ? this.parseTimeToDate(res.openingTimes.byDay.friday.closes)
               : ''
-            res.openingTimes.byDay.saturdayOpening = res.openingTimes.byDay.saturday.opens
+            res.saturdayOpening = res.openingTimes.byDay.saturday.opens
               ? this.parseTimeToDate(res.openingTimes.byDay.saturday.opens)
               : ''
-            res.openingTimes.byDay.saturdayClosing = res.openingTimes.byDay.saturday.closes
+            res.saturdayClosing = res.openingTimes.byDay.saturday.closes
               ? this.parseTimeToDate(res.openingTimes.byDay.saturday.closes)
               : ''
-            res.openingTimes.byDay.sundayOpening = res.openingTimes.byDay.sunday.opens
+            res.sundayOpening = res.openingTimes.byDay.sunday.opens
               ? this.parseTimeToDate(res.openingTimes.byDay.sunday.opens)
               : ''
-            res.openingTimes.byDay.sundayClosing = res.openingTimes.byDay.sunday.closes
+            res.sundayClosing = res.openingTimes.byDay.sunday.closes
               ? this.parseTimeToDate(res.openingTimes.byDay.sunday.closes)
               : ''
             res.delivery.openingTimes.daily.openingTime = res.delivery.openingTimes.daily.opens
@@ -718,100 +746,128 @@ export default {
             res.delivery.openingTimes.daily.closingTime = res.delivery.openingTimes.daily.closes
               ? this.parseTimeToDate(res.delivery.openingTimes.daily.closes)
               : ''
-            res.delivery.openingTimes.byDay.mondayOpening = res.delivery.openingTimes.byDay.monday.opens
-              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.monday.opens)
-              : ''
-            res.delivery.openingTimes.byDay.mondayClosing = res.delivery.openingTimes.byDay.monday.closes
-              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.monday.closes)
-              : ''
-            res.delivery.openingTimes.byDay.tuesdayOpening = res.delivery.openingTimes.byDay.tuesday.opens
-              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.tuesday.opens)
-              : ''
-            res.delivery.openingTimes.byDay.tuesdayClosing = res.delivery.openingTimes.byDay.tuesday.closes
-              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.tuesday.closes)
-              : ''
-            res.delivery.openingTimes.byDay.wednesdayOpening = res.delivery.openingTimes.byDay.wednesday.opens
-              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.wednesday.opens)
-              : ''
-            res.delivery.openingTimes.byDay.wednesdayClosing = res.delivery.openingTimes.byDay.wednesday.closes
-              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.wednesday.closes)
-              : ''
-            res.delivery.openingTimes.byDay.thursdayOpening = res.delivery.openingTimes.byDay.thursday.opens
-              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.thursday.opens)
-              : ''
-            res.delivery.openingTimes.byDay.thursdayClosing = res.delivery.openingTimes.byDay.thursday.closes
-              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.thursday.closes)
-              : ''
-            res.delivery.openingTimes.byDay.fridayOpening = res.delivery.openingTimes.byDay.friday.opens
-              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.friday.opens)
-              : ''
-            res.delivery.openingTimes.byDay.fridayClosing = res.delivery.openingTimes.byDay.friday.closes
-              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.friday.closes)
-              : ''
-            res.delivery.openingTimes.byDay.saturdayOpening = res.delivery.openingTimes.byDay.saturday.opens
-              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.saturday.opens)
-              : ''
-            res.delivery.openingTimes.byDay.saturdayClosing = res.delivery.openingTimes.byDay.saturday.closes
-              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.saturday.closes)
-              : ''
-            res.delivery.openingTimes.byDay.sundayOpening = res.delivery.openingTimes.byDay.sunday.opens
-              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.sunday.opens)
-              : ''
-            res.delivery.openingTimes.byDay.sundayClosing = res.delivery.openingTimes.byDay.sunday.closes
-              ? this.parseTimeToDate(res.delivery.openingTimes.byDay.sunday.closes)
-              : ''
+            if (res.delivery.openingTimes.byDay) {
+              res.delivery.openingTimes.byDay.mondayOpening = res.delivery.openingTimes.byDay.monday.opens
+                ? this.parseTimeToDate(res.delivery.openingTimes.byDay.monday.opens)
+                : ''
+              res.delivery.openingTimes.byDay.mondayClosing = res.delivery.openingTimes.byDay.monday.closes
+                ? this.parseTimeToDate(res.delivery.openingTimes.byDay.monday.closes)
+                : ''
+              res.delivery.openingTimes.byDay.tuesdayOpening = res.delivery.openingTimes.byDay.tuesday.opens
+                ? this.parseTimeToDate(res.delivery.openingTimes.byDay.tuesday.opens)
+                : ''
+              res.delivery.openingTimes.byDay.tuesdayClosing = res.delivery.openingTimes.byDay.tuesday.closes
+                ? this.parseTimeToDate(res.delivery.openingTimes.byDay.tuesday.closes)
+                : ''
+              res.delivery.openingTimes.byDay.wednesdayOpening = res.delivery.openingTimes.byDay.wednesday.opens
+                ? this.parseTimeToDate(res.delivery.openingTimes.byDay.wednesday.opens)
+                : ''
+              res.delivery.openingTimes.byDay.wednesdayClosing = res.delivery.openingTimes.byDay.wednesday.closes
+                ? this.parseTimeToDate(res.delivery.openingTimes.byDay.wednesday.closes)
+                : ''
+              res.delivery.openingTimes.byDay.thursdayOpening = res.delivery.openingTimes.byDay.thursday.opens
+                ? this.parseTimeToDate(res.delivery.openingTimes.byDay.thursday.opens)
+                : ''
+              res.delivery.openingTimes.byDay.thursdayClosing = res.delivery.openingTimes.byDay.thursday.closes
+                ? this.parseTimeToDate(res.delivery.openingTimes.byDay.thursday.closes)
+                : ''
+              res.delivery.openingTimes.byDay.fridayOpening = res.delivery.openingTimes.byDay.friday.opens
+                ? this.parseTimeToDate(res.delivery.openingTimes.byDay.friday.opens)
+                : ''
+              res.delivery.openingTimes.byDay.fridayClosing = res.delivery.openingTimes.byDay.friday.closes
+                ? this.parseTimeToDate(res.delivery.openingTimes.byDay.friday.closes)
+                : ''
+              res.delivery.openingTimes.byDay.saturdayOpening = res.delivery.openingTimes.byDay.saturday.opens
+                ? this.parseTimeToDate(res.delivery.openingTimes.byDay.saturday.opens)
+                : ''
+              res.delivery.openingTimes.byDay.saturdayClosing = res.delivery.openingTimes.byDay.saturday.closes
+                ? this.parseTimeToDate(res.delivery.openingTimes.byDay.saturday.closes)
+                : ''
+              res.delivery.openingTimes.byDay.sundayOpening = res.delivery.openingTimes.byDay.sunday.opens
+                ? this.parseTimeToDate(res.delivery.openingTimes.byDay.sunday.opens)
+                : ''
+              res.delivery.openingTimes.byDay.sundayClosing = res.delivery.openingTimes.byDay.sunday.closes
+                ? this.parseTimeToDate(res.delivery.openingTimes.byDay.sunday.closes)
+                : ''
+            } else {
+              res.delivery.openingTimes.byDay = {
+                enabled: false,
+                monday: { opens: '', closes: '' },
+                tuesday: { opens: '', closes: '' },
+                wednesday: { opens: '', closes: '' },
+                thursday: { opens: '', closes: '' },
+                friday: { opens: '', closes: '' },
+                saturday: { opens: '', closes: '' },
+                sunday: { opens: '', closes: '' },
+              }
+            }
             res.takeaway.openingTimes.daily.opens = res.takeaway.openingTimes.daily.opens
               ? this.parseTimeToDate(res.takeaway.openingTimes.daily.opens)
               : ''
             res.takeaway.openingTimes.daily.closes = res.takeaway.openingTimes.daily.closes
               ? this.parseTimeToDate(res.takeaway.openingTimes.daily.closes)
               : ''
-            res.takeaway.openingTimes.byDay.mondayOpening = res.takeaway.openingTimes.byDay.monday.opens
-              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.monday.opens)
-              : ''
-            res.takeaway.openingTimes.byDay.mondayClosing = res.takeaway.openingTimes.byDay.monday.closes
-              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.monday.closes)
-              : ''
-            res.takeaway.openingTimes.byDay.tuesdayOpening = res.takeaway.openingTimes.byDay.tuesday.opens
-              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.tuesday.opens)
-              : ''
-            res.takeaway.openingTimes.byDay.tuesdayClosing = res.takeaway.openingTimes.byDay.tuesday.closes
-              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.tuesday.closes)
-              : ''
-            res.takeaway.openingTimes.byDay.wednesdayOpening = res.takeaway.openingTimes.byDay.wednesday.opens
-              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.wednesday.opens)
-              : ''
-            res.takeaway.openingTimes.byDay.wednesdayClosing = res.takeaway.openingTimes.byDay.wednesday.closes
-              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.wednesday.closes)
-              : ''
-            res.takeaway.openingTimes.byDay.thursdayOpening = res.takeaway.openingTimes.byDay.thursday.opens
-              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.thursday.opens)
-              : ''
-            res.takeaway.openingTimes.byDay.thursdayClosing = res.takeaway.openingTimes.byDay.thursday.closes
-              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.thursday.closes)
-              : ''
-            res.takeaway.openingTimes.byDay.fridayOpening = res.takeaway.openingTimes.byDay.friday.opens
-              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.friday.opens)
-              : ''
-            res.takeaway.openingTimes.byDay.fridayClosing = res.takeaway.openingTimes.byDay.friday.closes
-              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.friday.closes)
-              : ''
-            res.takeaway.openingTimes.byDay.saturdayOpening = res.takeaway.openingTimes.byDay.saturday.opens
-              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.saturday.opens)
-              : ''
-            res.takeaway.openingTimes.byDay.saturdayClosing = res.takeaway.openingTimes.byDay.saturday.closes
-              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.saturday.closes)
-              : ''
-            res.takeaway.openingTimes.byDay.sundayOpening = res.takeaway.openingTimes.byDay.sunday.opens
-              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.sunday.opens)
-              : ''
-            res.takeaway.openingTimes.byDay.sundayClosing = res.takeaway.openingTimes.byDay.sunday.closes
-              ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.sunday.closes)
-              : ''
+            if (res.takeaway.openingTimes.byDay) {
+              res.takeaway.openingTimes.byDay.mondayOpening = res.takeaway.openingTimes.byDay.monday.opens
+                ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.monday.opens)
+                : ''
+              res.takeaway.openingTimes.byDay.mondayClosing = res.takeaway.openingTimes.byDay.monday.closes
+                ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.monday.closes)
+                : ''
+              res.takeaway.openingTimes.byDay.tuesdayOpening = res.takeaway.openingTimes.byDay.tuesday.opens
+                ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.tuesday.opens)
+                : ''
+              res.takeaway.openingTimes.byDay.tuesdayClosing = res.takeaway.openingTimes.byDay.tuesday.closes
+                ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.tuesday.closes)
+                : ''
+              res.takeaway.openingTimes.byDay.wednesdayOpening = res.takeaway.openingTimes.byDay.wednesday.opens
+                ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.wednesday.opens)
+                : ''
+              res.takeaway.openingTimes.byDay.wednesdayClosing = res.takeaway.openingTimes.byDay.wednesday.closes
+                ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.wednesday.closes)
+                : ''
+              res.takeaway.openingTimes.byDay.thursdayOpening = res.takeaway.openingTimes.byDay.thursday.opens
+                ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.thursday.opens)
+                : ''
+              res.takeaway.openingTimes.byDay.thursdayClosing = res.takeaway.openingTimes.byDay.thursday.closes
+                ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.thursday.closes)
+                : ''
+              res.takeaway.openingTimes.byDay.fridayOpening = res.takeaway.openingTimes.byDay.friday.opens
+                ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.friday.opens)
+                : ''
+              res.takeaway.openingTimes.byDay.fridayClosing = res.takeaway.openingTimes.byDay.friday.closes
+                ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.friday.closes)
+                : ''
+              res.takeaway.openingTimes.byDay.saturdayOpening = res.takeaway.openingTimes.byDay.saturday.opens
+                ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.saturday.opens)
+                : ''
+              res.takeaway.openingTimes.byDay.saturdayClosing = res.takeaway.openingTimes.byDay.saturday.closes
+                ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.saturday.closes)
+                : ''
+              res.takeaway.openingTimes.byDay.sundayOpening = res.takeaway.openingTimes.byDay.sunday.opens
+                ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.sunday.opens)
+                : ''
+              res.takeaway.openingTimes.byDay.sundayClosing = res.takeaway.openingTimes.byDay.sunday.closes
+                ? this.parseTimeToDate(res.takeaway.openingTimes.byDay.sunday.closes)
+                : ''
+            } else {
+              res.takeaway.openingTimes.byDay = {
+                enabled: false,
+                monday: { opens: '', closes: '' },
+                tuesday: { opens: '', closes: '' },
+                wednesday: { opens: '', closes: '' },
+                thursday: { opens: '', closes: '' },
+                friday: { opens: '', closes: '' },
+                saturday: { opens: '', closes: '' },
+                sunday: { opens: '', closes: '' },
+              }
+            }
           }
           this.restaurantData = res
+          this.loading = false
         } catch (error) {
           console.error('Error fetching restaurant details:', error)
+          this.loading = false
         }
       }
     },
@@ -832,10 +888,11 @@ export default {
         active: this.restaurantData.active || false,
         pos: this.restaurantData.pos || '',
         operatingMode: this.restaurantData.operatingMode,
+        orderTimeLimit: this.restaurantData.orderTimeLimit,
         winmaxConfig: {
           ...this.restaurantData.winmaxConfig,
           terminal: this.restaurantData.winmaxConfig.terminal || null,
-          serviceZoneId : this.restaurantData.winmaxConfig.serviceZoneId || null,
+          serviceZoneId: this.restaurantData.winmaxConfig.serviceZoneId || null,
         },
         restusConfig: {
           operatingMode: this.restaurantData.operatingMode || '',
@@ -885,7 +942,6 @@ export default {
             },
           },
           is24h: this.restaurantData.openingTimes.selected === 'is24h' || false,
-          closingSoonMinutes: this.restaurantData.closingSoon || null,
         },
         delivery: {
           enabled: this.restaurantData.delivery.enabled || this.restaurantData.delivery.enabled || false,
@@ -936,7 +992,7 @@ export default {
               },
             },
             is24h: this.restaurantData.delivery.openingTimes.selected === 'is24h' || false,
-            closingSoonMinutes: null,
+            closingSoonMinutes: this.restaurantData.closingSoonMinutes,
           },
         },
         takeaway: {
@@ -987,7 +1043,7 @@ export default {
               },
             },
             is24h: this.restaurantData.takeaway.openingTimes.selected === 'is24h' || false,
-            closingSoonMinutes: null,
+            closingSoonMinutes: this.restaurantData.closingSoonMinutes,
           },
         },
         guestUsers: this.restaurantData.guestUsers || false,
@@ -1007,6 +1063,9 @@ export default {
         backgroundColor: this.restaurantData.backgroundColor,
         headerColor: this.restaurantData.headerColor,
         footerColor: this.restaurantData.footerColor,
+        headerUrl: this.restaurantData.headerUrl,
+        logoUrl: this.restaurantData.logoUrl,
+        closingSoonMinutes: this.restaurantData.closingSoonMinutes || null,
       }
       return data
     },
@@ -1050,5 +1109,9 @@ export default {
 }
 .day {
   font-size: 12px;
+}
+.red {
+  color: #e42222;
+  font-size: 13px;
 }
 </style>

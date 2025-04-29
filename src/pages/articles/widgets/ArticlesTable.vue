@@ -47,7 +47,7 @@ const pages = computed(() => {
 })
 
 const columns = defineVaDataTableColumns([
-  { label: 'ID', key: 'numericId' },
+  { label: 'ID', key: 'id' },
   { label: 'Code', key: 'code', sortable: true, sortingOptions: ['desc', 'asc'] },
   { label: 'Name', key: 'name', sortable: true, sortingOptions: ['desc', 'asc'] },
   { label: 'Description', key: 'description', sortable: true, sortingOptions: ['desc', 'asc'] },
@@ -97,9 +97,9 @@ function deleteArticle(payload) {
       @update:sortBy="(sortBy) => $emit('sortBy', sortBy)"
       @update:sortingOrder="(sortDesc) => $emit('sortingOrder', sortDesc)"
     >
-      <template #cell(numericId)="{ rowData }">
+      <template #cell(id)="{ rowData }">
         <div class="max-w-[120px] ellipsis">
-          {{ rowData.numericId }}
+          {{ rowData.id }}
         </div>
       </template>
       <template #cell(code)="{ rowData }">
@@ -150,18 +150,6 @@ function deleteArticle(payload) {
           <span v-else>{{ rowData.price }}</span>
         </div>
       </template>
-      <!-- <template #cell(allergens)="{ rowData }">
-        <div class="max-w-[120px] ellipsis" @click="rowData.editing = 'allergens'">
-          <input
-            v-if="rowData.editing === 'allergens'"
-            v-model="rowData.allergens"
-            class="w-full p-1 border rounded"
-            autofocus
-            @keyup.enter="$emit('updateArticle', rowData), (rowData.editing = '')"
-          />
-          <span v-else>{{ rowData.allergens }}</span>
-        </div>
-      </template> -->
       <template #cell(category)="{ rowData }">
         <div class="flex flex-col flex-wrap gap-1">
           <VaBadge

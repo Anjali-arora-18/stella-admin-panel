@@ -12,7 +12,7 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
 })
 
-const emits = defineEmits(['deleteArea', 'editArea', 'loadArea', 'editTable', 'loadAreaTable'])
+const emits = defineEmits(['deleteArea', 'editArea', 'loadArea', 'editTable', 'loadAreaTable', 'updateArea'])
 const { init } = useToast()
 const { confirm } = useModal()
 const serviceStore = useServiceStore()
@@ -136,10 +136,16 @@ const areas = computed(() =>
         {{ rowData.numericId }}
       </div>
     </template>
-
     <template #cell(name)="{ rowData }">
-      <div class="ellipsis">
-        {{ rowData.name }}
+      <div class="max-w-[120px] ellipsis" @click="rowData.editing = 'name'">
+        <input
+          v-if="rowData.editing === 'name'"
+          v-model="rowData.name"
+          class="w-full p-1 border rounded"
+          autofocus
+          @keyup.enter="$emit('updateArea', rowData), (rowData.editing = '')"
+        />
+        <span v-else>{{ rowData.name }}</span>
       </div>
     </template>
     <template #cell(tables)="{ row, rowData, isExpanded }">

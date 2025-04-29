@@ -35,31 +35,16 @@ function editArea(payload) {
   outletId.value = payload.outletId
   area.value = payload
 }
+
+function updateAreaDirectly(payload) {
+  updateArea({ ...payload, areaName: payload.name })
+}
+
 function editTable(payload) {
   isEditTableModalOpen.value = true
   areaId.value = payload.areaId
   tableData.value = payload
 }
-
-// function loadAreaTable(payload) {
-//   const url = import.meta.env.VITE_API_BASE_URL
-//   axios.get(`${url}/tables/?areaId=${payload}`).then((response) => {
-//     items.value = items.value.map((e) => {
-//       if (e._id === payload) {
-//         return {
-//           ...e,
-//           filteredTables: response.data.map((a) => {
-//             return {
-//               ...a,
-//               isEdit: false,
-//             }
-//           }),
-//         }
-//       }
-//       return e
-//     })
-//   })
-// }
 
 function cancelArea() {
   getAreas()
@@ -176,10 +161,10 @@ async function deleteArea(payload) {
     <div class="flex items-center justify-between">
       <h1 class="page-title font-bold">Areas</h1>
       <div class="flex gap-2">
-        <VaButton color="primary" size="small" @click="openTableModal()"> Create Table </VaButton>
         <VaButton :disabled="!servicesStore.selectedRest" size="small" color="primary" @click="openAreaModal = true">
           Create Area
         </VaButton>
+        <VaButton color="primary" size="small" @click="openTableModal()"> Create Table </VaButton>
       </div>
     </div>
 
@@ -192,6 +177,7 @@ async function deleteArea(payload) {
           @loadArea="getAreas"
           @editArea="editArea"
           @deleteArea="deleteArea"
+          @updateArea="updateAreaDirectly"
           @loadAreaTable="getAreas(false)"
           @editTable="editTable"
           @openTableModal="openTableModal"

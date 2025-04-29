@@ -20,7 +20,6 @@
       />
       <VaSwitch v-model="areaDisabled" class="mb-4" size="small" label="Is Disabled?" />
       <div class="flex flex-col-reverse md:flex-row md:items-center md:justify-end md:space-x-4">
-        <VaButton preset="secondary" color="secondary" @click="emits('cancel')"> Cancel</VaButton>
         <VaButton class="mb-4 md:mb-0" type="submit"> Save</VaButton>
       </div>
     </VaForm>
