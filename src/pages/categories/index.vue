@@ -54,12 +54,6 @@ const updateCategory = (payload) => {
 const updateCategoryDirectly = (payload) => {
   const data = payload
   data.outletId = serviceStore.selectedRest
-  delete payload.code
-  delete payload.createdAt // delete createdAt key for unnecessary used
-  delete payload.updatedAt // delete updatedAt key for unnecessary used
-  delete payload.sortOrder // delete updatedAt key for unnecessary used
-  delete payload.__v // delete __v key for unnecessary used
-  data.subCategories = payload.subCategories.map(({ sortOrder, _id, createdAt, updatedAt, __v, ...rest }) => rest)
   const url: any = import.meta.env.VITE_API_BASE_URL
   axios
     .patch(`${url}/menuCategories/${payload._id}`, data)
@@ -68,7 +62,8 @@ const updateCategoryDirectly = (payload) => {
       init({ message: "You've successfully updated", color: 'success' })
     })
     .catch((err) => {
-      init({ message: err.response.data.message, color: 'danger' })
+      getCategories(serviceStore.selectedRest)
+      init({ message: err.response.data.error, color: 'danger' })
     })
 }
 

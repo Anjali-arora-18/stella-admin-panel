@@ -14,10 +14,9 @@
         id="area"
         v-model="table.areaId"
         :options="areas"
+        :rules="[validators.required]"
         :track-by="(option) => option.value"
         :value-by="(option) => option.value"
-        :rules="[validators.required]"
-        required-mark
         label="Area"
         class="w-full mb-1"
       />
@@ -25,6 +24,7 @@
         id="type"
         v-model="table.type"
         :rules="[validators.required]"
+        required-mark
         label="Type"
         :options="['Table', 'Delivery', 'Takeaway', 'Umbrella', 'Sunbed', 'Office']"
         class="w-full mb-1"
@@ -33,6 +33,7 @@
         <VaInput
           v-model="table.from"
           :rules="[validators.required]"
+          required-mark
           class="flex-1 min-w-[120px]"
           label="Range From"
           placeholder="From"
@@ -41,6 +42,7 @@
         <VaInput
           v-model="table.to"
           :rules="[validators.required]"
+          required-mark
           class="flex-1 min-w-[120px]"
           label="Range To"
           placeholder="To"
@@ -126,8 +128,8 @@ async function save() {
         },
         id: table.value._id,
       }
-      delete data.data.updatedAt;
-      delete data.data.createdAt;
+      delete data.data.updatedAt
+      delete data.data.createdAt
       response = await serviceStore.updateTable({ ...data })
     } else {
       const data = {

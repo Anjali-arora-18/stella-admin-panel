@@ -65,6 +65,10 @@ td {
   max-width: 150px;
 }
 
+.table-big th, td {
+  max-width: 300px !important;
+}
+
 table,  {
   .va-select, .va-input:not(.search-input) {
     .va-input-wrapper__field  {

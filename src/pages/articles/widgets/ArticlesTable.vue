@@ -50,7 +50,7 @@ const columns = defineVaDataTableColumns([
   { label: 'ID', key: 'id' },
   { label: 'Code', key: 'code', sortable: true, sortingOptions: ['desc', 'asc'] },
   { label: 'Name', key: 'name', sortable: true, sortingOptions: ['desc', 'asc'] },
-  { label: 'Description', key: 'description', sortable: true, sortingOptions: ['desc', 'asc'] },
+  { label: 'Description', key: 'description', sortable: false, sortingOptions: ['desc', 'asc'] },
   { label: 'Price', key: 'price', sortable: true, sortingOptions: ['desc', 'asc'] },
   { label: 'Category', key: 'category', sortable: false },
   { label: 'Sub-Category', key: 'sub_category', sortable: false },
@@ -81,12 +81,20 @@ function deleteArticle(payload) {
 
 <template>
   <div>
-    <div class="mb-4">
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-5 gap-4">
       <VaInput
         v-model="searchQuery"
         placeholder="Search articles by code or name..."
-        class="max-w-[400px]"
+        class="max-w-[400px] w-full"
         size="small"
+      />
+      <VaPagination
+        v-model="currentPage"
+        :pages="pages"
+        buttons-preset="default"
+        gapped
+        :visible-pages="3"
+        class="justify-center"
       />
     </div>
     <VaDataTable
@@ -94,6 +102,7 @@ function deleteArticle(payload) {
       :items="items"
       :loading="$props.loading"
       :disable-client-side-sorting="true"
+      class="table-big"
       @update:sortBy="(sortBy) => $emit('sortBy', sortBy)"
       @update:sortingOrder="(sortDesc) => $emit('sortingOrder', sortDesc)"
     >
@@ -152,32 +161,86 @@ function deleteArticle(payload) {
       </template>
       <template #cell(category)="{ rowData }">
         <div class="flex flex-col flex-wrap gap-1">
-          <VaBadge
-            v-for="e in rowData.categories"
-            :key="e.wCode"
-            class="px-2"
-            color="primary"
-            :text="`${e.wCode} -  ${e.name} `"
-            @click="emits('updateArticleModal', { ...rowData, updating: 'category' })"
-          ></VaBadge>
+          <template v-if="rowData.categories.length <= 2">
+            <VaBadge
+              v-for="e in rowData.categories"
+              :key="e.wCode"
+              class="px-1"
+              color="primary"
+              :text="`${e.wCode} -  ${e.name} `"
+              @click="emits('updateArticleModal', { ...rowData, updating: 'category' })"
+            />
+          </template>
+          <template v-else>
+            <VaBadge
+              v-for="e in rowData.categories.slice(0, 2)"
+              :key="e.wCode"
+              class="px-1"
+              color="primary"
+              :text="`${e.wCode} -  ${e.name} `"
+              @click="emits('updateArticleModal', { ...rowData, updating: 'category' })"
+            />
+            <VaBadge
+              :text="`+${rowData.categories.length - 2} more`"
+              color="primary"
+              class="px-1"
+              @click="emits('updateArticleModal', { ...rowData, updating: 'category' })"
+            />
+          </template>
         </div>
       </template>
       <template #cell(sub_category)="{ rowData }">
-        <div class="space-y-1">
-          <div v-for="e in rowData.subCategories" :key="e" class="flex flex-col">
-            <VaBadge color="#B3D943" :text="e.wCode + ' - ' + e.name"></VaBadge>
-          </div>
+        <div class="flex flex-col flex-wrap gap-1">
+          <template v-if="rowData.subCategories.length <= 2">
+            <VaBadge
+              v-for="sub in rowData.subCategories"
+              :key="sub.wCode"
+              :text="` ${sub.wCode} - ${sub.name}`"
+              color="#B3D943"
+              class="px-1"
+              @click="emits('updateArticleModal', { ...rowData, updating: 'subCategory' })"
+            />
+          </template>
+          <template v-else>
+            <VaBadge
+              v-for="sub in rowData.subCategories.slice(0, 2)"
+              :key="sub.wCode"
+              :text="` ${sub.wCode} - ${sub.name}`"
+              color="#B3D943"
+              class="px-1"
+              @click="emits('updateArticleModal', { ...rowData, updating: 'subCategory' })"
+            />
+            <VaBadge
+              :text="`+${rowData.subCategories.length - 2} more`"
+              color="#B3D943"
+              class="px-1"
+              @click="emits('updateArticleModal', { ...rowData, updating: 'subCategory' })"
+            />
+          </template>
         </div>
       </template>
       <template #cell(options)="{ rowData }">
-        <div class="max-w-[120px] ellipsis">
-          <div v-if="rowData.options">
-            <template v-for="(value, key) in rowData.options" :key="key">
-              <div class="text-sm">
-                <span v-if="typeof value === 'object'">
-                  <div v-for="(subValue, subKey) in value" :key="subKey" class="ml-2">{{ subKey }}: {{ subValue }}</div>
+        <div class="">
+          <div v-if="rowData.options" className="flex flex-col gap-1">
+            <template v-for="(value, key) in rowData.options" :key="value">
+              <div v-if="value.length" class="text-sm">
+                <span class="options">
+                  {{ key }}:
+                  <template v-if="value.length <= 2">
+                    <VaBadge v-for="sub in value" :key="sub" :text="sub" color="secondary" class="px-1" />
+                  </template>
+                  <template v-else>
+                    <VaBadge
+                      v-for="(subValue, subKey) in value.slice(0, 2)"
+                      :key="subKey"
+                      :text="subValue"
+                      color="secondary"
+                      class="px-1"
+                    />
+                    <VaBadge :text="`+${value.length - 2} more`" color="secondary" class="px-1" />
+                  </template>
+                  <div class="ml-2">{{ subValue }}</div>
                 </span>
-                <span v-else>{{ value }}</span>
               </div>
             </template>
           </div>
@@ -185,7 +248,7 @@ function deleteArticle(payload) {
         </div>
       </template>
       <template #cell(image)="{ rowData }">
-        <div class="max-w-[120px] ellipsis" @click="rowData.editing = 'name'">
+        <div class="max-w-[120px] ellipsis" @click="rowData.editing = 'imageUrl'">
           <img
             :src="rowData.imageUrl || '/missing-image.png'"
             alt="Article Image"
@@ -195,6 +258,7 @@ function deleteArticle(payload) {
                 e.target.src = '/missing-image.png'
               }
             "
+            @click="emits('updateArticleModal', { ...rowData, updating: 'imageUrl' })"
           />
         </div>
       </template>
@@ -222,16 +286,6 @@ function deleteArticle(payload) {
         </div>
       </template>
     </VaDataTable>
-    <div class="mt-5 flex justify-end">
-      <VaPagination
-        v-model="currentPage"
-        :pages="pages"
-        buttons-preset="default"
-        gapped
-        :visible-pages="4"
-        class="justify-center sm:justify-start"
-      />
-    </div>
   </div>
 </template>
 
@@ -255,5 +309,9 @@ function deleteArticle(payload) {
 }
 ::v-deep(.va-data-table__table thead th:last-child) {
   text-align: right !important;
+}
+.options {
+  font-size: 12px;
+  line-height: 1.2rem;
 }
 </style>

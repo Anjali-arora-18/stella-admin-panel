@@ -9,6 +9,7 @@ const items = ref([])
 const isLoading = ref(true)
 const route = useRoute()
 const { push } = useRouter()
+
 function loadData() {
   servicesStore.getAll().then(() => {
     items.value = servicesStore.items
@@ -16,6 +17,7 @@ function loadData() {
   })
 }
 loadData()
+
 const isEditTableModalOpen = ref(false)
 </script>
 

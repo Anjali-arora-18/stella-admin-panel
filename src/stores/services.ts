@@ -25,7 +25,7 @@ export const useServiceStore = defineStore('services', {
       this.items = data
     },
     async deleteOutlet(payload) {
-      await deleteOutlet(payload)
+      return await deleteOutlet(payload)
     },
     async getAreas() {
       return await getAreas(this.selectedRest)

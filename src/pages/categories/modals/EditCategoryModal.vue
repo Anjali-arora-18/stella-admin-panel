@@ -257,13 +257,22 @@ const formData = ref({
 if (props.selectedCategory) {
   formData.value = {
     ...formData.value,
-    updating: '',
     ...props.selectedCategory,
+    updating: '',
+    schedule: {
+      ...formData.value.schedule,
+      ...props.selectedCategory.schedule,
+      byDay: {
+        ...formData.value.schedule.byDay,
+        ...(props.selectedCategory.schedule?.byDay || {}),
+      },
+    },
     areaId: Array.isArray(props.selectedCategory.areaId)
       ? props.selectedCategory.areaId
       : [props.selectedCategory.areaId],
   }
 }
+
 const submit = () => {
   if (validate()) {
     const data = formData.value
@@ -278,6 +287,9 @@ const submit = () => {
     )
     const url: any = import.meta.env.VITE_API_BASE_URL
     if (props.selectedCategory) {
+      if (props.selectedCategory.wCode === formData.value.wCode) {
+        delete data.wCode
+      }
       axios
         .patch(`${url}/menuCategories/${formData.value._id}`, data)
         .then((response) => {

@@ -8,9 +8,9 @@ const { confirm } = useModal()
 const router = useRouter()
 const servicesStore = useServiceStore()
 const columns = defineVaDataTableColumns([
-  { label: 'ID', key: 'numericId', sortable: true },
-  { label: 'Code', key: 'wCode', sortable: true },
-  { label: 'Name', key: 'name', sortable: true },
+  { label: 'ID', key: 'numericId', sortable: true, sortingOptions: ['desc', 'asc'] },
+  { label: 'Code', key: 'wCode', sortable: true, sortingOptions: ['desc', 'asc'] },
+  { label: 'Name', key: 'name', sortable: true, sortingOptions: ['desc', 'asc'] },
   { label: 'Sub-Categories', key: 'sub_categories', sortable: false },
   { label: 'Area', key: 'area', sortable: false },
   { label: 'Schedule', key: 'schedule', sortable: false },
@@ -105,7 +105,7 @@ const filteredItems = computed(() => {
           v-focus
           class="editable-cell w-full"
           size="small"
-          @blur="(rowData.editCode = false), emits('updateCategory', rowData)"
+          @blur="(rowData.editCode = false), emits('updateCategory', { wCode: rowData.wCode, _id: rowData._id })"
         />
       </template>
       <template #cell(name)="{ rowData }">
@@ -118,20 +118,37 @@ const filteredItems = computed(() => {
           v-focus
           class="editable-cell w-full"
           size="small"
-          @blur="(rowData.editName = false), emits('updateCategory', rowData)"
+          @blur="(rowData.editName = false), emits('updateCategory', { name: rowData.name, _id: rowData._id })"
         />
       </template>
       <template #cell(sub_categories)="{ rowData }">
         <div class="flex flex-col flex-wrap gap-1">
-          <VaBadge
-            v-for="sub in rowData.subCategories"
-            :key="sub.wCode"
-            :text="` ${sub.wCode} - ${sub.name}`"
-            color="secondary"
-            class="px-2"
-            @click="emits('updateCategoryModal', { ...rowData, updating: 'subCategory' })"
-          >
-          </VaBadge>
+          <template v-if="rowData.subCategories.length <= 2">
+            <VaBadge
+              v-for="sub in rowData.subCategories"
+              :key="sub.wCode"
+              :text="` ${sub.wCode} - ${sub.name}`"
+              color="secondary"
+              class="px-2"
+              @click="emits('updateCategoryModal', { ...rowData, updating: 'subCategory' })"
+            />
+          </template>
+          <template v-else>
+            <VaBadge
+              v-for="sub in rowData.subCategories.slice(0, 2)"
+              :key="sub.wCode"
+              :text="` ${sub.wCode} - ${sub.name}`"
+              color="secondary"
+              class="px-2"
+              @click="emits('updateCategoryModal', { ...rowData, updating: 'subCategory' })"
+            />
+            <VaBadge
+              :text="`+${rowData.subCategories.length - 2} more`"
+              color="secondary"
+              class="px-2"
+              @click="emits('updateCategoryModal', { ...rowData, updating: 'subCategory' })"
+            />
+          </template>
         </div>
       </template>
       <template #cell(area)="{ rowData }">
@@ -156,7 +173,11 @@ const filteredItems = computed(() => {
       </template>
       <template #cell(isActive)="{ rowData }">
         <div class="table-cell-content">
-          <VaCheckbox v-model="rowData.isActive" size="small" @click="emits('updateCategory', rowData)" />
+          <VaCheckbox
+            v-model="rowData.isActive"
+            size="small"
+            @click="emits('updateCategory', { isActive: rowData.isActive, _id: rowData._id })"
+          />
         </div>
       </template>
       <template #cell(actions)="{ rowData }">

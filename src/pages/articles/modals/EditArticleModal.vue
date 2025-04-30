@@ -69,6 +69,10 @@
           class="mb-1 max-w-[200px]"
         />
       </div>
+      <div class="flex-1">
+        <VaInput v-model="formData.imageUrl" label="Image URL" type="url" />
+        <img v-if="formData.imageUrl" :src="formData.imageUrl" alt="Image" class="w-32 h-32 mt-2" />
+      </div>
     </VaForm>
     <template #footer>
       <div class="flex md:justify-end md:space-x-4">

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { defineVaDataTableColumns } from 'vuestic-ui'
+import { defineVaDataTableColumns, useModal, useToast } from 'vuestic-ui'
 import { useRouter, useRoute } from 'vue-router'
 import { toRef } from 'vue'
 import { useServiceStore } from '../../../stores/services'
 import axios from 'axios'
 const emits = defineEmits(['openTableModal', 'loadData'])
-
+const { confirm } = useModal()
+const { init } = useToast()
 const activeCheck = toRef(true)
 const serviceStore = useServiceStore()
 const router = useRouter()
@@ -33,9 +34,25 @@ const props = defineProps({
 const items = toRef(props, 'items')
 
 function deleteOutlet(id) {
-  serviceStore.deleteOutlet(id).then((response) => {
+  serviceStore.deleteOutlet(id).then(() => {
+    init({
+      message: "You've successfully deleted Outlet",
+      color: 'success',
+    })
     emits('loadData')
   })
+}
+const onButtonOutletDelete = async (payload) => {
+  const result = await confirm({
+    message: 'Are you sure you want to see delete this Outlet?',
+    okText: 'Yes',
+    cancelText: 'No',
+    size: 'medium',
+    title: 'Delete Outlet',
+  })
+  if (result) {
+    deleteOutlet(payload._id)
+  }
 }
 
 function downloadQrCode(rowData) {
@@ -114,7 +131,7 @@ function downloadQrCode(rowData) {
         color="danger"
         icon="mso-delete"
         class="ml-2"
-        @click="deleteOutlet(rowData._id)"
+        @click="onButtonOutletDelete(rowData)"
       />
     </template>
     <template #cell(select)="{ rowData }">
