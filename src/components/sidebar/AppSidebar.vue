@@ -1,54 +1,38 @@
 <template>
   <VaSidebar v-model="writableVisible" :width="sidebarWidth" :color="color" minimized-width="0">
-    <VaAccordion v-model="value" multiple>
-      <VaCollapse
-        v-for="(route, index) in navigationRoutes.routes.filter((a) => a.name !== 'auth' && a.visible)"
-        :key="index"
-      >
-        <template #header="{ value: isCollapsed }">
-          <VaSidebarItem
-            :to="route.children ? undefined : { name: route.name }"
-            :active="routeHasActiveChild(route)"
-            :active-color="activeColor"
-            :text-color="textColor(route)"
-            :aria-label="`${route.children ? 'Open category ' : 'Visit'} ${t(route.displayName)}`"
-            role="button"
-            hover-opacity="0.10"
-          >
-            <VaSidebarItemContent class="py-3 pr-2 pl-4">
-              <VaIcon
-                v-if="route.meta.icon"
-                aria-hidden="true"
-                :name="route.meta.icon"
-                size="20px"
-                :color="iconColor(route)"
-              />
-              <VaSidebarItemTitle class="flex justify-between items-center leading-5 font-semibold">
-                {{ t(route.displayName) }}
-                <VaIcon v-if="route.children" :name="arrowDirection(isCollapsed)" size="20px" />
-              </VaSidebarItemTitle>
-            </VaSidebarItemContent>
-          </VaSidebarItem>
-        </template>
-        <template #body>
-          <div v-for="(childRoute, index2) in route.children" :key="index2">
-            <VaSidebarItem
-              :to="{ name: childRoute.name }"
-              :active="isActiveChildRoute(childRoute)"
-              :active-color="activeColor"
-              :text-color="textColor(childRoute)"
-              :aria-label="`Visit ${t(route.displayName)}`"
-              hover-opacity="0.10"
-            >
-              <VaSidebarItemContent class="py-3 pr-2 pl-11">
-                <VaSidebarItemTitle class="leading-5 font-semibold">
-                  {{ t(childRoute.displayName) }}
-                </VaSidebarItemTitle>
-              </VaSidebarItemContent>
-            </VaSidebarItem>
-          </div>
-        </template>
-      </VaCollapse>
+    <VaAccordion v-model="value" class="mt-5 pl-5">
+      <div class="flex flex-col gap-y-2">
+        <span class="font-bold">Menu</span>
+        <span class="text-secondary"><VaIcon name="group" class="mr-2"></VaIcon>Organize Menu</span>
+        <RouterLink
+          :class="$route.name === 'categories' ? 'text-primary font-bold' : 'text-secondary'"
+          to="/categories"
+        >
+          <VaIcon name="group" class="mr-2"></VaIcon>Categories</RouterLink
+        >
+        <RouterLink to="/articles" :class="$route.name === 'articles' ? 'text-primary font-bold' : 'text-secondary'">
+          <VaIcon name="group" class="mr-2"></VaIcon> Articles</RouterLink
+        >
+        <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>Articles Options</span>
+        <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>Deleted Articles</span>
+        <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>Allergens</span>
+        <span class="font-bold">Configuration</span>
+        <RouterLink :class="$route.name === 'list' ? 'text-primary font-bold' : 'text-secondary'" to="/outlets/list">
+          <VaIcon name="group" class="mr-2"></VaIcon>Outlet</RouterLink
+        >
+        <RouterLink to="/areas" :class="$route.name === 'areas' ? 'text-primary font-bold' : 'text-secondary'">
+          <VaIcon name="group" class="mr-2"></VaIcon>Areas</RouterLink
+        >
+        <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>QR Codes</span>
+        <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>Payments</span>
+        <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>Delivery Zones</span>
+        <span class="text-secondary">Languages</span>
+        <span class="font-bold">Admin</span>
+        <!-- <RouterLink to="/outlets/list" :class="$route.name === 'list' ? 'text-primary font-bold' : 'text-secondary'"
+          >Outlets</RouterLink
+        > -->
+        <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>Users</span>
+      </div>
     </VaAccordion>
   </VaSidebar>
 </template>
@@ -59,8 +43,6 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useColors } from 'vuestic-ui'
 
-import navigationRoutes, { type INavigationRoute } from './NavigationRoutes'
-
 export default defineComponent({
   name: 'Sidebar',
   props: {
@@ -70,53 +52,19 @@ export default defineComponent({
   emits: ['update:visible'],
 
   setup: (props, { emit }) => {
-    const { getColor, colorToRgba } = useColors()
-    const route = useRoute()
+    const { getColor } = useColors()
     const { t } = useI18n()
-
-    const value = ref<boolean[]>([])
-
     const writableVisible = computed({
       get: () => props.visible,
       set: (v: boolean) => emit('update:visible', v),
     })
-
-    const isActiveChildRoute = (child: INavigationRoute) => route.name === child.name
-
-    const routeHasActiveChild = (section: INavigationRoute) => {
-      if (!section.children) {
-        return route.path.endsWith(`${section.name}`)
-      }
-
-      return section.children.some(({ name }) => route.path.endsWith(`${name}`))
-    }
-
-    const setActiveExpand = () =>
-      (value.value = navigationRoutes.routes.map((route: INavigationRoute) => routeHasActiveChild(route)))
-
     const sidebarWidth = computed(() => (props.mobile ? '100vw' : '180px'))
     const color = computed(() => getColor('background-secondary'))
-    const activeColor = computed(() => colorToRgba(getColor('focus'), 0.1))
-
-    const iconColor = (route: INavigationRoute) => (routeHasActiveChild(route) ? 'primary' : 'secondary')
-    const textColor = (route: INavigationRoute) => (routeHasActiveChild(route) ? 'primary' : 'textPrimary')
-    const arrowDirection = (state: boolean) => (state ? 'va-arrow-up' : 'va-arrow-down')
-
-    watch(() => route.fullPath, setActiveExpand, { immediate: true })
-
     return {
       writableVisible,
       sidebarWidth,
-      value,
       color,
-      activeColor,
-      navigationRoutes,
-      routeHasActiveChild,
-      isActiveChildRoute,
       t,
-      iconColor,
-      textColor,
-      arrowDirection,
     }
   },
 })

@@ -54,7 +54,11 @@ const { validate } = useForm('form')
 const { push } = useRouter()
 const { init } = useToast()
 import { useUsersStore } from '../../stores/users'
+import { useServiceStore } from '@/stores/services'
+const serviceStore = useServiceStore()
 const userStore = useUsersStore()
+
+serviceStore.resetRest()
 const formData = reactive({
   email: '',
   password: '',
@@ -73,7 +77,7 @@ const submit = () => {
         window.sessionStorage.setItem('token', response.data.accessToken)
         userStore.setUserDetails(response.data.user)
         init({ message: "You've successfully logged in", color: 'success' })
-        push({ name: 'outlets' })
+        push({ name: 'list' })
       })
       .catch((err) => {
         init({ message: err.response.data.message, color: 'danger' })

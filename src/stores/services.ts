@@ -20,6 +20,9 @@ export const useServiceStore = defineStore('services', {
   },
 
   actions: {
+    resetRest() {
+      this.selectedRest = ''
+    },
     async getAll() {
       const { data } = await getServices()
       this.items = data
