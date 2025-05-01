@@ -2,39 +2,31 @@
   <VaModal
     class="big-form"
     :mobile-fullscreen="false"
-    size="large"
+    size="medium"
     hide-default-actions
     model-value
     close-button
     @update:modelValue="emits('cancel')"
   >
     <template #header>
-      <h1 class="sticky va-h6 mb-4">{{ selectedCategory ? 'Update' : 'Add' }} Item</h1>
+      <h1 class="sticky va-h6 mb-4">{{ selectedCategory ? 'Update' : 'Add' }}</h1>
     </template>
     <VaForm ref="form" @submit.prevent="submit">
       <div v-if="formData.updating === '' || formData.updating === 'all'" class="flex items-center gap-x-10">
-        <VaInput v-model="formData.wCode" class="mb-1 max-w-[100px]" label="Code" placeholder="Code" type="text" />
+        <VaInput v-model="formData.wCode" class="mb-1 max-w-[150px]" label="Code" placeholder="Code" type="text" />
         <VaInput
           v-model="formData.name"
           :rules="[validators.required]"
-          class="mb-1 max-w-[240px]"
+          class="mb-1 max-w-[250px]"
           label="Name"
           required-mark
           placeholder="Name"
           type="text"
         />
-        <VaInput
-          v-model="formData.description"
-          label="Description"
-          placeholder="Description"
-          type="text"
-          class="mb-1 max-w-[250px]"
-        />
-
         <VaSelect
           id="area"
           v-model="formData.areaId"
-          :rules="[validators.required]"
+          :rules="[(v) => (Array.isArray(v) && v.length > 0) || 'This field is required']"
           required-mark
           label="Area"
           :options="areas"
@@ -43,6 +35,14 @@
           class="mb-1 max-w-[250px]"
         />
       </div>
+      <VaTextarea
+        v-model="formData.description"
+        label="Description"
+        placeholder="Description"
+        type="textarea"
+        rows="5"
+        class="mb-1 w-full"
+      />
       <div
         v-if="formData.updating === '' || formData.updating === 'all' || formData.updating === 'subCategory'"
         class="cursor-pointer text-primary font-semibold underline flex justify-end items-center"
@@ -89,11 +89,31 @@
               preset="primary"
               color="danger"
               icon="mso-delete"
-              size="medium"
+              size="small"
               class="mt-4"
               @click="formData.subCategories.splice(index, 1)"
             >
             </VaButton>
+            <div
+              v-if="
+                (formData.updating === '' || formData.updating === 'all' || formData.updating === 'subCategory') &&
+                index === formData.subCategories.length - 1
+              "
+              class="cursor-pointer text-primary font-semibold underline flex items-center col-span-3 mt-5"
+              @click="formData.subCategories.push({ wCode: '', name: '', description: '' })"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="w-3 h-3"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Add Sub Category
+            </div>
           </div>
         </div>
       </div>

@@ -15,7 +15,7 @@
       <div class="flex items-center gap-x-10 mb-2">
         <VaInput
           v-model="formData.code"
-          class="mb-1 max-w-[200px]"
+          class="mb-1 max-w-[150px]"
           label="Code"
           :rules="[validators.required]"
           placeholder="Code"
@@ -25,14 +25,13 @@
         <VaInput
           v-model="formData.name"
           :rules="[validators.required]"
-          class="mb-1 max-w-[200px]"
+          class="mb-1 max-w-[230px]"
           label="Name"
           required-mark
           placeholder="Name"
           type="text"
         />
 
-        <VaInput v-model="formData.price" label="Price" placeholder="Price" type="number" class="mb-1 max-w-[200px]" />
         <VaSelect
           id="categories"
           v-model="formData.categories"
@@ -40,10 +39,8 @@
           :options="categories"
           :multiple="true"
           value-by="value"
-          class="mb-1 max-w-[200px]"
+          class="mb-1 max-w-[230px]"
         />
-      </div>
-      <div class="flex items-center gap-x-10">
         <VaSelect
           id="sub_categories"
           v-model="formData.subCategories"
@@ -51,8 +48,11 @@
           :options="subCategories"
           :multiple="true"
           value-by="value"
-          class="mb-1 max-w-[200px]"
+          class="mb-1 max-w-[230px]"
         />
+      </div>
+      <div class="flex items-center gap-x-10">
+        <VaInput v-model="formData.price" label="Price" placeholder="Price" type="number" class="mb-1 max-w-[200px]" />
         <VaSelect id="options" disabled label="Options" :multiple="true" value-by="value" class="mb-1 max-w-[200px]" />
         <VaSelect
           id="allergens"

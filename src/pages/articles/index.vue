@@ -65,6 +65,12 @@ const updateArticleDirectly = (payload) => {
   delete data.createdAt
   delete data.updatedAt
   delete data.__v
+  data.categories = payload.categories.map((e) => {
+    return { code: e.wCode }
+  })
+  data.subCategories = payload.subCategories.map((e) => {
+    return { code: e.wCode }
+  })
   const url: any = import.meta.env.VITE_API_BASE_URL
   axios
     .patch(`${url}/menuItems/${payload._id}`, data)
@@ -139,7 +145,8 @@ const cloneArticle = (article) => {
   delete clonedData.__v
   selectedArticle.value = {
     ...clonedData,
-    name: `${clonedData.name} (copy)`,
+    name: `${clonedData.name}`,
+    imageUrl: '',
   }
   isEditArticleModalOpen.value = true
 }
