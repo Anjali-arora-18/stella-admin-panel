@@ -31,16 +31,8 @@
           placeholder="Name"
           type="text"
         />
-        <VaInput
-          v-model="formData.description"
-          label="Description"
-          placeholder="Description"
-          type="text"
-          class="mb-1 max-w-[200px]"
-        />
+
         <VaInput v-model="formData.price" label="Price" placeholder="Price" type="number" class="mb-1 max-w-[200px]" />
-      </div>
-      <div class="flex items-center gap-x-10">
         <VaSelect
           id="categories"
           v-model="formData.categories"
@@ -50,6 +42,8 @@
           value-by="value"
           class="mb-1 max-w-[200px]"
         />
+      </div>
+      <div class="flex items-center gap-x-10">
         <VaSelect
           id="sub_categories"
           v-model="formData.subCategories"
@@ -67,6 +61,16 @@
           :multiple="true"
           value-by="value"
           class="mb-1 max-w-[200px]"
+        />
+      </div>
+      <div class="flex-1">
+        <VaTextarea
+          v-model="formData.description"
+          label="Description"
+          placeholder="Description"
+          type="textarea"
+          rows="5"
+          class="mb-1 w-full"
         />
       </div>
       <div class="flex-1">
