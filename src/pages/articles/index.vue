@@ -131,6 +131,18 @@ function getArticlesForPagination(payload) {
   searchQuery.value = payload.searchQuery
   getArticles(serviceStore.selectedRest)
 }
+const cloneArticle = (article) => {
+  const clonedData = { ...article }
+  delete clonedData._id
+  delete clonedData.createdAt
+  delete clonedData.updatedAt
+  delete clonedData.__v
+  selectedArticle.value = {
+    ...clonedData,
+    name: `${clonedData.name} (copy)`,
+  }
+  isEditArticleModalOpen.value = true
+}
 
 const isImportArticleModalOpen = ref(false)
 </script>
@@ -159,6 +171,7 @@ const isImportArticleModalOpen = ref(false)
         @deleteArticle="deleteArticle"
         @getArticlesForPagination="getArticlesForPagination"
         @updateArticle="updateArticleDirectly"
+        @cloneArticle="cloneArticle"
       />
     </VaCardContent>
   </VaCard>

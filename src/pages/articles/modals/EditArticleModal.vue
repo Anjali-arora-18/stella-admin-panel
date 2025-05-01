@@ -9,7 +9,7 @@
     @update:modelValue="emits('cancel')"
   >
     <template #header>
-      <h1 class="sticky va-h6 mb-4">{{ selectedCategory ? 'Update' : 'Add' }}</h1>
+      <h1 class="sticky va-h6 mb-4">{{ titleName }}</h1>
     </template>
     <VaForm ref="form" @submit.prevent="submit">
       <div class="flex items-center gap-x-10 mb-2">
@@ -76,9 +76,7 @@
     </VaForm>
     <template #footer>
       <div class="flex md:justify-end md:space-x-4">
-        <VaButton class="mb-4 md:mb-0" type="submit" @click="submit">{{
-          selectedCategory ? 'Update' : 'Add'
-        }}</VaButton>
+        <VaButton class="mb-4 md:mb-0" type="submit" @click="submit">{{ titleName }}</VaButton>
       </div>
     </template>
   </VaModal>
@@ -90,6 +88,7 @@ import { validators } from '@/services/utils'
 import { useCategoryStore } from '@/stores/categories'
 import { useServiceStore } from '@/stores/services'
 import { useToast, useForm } from 'vuestic-ui'
+import ProfileDropdown from '@/components/navbar/components/dropdowns/ProfileDropdown.vue'
 const categoryStore = useCategoryStore()
 const categories = ref([])
 const emits = defineEmits(['cancel'])
@@ -149,6 +148,16 @@ const subCategories = computed(() => {
   }
 })
 
+const titleName = computed(() => {
+  if (props.selectedCategory && !props.selectedCategory._id) {
+    return 'Duplicate'
+  } else if (props.selectedCategory && props.selectedCategory._id) {
+    return 'Update'
+  } else {
+    return 'Add'
+  }
+})
+
 const submit = () => {
   if (validate()) {
     const data = formData.value
@@ -168,7 +177,7 @@ const submit = () => {
     delete data.updatedAt
     delete data.__v
     const url: any = import.meta.env.VITE_API_BASE_URL
-    if (props.selectedCategory) {
+    if (formData.value._id) {
       axios
         .patch(`${url}/menuItems/${formData.value._id}`, data)
         .then((response) => {

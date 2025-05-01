@@ -23,6 +23,7 @@ const props = defineProps({
 const emits = defineEmits([
   'updateArticle',
   'updateArticleModal',
+  'cloneArticle',
   'deleteArticle',
   'sortBy',
   'sortingOrder',
@@ -274,6 +275,13 @@ function deleteArticle(payload) {
       </template>
       <template #cell(actions)="{ rowData }">
         <div class="flex justify-end">
+          <VaButton
+            preset="primary"
+            size="small"
+            icon="mso-content_copy"
+            class="mr-2"
+            @click="emits('cloneArticle', rowData)"
+          />
           <VaButton preset="primary" size="small" icon="mso-edit" @click="emits('updateArticleModal', rowData)" />
           <VaButton
             preset="primary"
