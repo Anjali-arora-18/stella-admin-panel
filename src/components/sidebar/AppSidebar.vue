@@ -26,7 +26,7 @@
         <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>QR Codes</span>
         <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>Payments</span>
         <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>Delivery Zones</span>
-        <span class="text-secondary">Languages</span>
+        <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>Languages</span>
         <span class="font-bold">Admin</span>
         <!-- <RouterLink to="/outlets/list" :class="$route.name === 'list' ? 'text-primary font-bold' : 'text-secondary'"
           >Outlets</RouterLink

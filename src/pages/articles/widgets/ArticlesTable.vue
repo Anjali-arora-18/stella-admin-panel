@@ -157,7 +157,8 @@ function deleteArticle(payload) {
             autofocus
             @keyup.enter="$emit('updateArticle', rowData), (rowData.editing = '')"
           />
-          <span v-else>{{ rowData.price }}</span>
+          <span v-else-if="parseFloat(rowData.price)">€{{ parseFloat(rowData.price).toFixed(2) }}</span>
+          <span v-else></span>
         </div>
       </template>
       <template #cell(category)="{ rowData }">
