@@ -186,6 +186,9 @@ const submit = () => {
     delete data.__v
     const url: any = import.meta.env.VITE_API_BASE_URL
     if (formData.value._id) {
+      if (data.code === props.selectedCategory.code) {
+        delete data.code
+      }
       axios
         .patch(`${url}/menuItems/${formData.value._id}`, data)
         .then((response) => {
@@ -204,6 +207,7 @@ const submit = () => {
         })
         .catch((err) => {
           init({ message: err.response.data.error, color: 'danger' })
+          emits('cancel')
         })
     }
   }

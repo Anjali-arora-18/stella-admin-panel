@@ -14,6 +14,7 @@ const categoriesStore = useCategoryStore()
 const { init } = useToast()
 const serviceStore = useServiceStore()
 const items = ref([])
+const originalItems = ref([])
 const count = ref(0)
 const pageNumber = ref(1)
 const searchQuery = ref('')
@@ -26,6 +27,7 @@ const categories = ref([])
 
 const getArticles = (outletId) => {
   items.value = []
+  originalItems.value = []
   isLoading.value = true
   const url = import.meta.env.VITE_API_BASE_URL
   axios
@@ -34,6 +36,7 @@ const getArticles = (outletId) => {
     )
     .then((response) => {
       items.value = response.data
+      originalItems.value = JSON.parse(JSON.stringify(response.data))
       isLoading.value = false
     })
 }
@@ -60,11 +63,15 @@ const updateArticleModal = (payload) => {
 }
 
 const updateArticleDirectly = (payload) => {
+  const item = originalItems.value.find((e) => e._id === payload._id)
   const data = payload
   data.outletId = serviceStore.selectedRest
   delete data.createdAt
   delete data.updatedAt
   delete data.__v
+  if (item && item.code === payload.code) {
+    delete data.code
+  }
   data.categories = payload.categories.map((e) => {
     return { id: e._id }
   })
@@ -79,6 +86,7 @@ const updateArticleDirectly = (payload) => {
       init({ message: "You've successfully updated", color: 'success' })
     })
     .catch((err) => {
+      getArticles(serviceStore.selectedRest)
       init({ message: err.response.data.message, color: 'danger' })
     })
 }
