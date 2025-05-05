@@ -143,6 +143,7 @@ const subCategories = computed(() => {
     const selectedCategories = categories.value.filter((e) => formData.value.categories.includes(e.wCode))
     const allSubCategories = selectedCategories.flatMap((category) =>
       (category.subCategories || []).map((sub) => ({
+        ...sub,
         text: sub.name,
         value: sub.wCode,
         code: sub.wCode,
@@ -166,14 +167,17 @@ const submit = () => {
   if (validate()) {
     const data = formData.value
     data.code = formData.value.code.toString()
+    const cate = JSON.parse(JSON.stringify(categories.value))
+    const subCate = JSON.parse(JSON.stringify(subCategories.value))
     data.categories = formData.value.categories.map((e) => {
       {
-        return { code: e }
+        return { id: cate.find((cat) => cat.wCode === e)._id }
       }
     })
     data.subCategories = formData.value.subCategories.map((e) => {
+      console.log(e, subCategories)
       {
-        return { code: e }
+        return { id: subCate.find((subCat) => subCat.wCode === e)._id }
       }
     })
     data.outletId = servicesStore.selectedRest
@@ -199,7 +203,7 @@ const submit = () => {
           emits('cancel')
         })
         .catch((err) => {
-          init({ message: err.response.data.message, color: 'danger' })
+          init({ message: err.response.data.error, color: 'danger' })
         })
     }
   }

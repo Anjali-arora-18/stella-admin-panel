@@ -66,10 +66,10 @@ const updateArticleDirectly = (payload) => {
   delete data.updatedAt
   delete data.__v
   data.categories = payload.categories.map((e) => {
-    return { code: e.wCode }
+    return { id: e._id }
   })
   data.subCategories = payload.subCategories.map((e) => {
-    return { code: e.wCode }
+    return { id: e._id }
   })
   const url: any = import.meta.env.VITE_API_BASE_URL
   axios

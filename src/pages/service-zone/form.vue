@@ -465,7 +465,7 @@
                 <img v-if="restaurantData.logoUrl" :src="restaurantData.logoUrl" alt="Logo" class="w-32 h-32 mt-2" />
               </div>
               <div class="flex-1">
-                <VaInput v-model="restaurantData.headerUrl" label="Header URL (RATIO 4:3)" type="url" />
+                <VaInput v-model="restaurantData.headerUrl" label="Header URL (RATIO 4:2)" type="url" />
                 <img
                   v-if="restaurantData.headerUrl"
                   :src="restaurantData.headerUrl"
