@@ -22,6 +22,11 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../pages/areas/index.vue'),
       },
       {
+        name: 'organizeMenu',
+        path: 'organizeMenu',
+        component: () => import('../pages/organizeMenu.vue'),
+      },
+      {
         name: 'categories',
         path: 'categories',
         component: () => import('../pages/categories/index.vue'),
@@ -40,6 +45,11 @@ const routes: Array<RouteRecordRaw> = [
         name: 'settings',
         path: 'settings',
         component: () => import('../pages/settings/Settings.vue'),
+      },
+      {
+        name: 'allergens',
+        path: 'allergens',
+        component: () => import('../pages/allergens.vue'),
       },
       // {
       //   name: 'companies',

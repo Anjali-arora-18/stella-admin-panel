@@ -130,7 +130,16 @@ const areas = computed(() =>
 </script>
 
 <template>
-  <VaDataTable :columns="columns" :items="items" :loading="$props.loading">
+  <VaDataTable
+    :columns="columns"
+    :items="items"
+    :loading="$props.loading"
+    :style="{
+      '--va-data-table-thead-background': 'var(--va-background-element)',
+      '--va-data-table-thead-color': '#2C82E0',
+    }"
+    sticky-header
+  >
     <template #cell(numericId)="{ rowData }">
       <div class="ellipsis">
         {{ rowData.numericId }}
@@ -169,7 +178,16 @@ const areas = computed(() =>
           size="small"
           @input="filterTableData($event, rowData)"
         />
-        <VaDataTable style="flex-grow: 1; width: 100%" :items="rowData.filteredTables" :columns="tableColumns">
+        <VaDataTable
+          style="flex-grow: 1; width: 100%"
+          :items="rowData.filteredTables"
+          :columns="tableColumns"
+          :style="{
+            '--va-data-table-thead-background': 'var(--va-background-element)',
+            '--va-data-table-thead-color': '#2C82E0',
+          }"
+          sticky-header
+        >
           <template #cell(numericId)="{ rowData }">
             <div class="ellipsis">{{ rowData.numericId }}</div>
           </template>

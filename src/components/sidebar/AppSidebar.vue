@@ -3,7 +3,12 @@
     <VaAccordion v-model="value" class="mt-5 pl-5">
       <div class="flex flex-col gap-y-2">
         <span class="font-bold">Menu</span>
-        <span class="text-secondary"><VaIcon name="group" class="mr-2"></VaIcon>Organize Menu</span>
+        <RouterLink
+          :class="$route.name === 'organizeMenu' ? 'text-primary font-bold' : 'text-secondary'"
+          to="/organizeMenu"
+        >
+          <VaIcon name="group" class="mr-2"></VaIcon>Organize Menu
+        </RouterLink>
         <RouterLink
           :class="$route.name === 'categories' ? 'text-primary font-bold' : 'text-secondary'"
           to="/categories"
@@ -15,7 +20,9 @@
         >
         <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>Articles Options</span>
         <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>Deleted Articles</span>
-        <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>Allergens</span>
+        <RouterLink :class="$route.name === 'allergens' ? 'text-primary font-bold' : 'text-secondary'" to="/allergens">
+          <VaIcon name="group" class="mr-2"></VaIcon>Allergens</RouterLink
+        >
         <span class="font-bold">Configuration</span>
         <RouterLink :class="$route.name === 'list' ? 'text-primary font-bold' : 'text-secondary'" to="/outlets/list">
           <VaIcon name="group" class="mr-2"></VaIcon>Outlet</RouterLink

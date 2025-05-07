@@ -87,6 +87,12 @@ const filteredItems = computed(() => {
       :items="filteredItems"
       :loading="$props.loading"
       :disable-client-side-sorting="true"
+      :style="{
+        '--va-data-table-height': '500px',
+        '--va-data-table-thead-background': 'var(--va-background-element)',
+        '--va-data-table-thead-color': '#2C82E0',
+      }"
+      sticky-header
       @update:sortBy="(sortBy) => $emit('sortBy', sortBy)"
       @update:sortingOrder="(sortDesc) => $emit('sortingOrder', sortDesc)"
     >

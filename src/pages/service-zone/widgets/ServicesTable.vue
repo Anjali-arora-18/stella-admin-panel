@@ -69,7 +69,16 @@ function downloadQrCode(rowData) {
 </script>
 
 <template>
-  <VaDataTable :columns="columns" :items="items" :loading="$props.loading">
+  <VaDataTable
+    :columns="columns"
+    :items="items"
+    :loading="$props.loading"
+    :style="{
+      '--va-data-table-thead-background': 'var(--va-background-element)',
+      '--va-data-table-thead-color': '#2C82E0',
+    }"
+    sticky-header
+  >
     <template #cell(numericId)="{ rowData }">
       <div class="max-w-[120px] ellipsis">
         {{ rowData.numericId }}

@@ -12,27 +12,46 @@
       <VaCard>
         <VaCardContent>
           <div class="flex-col justify-start items-start gap-4 inline-flex w-full">
-            <div class="grid grid-cols-4 gap-8 w-full mt-4">
-              <VaInput
-                id="name"
-                v-model="restaurantData.name"
-                label="Name"
-                name="Name"
-                required-mark
-                :rules="[validators.required]"
-              />
-              <VaInput id="description" v-model="restaurantData.description" label="Description" name="Description" />
-              <VaSelect
-                id="type"
-                v-model="restaurantData.type"
-                label="Type"
-                :options="types"
-                allow-create
-                required-mark
-                :rules="[validators.required]"
-                @createNew="addNewOption"
-              />
-              <VaInput id="address" v-model="restaurantData.address" label="Address" name="Address" />
+            <div class="grid grid-cols-4 gap-6 w-full mt-4">
+              <div class="col-span-1">
+                <VaInput
+                  id="name"
+                  v-model="restaurantData.name"
+                  label="Name"
+                  name="Name"
+                  required-mark
+                  :rules="[validators.required]"
+                />
+              </div>
+              <div class="col-span-1">
+                <VaInput id="slug" v-model="restaurantData.slug" label="Slug" name="slug" />
+              </div>
+              <div class="col-span-1">
+                <VaInput id="address" v-model="restaurantData.address" label="Address" name="Address" />
+              </div>
+              <div class="col-span-1">
+                <VaSelect
+                  id="type"
+                  v-model="restaurantData.type"
+                  label="Type"
+                  :options="types"
+                  allow-create
+                  required-mark
+                  :rules="[validators.required]"
+                  @createNew="addNewOption"
+                />
+              </div>
+              <div class="col-span-4">
+                <VaTextarea
+                  id="description"
+                  v-model="restaurantData.description"
+                  label="Description"
+                  name="Description"
+                  :min-rows="3"
+                  :max-rows="3"
+                  class="w-full"
+                />
+              </div>
             </div>
 
             <div class="grid grid-cols-4 gap-8 w-full mt-4">
@@ -543,6 +562,7 @@ export default {
       restaurantData: {
         name: '',
         description: '',
+        slug: '',
         type: '',
         address: '',
         postcode: '',
@@ -875,6 +895,7 @@ export default {
       const data = {
         name: this.restaurantData.name || '',
         description: this.restaurantData.description || '',
+        slug: this.restaurantData.slug || '',
         type: this.restaurantData.type || '',
         address: this.restaurantData.address || '',
         postcode: this.restaurantData.postcode || '',

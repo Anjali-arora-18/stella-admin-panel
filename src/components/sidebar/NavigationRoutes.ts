@@ -45,6 +45,14 @@ export default {
       },
     },
     {
+      name: 'organizeMenu',
+      displayName: 'menu.organizeMenu',
+      visible: true,
+      meta: {
+        icon: 'group',
+      },
+    },
+    {
       name: 'categories',
       displayName: 'menu.categories',
       visible: true,
@@ -64,6 +72,14 @@ export default {
       name: 'menuItems',
       displayName: 'menu.subCategories',
       visible: false,
+      meta: {
+        icon: 'group',
+      },
+    },
+    {
+      name: 'allergens',
+      displayName: 'menu.allergens',
+      visible: true,
       meta: {
         icon: 'group',
       },
