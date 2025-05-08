@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { ref, computed, toRef, watch } from 'vue'
 import { useServiceStore } from '@/stores/services'
 import { useCategoryStore } from '@/stores/categories'
+import { useSubCategoriesStore } from '@/stores/subCategories'
 import Categories from '@/pages/admin/orders/categories.vue'
 const props = defineProps({
   items: {
@@ -20,6 +21,8 @@ const props = defineProps({
     default: 0,
   },
 })
+
+const subCategoryStore = useSubCategoriesStore()
 const emits = defineEmits([
   'updateArticle',
   'updateArticleModal',
@@ -36,6 +39,10 @@ const router = useRouter()
 const currentPage = ref(1)
 const items = toRef(props, 'items')
 const searchQuery = ref('')
+const allergenOptions = subCategoryStore.allergenOptions
+const getAllergenNames = (id) => {
+  return allergenOptions.find((a) => a.id === id).text
+}
 
 watch(currentPage, (newPage) => {
   emits('getArticlesForPagination', { page: currentPage.value, searchQuery: searchQuery.value })
@@ -57,7 +64,7 @@ const columns = defineVaDataTableColumns([
   { label: 'Sub-Category', key: 'sub_category', sortable: false },
   { label: 'Options', key: 'options', sortable: false },
   { label: 'Image', key: 'image', sortable: false },
-  { label: 'Allergens', key: 'allergens', sortable: false },
+  { label: 'Allergens', key: 'allergenIds', sortable: false },
   { label: 'Active', key: 'isActive', sortable: false },
   { label: 'Stock', key: 'stock', sortable: false },
   { label: 'Actions', key: 'actions', sortable: false },
@@ -104,7 +111,6 @@ function deleteArticle(payload) {
       :loading="$props.loading"
       :disable-client-side-sorting="true"
       :style="{
-        '--va-data-table-height': '500px',
         '--va-data-table-thead-background': 'var(--va-background-element)',
         '--va-data-table-thead-color': '#2C82E0',
       }"
@@ -267,6 +273,41 @@ function deleteArticle(payload) {
             "
             @click="emits('updateArticleModal', { ...rowData, updating: 'imageUrl' })"
           />
+        </div>
+      </template>
+      <template #cell(allergenIds)="{ rowData }">
+        <div @click="rowData.editing = 'allergenIds'">
+          <VaSelect
+            v-if="rowData.editing === 'allergenIds'"
+            v-model="rowData.allergenIds"
+            class="w-full p-1 border rounded"
+            autofocus
+            :multiple="true"
+            value-by="id"
+            :options="allergenOptions"
+            @update:modelValue="$emit('updateArticle', rowData), (rowData.editing = '')"
+          />
+          <div v-else class="flex flex-col flex-wrap gap-1">
+            <template v-if="rowData.allergenIds.length <= 2">
+              <VaBadge
+                v-for="e in rowData.allergenIds"
+                :key="e"
+                class="px-1"
+                color="primary"
+                :text="`${getAllergenNames(e)}`"
+              />
+            </template>
+            <template v-else>
+              <VaBadge
+                v-for="e in rowData.allergenIds.slice(0, 2)"
+                :key="e"
+                class="px-1"
+                color="primary"
+                :text="`${getAllergenNames(e)}`"
+              />
+              <VaBadge :text="`+${rowData.allergenIds.length - 2} more`" color="primary" class="px-1" />
+            </template>
+          </div>
         </div>
       </template>
       <template #cell(isActive)="{ rowData }">

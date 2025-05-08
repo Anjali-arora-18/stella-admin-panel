@@ -56,10 +56,11 @@
         <VaSelect id="options" disabled label="Options" :multiple="true" value-by="value" class="mb-1 max-w-[200px]" />
         <VaSelect
           id="allergens"
-          disabled
+          v-model="formData.allergenIds"
           label="Allergens"
+          :options="allergenOptions"
           :multiple="true"
-          value-by="value"
+          value-by="id"
           class="mb-1 max-w-[200px]"
         />
       </div>
@@ -93,6 +94,7 @@ import { validators } from '@/services/utils'
 import { useCategoryStore } from '@/stores/categories'
 import { useServiceStore } from '@/stores/services'
 import { useToast, useForm } from 'vuestic-ui'
+import { useSubCategoriesStore } from '@/stores/subCategories'
 import ProfileDropdown from '@/components/navbar/components/dropdowns/ProfileDropdown.vue'
 const categoryStore = useCategoryStore()
 const categories = ref([])
@@ -113,6 +115,7 @@ const formData = ref({
   categories: [],
   isActive: true,
   description: '',
+  allergenIds: [],
   imageUrl: '',
   inStock: true,
   outletId: '',
@@ -153,6 +156,8 @@ const subCategories = computed(() => {
     return allSubCategories
   }
 })
+const subCategoryStore = useSubCategoriesStore()
+const allergenOptions = subCategoryStore.allergenOptions
 
 const titleName = computed(() => {
   if (props.selectedCategory && !props.selectedCategory._id) {
@@ -172,15 +177,15 @@ const submit = () => {
     const subCate = JSON.parse(JSON.stringify(subCategories.value))
     data.categories = formData.value.categories.map((e) => {
       {
-        return { id: cate.find((cat) => cat.wCode === e)._id }
+        return { id: cate.find((cat) => cat.wCode === e)  ? cate.find((cat) => cat.wCode === e)._id : ''}
       }
-    })
+    }).filter(a => a.id)
     data.subCategories = formData.value.subCategories.map((e) => {
       console.log(e, subCategories)
       {
-        return { id: subCate.find((subCat) => subCat.wCode === e)._id }
+        return { id: subCate.find((subCat) => subCat.wCode === e) ? subCate.find((subCat) => subCat.wCode === e)._id : '' }
       }
-    })
+    }).filter(a => a.id)
     data.outletId = servicesStore.selectedRest
     delete data.createdAt
     delete data.updatedAt
