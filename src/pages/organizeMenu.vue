@@ -157,8 +157,8 @@ watch(
 <template>
   <div>
     <h1 class="page-title font-bold">Organize Menu</h1>
-    <VueDraggableNext class="dragArea list-group w-full" :list="categories" @change="movedCategory">
-      <VaAccordion v-model="openedAccordian" @update:modelValue="getArticles">
+    <VaAccordion v-model="openedAccordian" @update:modelValue="getArticles">
+      <VueDraggableNext class="dragArea list-group w-full" :list="categories" @change="movedCategory">
         <VaCollapse
           v-for="category in categories"
           :key="category._id"
@@ -205,8 +205,8 @@ watch(
             </VueDraggableNext>
           </VaAccordion>
         </VaCollapse>
-      </VaAccordion>
-    </VueDraggableNext>
+      </VueDraggableNext>
+    </VaAccordion>
   </div>
 </template>
 
