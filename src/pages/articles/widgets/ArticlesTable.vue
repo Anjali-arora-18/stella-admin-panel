@@ -111,6 +111,7 @@ function deleteArticle(payload) {
       :loading="$props.loading"
       :disable-client-side-sorting="true"
       :style="{
+        '--va-data-table-height': '500px',
         '--va-data-table-thead-background': 'var(--va-background-element)',
         '--va-data-table-thead-color': '#2C82E0',
       }"
@@ -130,7 +131,7 @@ function deleteArticle(payload) {
             v-model="rowData.code"
             class="w-full p-1 border rounded"
             autofocus
-            @keyup.enter="emits('updateArticle', rowData), (rowData.editing = '')"
+            @blur="emits('updateArticle', rowData), (rowData.editing = '')"
           />
           <span v-else>{{ rowData.code }}</span>
         </div>
@@ -142,7 +143,7 @@ function deleteArticle(payload) {
             v-model="rowData.name"
             class="w-full p-1 border rounded"
             autofocus
-            @keyup.enter="$emit('updateArticle', rowData), (rowData.editing = '')"
+            @blur="$emit('updateArticle', rowData), (rowData.editing = '')"
           />
           <span v-else>{{ rowData.name }}</span>
         </div>
@@ -154,7 +155,7 @@ function deleteArticle(payload) {
             v-model="rowData.description"
             class="w-full p-1 border rounded"
             autofocus
-            @keyup.enter="$emit('updateArticle', rowData), (rowData.editing = '')"
+            @blur="$emit('updateArticle', rowData), (rowData.editing = '')"
           />
           <span v-else>{{ rowData.description }}</span>
         </div>
@@ -166,7 +167,7 @@ function deleteArticle(payload) {
             v-model="rowData.price"
             class="w-full p-1 border rounded"
             autofocus
-            @keyup.enter="$emit('updateArticle', rowData), (rowData.editing = '')"
+            @blur="$emit('updateArticle', rowData), (rowData.editing = '')"
           />
           <span v-else-if="parseFloat(rowData.price)">€{{ parseFloat(rowData.price).toFixed(2) }}</span>
           <span v-else></span>
@@ -233,7 +234,7 @@ function deleteArticle(payload) {
         </div>
       </template>
       <template #cell(options)="{ rowData }">
-        <div class="">
+        <div>
           <div v-if="rowData.options" className="flex flex-col gap-1">
             <template v-for="(value, key) in rowData.options" :key="value">
               <div v-if="value.length" class="text-sm">

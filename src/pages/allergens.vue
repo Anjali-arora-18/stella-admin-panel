@@ -22,28 +22,28 @@ const subCategoryStore = useSubCategoriesStore()
 const allergenOptions = subCategoryStore.allergenOptions
 const items = toRef(props, 'items')
 </script>
+
 <template>
   <div>
     <h1 class="page-title font-bold">Allergens</h1>
+    <VaCard>
+      <VaCardContent>
+        <VaDataTable
+          :columns="columns"
+          :items="allergenOptions"
+          sticky-header
+          :style="{
+            '--va-data-table-height': '500px',
+            '--va-data-table-thead-background': 'var(--va-background-element)',
+            '--va-data-table-thead-color': '#2C82E0',
+          }"
+        >
+          <template #cell(icon)="{ rowData }">
+            <img :src="`/allergens/${rowData.icon}.png`" alt="Allergen Icon" class="w-10 h-10" />
+          </template>
+        </VaDataTable>
+      </VaCardContent>
+    </VaCard>
   </div>
-  <VaCard>
-    <VaCardContent>
-      <VaDataTable
-        :columns="columns"
-        :items="allergenOptions"
-        sticky-header
-        :style="{
-        '--va-data-table-thead-background': 'var(--va-background-element)',
-        '--va-data-table-thead-color': '#2C82E0',
-      }"
-       
-      >
-       
-        <template #cell(icon)="{ rowData }">
-         
-        </template>
-      </VaDataTable>
-    </VaCardContent>
-  </VaCard>
 </template>
 <style lang="scss" scoped></style>
