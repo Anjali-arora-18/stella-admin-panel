@@ -157,7 +157,9 @@ const subCategories = computed(() => {
   }
 })
 const subCategoryStore = useSubCategoriesStore()
-const allergenOptions = subCategoryStore.allergenOptions
+const allergenOptions = subCategoryStore.allergenOptions.map((e) => {
+  return { text: e.text, id: e.id }
+})
 
 const titleName = computed(() => {
   if (props.selectedCategory && !props.selectedCategory._id) {
@@ -175,17 +177,23 @@ const submit = () => {
     data.code = formData.value.code.toString()
     const cate = JSON.parse(JSON.stringify(categories.value))
     const subCate = JSON.parse(JSON.stringify(subCategories.value))
-    data.categories = formData.value.categories.map((e) => {
-      {
-        return { id: cate.find((cat) => cat.wCode === e)  ? cate.find((cat) => cat.wCode === e)._id : ''}
-      }
-    }).filter(a => a.id)
-    data.subCategories = formData.value.subCategories.map((e) => {
-      console.log(e, subCategories)
-      {
-        return { id: subCate.find((subCat) => subCat.wCode === e) ? subCate.find((subCat) => subCat.wCode === e)._id : '' }
-      }
-    }).filter(a => a.id)
+    data.categories = formData.value.categories
+      .map((e) => {
+        {
+          return { id: cate.find((cat) => cat.wCode === e) ? cate.find((cat) => cat.wCode === e)._id : '' }
+        }
+      })
+      .filter((a) => a.id)
+    data.subCategories = formData.value.subCategories
+      .map((e) => {
+        console.log(e, subCategories)
+        {
+          return {
+            id: subCate.find((subCat) => subCat.wCode === e) ? subCate.find((subCat) => subCat.wCode === e)._id : '',
+          }
+        }
+      })
+      .filter((a) => a.id)
     data.outletId = servicesStore.selectedRest
     delete data.createdAt
     delete data.updatedAt

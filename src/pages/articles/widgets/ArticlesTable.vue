@@ -39,7 +39,9 @@ const router = useRouter()
 const currentPage = ref(1)
 const items = toRef(props, 'items')
 const searchQuery = ref('')
-const allergenOptions = subCategoryStore.allergenOptions
+const allergenOptions = subCategoryStore.allergenOptions.map((e) => {
+  return { text: e.text, id: e.id }
+})
 const getAllergenNames = (id) => {
   return allergenOptions.find((a) => a.id === id).text
 }
