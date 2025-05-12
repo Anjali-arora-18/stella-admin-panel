@@ -295,16 +295,25 @@ if (props.selectedCategory) {
 
 const submit = () => {
   if (validate()) {
-    const data = formData.value
+    const data = JSON.parse(JSON.stringify(formData.value))
     delete data.code // delete code key for unnecessary used
     delete data.createdAt // delete createdAt key for unnecessary used
     delete data.updatedAt // delete updatedAt key for unnecessary used
     delete data.__v // delete __v key for unnecessary used
     data.outletId = servicesStore.selectedRest
     data.areaId = formData.value.areaId.filter((a: any) => a !== null)
-    data.subCategories = formData.value.subCategories.map(
-      ({ sortOrder, _id, createdAt, updatedAt, __v, ...rest }) => rest,
-    )
+    data.subCategories = []
+    formData.value.subCategories.forEach((a) => {
+      const payload = JSON.parse(JSON.stringify(a))
+      delete payload.sortOrder
+      delete payload._id
+      delete payload.updatedAt
+      delete payload.__v
+      if (a._id) {
+        delete a.wCode
+      }
+      data.subCategories.push(payload)
+    })
     const url: any = import.meta.env.VITE_API_BASE_URL
     if (props.selectedCategory) {
       if (props.selectedCategory.wCode === formData.value.wCode) {
