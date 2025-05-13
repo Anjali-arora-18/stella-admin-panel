@@ -68,16 +68,12 @@ const updateArticleDirectly = (payload) => {
   data.outletId = serviceStore.selectedRest
   delete data.createdAt
   delete data.updatedAt
+  delete data.categories
+  delete data.subCategories
   delete data.__v
   if (item && item.code === payload.code) {
     delete data.code
   }
-  data.categories = payload.categories.map((e) => {
-    return { id: e._id }
-  })
-  data.subCategories = payload.subCategories.map((e) => {
-    return { id: e._id }
-  })
   const url: any = import.meta.env.VITE_API_BASE_URL
   axios
     .patch(`${url}/menuItems/${payload._id}`, data)

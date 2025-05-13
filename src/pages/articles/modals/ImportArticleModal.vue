@@ -160,6 +160,10 @@ const getfamilies = async () => {
     loading.value = false
     return response.data
   } catch (error) {
+    init({
+      message: error.response.data.error,
+      color: 'danger',
+    })
     loading.value = false
   }
 }

@@ -210,7 +210,7 @@ const submit = () => {
           emits('cancel')
         })
         .catch((err) => {
-          init({ message: err.response.data.message, color: 'danger' })
+          init({ message: err.response.data.error, color: 'danger' })
         })
     } else {
       axios

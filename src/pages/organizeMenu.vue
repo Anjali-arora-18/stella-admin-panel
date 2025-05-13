@@ -24,6 +24,7 @@ const getArticles = async () => {
         },
       })
       .then((resp) => {
+        categories.value[selectedCategoryIndex].articles = resp.data.filter((a) => !a.subCategories.length)
         categories.value[selectedCategoryIndex].subCategories = categories.value[
           selectedCategoryIndex
         ].subCategories.map((e) => {
@@ -31,21 +32,13 @@ const getArticles = async () => {
             ...e,
             articles: resp.data
               .filter((a) => a.subCategories.find((a) => a.id === e._id))
-              .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)),
+              .sort(
+                (a, b) =>
+                  (a.subCategories.find((a) => a.id === e._id).sortOrder || 0) -
+                  (b.subCategories.find((a) => a.id === e._id).sortOrder || 0),
+              ),
           }
         })
-        if (resp.data.filter((a) => !a.subCategories.length).length) {
-          const existingIds = new Set(categories.value[selectedCategoryIndex].subCategories.map((item) => item._id))
-          const newArticles = resp.data
-            .filter((a) => !a.subCategories.length)
-            .filter((item) => !existingIds.has(item._id))
-            .map((e) => ({ ...e, isArticle: true }))
-
-          categories.value[selectedCategoryIndex].subCategories = [
-            ...categories.value[selectedCategoryIndex].subCategories,
-            ...newArticles,
-          ].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
-        }
       })
   }
 }
@@ -127,14 +120,6 @@ const movedSubCategory = async ($event, category) => {
       {
         id: selectedCategory._id,
         sortOrder: selectedCategory.sortOrder,
-        articles: subCategories
-          .filter((a) => a.isArticle)
-          .map((e) => {
-            return {
-              id: e._id,
-              sortOrder: e.sortOrder,
-            }
-          }),
         subOrder: subCategories
           .filter((a) => !a.isArticle)
           .map((e) => {
@@ -167,6 +152,25 @@ const movedArticle = async ($event, category, subcategory) => {
             }
           }),
         },
+      },
+    ],
+  }
+  await updateSortOrder(data)
+}
+
+const movedCategoryArticle = async ($event, category) => {
+  const selectedCategory = JSON.parse(JSON.stringify(categories.value.find((a) => a._id === category._id)))
+  const data = {
+    categories: [
+      {
+        id: selectedCategory._id,
+        sortOrder: selectedCategory.sortOrder,
+        articles: selectedCategory.articles.map((e, index) => {
+          return {
+            id: e._id,
+            sortOrder: index,
+          }
+        }),
       },
     ],
   }
@@ -208,7 +212,7 @@ watch(
               <VaCollapse
                 v-for="subcategory in category.subCategories"
                 :key="subcategory._id || subcategory.id"
-                :header="subcategory.isArticle ? `${subcategory.name} - Article` : `${subcategory.name} - Sub Category`"
+                :header="`${subcategory.name} - Sub Category`"
                 :class="{ 'no-arrow': !(subcategory.articles && subcategory.articles.length) }"
                 color="#DEE5F2"
                 solid
@@ -232,6 +236,21 @@ watch(
               </VaCollapse>
             </VueDraggableNext>
           </VaAccordion>
+          <VueDraggableNext
+            v-if="category.articles && category.articles.length"
+            class="dragArea list-group w-full"
+            :list="category.articles"
+            :disabled="!category.articles"
+            @change="movedCategoryArticle($event, category)"
+          >
+            <div
+              v-for="article in category.articles"
+              :key="article._id || article.id"
+              class="list-group-item bg-gray-100 m-1 p-2 text-center"
+            >
+              {{ article.name }} - Article
+            </div>
+          </VueDraggableNext>
         </VaCollapse>
       </VueDraggableNext>
     </VaAccordion>
