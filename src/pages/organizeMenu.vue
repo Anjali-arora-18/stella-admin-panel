@@ -10,9 +10,11 @@ const categoriesStore = useCategoryStore()
 const isLoading = ref(true)
 const categories = ref([])
 const openedAccordian = ref([])
+const loading = ref(false)
 const { init } = useToast()
 
 const getArticles = async () => {
+  loading.value = true
   const url = import.meta.env.VITE_API_BASE_URL
   const selectedCategoryIndex = openedAccordian.value.indexOf(true)
   if (selectedCategoryIndex !== -1) {
@@ -39,7 +41,13 @@ const getArticles = async () => {
               ),
           }
         })
+        loading.value = false
       })
+      .catch((err) => {
+        loading.value = false
+      })
+  } else {
+    loading.value = false
   }
 }
 
@@ -196,13 +204,28 @@ watch(
           :key="category._id"
           :header="category.name"
           color="secondary"
-          :class="[
-            'list-group-item bg-gray-300 m-1 rounded-md text-center',
-            { 'no-arrow': !(category.subCategories && category.subCategories.length) },
-          ]"
-          :disabled="!(category.subCategories && category.subCategories.length)"
+          :class="['list-group-item bg-gray-300 m-1 rounded-md text-center']"
         >
-          <VaAccordion>
+          <div
+            v-if="
+              loading &&
+              !(category.subCategories && category.subCategories.length) &&
+              !(category.articles && category.articles.length)
+            "
+            class="flex justitfy-content-center"
+          >
+            <VaSkeleton variant="text" :lines="5" />
+          </div>
+          <div
+            v-else-if="
+              !(category.subCategories && category.subCategories.length) &&
+              !(category.articles && category.articles.length)
+            "
+          >
+            No Item
+          </div>
+
+          <VaAccordion v-else>
             <VueDraggableNext
               v-if="category.subCategories && category.subCategories.length"
               class="dragArea list-group w-full"
