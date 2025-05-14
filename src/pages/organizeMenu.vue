@@ -19,7 +19,7 @@ const getArticles = async () => {
   const selectedCategoryIndex = openedAccordian.value.indexOf(true)
   if (selectedCategoryIndex !== -1) {
     axios
-      .get(`${url}/menuItemsvo`, {
+      .get(`${url}/menuItemsvo?limit=100000`, {
         params: {
           outletId: serviceStore.selectedRest,
           categoryId: categories.value[selectedCategoryIndex]._id,
