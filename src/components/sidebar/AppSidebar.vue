@@ -7,38 +7,44 @@
           :class="$route.name === 'organizeMenu' ? 'text-primary font-bold' : 'text-secondary'"
           to="/organizeMenu"
         >
-          <VaIcon name="group" class="mr-2"></VaIcon>Organize Menu
+          <VaIcon name="restaurant_menu" class="mr-2"></VaIcon>
+          Organize Menu
         </RouterLink>
         <RouterLink
           :class="$route.name === 'categories' ? 'text-primary font-bold' : 'text-secondary'"
           to="/categories"
         >
-          <VaIcon name="group" class="mr-2"></VaIcon>Categories</RouterLink
-        >
+          <VaIcon name="category" class="mr-2"></VaIcon>
+          Categories
+        </RouterLink>
         <RouterLink to="/articles" :class="$route.name === 'articles' ? 'text-primary font-bold' : 'text-secondary'">
-          <VaIcon name="group" class="mr-2"></VaIcon> Articles</RouterLink
-        >
-        <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>Articles Options</span>
-        <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>Deleted Articles</span>
+          <VaIcon name="article" class="mr-2"></VaIcon>
+          Articles
+        </RouterLink>
+        <span class="text-secondary"> <VaIcon name="tune" class="mr-2"></VaIcon>Articles Options</span>
+        <span class="text-secondary"> <VaIcon name="delete" class="mr-2"></VaIcon>Deleted Articles</span>
         <RouterLink :class="$route.name === 'allergens' ? 'text-primary font-bold' : 'text-secondary'" to="/allergens">
-          <VaIcon name="group" class="mr-2"></VaIcon>Allergens</RouterLink
-        >
+          <VaIcon name="warning" class="mr-2"></VaIcon>
+          Allergens
+        </RouterLink>
         <span class="font-bold">Configuration</span>
         <RouterLink :class="$route.name === 'list' ? 'text-primary font-bold' : 'text-secondary'" to="/outlets/list">
-          <VaIcon name="group" class="mr-2"></VaIcon>Outlet</RouterLink
-        >
+          <VaIcon name="store" class="mr-2"></VaIcon>
+          Outlet
+        </RouterLink>
         <RouterLink to="/areas" :class="$route.name === 'areas' ? 'text-primary font-bold' : 'text-secondary'">
-          <VaIcon name="group" class="mr-2"></VaIcon>Areas</RouterLink
-        >
-        <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>QR Codes</span>
-        <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>Payments</span>
-        <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>Delivery Zones</span>
-        <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>Languages</span>
+          <VaIcon name="location_on" class="mr-2"></VaIcon>
+          Areas
+        </RouterLink>
+        <span class="text-secondary"> <VaIcon name="qr_code" class="mr-2"></VaIcon>QR Codes</span>
+        <span class="text-secondary"> <VaIcon name="payments" class="mr-2"></VaIcon>Payments</span>
+        <span class="text-secondary"> <VaIcon name="local_shipping" class="mr-2"></VaIcon>Delivery Zones</span>
+        <span class="text-secondary"> <VaIcon name="language" class="mr-2"></VaIcon>Languages</span>
         <span class="font-bold">Admin</span>
-        <!-- <RouterLink to="/outlets/list" :class="$route.name === 'list' ? 'text-primary font-bold' : 'text-secondary'"
-          >Outlets</RouterLink
-        > -->
-        <span class="text-secondary"> <VaIcon name="group" class="mr-2"></VaIcon>Users</span>
+        <RouterLink to="/outlets/list" :class="$route.name === 'list' ? 'text-primary font-bold' : 'text-secondary'"
+          ><VaIcon name="storefront" class="mr-2"></VaIcon>Outlets</RouterLink
+        >
+        <span class="text-secondary"> <VaIcon name="people" class="mr-2"></VaIcon>Users</span>
       </div>
     </VaAccordion>
   </VaSidebar>

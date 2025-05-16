@@ -162,9 +162,9 @@ async function deleteArea(payload) {
       <h1 class="page-title font-bold">Areas</h1>
       <div class="flex gap-2">
         <VaButton :disabled="!servicesStore.selectedRest" size="small" color="primary" @click="openAreaModal = true">
-          Create Area
+          Add Area
         </VaButton>
-        <VaButton color="primary" size="small" @click="openTableModal()"> Create Table </VaButton>
+        <VaButton color="primary" size="small" @click="openTableModal()"> Add Table </VaButton>
       </div>
     </div>
 

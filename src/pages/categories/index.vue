@@ -111,7 +111,7 @@ const isImportCategoryModalOpen = ref(false)
     <h1 class="page-title font-bold">Categories</h1>
     <div class="flex gap-2">
       <VaButton color="primary" size="small" @click="isImportCategoryModalOpen = true"> Import</VaButton>
-      <VaButton size="small" color="primary" @click="isEditCategoryModalOpen = true"> Add Item </VaButton>
+      <VaButton size="small" color="primary" @click="isEditCategoryModalOpen = true"> Add Category </VaButton>
     </div>
   </div>
 

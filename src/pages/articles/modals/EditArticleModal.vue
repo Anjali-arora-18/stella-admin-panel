@@ -76,8 +76,27 @@
         />
       </div>
       <div class="flex-1">
-        <VaInput v-model="formData.imageUrl" label="Image URL" type="url" />
-        <img v-if="formData.imageUrl" :src="formData.imageUrl" alt="Image" class="w-32 h-32 mt-2" />
+        <label
+          class="va-input-label va-input-wrapper__label va-input-wrapper__label--outer mt-2"
+          style="color: var(--va-primary)"
+          >Image</label
+        >
+        <FileUpload
+          :selected-rest="selectedRest"
+          @uploadSuccess="(data) => ((formData.imageUrl = data.url), (formData.assetId = data._id))"
+        ></FileUpload>
+        <div class="flex items-center">
+          <img v-if="formData.imageUrl" :src="formData.imageUrl" alt="Image" class="w-32 h-32 mt-2" />
+          <VaButton
+            v-if="formData.assetId"
+            preset="primary"
+            size="medium"
+            color="danger"
+            icon="mso-delete"
+            class="ml-2 h-12 w-12"
+            @click="deleteAsset"
+          />
+        </div>
       </div>
     </VaForm>
     <template #footer>
@@ -95,6 +114,7 @@ import { useCategoryStore } from '@/stores/categories'
 import { useServiceStore } from '@/stores/services'
 import { useToast, useForm } from 'vuestic-ui'
 import { useSubCategoriesStore } from '@/stores/subCategories'
+import FileUpload from '@/components/file-uploader/FileUpload.vue'
 import ProfileDropdown from '@/components/navbar/components/dropdowns/ProfileDropdown.vue'
 const categoryStore = useCategoryStore()
 const categories = ref([])
@@ -127,9 +147,12 @@ if (props.selectedCategory) {
     ...props.selectedCategory,
     categories: props.selectedCategory.categories.map((e) => e.wCode),
     subCategories: props.selectedCategory.subCategories.map((e) => e.wCode),
+    assetId: props.selectedCategory.assetId ? props.selectedCategory.assetId._id : null,
   }
 }
 const servicesStore = useServiceStore()
+
+const selectedRest = computed(() => servicesStore.selectedRest)
 categoryStore.getAll(servicesStore.selectedRest).then((response) => {
   categories.value = response.map((e) => {
     return {
@@ -225,6 +248,20 @@ const submit = () => {
         })
     }
   }
+}
+
+const deleteAsset = () => {
+  const url: any = import.meta.env.VITE_API_BASE_URL
+  axios
+    .delete(`${url}/assets/${formData.value.assetId}`)
+    .then(() => {
+      formData.value.imageUrl = ''
+      formData.value.assetId = ''
+      init({ message: 'Asset deleted successfully', color: 'success' })
+    })
+    .catch((err) => {
+      init({ message: err.response.data.error, color: 'danger' })
+    })
 }
 </script>
 

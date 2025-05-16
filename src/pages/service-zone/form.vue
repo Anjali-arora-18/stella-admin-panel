@@ -480,10 +480,17 @@
             </div>
             <div class="flex flex-col sm:flex-row w-full gap-1">
               <div class="flex-1">
-                <VaInput v-model="restaurantData.logoUrl" label="Logo URL" type="url" />
+                <FileUpload
+                  :selected-rest="restaurantData._id"
+                  @uploadSuccess="(data) => (restaurantData.logoUrl = data.url)"
+                ></FileUpload>
                 <img v-if="restaurantData.logoUrl" :src="restaurantData.logoUrl" alt="Logo" class="w-32 h-32 mt-2" />
               </div>
               <div class="flex-1">
+                <FileUpload
+                  :selected-rest="restaurantData._id"
+                  @uploadSuccess="(data) => (restaurantData.headerUrl = data.url)"
+                ></FileUpload>
                 <VaInput v-model="restaurantData.headerUrl" label="Header URL (RATIO 4:2)" type="url" />
                 <img
                   v-if="restaurantData.headerUrl"
@@ -522,8 +529,12 @@ import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { useToast, useForm } from 'vuestic-ui'
 const { validate } = useForm()
+import FileUpload from '@/components/file-uploader/FileUpload.vue'
 import { validators, removeNulls } from '../../services/utils.ts'
 export default {
+  components: {
+    FileUpload,
+  },
   setup() {
     const types = ref(['Outlet'])
     const mode = ref([

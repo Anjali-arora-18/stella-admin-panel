@@ -75,6 +75,7 @@ const submit = () => {
       })
       .then((response) => {
         window.sessionStorage.setItem('token', response.data.accessToken)
+        window.sessionStorage.setItem('user', response.data.user.id)
         userStore.setUserDetails(response.data.user)
         init({ message: "You've successfully logged in", color: 'success' })
         push({ name: 'list' })
