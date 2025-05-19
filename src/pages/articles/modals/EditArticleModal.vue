@@ -221,6 +221,9 @@ const submit = () => {
     delete data.createdAt
     delete data.updatedAt
     delete data.__v
+    if (!data.assetId) {
+      delete data.assetId
+    }
     const url: any = import.meta.env.VITE_API_BASE_URL
     if (formData.value._id) {
       if (data.code === props.selectedCategory.code) {

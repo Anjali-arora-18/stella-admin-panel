@@ -480,24 +480,55 @@
             </div>
             <div class="flex flex-col sm:flex-row w-full gap-1">
               <div class="flex-1">
+                <label
+                  class="va-input-label va-input-wrapper__label va-input-wrapper__label--outer mt-2"
+                  style="color: var(--va-primary)"
+                  >Logo Image</label
+                >
                 <FileUpload
                   :selected-rest="restaurantData._id"
-                  @uploadSuccess="(data) => (restaurantData.logoUrl = data.url)"
+                  @uploadSuccess="(data) => setImage(data, 'logo')"
                 ></FileUpload>
-                <img v-if="restaurantData.logoUrl" :src="restaurantData.logoUrl" alt="Logo" class="w-32 h-32 mt-2" />
+                <div class="flex items-center">
+                  <img v-if="restaurantData.logoUrl" :src="restaurantData.logoUrl" alt="Logo" class="w-32 h-32 mt-2" />
+                  <VaButton
+                    v-if="restaurantData.logoUrl"
+                    preset="primary"
+                    size="medium"
+                    color="danger"
+                    icon="mso-delete"
+                    class="ml-2 h-12 w-12"
+                    @click="deleteAsset('logo')"
+                  />
+                </div>
               </div>
               <div class="flex-1">
+                <label
+                  class="va-input-label va-input-wrapper__label va-input-wrapper__label--outer mt-2"
+                  style="color: var(--va-primary)"
+                  >Header Image</label
+                >
                 <FileUpload
                   :selected-rest="restaurantData._id"
-                  @uploadSuccess="(data) => (restaurantData.headerUrl = data.url)"
+                  @uploadSuccess="(data) => setImage(data, 'header')"
                 ></FileUpload>
-                <VaInput v-model="restaurantData.headerUrl" label="Header URL (RATIO 4:2)" type="url" />
-                <img
-                  v-if="restaurantData.headerUrl"
-                  :src="restaurantData.headerUrl"
-                  alt="Logo"
-                  class="w-32 h-32 mt-2"
-                />
+                <div class="flex items-center">
+                  <img
+                    v-if="restaurantData.headerUrl"
+                    :src="restaurantData.headerUrl"
+                    alt="Logo"
+                    class="w-32 h-32 mt-2"
+                  />
+                  <VaButton
+                    v-if="restaurantData.headerUrl"
+                    preset="primary"
+                    size="medium"
+                    color="danger"
+                    icon="mso-delete"
+                    class="ml-2 h-12 w-12"
+                    @click="deleteAsset('header')"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -719,6 +750,52 @@ export default {
     parseTimeToDate(timeString) {
       return timeString
     },
+    setImage(data, type) {
+      if (this.restaurantData.assetIds) {
+        if (this.restaurantData.assetIds.find((a) => a.assetType === type)) {
+          const index = this.restaurantData.assetIds.findIndex((a) => a.assetType === type)
+          this.restaurantData.assetIds[index].id = data._id
+          this.restaurantData.assetIds[index].assetType = data.type
+        } else {
+          this.restaurantData.assetIds.push({
+            id: data._id,
+            assetType: type,
+          })
+        }
+      } else {
+        this.restaurantData.assetIds = [
+          {
+            id: data._id,
+            assetType: type,
+          },
+        ]
+      }
+      console.log(data)
+      if (type === 'logo') {
+        this.restaurantData.logoUrl = data.url
+      } else {
+        this.restaurantData.headerUrl = data.url
+      }
+    },
+    deleteAsset(type) {
+      const image = this.restaurantData.assetIds.find((a) => a.assetType === type)
+      const url = import.meta.env.VITE_API_BASE_URL
+      if (this.restaurantData.assetIds && image) {
+        axios
+          .delete(`${url}/assets/${image.id}`)
+          .then(() => {
+            this.init({ message: 'Asset deleted successfully', color: 'success' })
+          })
+          .catch((err) => {
+            this.init({ message: err.response.data.error, color: 'danger' })
+          })
+      }
+      if (type === 'logo') {
+        this.restaurantData.logoUrl = ''
+      } else {
+        this.restaurantData.headerUrl = ''
+      }
+    },
     async fetchRestaurantDetails() {
       if (this.restaurantId) {
         this.loading = true
@@ -905,6 +982,7 @@ export default {
     createPayload() {
       const data = {
         name: this.restaurantData.name || '',
+        assetIds: this.restaurantData.assetIds || '',
         description: this.restaurantData.description || '',
         slug: this.restaurantData.slug || '',
         type: this.restaurantData.type || '',
