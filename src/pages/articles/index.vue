@@ -74,12 +74,15 @@ const updateArticleDirectly = (payload) => {
   if (item && item.code === payload.code) {
     delete data.code
   }
+  if (!payload.assetId) {
+    delete payload.assetId
+  }
   const url: any = import.meta.env.VITE_API_BASE_URL
   axios
     .patch(`${url}/menuItems/${payload._id}`, data)
     .then(() => {
-      getArticles(serviceStore.selectedRest)
       init({ message: "You've successfully updated", color: 'success' })
+      getArticles(serviceStore.selectedRest)
     })
     .catch((err) => {
       getArticles(serviceStore.selectedRest)

@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { defineVaDataTableColumns, useModal } from 'vuestic-ui'
+import { defineVaDataTableColumns, useModal, useToast } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
 import { ref, computed, toRef, watch } from 'vue'
 import { useServiceStore } from '@/stores/services'
 import { useCategoryStore } from '@/stores/categories'
 import { useSubCategoriesStore } from '@/stores/subCategories'
 import Categories from '@/pages/admin/orders/categories.vue'
+import FileUpload from '@/components/file-uploader/FileUpload.vue'
+import axios from 'axios'
 const props = defineProps({
   items: {
     type: Array,
@@ -23,6 +25,7 @@ const props = defineProps({
 })
 
 const subCategoryStore = useSubCategoriesStore()
+const serviceStore = useServiceStore()
 const emits = defineEmits([
   'updateArticle',
   'updateArticleModal',
@@ -35,7 +38,7 @@ const emits = defineEmits([
 
 const { confirm } = useModal()
 const router = useRouter()
-
+const { init } = useToast()
 const currentPage = ref(1)
 const items = toRef(props, 'items')
 const searchQuery = ref('')
@@ -55,6 +58,8 @@ watch(searchQuery, (search) => {
 const pages = computed(() => {
   return Math.ceil(props.count / 50)
 })
+
+const selectedRest = computed(() => serviceStore.selectedRest)
 
 const columns = defineVaDataTableColumns([
   { label: 'ID', key: 'id' },
@@ -84,8 +89,37 @@ const onButtonArticleDelete = async (payload) => {
     deleteArticle(payload)
   }
 }
+const deleteAsset = async (assetId) => {
+  const url: any = import.meta.env.VITE_API_BASE_URL
+  await axios
+    .delete(`${url}/assets/${assetId}`)
+    .then(() => {
+      init({ message: 'Asset deleted successfully', color: 'success' })
+    })
+    .catch((err) => {
+      init({ message: err.response.data.error, color: 'danger' })
+    })
+}
+const onButtonArticleImageDelete = async (payload) => {
+  const result = await confirm({
+    message: 'Are you sure you want to see delete this Article Image?',
+    okText: 'Yes',
+    cancelText: 'No',
+    size: 'medium',
+    title: 'Delete Article Image',
+  })
+  if (result) {
+    await deleteAsset(payload.assetId._id)
+    emits('updateArticle', { ...payload, imageUrl: '', assetId: '', editing: '' })
+  }
+}
 function deleteArticle(payload) {
   emits('deleteArticle', payload)
+}
+
+function openFileModal(data) {
+  console.log(data)
+  document.getElementById('file-upload-' + data._id).click()
 }
 </script>
 
@@ -264,18 +298,59 @@ function deleteArticle(payload) {
         </div>
       </template>
       <template #cell(image)="{ rowData }">
-        <div class="max-w-[120px] ellipsis" @click="rowData.editing = 'imageUrl'">
+        <div class="w-full h-full relative group">
+          <FileUpload
+            :attr-id="'file-upload-' + rowData._id"
+            class="hidden"
+            :selected-rest="selectedRest"
+            @uploadSuccess="
+              (data) => (
+                (rowData.imageUrl = data.url),
+                (rowData.assetId = data._id),
+                $emit('updateArticle', rowData),
+                (rowData.editing = '')
+              )
+            "
+          >
+          </FileUpload>
+          <div v-if="rowData.imageUrl">
+            <img
+              :src="rowData.imageUrl"
+              alt="Article Image"
+              class="w-12 h-12 object-cover rounded cursor-pointer"
+              @click="openFileModal(rowData)"
+              @error="
+                (e) => {
+                  e.target.src = '/missing-image.png'
+                }
+              "
+            />
+          </div>
           <img
-            :src="rowData.imageUrl || '/missing-image.png'"
+            v-else
+            src="/missing-image.png"
             alt="Article Image"
-            class="w-8 h-8 object-cover rounded"
+            class="w-12 h-12 object-cover rounded cursor-pointer"
+            @click="openFileModal(rowData)"
             @error="
               (e) => {
                 e.target.src = '/missing-image.png'
               }
             "
-            @click="emits('updateArticleModal', { ...rowData, updating: 'imageUrl' })"
           />
+          <div
+            v-if="rowData.imageUrl"
+            class="absolute z-10 top-0 right-[-20px] hidden group-hover:block rounded-full p-1 cursor-pointer"
+          >
+            <VaButton
+              preset="primary"
+              size="small"
+              color="danger"
+              icon="mso-delete"
+              class="ml-2"
+              @click.prevent="onButtonArticleImageDelete(rowData)"
+            />
+          </div>
         </div>
       </template>
       <template #cell(allergenIds)="{ rowData }">

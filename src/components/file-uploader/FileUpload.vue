@@ -2,6 +2,7 @@
   <div class="file-upload-container">
     <div class="upload-area" :class="{ dragging: isDragging }" @dragover.prevent @drop.prevent="handleFileDrop">
       <input
+        :id="$attrs['attr-id'] || 'file-upload'"
         ref="fileInput"
         type="file"
         :accept="acceptedFileTypes"
