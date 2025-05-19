@@ -298,39 +298,12 @@ function openFileModal(data) {
         </div>
       </template>
       <template #cell(image)="{ rowData }">
-        <div class="w-full h-full relative group">
-          <FileUpload
-            :attr-id="'file-upload-' + rowData._id"
-            class="hidden"
-            :selected-rest="selectedRest"
-            @uploadSuccess="
-              (data) => (
-                (rowData.imageUrl = data.url),
-                (rowData.assetId = data._id),
-                $emit('updateArticle', rowData),
-                (rowData.editing = '')
-              )
-            "
-          >
-          </FileUpload>
-          <div v-if="rowData.imageUrl">
-            <img
-              :src="rowData.imageUrl"
-              alt="Article Image"
-              class="w-12 h-12 object-cover rounded cursor-pointer"
-              @click="openFileModal(rowData)"
-              @error="
-                (e) => {
-                  e.target.src = '/missing-image.png'
-                }
-              "
-            />
-          </div>
+        <div class="relative group w-10 h-10 overflow-hidden rounded">
+          <!-- Image Display -->
           <img
-            v-else
-            src="/missing-image.png"
+            :src="rowData.imageUrl || '/missing-image.png'"
             alt="Article Image"
-            class="w-12 h-12 object-cover rounded cursor-pointer"
+            class="w-full h-full object-cover cursor-pointer"
             @click="openFileModal(rowData)"
             @error="
               (e) => {
@@ -338,21 +311,35 @@ function openFileModal(data) {
               }
             "
           />
-          <div
+
+          <!-- Delete Button (Top-Right Corner) -->
+          <VaButton
             v-if="rowData.imageUrl"
-            class="absolute z-10 top-0 right-[-20px] hidden group-hover:block rounded-full p-1 cursor-pointer"
-          >
-            <VaButton
-              preset="primary"
-              size="small"
-              color="danger"
-              icon="mso-delete"
-              class="ml-2"
-              @click.prevent="onButtonArticleImageDelete(rowData)"
-            />
-          </div>
+            preset="plain"
+            size="small"
+            icon="mso-delete"
+            color="danger"
+            class="!absolute !top-0 !right-0 !p-0 !w-5 !h-5 !rounded-full hidden group-hover:flex items-center justify-center z-10"
+            @click.prevent="onButtonArticleImageDelete(rowData)"
+          />
+
+          <!-- File Upload Trigger -->
+          <FileUpload
+            :attr-id="'file-upload-' + rowData._id"
+            class="hidden"
+            :selected-rest="selectedRest"
+            @uploadSuccess="
+              (data) => {
+                rowData.imageUrl = data.url
+                rowData.assetId = data._id
+                $emit('updateArticle', rowData)
+                rowData.editing = ''
+              }
+            "
+          />
         </div>
       </template>
+
       <template #cell(allergenIds)="{ rowData }">
         <div @click="rowData.editing = 'allergenIds'">
           <VaSelect
