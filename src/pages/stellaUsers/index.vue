@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import StellaUsersTable from '@/pages/stellaUsers/widgets/StellaUsersTable.vue'
+import StellaUsersTable from '@/pages/stellaUsers/widgets/UsersTable.vue'
 import { useUsersStore } from '../../stores/users'
 import { useServiceStore } from '@/stores/services'
 import EditStellaUserModal from './modals/EditStellaUserModal.vue'
