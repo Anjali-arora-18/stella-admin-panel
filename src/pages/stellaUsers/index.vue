@@ -1,21 +1,16 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useToast } from 'vuestic-ui'
-import { useRoute } from 'vue-router'
-import StellaUsersTable from './widgets/StellaUsersTable.vue'
+import StellaUsersTable from '@/pages/stellaUsers/widgets/StellaUsersTable.vue'
 import { useUsersStore } from '../../stores/users'
 import { useServiceStore } from '@/stores/services'
 import EditStellaUserModal from './modals/EditStellaUserModal.vue'
-import axios from 'axios'
 const isEditStellaUserModalOpen = ref(false)
 const stellaUserStore = useUsersStore()
-const { init } = useToast()
 const serviceStore = useServiceStore()
 const items = ref([])
 const sortBy = ref('name')
 const sortOrder = ref('asc')
 const isLoading = ref(true)
-const route = useRoute()
 const selectedStellaUser = ref('')
 
 const getStellaUsers = (outletId) => {
