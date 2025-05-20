@@ -44,7 +44,13 @@
         <RouterLink to="/outlets/list" :class="$route.name === 'list' ? 'text-primary font-bold' : 'text-secondary'"
           ><VaIcon name="storefront" class="mr-2"></VaIcon>Outlets</RouterLink
         >
-        <span class="text-secondary"> <VaIcon name="people" class="mr-2"></VaIcon>Users</span>
+        <RouterLink
+          to="/stellaUsers"
+          :class="$route.name === 'stellaUsers' ? 'text-primary font-bold' : 'text-secondary'"
+        >
+          <VaIcon name="people" class="mr-2"></VaIcon>
+          Users
+        </RouterLink>
       </div>
     </VaAccordion>
   </VaSidebar>

@@ -21,14 +21,8 @@ export const useUsersStore = defineStore('users', {
   },
 
   actions: {
-    async getAll(options: { pagination?: Pagination; sorting?: Sorting; filters?: Partial<Filters> }) {
-      const { data, pagination } = await getUsers({
-        ...options.filters,
-        ...options.sorting,
-        ...options.pagination,
-      })
-      this.items = data
-      this.pagination = pagination
+    async getAll(payload) {
+      return await getUsers(payload)
     },
 
     async add(user: User) {

@@ -1,6 +1,6 @@
 import { User } from '../../pages/users/types'
 import api from '../../services/api'
-
+import axios from 'axios'
 export type Pagination = {
   page: number
   perPage: number
@@ -17,25 +17,8 @@ export type Filters = {
   search: string
 }
 
-export const getUsers = async (filters: Partial<Filters & Pagination & Sorting>) => {
-  const { isActive, search } = filters
-  let filteredUsers: User[] = await fetch(api.allUsers()).then((r) => r.json())
-
-  filteredUsers = filteredUsers.filter((user) => user.active === isActive)
-
-  if (search) {
-    filteredUsers = filteredUsers.filter((user) => user.fullname.toLowerCase().includes(search.toLowerCase()))
-  }
-
-  const { page = 1, perPage = 10 } = filters || {}
-  return {
-    data: filteredUsers,
-    pagination: {
-      page,
-      perPage,
-      total: filteredUsers.length,
-    },
-  }
+export const getUsers = async (payload) => {
+  return await axios.get(api.allUsers(payload))
 }
 
 export const addUser = async (user: User) => {

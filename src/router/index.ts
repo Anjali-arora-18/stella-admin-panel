@@ -17,6 +17,11 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../pages/admin/dashboard/Dashboard.vue'),
       },
       {
+        name: 'stellaUsers',
+        path: 'stellaUsers',
+        component: () => import('../pages/stellaUsers/index.vue'),
+      },
+      {
         name: 'areas',
         path: 'areas',
         component: () => import('../pages/areas/index.vue'),

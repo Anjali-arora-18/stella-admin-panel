@@ -69,6 +69,14 @@ export default {
       },
     },
     {
+      name: 'stellaUsers',
+      displayName: 'menu.stellaUsers',
+      visible: true,
+      meta: {
+        icon: 'group',
+      },
+    },
+    {
       name: 'menuItems',
       displayName: 'menu.subCategories',
       visible: false,
