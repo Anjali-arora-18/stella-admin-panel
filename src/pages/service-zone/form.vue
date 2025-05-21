@@ -770,7 +770,6 @@ export default {
           },
         ]
       }
-      console.log(data)
       if (type === 'logo') {
         this.restaurantData.logoUrl = data.url
       } else {

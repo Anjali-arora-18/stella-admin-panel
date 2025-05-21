@@ -3,7 +3,7 @@ import { defineVaDataTableColumns, useModal } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
 import { ref, computed, toRef, watch } from 'vue'
 import { useServiceStore } from '@/stores/services'
-const emits = defineEmits(['updateStellaUserModal', 'updateStellaUser', 'sortBy', 'sortingOrder'])
+const emits = defineEmits(['updateStellaUserModal', 'editUser', 'deleteUser', 'sortBy', 'sortingOrder'])
 const { confirm } = useModal()
 const router = useRouter()
 const servicesStore = useServiceStore()
@@ -12,7 +12,7 @@ const columns = defineVaDataTableColumns([
   { label: 'Last Name', key: 'lastName', sortable: true, sortingOptions: ['desc', 'asc'] },
   { label: 'Type', key: 'role', sortable: true, sortingOptions: ['desc', 'asc'] },
   { label: 'Outlets', key: 'outlets', sortable: true, sortingOptions: ['desc', 'asc'] },
-  { label: 'Username/Email', key: 'username', sortable: true, sortingOptions: ['desc', 'asc'] },
+  { label: 'Username', key: 'username', sortable: true, sortingOptions: ['desc', 'asc'] },
   { label: 'Email', key: 'email', sortable: true, sortingOptions: ['desc', 'asc'] },
   { label: 'Active', key: 'isActive', sortable: false },
   { label: 'Actions', key: 'actions', sortable: false },
@@ -22,21 +22,21 @@ const IsActive = ref(true)
 
 const outlets = computed(() => servicesStore.items)
 
-// const onButtonStellaUserDelete = async (payload) => {
-//   const result = await confirm({
-//     message: 'Are you sure you want to see delete this User?',
-//     okText: 'Yes',
-//     cancelText: 'No',
-//     size: 'medium',
-//     title: 'Delete User',
-//   })
-//   if (result) {
-//     deleteStellaUser(payload)
-//   }
-// }
-// function deleteStellaUser(payload) {
-//   emits('deleteStellaUser', payload)
-// }
+const onButtonUserDelete = async (payload) => {
+  const result = await confirm({
+    message: 'Are you sure you want to see delete this User?',
+    okText: 'Yes',
+    cancelText: 'No',
+    size: 'medium',
+    title: 'Delete User',
+  })
+  if (result) {
+    deleteUser(payload)
+  }
+}
+function deleteUser(payload) {
+  emits('deleteUser', payload)
+}
 
 const props = defineProps({
   items: {
@@ -53,16 +53,14 @@ const types = [
 ]
 
 const getOutletName = (payload) => {
-  const outletName = []
-  payload.forEach((e) => {
-    if (outlets.value.find((a) => a._id === e)) {
-      outletName.push(outlets.value.find((a) => a._id === e).name)
-    }
-  })
-  return outletName.join(',')
+  return outlets.value.find((a) => a._id === payload) ? outlets.value.find((a) => a._id === payload).name : ''
 }
 const items = toRef(props, 'items')
 const searchQuery = ref('')
+
+function editUser(payload) {
+  emits('editUser', payload)
+}
 </script>
 
 <template>
@@ -95,8 +93,10 @@ const searchQuery = ref('')
         </div>
       </template>
       <template #cell(outlets)="{ rowData }">
-        <div class="table-cell-content">
-          {{ rowData.outlets ? getOutletName(rowData.outlets) : '' }}
+        <div v-if="rowData.outlets" class="table-cell-content">
+          <span v-for="outlet in rowData.outlets" :key="outlet._id">
+            <VaBadge v-if="outlet" :text="getOutletName(outlet)" color="primary" class="px-1" />
+          </span>
         </div>
       </template>
 
@@ -107,8 +107,19 @@ const searchQuery = ref('')
       </template>
       <template #cell(actions)="{ rowData }">
         <div class="flex gap-2 justify-end">
-          <VaButton preset="primary" size="small" icon="mso-edit" />
-          <VaButton preset="primary" size="small" color="danger" icon="mso-delete" />
+          <VaButton
+            preset="primary"
+            size="small"
+            icon="mso-edit"
+            @click="$emit('editUser', { ...rowData, updating: 'all' })"
+          />
+          <VaButton
+            preset="primary"
+            size="small"
+            color="danger"
+            icon="mso-delete"
+            @click="onButtonUserDelete(rowData)"
+          />
         </div>
       </template>
     </VaDataTable>

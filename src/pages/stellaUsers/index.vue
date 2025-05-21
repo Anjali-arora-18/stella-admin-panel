@@ -4,12 +4,14 @@ import StellaUsersTable from '@/pages/stellaUsers/widgets/UsersTable.vue'
 import { useUsersStore } from '../../stores/users'
 import { useServiceStore } from '@/stores/services'
 import EditStellaUserModal from './modals/EditStellaUserModal.vue'
+import { useToast } from 'vuestic-ui'
 const isEditStellaUserModalOpen = ref(false)
 const stellaUserStore = useUsersStore()
 const serviceStore = useServiceStore()
 const items = ref([])
 const sortBy = ref('name')
 const sortOrder = ref('asc')
+const { init } = useToast()
 const isLoading = ref(true)
 const selectedStellaUser = ref('')
 
@@ -47,28 +49,52 @@ watch(
 //   getCategories(serviceStore.selectedRest)
 // }
 
-// const updateStellaUser = (payload) => {
-//   isEditCategoryModalOpen.value = true
-//   selectedStellaUser.value = payload
-// }
+const editUser = (payload) => {
+  isEditStellaUserModalOpen.value = true
+  selectedStellaUser.value = payload
+}
+
+async function deleteUser(payload) {
+  const data = {
+    id: payload._id,
+  }
+  serviceStore
+    .deleteUser(data)
+    .then((response) => {
+      if (response.status === 200) {
+        init({
+          message: "You've successfully deleted user",
+          color: 'success',
+        })
+        getStellaUsers()
+      }
+    })
+    .catch((err) => {
+      init({
+        message: err.response.data,
+        color: 'error',
+      })
+    })
+}
 </script>
 
 <template>
   <div class="flex items-center justify-between">
     <h1 class="page-title font-bold">Users</h1>
     <div class="flex gap-2">
-      <VaButton size="small" color="primary" @click="isEditStellaUserModalOpen = true"> Add Users </VaButton>
+      <VaButton size="small" color="primary" @click="isEditStellaUserModalOpen = true"> Add User </VaButton>
     </div>
   </div>
 
   <VaCard>
     <VaCardContent>
-      <StellaUsersTable :items="items" :loading="isLoading" />
+      <StellaUsersTable :items="items" :loading="isLoading" @editUser="editUser" @deleteUser="deleteUser" />
     </VaCardContent>
   </VaCard>
 
   <EditStellaUserModal
     v-if="isEditStellaUserModalOpen"
+    :selected-user="selectedStellaUser"
     @cancel="(isEditStellaUserModalOpen = false), (selectedStellaUser = ''), getStellaUsers(serviceStore.selectedRest)"
   />
 </template>

@@ -3,6 +3,8 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 export default {
   allUsers: (payload) =>
     `${apiBaseUrl}/users?page=${payload.page}&limit=${payload.limit}&sortKey=${payload.sortBy}&sortValue=${payload.sortOrder}&outletId=${payload.outletId}`,
+  getUser: (payload) => `${apiBaseUrl}/users/${payload}`,
+  deleteUser: (payload) => `${apiBaseUrl}/users/${payload.id}`,
   allCategories: (payload, sortBy, sortDesc) =>
     `${apiBaseUrl}/menuCategories?outletId=${payload}&limit=100000&sortKey=${sortBy}&sortValue=${sortDesc}`,
   deleteCategory: (payload) => `${apiBaseUrl}/menuCategories/${payload.id}`,

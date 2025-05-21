@@ -21,6 +21,10 @@ export const getUsers = async (payload) => {
   return await axios.get(api.allUsers(payload))
 }
 
+export const getUser = async () => {
+  return await axios.get(api.getUser(sessionStorage.getItem('user')))
+}
+
 export const addUser = async (user: User) => {
   const headers = new Headers()
   headers.append('Content-Type', 'application/json')
@@ -49,6 +53,10 @@ export const updateUser = async (user: User) => {
   }
 
   throw new Error(result.error)
+}
+
+export const deleteUser = async (payload) => {
+  return axios.delete(api.deleteUser(payload))
 }
 
 export const removeUser = async (user: User) => {

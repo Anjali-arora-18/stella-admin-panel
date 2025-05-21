@@ -110,15 +110,18 @@ export default {
         })
         if (uploadResponse.status === 200) {
           // Second API call to create asset
-          const assetResponse = await axios.post(url + '/assets', {
+          const assetPayload = {
             name: uploadResponse.data.key,
             type: 'image',
             url: uploadResponse.data.url,
             mimeType: uploadResponse.data.mimeType,
             size: uploadResponse.data.fileSize,
-            outletId: this.selectedRest,
             createdBy: window.sessionStorage.getItem('user'),
-          })
+          }
+          if (this.selectedRest) {
+            assetPayload.outletId = this.selectedRest
+          }
+          const assetResponse = await axios.post(url + '/assets', assetPayload)
 
           this.$emit('upload-success', assetResponse.data)
         }

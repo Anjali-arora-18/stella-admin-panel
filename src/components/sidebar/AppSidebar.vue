@@ -27,6 +27,8 @@
           <VaIcon name="warning" class="mr-2"></VaIcon>
           Allergens
         </RouterLink>
+      </div>
+      <div v-if="userRole !== 'editor'" class="flex flex-col gap-y-2 mt-5">
         <span class="font-bold">Configuration</span>
         <RouterLink :class="$route.name === 'list' ? 'text-primary font-bold' : 'text-secondary'" to="/outlets/list">
           <VaIcon name="store" class="mr-2"></VaIcon>
@@ -40,6 +42,8 @@
         <span class="text-secondary"> <VaIcon name="payments" class="mr-2"></VaIcon>Payments</span>
         <span class="text-secondary"> <VaIcon name="local_shipping" class="mr-2"></VaIcon>Delivery Zones</span>
         <span class="text-secondary"> <VaIcon name="language" class="mr-2"></VaIcon>Languages</span>
+      </div>
+      <div v-if="userRole === 'admin'" class="flex flex-col gap-y-2 mt-5">
         <span class="font-bold">Admin</span>
         <RouterLink to="/outlets/list" :class="$route.name === 'list' ? 'text-primary font-bold' : 'text-secondary'"
           ><VaIcon name="storefront" class="mr-2"></VaIcon>Outlets</RouterLink
@@ -61,7 +65,7 @@ import { useRoute } from 'vue-router'
 
 import { useI18n } from 'vue-i18n'
 import { useColors } from 'vuestic-ui'
-
+import { useUsersStore } from '@/stores/users'
 export default defineComponent({
   name: 'Sidebar',
   props: {
@@ -71,6 +75,11 @@ export default defineComponent({
   emits: ['update:visible'],
 
   setup: (props, { emit }) => {
+    const userRole = ref('')
+    const userStore = useUsersStore()
+    userStore.getUser().then((response) => {
+      userRole.value = response.data.role
+    })
     const { getColor } = useColors()
     const { t } = useI18n()
     const writableVisible = computed({
@@ -80,6 +89,7 @@ export default defineComponent({
     const sidebarWidth = computed(() => (props.mobile ? '100vw' : '180px'))
     const color = computed(() => getColor('background-secondary'))
     return {
+      userRole,
       writableVisible,
       sidebarWidth,
       color,

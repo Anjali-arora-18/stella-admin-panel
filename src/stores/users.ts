@@ -1,14 +1,5 @@
 import { defineStore } from 'pinia'
-import {
-  addUser,
-  type Filters,
-  getUsers,
-  Pagination,
-  removeUser,
-  Sorting,
-  updateUser,
-  uploadAvatar,
-} from '../data/pages/users'
+import { addUser, getUser, deleteUser, getUsers, removeUser, updateUser, uploadAvatar } from '../data/pages/users'
 import { User } from '../pages/users/types'
 
 export const useUsersStore = defineStore('users', {
@@ -24,7 +15,12 @@ export const useUsersStore = defineStore('users', {
     async getAll(payload) {
       return await getUsers(payload)
     },
-
+    async getUser(payload) {
+      return await getUser(payload)
+    },
+    async deleteUser(payload) {
+      return await deleteUser(payload)
+    },
     async add(user: User) {
       const [newUser] = await addUser(user)
       this.items.unshift(newUser)

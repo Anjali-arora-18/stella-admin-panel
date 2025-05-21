@@ -55,18 +55,30 @@
           :rules="[validators.required]"
           label="Email"
           required-mark
-          placeholder="Email"
+          placeholder="hello@abc.com"
           type="email"
         />
 
-        <VaInput
-          v-model="formData.password"
-          :rules="[validators.required]"
-          label="Password"
-          required-mark
-          placeholder="Password"
-          type="text"
-        />
+        <VaValue v-if="!props.selectedUser" v-slot="isPasswordVisible" :default-value="false">
+          <VaInput
+            v-model="formData.password"
+            :type="isPasswordVisible.value ? 'text' : 'password'"
+            :rules="[validators.required]"
+            required-mark
+            label="Password"
+            placeholder="######"
+            @clickAppendInner="isPasswordVisible.value = !isPasswordVisible.value"
+          >
+            <template #appendInner>
+              <VaIcon
+                class="cursor-pointer"
+                :name="isPasswordVisible.value ? 'visibility_off' : 'visibility'"
+                size="small"
+                color="primary"
+              />
+            </template>
+          </VaInput>
+        </VaValue>
       </div>
     </VaForm>
 
