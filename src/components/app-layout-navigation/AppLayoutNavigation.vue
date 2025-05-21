@@ -1,24 +1,13 @@
 <template>
-  <div class="flex gap-2">
+  <!-- <div class="flex gap-2">
     <VaIconMenuCollapsed
       class="cursor-pointer"
       :class="{ 'x-flip': !isSidebarMinimized }"
       :color="collapseIconColor"
       @click="isSidebarMinimized = !isSidebarMinimized"
     />
-
-    <nav class="flex items-center">
-      <VaBreadcrumbs>
-        <VaBreadcrumbsItem label="Home" :to="{ name: 'list' }" />
-        <VaBreadcrumbsItem
-          v-for="item in items"
-          :key="item.label"
-          :label="item.label"
-          @click="handleBreadcrumbClick(item)"
-        />
-      </VaBreadcrumbs>
-    </nav>
-  </div>
+  </div> -->
+  <div></div>
 </template>
 
 <script setup lang="ts">

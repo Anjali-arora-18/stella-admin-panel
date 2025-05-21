@@ -80,6 +80,11 @@ const routes: Array<RouteRecordRaw> = [
             path: 'update/:id?',
             component: () => import('../pages/service-zone/form.vue'),
           },
+          {
+            name: 'admin-update-outlet',
+            path: 'admin/update/:id?',
+            component: () => import('../pages/service-zone/form.vue'),
+          },
         ],
       },
 

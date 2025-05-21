@@ -562,9 +562,22 @@ import { useToast, useForm } from 'vuestic-ui'
 const { validate } = useForm()
 import FileUpload from '@/components/file-uploader/FileUpload.vue'
 import { validators, removeNulls } from '../../services/utils.ts'
+import { useServiceStore } from '@/stores/services'
 export default {
   components: {
     FileUpload,
+  },
+  beforeRouteLeave(to, from, next) {
+    if (!this.restaurantId && !this.isProgrammaticNavigation) {
+      const answer = window.confirm('Do you really want to leave this page. If any changes, it will be not saved?')
+      if (answer) {
+        next()
+      } else {
+        next(false)
+      }
+    } else {
+      next()
+    }
   },
   setup() {
     const types = ref(['Outlet'])
@@ -572,6 +585,7 @@ export default {
       { text: 'view Only', value: 'viewOnly' },
       { text: 'Online Ordering', value: 'onlineOrdering' },
     ])
+    const serviceStore = useServiceStore()
     const selectedType = ref(null)
     const selectedTypeMode = ref(null)
     const route = useRoute()
@@ -595,12 +609,14 @@ export default {
       selectedTypeMode,
       loading,
       restaurantId,
+      serviceStore,
       init,
       validators,
     }
   },
   data() {
     return {
+      isProgrammaticNavigation: false,
       restaurantData: {
         name: '',
         description: '',
@@ -738,6 +754,21 @@ export default {
   computed: {
     galleryType() {
       return this.isGalleryViewEnabled ? 'gallery' : 'list'
+    },
+    selectedRest() {
+      return this.serviceStore.selectedRest
+    },
+  },
+  watch: {
+    selectedRest() {
+      this.$router.push({
+        name: this.$route.name,
+        params: {
+          id: this.selectedRest,
+        },
+      })
+      this.restaurantId = this.selectedRest
+      this.fetchRestaurantDetails()
     },
   },
   mounted() {
@@ -1188,6 +1219,7 @@ export default {
           this.restaurantData = response.data
           console.log('Restaurant details:', this.restaurantData)
           this.init({ message: "You've successfully created outlet", color: 'success' })
+          this.isProgrammaticNavigation = true
           this.$router.push({ name: 'list' })
         } catch (error) {
           this.init({ message: error.response.data, color: 'danger' })
@@ -1203,7 +1235,9 @@ export default {
 
         if (response.status === 200) {
           this.init({ message: "You've successfully updated outlet", color: 'success' })
-          this.$router.push({ name: 'list' })
+          if (this.$route.name === 'admin-update-outlet') {
+            this.$router.push({ name: 'list' })
+          }
         } else {
           this.init({ message: response.data, color: 'danger' })
         }

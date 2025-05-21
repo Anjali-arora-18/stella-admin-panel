@@ -133,7 +133,12 @@ function downloadQrCode(rowData) {
     </template>
 
     <template #cell(actions)="{ rowData }">
-      <VaButton preset="primary" size="small" icon="mso-edit" @click="router.push('/outlets/update/' + rowData._id)" />
+      <VaButton
+        preset="primary"
+        size="small"
+        icon="mso-edit"
+        @click="router.push('/outlets/admin/update/' + rowData._id)"
+      />
       <VaButton
         preset="primary"
         size="small"

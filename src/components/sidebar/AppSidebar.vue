@@ -30,10 +30,15 @@
       </div>
       <div v-if="userRole !== 'editor'" class="flex flex-col gap-y-2 mt-5">
         <span class="font-bold">Configuration</span>
-        <RouterLink :class="$route.name === 'list' ? 'text-primary font-bold' : 'text-secondary'" to="/outlets/list">
+        <Span
+          :class="
+            $route.name === 'update-outlet' ? 'cursor-pointer text-primary font-bold' : ' cursor-pointer text-secondary'
+          "
+          @click="goToOutlet"
+        >
           <VaIcon name="store" class="mr-2"></VaIcon>
           Outlet
-        </RouterLink>
+        </Span>
         <RouterLink to="/areas" :class="$route.name === 'areas' ? 'text-primary font-bold' : 'text-secondary'">
           <VaIcon name="location_on" class="mr-2"></VaIcon>
           Areas
@@ -45,7 +50,13 @@
       </div>
       <div v-if="userRole === 'super-admin'" class="flex flex-col gap-y-2 mt-5">
         <span class="font-bold">Admin</span>
-        <RouterLink to="/outlets/list" :class="$route.name === 'list' ? 'text-primary font-bold' : 'text-secondary'"
+        <RouterLink
+          to="/outlets/list"
+          :class="
+            $route.name === 'list' || $route.name === 'admin-update-outlet'
+              ? 'text-primary font-bold'
+              : 'text-secondary'
+          "
           ><VaIcon name="storefront" class="mr-2"></VaIcon>Outlets</RouterLink
         >
         <RouterLink
@@ -64,8 +75,9 @@ import { defineComponent, watch, ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { useI18n } from 'vue-i18n'
-import { useColors } from 'vuestic-ui'
+import { useColors, useToast } from 'vuestic-ui'
 import { useUsersStore } from '@/stores/users'
+import { useServiceStore } from '@/stores/services'
 export default defineComponent({
   name: 'Sidebar',
   props: {
@@ -77,6 +89,8 @@ export default defineComponent({
   setup: (props, { emit }) => {
     const userRole = ref('')
     const userStore = useUsersStore()
+    const servicesStore = useServiceStore()
+    const { init } = useToast()
     userStore.getUser().then((response) => {
       userRole.value = response.data.role
     })
@@ -93,8 +107,21 @@ export default defineComponent({
       writableVisible,
       sidebarWidth,
       color,
+      servicesStore,
       t,
     }
+  },
+  methods: {
+    goToOutlet() {
+      if (this.servicesStore.selectedRest) {
+        this.$router.push('/outlets/update/' + this.servicesStore.selectedRest)
+      } else {
+        this.init({
+          message: 'Please select outlet from top navigation bar.',
+          color: 'danger',
+        })
+      }
+    },
   },
 })
 </script>
