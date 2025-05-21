@@ -982,7 +982,7 @@ export default {
     createPayload() {
       const data = {
         name: this.restaurantData.name || '',
-        assetIds: this.restaurantData.assetIds || '',
+        assetIds: this.restaurantData.assetIds || [],
         description: this.restaurantData.description || '',
         slug: this.restaurantData.slug || '',
         type: this.restaurantData.type || '',
