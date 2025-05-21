@@ -4,11 +4,15 @@ import StellaUsersTable from '@/pages/stellaUsers/widgets/UsersTable.vue'
 import { useUsersStore } from '../../stores/users'
 import { useServiceStore } from '@/stores/services'
 import EditStellaUserModal from './modals/EditStellaUserModal.vue'
+import axios from 'axios'
 import { useToast } from 'vuestic-ui'
 const isEditStellaUserModalOpen = ref(false)
 const stellaUserStore = useUsersStore()
 const serviceStore = useServiceStore()
 const items = ref([])
+const count = ref(0)
+const pageNumber = ref(1)
+const searchQuery = ref('')
 const sortBy = ref('name')
 const sortOrder = ref('asc')
 const { init } = useToast()
@@ -19,8 +23,9 @@ const getStellaUsers = (outletId) => {
   isLoading.value = true
   items.value = []
   const payload = {
-    page: 1,
+    page: pageNumber.value,
     limit: 50,
+    search: searchQuery.value,
     sortBy: sortBy.value,
     sortOrder: sortOrder.value,
     outletId: outletId,
@@ -30,24 +35,44 @@ const getStellaUsers = (outletId) => {
     isLoading.value = false
   })
 }
+
+function getUsersForPagination(payload) {
+  pageNumber.value = payload.page
+  searchQuery.value = payload.searchQuery
+  getStellaUsers(serviceStore.selectedRest)
+}
+
+const getStellaUsersCount = (outletId) => {
+  const url = import.meta.env.VITE_API_BASE_URL
+  axios.get(`${url}/users/count?outletId=${outletId}&search=${searchQuery.value}`).then((response) => {
+    count.value = Number(response.data.totalNoRec)
+  })
+}
+
 watch(
   () => serviceStore.selectedRest,
   (newId) => {
     if (newId) {
       getStellaUsers(serviceStore.selectedRest)
+      getStellaUsersCount(serviceStore.selectedRest)
     }
   },
   { immediate: true },
 )
 
-// function updateSortBy(payload) {
-//   sortBy.value = payload
-//   getCategories(serviceStore.selectedRest)
-// }
-// function updateSortOrder(payload) {
-//   sortOrder.value = payload
-//   getCategories(serviceStore.selectedRest)
-// }
+watch(searchQuery, (search) => {
+  getStellaUsersCount(serviceStore.selectedRest)
+})
+
+function updateSortBy(payload) {
+  sortBy.value = payload
+  getStellaUsers(serviceStore.selectedRest)
+}
+
+function updateSortOrder(payload) {
+  sortOrder.value = payload
+  getStellaUsers(serviceStore.selectedRest)
+}
 
 const editUser = (payload) => {
   isEditStellaUserModalOpen.value = true
@@ -88,7 +113,18 @@ async function deleteUser(payload) {
 
   <VaCard>
     <VaCardContent>
-      <StellaUsersTable :items="items" :loading="isLoading" @editUser="editUser" @deleteUser="deleteUser" />
+      <StellaUsersTable
+        :sort-by="sortBy"
+        :sort-order="sortOrder"
+        :items="items"
+        :loading="isLoading"
+        :count="count"
+        @sortBy="updateSortBy"
+        @sortingOrder="updateSortOrder"
+        @editUser="editUser"
+        @deleteUser="deleteUser"
+        @getUsersForPagination="getUsersForPagination"
+      />
     </VaCardContent>
   </VaCard>
 

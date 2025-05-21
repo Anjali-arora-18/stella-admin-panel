@@ -1,10 +1,30 @@
 <script setup lang="ts">
-import { defineVaDataTableColumns, useModal } from 'vuestic-ui'
+import { defineVaDataTableColumns, useModal, useToast } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
 import { ref, computed, toRef, watch } from 'vue'
 import { useServiceStore } from '@/stores/services'
-const emits = defineEmits(['updateStellaUserModal', 'editUser', 'deleteUser', 'sortBy', 'sortingOrder'])
+import axios from 'axios'
+const emits = defineEmits([
+  'updateStellaUserModal',
+  'editUser',
+  'deleteUser',
+  'sortBy',
+  'sortingOrder',
+  'getUsersForPagination',
+])
+const props = defineProps({
+  items: {
+    type: Array,
+    required: true,
+  },
+  count: {
+    type: Number,
+    default: 0,
+  },
+  loading: { type: Boolean, default: false },
+})
 const { confirm } = useModal()
+const { init } = useToast()
 const router = useRouter()
 const servicesStore = useServiceStore()
 const columns = defineVaDataTableColumns([
@@ -38,14 +58,6 @@ function deleteUser(payload) {
   emits('deleteUser', payload)
 }
 
-const props = defineProps({
-  items: {
-    type: Array,
-    required: true,
-  },
-  loading: { type: Boolean, default: false },
-})
-
 const types = [
   { text: 'Super Admin', value: 'super-admin' },
   { text: 'Admin', value: 'admin' },
@@ -57,20 +69,55 @@ const getOutletName = (payload) => {
 }
 const items = toRef(props, 'items')
 const searchQuery = ref('')
+const currentPage = ref(1)
+const pages = computed(() => {
+  return Math.ceil(props.count / 50)
+})
 
 function editUser(payload) {
   emits('editUser', payload)
 }
+
+function toggleActive(rowData) {
+  const url = import.meta.env.VITE_API_BASE_URL
+  const data = {
+    isActive: rowData.isActive,
+  }
+  axios
+    .patch(`${url}/users/${rowData._id}`, data)
+    .then(() => {
+      init({ message: "You've successfully updated a user", color: 'success' })
+      emits('getUsersForPagination', { page: currentPage.value, searchQuery: searchQuery.value })
+    })
+    .catch((err) => {
+      init({ message: err.response.data.error, color: 'danger' })
+    })
+}
+
+watch(currentPage, (newPage) => {
+  emits('getUsersForPagination', { page: currentPage.value, searchQuery: searchQuery.value })
+})
+watch(searchQuery, (search) => {
+  emits('getUsersForPagination', { page: currentPage.value, searchQuery: searchQuery.value })
+})
 </script>
 
 <template>
   <div>
-    <div class="mb-4">
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-5 gap-4">
       <VaInput
         v-model="searchQuery"
-        placeholder="Search categories by name or outlet..."
-        class="max-w-[400px]"
+        placeholder="Search articles by code or name..."
+        class="max-w-[400px] w-full"
         size="small"
+      />
+      <VaPagination
+        v-model="currentPage"
+        :pages="pages"
+        buttons-preset="default"
+        gapped
+        :visible-pages="3"
+        class="justify-center"
       />
     </div>
     <VaDataTable
@@ -94,15 +141,50 @@ function editUser(payload) {
       </template>
       <template #cell(outlets)="{ rowData }">
         <div v-if="rowData.outlets" class="table-cell-content">
-          <span v-for="outlet in rowData.outlets" :key="outlet._id">
-            <VaBadge v-if="outlet" :text="getOutletName(outlet)" color="primary" class="px-1" />
-          </span>
+          <VaPopover
+            v-if="rowData.outlets.length && rowData.outlets.length > 1"
+            class="mr-2 mb-2"
+            message="Popover text"
+            color="primary"
+          >
+            <VaBadge
+              :text="getOutletName(rowData.outlets[0])"
+              color="primary"
+              class="px-1"
+              @click="allOutlets = true"
+            />
+            +
+            <VaBadge :text="rowData.outlets.length - 1" color="primary" class="px-1" @click="allOutlets = true" />
+            <template #title>
+              <i>Outlets</i>
+            </template>
+            <template #body>
+              <div class="flex flex-col">
+                <span v-for="outlet in rowData.outlets" :key="outlet._id">
+                  <VaBadge
+                    v-if="outlet"
+                    :text="getOutletName(outlet)"
+                    color="primary"
+                    class="px-1"
+                    @click="allOutlets = true"
+                  />
+                </span>
+              </div>
+            </template>
+          </VaPopover>
+          <VaBadge
+            v-if="rowData.outlets.length && rowData.outlets.length === 1"
+            :text="getOutletName(rowData.outlets[0])"
+            color="primary"
+            class="px-1"
+            @click="allOutlets = true"
+          />
         </div>
       </template>
 
       <template #cell(isActive)="{ rowData }">
         <div class="table-cell-content">
-          <VaCheckbox v-model="rowData.isActive" size="small" />
+          <VaCheckbox v-model="rowData.isActive" size="small" @click="toggleActive(rowData)" />
         </div>
       </template>
       <template #cell(actions)="{ rowData }">

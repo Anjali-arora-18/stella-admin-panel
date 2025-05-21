@@ -9,7 +9,7 @@
     @update:modelValue="emits('cancel')"
   >
     <template #header>
-      <h1 class="va-h6 mb-2">{{ selectedStellaUser ? 'Update User' : 'Add User' }}</h1>
+      <h1 class="va-h6 mb-2">{{ selectedUser ? 'Update User' : 'Add User' }}</h1>
     </template>
 
     <VaForm ref="form" @submit.prevent="submit">
@@ -85,7 +85,7 @@
     <template #footer>
       <div class="flex justify-end mt-4">
         <VaButton type="submit" @click="submit">
-          {{ selectedStellaUser ? 'Update' : 'Add' }}
+          {{ selectedUser ? 'Update' : 'Add' }}
         </VaButton>
       </div>
     </template>
