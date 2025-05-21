@@ -43,7 +43,7 @@
         <span class="text-secondary"> <VaIcon name="local_shipping" class="mr-2"></VaIcon>Delivery Zones</span>
         <span class="text-secondary"> <VaIcon name="language" class="mr-2"></VaIcon>Languages</span>
       </div>
-      <div v-if="userRole === 'admin'" class="flex flex-col gap-y-2 mt-5">
+      <div v-if="userRole === 'super-admin'" class="flex flex-col gap-y-2 mt-5">
         <span class="font-bold">Admin</span>
         <RouterLink to="/outlets/list" :class="$route.name === 'list' ? 'text-primary font-bold' : 'text-secondary'"
           ><VaIcon name="storefront" class="mr-2"></VaIcon>Outlets</RouterLink
