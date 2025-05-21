@@ -58,7 +58,7 @@ async function deleteUser(payload) {
   const data = {
     id: payload._id,
   }
-  serviceStore
+  stellaUserStore
     .deleteUser(data)
     .then((response) => {
       if (response.status === 200) {
@@ -66,7 +66,7 @@ async function deleteUser(payload) {
           message: "You've successfully deleted user",
           color: 'success',
         })
-        getStellaUsers()
+        getStellaUsers(serviceStore.selectedRest)
       }
     })
     .catch((err) => {
