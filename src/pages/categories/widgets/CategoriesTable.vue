@@ -158,14 +158,36 @@ const filteredItems = computed(() => {
         </div>
       </template>
       <template #cell(area)="{ rowData }">
-        <div class="uppercase ellipsis max-w-[230px]">
-          {{
-            rowData.areaId
-              .filter((a) => a !== null)
-              .map((area) => (areas.find((a) => a.value === area) ? areas.find((a) => a.value === area).text : ''))
-              .join(', ')
-          }}
+        <div
+          v-if="!rowData.editArea && !rowData.areaId.length"
+          class="min-h-[24px] cursor-pointer"
+          @click="rowData.editArea = true"
+        ></div>
+        <div
+          v-if="!rowData.editArea"
+          class="uppercase ellipsis min-w-[100px] max-w-[230px]"
+          @click="rowData.editArea = true"
+        >
+          <div v-for="area in rowData.areaId" :key="area">
+            <VaBadge
+              color="secondary"
+              :text="areas.find((a) => a.value === area) ? areas.find((a) => a.value === area).text : ''"
+            >
+            </VaBadge>
+          </div>
         </div>
+        <VaSelect
+          v-else
+          v-model="rowData.areaId"
+          class="w-full p-1 border rounded"
+          autofocus
+          :multiple="true"
+          value-by="value"
+          :options="areas"
+          @update:modelValue="
+            (rowData.editCode = false), emits('updateCategory', { areaId: rowData.areaId, _id: rowData._id })
+          "
+        />
       </template>
       <template #cell(schedule)="{ rowData }">
         <div
