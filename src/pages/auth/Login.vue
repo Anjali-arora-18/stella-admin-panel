@@ -74,13 +74,31 @@ const submit = () => {
         password: formData.password,
       })
       .then((response) => {
-        window.sessionStorage.setItem('token', response.data.accessToken)
-        window.sessionStorage.setItem('user', response.data.user.id)
         userStore.setUserDetails(response.data.user)
         init({ message: "You've successfully logged in", color: 'success' })
-        push({ name: 'list' })
+        if (response.data.user.role !== 'super-admin') {
+          if (response.data.user.outlets && response.data.user.outlets.length) {
+            window.sessionStorage.setItem('token', response.data.accessToken)
+            window.sessionStorage.setItem('user', response.data.user.id)
+            serviceStore.setRest(response.data.user.outlets[0])
+            window.sessionStorage.setItem('selectedRest', response.data.user.outlets[0])
+            push({
+              name: 'update-outlet',
+              params: {
+                id: response.data.user.outlets[0],
+              },
+            })
+          } else {
+            init({ message: err.response.data.message, color: 'danger' })
+          }
+        } else {
+          window.sessionStorage.setItem('token', response.data.accessToken)
+          window.sessionStorage.setItem('user', response.data.user.id)
+          push({ name: 'list' })
+        }
       })
       .catch((err) => {
+        console.log(err)
         init({ message: err.response.data.message, color: 'danger' })
       })
   }

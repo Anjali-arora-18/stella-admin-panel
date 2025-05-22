@@ -21,7 +21,13 @@
           <VaIcon name="article" class="mr-2"></VaIcon>
           Articles
         </RouterLink>
-        <span class="text-secondary"> <VaIcon name="tune" class="mr-2"></VaIcon>Articles Options</span>
+        <RouterLink
+          to="/articlesOptions"
+          :class="$route.name === 'articlesOptions' ? 'text-primary font-bold' : 'text-secondary'"
+        >
+          <VaIcon name="tune" class="mr-2"></VaIcon>
+          Articles Options
+        </RouterLink>
         <span class="text-secondary"> <VaIcon name="delete" class="mr-2"></VaIcon>Deleted Articles</span>
         <RouterLink :class="$route.name === 'allergens' ? 'text-primary font-bold' : 'text-secondary'" to="/allergens">
           <VaIcon name="warning" class="mr-2"></VaIcon>

@@ -2,7 +2,7 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 
 export default {
   allUsers: (payload) =>
-    `${apiBaseUrl}/users?page=${payload.page}&limit=${payload.limit}&sortKey=${payload.sortBy}&sortValue=${payload.sortOrder}&outletId=${payload.outletId}&search=${payload.search}`,
+    `${apiBaseUrl}/users?page=${payload.page}&limit=${payload.limit}&sortKey=${payload.sortBy}&sortValue=${payload.sortOrder}&search=${payload.search}`,
   getUser: (payload) => `${apiBaseUrl}/users/${payload}`,
   deleteUser: (payload) => `${apiBaseUrl}/users/${payload.id}`,
   allCategories: (payload, sortBy, sortDesc) =>

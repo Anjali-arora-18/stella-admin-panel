@@ -24,11 +24,10 @@ const getStellaUsers = (outletId) => {
   items.value = []
   const payload = {
     page: pageNumber.value,
-    limit: 50,
+    limit: 10,
     search: searchQuery.value,
     sortBy: sortBy.value,
     sortOrder: sortOrder.value,
-    outletId: outletId,
   }
   stellaUserStore.getAll(payload).then((response) => {
     items.value = response.data
@@ -49,16 +48,8 @@ const getStellaUsersCount = (outletId) => {
   })
 }
 
-watch(
-  () => serviceStore.selectedRest,
-  (newId) => {
-    if (newId) {
-      getStellaUsers(serviceStore.selectedRest)
-      getStellaUsersCount(serviceStore.selectedRest)
-    }
-  },
-  { immediate: true },
-)
+getStellaUsers(serviceStore.selectedRest)
+getStellaUsersCount(serviceStore.selectedRest)
 
 watch(searchQuery, (search) => {
   getStellaUsersCount(serviceStore.selectedRest)

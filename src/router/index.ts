@@ -42,6 +42,11 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../pages/articles/index.vue'),
       },
       {
+        name: 'articlesOptions',
+        path: 'articlesOptions',
+        component: () => import('../pages/articlesOptions/index.vue'),
+      },
+      {
         name: 'preferences',
         path: 'preferences',
         component: () => import('../pages/preferences/Preferences.vue'),
@@ -113,7 +118,7 @@ const routes: Array<RouteRecordRaw> = [
         name: 'logout',
         path: 'logout',
         beforeEnter: (to, from, next) => {
-          window.localStorage.removeItem('selectedRest'), window.sessionStorage.removeItem('token')
+          window.sessionStorage.removeItem('selectedRest'), window.sessionStorage.removeItem('token')
           next('/auth/login')
         },
       },

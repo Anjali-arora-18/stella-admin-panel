@@ -15,7 +15,13 @@ export const useUsersStore = defineStore('users', {
     async getAll(payload) {
       return await getUsers(payload)
     },
-    async getUser(payload) {
+    async getUser() {
+      return new Promise((resolve, reject) => {
+        getUser().then((response) => {
+          this.userDetails = response.data
+          resolve(response)
+        })
+      })
       return await getUser(payload)
     },
     async deleteUser(payload) {

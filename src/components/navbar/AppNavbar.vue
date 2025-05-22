@@ -18,7 +18,12 @@
     </template>
     <template #right>
       <div class="flex items-center">
-        <VaSelect v-model="selectedRest" :options="restOptions" placeholder="Select an option" />
+        <VaSelect
+          v-if="$route.name !== 'stellaUsers'"
+          v-model="selectedRest"
+          :options="restOptions"
+          placeholder="Select an option"
+        />
         <AppNavbarActions class="app-navbar__actions" :is-mobile="isMobile" />
       </div>
     </template>
@@ -41,7 +46,7 @@ defineProps({
 
 const GlobalStore = useGlobalStore()
 
-const selectedRest = ref(localStorage.getItem('selectedRest') || '')
+const selectedRest = ref('')
 const restOptions = ref([])
 const restlist = ref([])
 const { isSidebarMinimized } = storeToRefs(GlobalStore)
@@ -51,13 +56,16 @@ const getOutlets = () => {
     restlist.value = servicesStore.items
     restOptions.value = servicesStore.items.map((e) => e.name)
 
-    const storedRest = localStorage.getItem('selectedRest')
+    const storedRest = sessionStorage.getItem('selectedRest')
     if (storedRest) {
-      const found = servicesStore.items.find((a) => a.name === storedRest)
+      const found = servicesStore.items.find((a) => a._id === storedRest)
       if (found) {
         selectedRest.value = found.name
         servicesStore.setRest(found._id)
       }
+    } else {
+      selectedRest.value = servicesStore.items[0].name
+      servicesStore.setRest(servicesStore.items[0]._id)
     }
   })
 }
@@ -80,7 +88,7 @@ watch(selectedRest, (newValue) => {
   const foundRest = restlist.value.find((a) => a.name === newValue)
   if (foundRest) {
     servicesStore.setRest(foundRest._id)
-    localStorage.setItem('selectedRest', newValue)
+    sessionStorage.setItem('selectedRest', foundRest._id)
   }
 })
 </script>

@@ -71,7 +71,7 @@ const items = toRef(props, 'items')
 const searchQuery = ref('')
 const currentPage = ref(1)
 const pages = computed(() => {
-  return Math.ceil(props.count / 50)
+  return Math.ceil(props.count / 10)
 })
 
 function editUser(payload) {
@@ -105,12 +105,7 @@ watch(searchQuery, (search) => {
 <template>
   <div>
     <div class="flex flex-col sm:flex-row justify-between items-center mb-5 gap-4">
-      <VaInput
-        v-model="searchQuery"
-        placeholder="Search articles by code or name..."
-        class="max-w-[400px] w-full"
-        size="small"
-      />
+      <VaInput v-model="searchQuery" placeholder="Search..." class="max-w-[400px] w-full" size="small" />
       <VaPagination
         v-model="currentPage"
         :pages="pages"
