@@ -222,6 +222,14 @@ servicesStore.getAreas().then((response) => {
       value: e._id,
     }
   })
+  // Auto-select logic for areaId
+  if (!props.selectedCategory) {
+    if (areas.value.length === 1) {
+      formData.value.areaId = [areas.value[0].value]
+    } else if (areas.value.length > 1) {
+      formData.value.areaId = areas.value.map((area) => area.value)
+    }
+  }
 })
 
 const formData = ref({

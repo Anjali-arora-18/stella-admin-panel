@@ -56,7 +56,9 @@ export const updateUser = async (user: User) => {
 }
 
 export const deleteUser = async (payload) => {
-  return axios.delete(api.deleteUser(payload))
+  return axios.patch(api.deleteUser(payload), {
+    isDeleted: true,
+  })
 }
 
 export const removeUser = async (user: User) => {

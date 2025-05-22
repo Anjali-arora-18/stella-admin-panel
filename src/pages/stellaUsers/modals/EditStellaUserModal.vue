@@ -122,7 +122,6 @@ const formData = ref({
 
 const outlets = ref([])
 const types = [
-  { text: 'Super Admin', value: 'super-admin' },
   { text: 'Admin', value: 'admin' },
   { text: 'Editor', value: 'editor' },
 ]

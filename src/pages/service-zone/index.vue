@@ -22,9 +22,9 @@ const isEditTableModalOpen = ref(false)
 </script>
 
 <template>
-  <div class="flex">
+  <div class="flex items-center justify-between">
     <h1 class="page-title font-bold">Outlets</h1>
-    <VaButton class="ml-auto h-fit" color="primary" @click="push({ name: 'create-outlet' })">Add Outlet</VaButton>
+    <VaButton size="small" color="primary" @click="push({ name: 'create-outlet' })">Add Outlet</VaButton>
   </div>
   <VaCard>
     <VaCardContent>

@@ -64,9 +64,6 @@ const types = [
   { text: 'Editor', value: 'editor' },
 ]
 
-const getOutletName = (payload) => {
-  return outlets.value.find((a) => a._id === payload) ? outlets.value.find((a) => a._id === payload).name : ''
-}
 const items = toRef(props, 'items')
 const searchQuery = ref('')
 const currentPage = ref(1)
@@ -98,6 +95,7 @@ watch(currentPage, (newPage) => {
   emits('getUsersForPagination', { page: currentPage.value, searchQuery: searchQuery.value })
 })
 watch(searchQuery, (search) => {
+  currentPage.value = 1
   emits('getUsersForPagination', { page: currentPage.value, searchQuery: searchQuery.value })
 })
 </script>
@@ -142,12 +140,7 @@ watch(searchQuery, (search) => {
             message="Popover text"
             color="primary"
           >
-            <VaBadge
-              :text="getOutletName(rowData.outlets[0])"
-              color="primary"
-              class="px-1"
-              @click="allOutlets = true"
-            />
+            <VaBadge :text="rowData.outlets[0].name" color="primary" class="px-1" @click="allOutlets = true" />
             +
             <VaBadge :text="rowData.outlets.length - 1" color="primary" class="px-1" @click="allOutlets = true" />
             <template #title>
@@ -156,20 +149,14 @@ watch(searchQuery, (search) => {
             <template #body>
               <div class="flex flex-col">
                 <span v-for="outlet in rowData.outlets" :key="outlet._id">
-                  <VaBadge
-                    v-if="outlet"
-                    :text="getOutletName(outlet)"
-                    color="primary"
-                    class="px-1"
-                    @click="allOutlets = true"
-                  />
+                  <VaBadge v-if="outlet" :text="outlet.name" color="primary" class="px-1" @click="allOutlets = true" />
                 </span>
               </div>
             </template>
           </VaPopover>
           <VaBadge
             v-if="rowData.outlets.length && rowData.outlets.length === 1"
-            :text="getOutletName(rowData.outlets[0])"
+            :text="rowData.outlets[0].name"
             color="primary"
             class="px-1"
             @click="allOutlets = true"

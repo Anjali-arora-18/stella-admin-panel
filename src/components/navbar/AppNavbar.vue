@@ -18,12 +18,7 @@
     </template>
     <template #right>
       <div class="flex items-center">
-        <VaSelect
-          v-if="$route.name !== 'stellaUsers'"
-          v-model="selectedRest"
-          :options="restOptions"
-          placeholder="Select an option"
-        />
+        <VaSelect v-model="selectedRest" :options="restOptions" placeholder="Select an option" />
         <AppNavbarActions class="app-navbar__actions" :is-mobile="isMobile" />
       </div>
     </template>

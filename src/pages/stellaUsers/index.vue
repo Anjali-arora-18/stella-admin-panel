@@ -43,7 +43,7 @@ function getUsersForPagination(payload) {
 
 const getStellaUsersCount = (outletId) => {
   const url = import.meta.env.VITE_API_BASE_URL
-  axios.get(`${url}/users/count?outletId=${outletId}&search=${searchQuery.value}`).then((response) => {
+  axios.get(`${url}/users/count?search=${searchQuery.value}`).then((response) => {
     count.value = Number(response.data.totalNoRec)
   })
 }
