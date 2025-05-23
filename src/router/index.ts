@@ -27,6 +27,11 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../pages/areas/index.vue'),
       },
       {
+        name: 'deliveryZone',
+        path: 'deliveryZone',
+        component: () => import('../pages/deliveryZone/index.vue'),
+      },
+      {
         name: 'organizeMenu',
         path: 'organizeMenu',
         component: () => import('../pages/organizeMenu.vue'),

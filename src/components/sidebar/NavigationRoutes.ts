@@ -37,6 +37,14 @@ export default {
       },
     },
     {
+      name: 'deliveryZone',
+      visible: true,
+      displayName: 'menu.deliveryZone',
+      meta: {
+        icon: 'group',
+      },
+    },
+    {
       name: 'tables',
       displayName: 'menu.tables',
       visible: false,

@@ -40,6 +40,7 @@
     "auth": "Auth",
     "stellaUsers": "Users",
     "areas": "Areas",
+    "deliveryZone": "deliveryZone",
     "buttons": "Buttons",
     "timelines": "Timelines",
     "dashboard": "Dashboard",

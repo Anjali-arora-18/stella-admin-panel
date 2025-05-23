@@ -51,7 +51,13 @@
         </RouterLink>
         <span class="text-secondary"> <VaIcon name="qr_code" class="mr-2"></VaIcon>QR Codes</span>
         <span class="text-secondary"> <VaIcon name="payments" class="mr-2"></VaIcon>Payments</span>
-        <span class="text-secondary"> <VaIcon name="local_shipping" class="mr-2"></VaIcon>Delivery Zones</span>
+        <RouterLink
+          to="/deliveryZone"
+          :class="$route.name === 'deliveryZone' ? 'text-primary font-bold' : 'text-secondary'"
+        >
+          <VaIcon name="local_shipping" class="mr-2"></VaIcon>
+          Delivery Zones
+        </RouterLink>
         <span class="text-secondary"> <VaIcon name="language" class="mr-2"></VaIcon>Languages</span>
       </div>
       <div v-if="userRole === 'super-admin'" class="flex flex-col gap-y-2 mt-5">
