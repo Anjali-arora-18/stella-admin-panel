@@ -9,7 +9,7 @@
     @update:modelValue="emits('cancel')"
   >
     <template #header>
-      <h1 class="va-h6 mb-2">{{ selectedUser ? 'Update Option' : 'Add Option' }}</h1>
+      <h1 class="va-h6 mb-2">{{ selectedUser ? 'Update Option Group' : 'Add Option Group' }}</h1>
     </template>
 
     <VaForm ref="form" @submit.prevent="submit">
@@ -22,17 +22,27 @@
           placeholder="Name"
           type="text"
         />
-        <VaInput v-model="formData.posName" label="POS Name" placeholder="POS Name" type="text" />
-        <VaInput v-model="formData.code" label="Code" placeholder="Code" type="text" />
-        <VaSelect
-          v-model="formData.type"
-          :rules="[validators.required]"
-          required-mark
-          label="Type"
-          :options="types"
-          value-by="value"
+        <VaInput v-model="formData.internalName" label="Internal Name" placeholder="Internal Name" type="text" />
+        <VaTextarea
+          v-model="formData.description"
+          label="Description"
+          placeholder="Description"
+          type="textarea"
+          :min-rows="3"
+          :max-rows="3"
+          class="mb-1 w-full"
         />
-        <VaInput v-model="formData.price" label="Price" placeholder="Price" type="number" />
+        <VaCheckbox v-model="formData.value" required-mark error error-messages="Error message" label="Single Choice" />
+        <VaCheckbox
+          v-model="formData.value"
+          required-mark
+          error
+          error-messages="Error message"
+          label="Multiple Choice"
+        />
+        <VaCheckbox v-model="formData.value" label="Mandatory" />
+        <VaInput v-model="formData.minChoice" label="Minimum Choices" placeholder="Minimum Choices" type="number" />
+        <VaInput v-model="formData.maxChoice" label="Maximum Choices" placeholder="Maximum Choices" type="number" />
       </div>
     </VaForm>
 
@@ -76,10 +86,8 @@ const formData = ref({
 
 const outlets = ref([])
 const types = [
-  { text: 'Extra', value: 'extra' },
-  { text: 'Hold', value: 'hold' },
-  { text: 'Modifier', value: 'modifier' },
-  { text: 'Article', value: 'article' },
+  { text: 'Admin', value: 'admin' },
+  { text: 'Editor', value: 'editor' },
 ]
 
 const getOutlets = () => {

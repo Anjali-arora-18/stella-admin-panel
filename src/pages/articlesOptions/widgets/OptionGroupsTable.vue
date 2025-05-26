@@ -3,7 +3,11 @@ import { defineVaDataTableColumns, useModal, useToast } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
 import { ref, computed, toRef, watch } from 'vue'
 import { useServiceStore } from '@/stores/services'
+import EditArticleOptionGroupsModal from '../modals/EditArticleOptionGroupsModal.vue'
 import axios from 'axios'
+
+const isEditArticleOptionGroupsModal = ref(false)
+
 const emits = defineEmits([])
 const props = defineProps({
   items: {
@@ -22,7 +26,7 @@ const router = useRouter()
 const servicesStore = useServiceStore()
 const columns = defineVaDataTableColumns([
   { label: 'ID', key: 'id', sortable: false },
-  { label: 'Name', key: 'firstName', sortable: false },
+  { label: 'Name', key: 'name', sortable: false },
   { label: 'Internal Name', key: 'internalName', sortable: false },
   { label: 'Description', key: 'description', sortable: false },
   { label: 'Single Choice', key: 'singleChoice', sortable: false },
@@ -45,6 +49,9 @@ const searchQuery = ref('')
   <div>
     <div class="flex flex-col sm:flex-row justify-between items-center mb-5 gap-4">
       <VaInput v-model="searchQuery" placeholder="Search..." class="max-w-[400px] w-full" size="small" />
+      <VaButton size="small" color="primary" @click="isEditArticleOptionGroupsModal = true">
+        Add Option Group
+      </VaButton>
     </div>
     <VaDataTable
       :columns="columns"
@@ -70,6 +77,10 @@ const searchQuery = ref('')
       </template>
     </VaDataTable>
   </div>
+  <EditArticleOptionGroupsModal
+    v-if="isEditArticleOptionGroupsModal"
+    @cancel="isEditArticleOptionGroupsModal = false"
+  />
 </template>
 
 <style lang="scss" scoped>

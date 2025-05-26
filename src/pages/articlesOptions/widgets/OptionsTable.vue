@@ -3,7 +3,11 @@ import { defineVaDataTableColumns, useModal, useToast } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
 import { ref, computed, toRef, watch } from 'vue'
 import { useServiceStore } from '@/stores/services'
+import EditArticleOptionModal from '../modals/EditArticleOptionModal.vue'
 import axios from 'axios'
+
+const isEditArticleOptionModal = ref(false)
+
 const emits = defineEmits([])
 const props = defineProps({
   items: {
@@ -41,6 +45,7 @@ const searchQuery = ref('')
   <div>
     <div class="flex flex-col sm:flex-row justify-between items-center mb-5 gap-4">
       <VaInput v-model="searchQuery" placeholder="Search..." class="max-w-[400px] w-full" size="small" />
+      <VaButton size="small" color="primary" @click="isEditArticleOptionModal = true"> Add Option </VaButton>
     </div>
     <VaDataTable
       :columns="columns"
@@ -66,6 +71,7 @@ const searchQuery = ref('')
       </template>
     </VaDataTable>
   </div>
+  <EditArticleOptionModal v-if="isEditArticleOptionModal" @cancel="isEditArticleOptionModal = false" />
 </template>
 
 <style lang="scss" scoped>
