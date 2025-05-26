@@ -37,6 +37,22 @@ export default {
       },
     },
     {
+      name: 'deletedArticles',
+      visible: true,
+      displayName: 'menu.deletedArticles',
+      meta: {
+        icon: 'group',
+      },
+    },
+    {
+      name: 'payments',
+      visible: true,
+      displayName: 'menu.payments',
+      meta: {
+        icon: 'group',
+      },
+    },
+    {
       name: 'deliveryZone',
       visible: true,
       displayName: 'menu.deliveryZone',

@@ -28,7 +28,13 @@
           <VaIcon name="tune" class="mr-2"></VaIcon>
           Articles Options
         </RouterLink>
-        <span class="text-secondary"> <VaIcon name="delete" class="mr-2"></VaIcon>Deleted Articles</span>
+        <RouterLink
+          to="/deletedArticles"
+          :class="$route.name === 'deletedArticles' ? 'text-primary font-bold' : 'text-secondary'"
+        >
+          <VaIcon name="delete" class="mr-2"></VaIcon>
+          Deleted Articles
+        </RouterLink>
         <RouterLink :class="$route.name === 'allergens' ? 'text-primary font-bold' : 'text-secondary'" to="/allergens">
           <VaIcon name="warning" class="mr-2"></VaIcon>
           Allergens
@@ -50,7 +56,10 @@
           Areas
         </RouterLink>
         <span class="text-secondary"> <VaIcon name="qr_code" class="mr-2"></VaIcon>QR Codes</span>
-        <span class="text-secondary"> <VaIcon name="payments" class="mr-2"></VaIcon>Payments</span>
+        <RouterLink to="/payments" :class="$route.name === 'payments' ? 'text-primary font-bold' : 'text-secondary'">
+          <VaIcon name="payments" class="mr-2"></VaIcon>
+          Payments
+        </RouterLink>
         <RouterLink
           to="/deliveryZone"
           :class="$route.name === 'deliveryZone' ? 'text-primary font-bold' : 'text-secondary'"

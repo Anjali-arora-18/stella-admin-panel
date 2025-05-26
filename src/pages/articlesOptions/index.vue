@@ -10,7 +10,7 @@ const serviceStore = useServiceStore()
 const items = ref([])
 
 const { init } = useToast()
-const isLoading = ref(true)
+const isLoading = ref(false)
 
 const activeTab = ref(0)
 </script>
