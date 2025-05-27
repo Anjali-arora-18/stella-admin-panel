@@ -27,7 +27,13 @@
           :multiple="true"
           value-by="value"
         />
-        <VaCheckbox v-if="postalCodes.length" v-model="selectAll" class="ml-5" label="Select All Post Codes" />
+        <VaCheckbox
+          v-if="postalCodes.length"
+          v-model="selectAll"
+          class="ml-5"
+          label="Select All Post Codes"
+          @update:modelValue="toggleSelectAll"
+        />
         <div v-if="postalCodes.length" class="max-h-[45vh] overflow-y-auto bg-blue-50 p-5 rounded-lg">
           <div class="grid grid-cols-4">
             <div v-for="postcode in postalCodes" :key="postcode.value" class="mb-2">
@@ -151,13 +157,21 @@ watch(
   { immediate: true },
 )
 
+function toggleSelectAll() {
+  postalCodes.value.forEach((postcode) => {
+    postcode.isChecked = selectAll.value
+  })
+}
+
 watch(
-  () => selectAll.value,
-  (newValue) => {
-    postalCodes.value.forEach((postcode) => {
-      postcode.isChecked = newValue
-    })
+  postalCodes,
+  () => {
+    const allChecked = postalCodes.value.length > 0 && postalCodes.value.every((p) => p.isChecked)
+    if (selectAll.value !== allChecked) {
+      selectAll.value = allChecked
+    }
   },
+  { deep: true },
 )
 
 if (props.rowData) {
