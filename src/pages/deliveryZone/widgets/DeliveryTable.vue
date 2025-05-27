@@ -144,9 +144,12 @@ const items = toRef(props, 'items')
         </div>
       </template>
       <template #cell(deliveryCharge)="{ rowData }">
-        <div class="table-cell-content">
-          <div v-if="!rowData.editDeliveryCharge" @click="rowData.editDeliveryCharge = true"> {{ rowData.deliveryCharge }} </div>
-          <input v-else v-model="rowData.deliveryCharge" class="w-1/2 p-1 border rounded" type="number" @change="updateData(rowData)"></input>
+        <div class="max-w-[120px] ellipsis" @click="rowData.editDeliveryCharge = true">
+          <input v-if="rowData.editDeliveryCharge" v-model="rowData.deliveryCharge" class="w-full p-1 border rounded" type="number" @change="updateData(rowData); rowData.editDeliveryCharge = false"></input>
+          <span v-else-if="parseFloat(rowData.deliveryCharge)">
+             €{{ parseFloat(rowData.deliveryCharge).toFixed(2) }}
+          </span>
+          <span v-else></span>
         </div>
       </template>
       <template #cell(actions)="{ rowData }">

@@ -39,6 +39,10 @@ watch(
     getDeliveryZones()
   },
 )
+
+if (servicesStore.selectedRest) {
+  getDeliveryZones()
+}
 </script>
 
 <template>
