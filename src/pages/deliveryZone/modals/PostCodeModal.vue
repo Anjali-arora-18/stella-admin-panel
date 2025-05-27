@@ -1,9 +1,9 @@
 <template>
   <VaModal
     v-model="showPostcodeModal"
-    class="big-form"
+    class="big-modal"
     :mobile-fullscreen="false"
-    size="medium"
+    size="large"
     hide-default-actions
     close-button
   >
@@ -35,7 +35,7 @@
           @update:modelValue="toggleSelectAll"
         />
         <div v-if="postalCodes.length" class="max-h-[45vh] overflow-y-auto bg-blue-50 p-5 rounded-lg">
-          <div class="grid grid-cols-4">
+          <div class="grid grid-cols-7">
             <div v-for="postcode in postalCodes" :key="postcode.value" class="mb-2">
               <VaCheckbox v-model="postcode.isChecked" :label="`${postcode.text}`" />
             </div>
@@ -185,7 +185,6 @@ const submit = async () => {
     municipalities: formData.value.municipalities,
     postalCodes: postalCodes.value.filter((postcode) => postcode.isChecked).map((postcode) => postcode.text),
   })
-  // Close modal
   showPostcodeModal.value = false
 }
 </script>

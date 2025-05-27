@@ -88,6 +88,11 @@
     margin-top: 32px;
   }
 }
+
+.big-modal .va-modal__inner {
+  min-height: 500px;
+}
+
 .big-modal .va-modal__dialog .va-stepper__step-content {
   margin-bottom: 0px !important;
   margin-top: 0px !important;
