@@ -35,7 +35,7 @@ function openPostcodeModal(rowData) {
   showPostcodeModal.value = true
 }
 
-async function  updateData(rowData) {
+async function updateData(rowData) {
   const url = import.meta.env.VITE_API_BASE_URL
   const data = {
     isActive: rowData.isActive,
@@ -43,7 +43,7 @@ async function  updateData(rowData) {
     isDeleted: rowData.isDeleted,
     deliveryCharge: rowData.deliveryCharge,
   }
-  await  axios
+  await axios
     .patch(`${url}/deliveryZones/${rowData._id}`, data)
     .then(() => {
       init({ message: "You've successfully updated a delivery zone", color: 'success' })
@@ -71,12 +71,12 @@ function hidePostalCodeModal() {
   showPostcodeModal.value = false
   selectedRowData.value = ''
   setTimeout(() => {
-    emits('getDeliveryZones')  
-  }, 1000);
+    emits('getDeliveryZones')
+  }, 1000)
 }
 
 async function deleteDelivery(payload) {
-  await updateData({...payload, isDeleted: true })
+  await updateData({ ...payload, isDeleted: true })
 }
 
 const items = toRef(props, 'items')
@@ -103,26 +103,26 @@ const items = toRef(props, 'items')
         ></div>
         <div class="flex gap-1 flex-wrap">
           <template v-if="rowData.postalCodes.length <= 2">
-          <VaBadge
-            v-for="postCode in rowData.postalCodes"
-            :key="postCode"
-            color="#B3D943"
-            size="small"
-            class="cursor-pointer"
-            :text="postCode"
-            @click="openPostcodeModal(rowData)"
-          />
-          </template>
-          <template v-else>
             <VaBadge
-              v-for="postCode in rowData.postalCodes.slice(0, 2)"
-             :key="postCode"
+              v-for="postCode in rowData.postalCodes"
+              :key="postCode"
               color="#B3D943"
               size="small"
               class="cursor-pointer"
               :text="postCode"
               @click="openPostcodeModal(rowData)"
-           />
+            />
+          </template>
+          <template v-else>
+            <VaBadge
+              v-for="postCode in rowData.postalCodes.slice(0, 2)"
+              :key="postCode"
+              color="#B3D943"
+              size="small"
+              class="cursor-pointer"
+              :text="postCode"
+              @click="openPostcodeModal(rowData)"
+            />
             <VaBadge
               :text="`+${rowData.postalCodes.length - 2} more`"
               color="#B3D943"
@@ -139,22 +139,43 @@ const items = toRef(props, 'items')
       </template>
       <template #cell(name)="{ rowData }">
         <div class="table-cell-content">
-          <div v-if="!rowData.editName" @click="rowData.editName = true"> {{ rowData.name }} </div>
-          <input v-else  v-model="rowData.name" class="w-1/2 p-1 border rounded" type="text" @change="updateData(rowData)"></input>
+          <div v-if="!rowData.editName" @click="rowData.editName = true">{{ rowData.name }}</div>
+          <input
+            v-else
+            v-model="rowData.name"
+            class="w-1/2 p-1 border rounded"
+            type="text"
+            @change="updateData(rowData)"
+          />
         </div>
       </template>
       <template #cell(deliveryCharge)="{ rowData }">
         <div class="max-w-[120px] ellipsis" @click="rowData.editDeliveryCharge = true">
-          <input v-if="rowData.editDeliveryCharge" v-model="rowData.deliveryCharge" class="w-full p-1 border rounded" type="number" @change="updateData(rowData); rowData.editDeliveryCharge = false"></input>
+          <input
+            v-if="rowData.editDeliveryCharge"
+            v-model="rowData.deliveryCharge"
+            class="w-full p-1 border rounded"
+            type="number"
+            @change="
+              updateData(rowData)
+              rowData.editDeliveryCharge = false
+            "
+          />
           <span v-else-if="parseFloat(rowData.deliveryCharge)">
-             €{{ parseFloat(rowData.deliveryCharge).toFixed(2) }}
+            €{{ parseFloat(rowData.deliveryCharge).toFixed(2) }}
           </span>
           <span v-else></span>
         </div>
       </template>
       <template #cell(actions)="{ rowData }">
         <div class="flex gap-2 justify-end">
-          <VaButton preset="primary" size="small" color="danger" icon="mso-delete" @click="onButtonDeliveryDelete(rowData)" />
+          <VaButton
+            preset="primary"
+            size="small"
+            color="danger"
+            icon="mso-delete"
+            @click="onButtonDeliveryDelete(rowData)"
+          />
         </div>
       </template>
     </VaDataTable>
