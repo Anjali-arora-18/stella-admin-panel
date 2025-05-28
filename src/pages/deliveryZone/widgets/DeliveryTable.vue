@@ -156,10 +156,7 @@ const items = toRef(props, 'items')
             v-model="rowData.deliveryCharge"
             class="w-full p-1 border rounded"
             type="number"
-            @change="
-              updateData(rowData)
-              rowData.editDeliveryCharge = false
-            "
+            @change="updateData(rowData), (rowData.editDeliveryCharge = false)"
           />
           <span v-else-if="parseFloat(rowData.deliveryCharge)">
             €{{ parseFloat(rowData.deliveryCharge).toFixed(2) }}
