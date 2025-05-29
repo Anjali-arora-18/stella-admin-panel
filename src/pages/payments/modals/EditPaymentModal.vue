@@ -14,21 +14,12 @@
 
     <VaForm ref="form" @submit.prevent="submit()">
       <div class="grid grid-cols-2 md:grid-cols-1 gap-4 justify-between">
-        <VaInput
-          v-model="formData.name"
-          label="Name"
-          placeholder="Name"
-          type="text"
-          required-mark
-          :rules="[validators.required]"
-        />
+        <VaInput v-model="formData.name" label="Name" placeholder="Name" type="text" />
         <VaSelect
           v-model="formData.paymentGateway"
           value-by="value"
           label="Payment Gateway"
           :options="paymentGateway"
-          required-mark
-          :rules="[validators.required]"
         />
         <div v-if="formData.paymentGateway" class="grid md:grid-cols-1 gap-4">
           <VaInput
@@ -37,24 +28,18 @@
             label="Payment Gateway URL"
             placeholder="Enter URL"
             type="url"
-            required-mark
-            :rules="[validators.required]"
           />
           <VaInput
             v-model="formData.paymentGatewayConfig.username"
             label="Payment Gateway Username"
             placeholder="Enter Username"
             type="text"
-            required-mark
-            :rules="[validators.required]"
           />
           <VaInput
             v-model="formData.paymentGatewayConfig.password"
             label="Payment Gateway Password"
             placeholder="Enter Password"
             type="password"
-            required-mark
-            :rules="[validators.required]"
           />
         </div>
         <VaInput v-model="formData.paymentTypeId" label="Payment Type ID" placeholder="Payment Type ID" type="text" />
@@ -129,7 +114,6 @@ const submit = async () => {
 
     data.outletId = serviceStore.selectedRest
 
-    // Remove unused metadata
     delete data.createdAt
     delete data.updatedAt
     delete data.__v
@@ -147,7 +131,7 @@ const submit = async () => {
         init({ message: "You've successfully created a payment", color: 'success' })
       }
 
-      emits('cancel') // Close modal
+      emits('cancel')
     } catch (err: any) {
       const message = err?.response?.data?.message || 'Something went wrong'
       init({ message, color: 'danger' })
