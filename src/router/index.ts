@@ -76,6 +76,11 @@ const routes: Array<RouteRecordRaw> = [
         path: 'allergens',
         component: () => import('../pages/allergens.vue'),
       },
+      {
+        name: 'callCenters',
+        path: 'callCenters',
+        component: () => import('../pages/callCenters/index.vue'),
+      },
       // {
       //   name: 'companies',
       //   path: 'companies',
