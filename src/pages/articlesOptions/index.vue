@@ -1,45 +1,45 @@
-<script setup lang="ts">
-import { ref, watch } from 'vue'
-import OptionGroupsTable from '@/pages/articlesOptions/widgets/OptionGroupsTable.vue'
-import OptionsTable from '@/pages/articlesOptions/widgets/OptionsTable.vue'
-import { useServiceStore } from '@/stores/services'
-import axios from 'axios'
-import { useToast } from 'vuestic-ui'
-
-const serviceStore = useServiceStore()
-const items = ref([])
-
-const { init } = useToast()
-const isLoading = ref(false)
-
-const activeTab = ref(0)
-</script>
-
 <template>
-  <div class="flex items-center justify-between mb-4">
-    <h1 class="page-title font-bold">Article Options</h1>
-  </div>
-  <div class="rounded border bg-white p-3 w-full" style="box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1)">
-    <VaTabs v-model="activeTab" grow>
-      <template #tabs>
-        <VaTab label="Option Groups" />
-        <VaTab label="Options" />
-      </template>
-      <VaCard square>
-        <VaCardContent v-if="activeTab === 0">
-          <OptionGroupsTable :items="items" :loading="isLoading" />
-        </VaCardContent>
-        <VaCardContent v-else-if="activeTab === 1">
-          <OptionsTable :items="items" :loading="isLoading" />
-        </VaCardContent>
-      </VaCard>
-    </VaTabs>
+  <div>
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="page-title font-bold">Article Options</h1>
+    </div>
+    <div class="rounded border bg-white p-3 w-full" style="box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1)">
+      <VaTabs v-model="activeTab" grow>
+        <template #tabs>
+          <VaTab label="Option Groups" />
+          <VaTab label="Options" />
+        </template>
+        <RouterView></RouterView>
+      </VaTabs>
+    </div>
   </div>
 </template>
-<style lang="scss">
-.va-tabs {
-  .va-tabs__content {
-    width: 100% !important;
-  }
+<script>
+export default {
+  name: 'ArticlesOptionsPage',
+  components: {},
+
+  data() {
+    return {
+      activeTab: 1,
+    }
+  },
+  watch: {
+    activeTab: function () {
+      if (this.activeTab === 0 && this.$route.name !== 'articlesOptionsGroups') {
+        this.$router.push({ name: 'articlesOptionsGroups' })
+      } else if (this.activeTab === 1 && this.$route.name !== 'articlesOptionsList') {
+        this.$router.push({ name: 'articlesOptionsList' })
+      }
+    },
+  },
+  mounted() {
+    if (this.$route.name === 'articlesOptionsGroups') {
+      this.activeTab = 0
+    } else {
+      this.activeTab = 1
+    }
+  },
+  methods: {},
 }
-</style>
+</script>

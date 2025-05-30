@@ -60,6 +60,18 @@ const routes: Array<RouteRecordRaw> = [
         name: 'articlesOptions',
         path: 'articlesOptions',
         component: () => import('../pages/articlesOptions/index.vue'),
+        children: [
+          {
+            name: 'articlesOptionsList',
+            path: 'list',
+            component: () => import('../pages/articlesOptionsList/index.vue'),
+          },
+          {
+            name: 'articlesOptionsGroups',
+            path: 'groups',
+            component: () => import('../pages/articlesOptionsGroups/index.vue'),
+          },
+        ],
       },
       {
         name: 'preferences',

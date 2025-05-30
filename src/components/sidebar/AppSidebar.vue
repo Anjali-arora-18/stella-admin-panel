@@ -22,8 +22,8 @@
           Articles
         </RouterLink>
         <RouterLink
-          to="/articlesOptions"
-          :class="$route.name === 'articlesOptions' ? 'text-primary font-bold' : 'text-secondary'"
+          to="/articlesOptions/groups"
+          :class="$route.name === 'articlesOptionsGroups' ? 'text-primary font-bold' : 'text-secondary'"
         >
           <VaIcon name="tune" class="mr-2"></VaIcon>
           Articles Options

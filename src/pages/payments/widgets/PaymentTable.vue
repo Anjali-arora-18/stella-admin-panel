@@ -28,10 +28,6 @@ const columns = defineVaDataTableColumns([
   { label: 'Actions', key: 'actions', sortable: false },
 ])
 
-// const dineIn = ref(true)
-// const delivery = ref(true)
-// const takeaway = ref(true)
-
 async function updateData(rowData) {
   const url = import.meta.env.VITE_API_BASE_URL
   const data = {

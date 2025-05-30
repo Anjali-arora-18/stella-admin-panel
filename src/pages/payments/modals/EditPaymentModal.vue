@@ -73,7 +73,7 @@ const props = defineProps({
 
 const { validate } = useForm('form')
 const { init } = useToast()
-const serviceStore = useServiceStore()
+const servicesStore = useServiceStore()
 const formData = ref({
   _id: '',
   name: '',
@@ -112,7 +112,7 @@ const submit = async () => {
   if (validate()) {
     const data = JSON.parse(JSON.stringify(formData.value))
 
-    data.outletId = serviceStore.selectedRest
+    data.outletId = servicesStore.selectedRest
 
     delete data.createdAt
     delete data.updatedAt

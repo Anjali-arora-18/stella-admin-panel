@@ -93,8 +93,8 @@ export default {
       },
     },
     {
-      name: 'articlesOptions',
-      displayName: 'menu.articlesOptions',
+      name: 'articlesOptionsGroups',
+      displayName: 'menu.articlesOptionsGroups',
       visible: true,
       meta: {
         icon: 'group',
