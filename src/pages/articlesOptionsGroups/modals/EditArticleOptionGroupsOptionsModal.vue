@@ -31,6 +31,10 @@ watch(
   },
   { deep: true },
 )
+const updateSelectAll = () => {
+  const allChecked = items.value.length > 0 && items.value.every((p) => p.isChecked)
+  selectAll.value = allChecked
+}
 const getOptions = async () => {
   const url = import.meta.env.VITE_API_BASE_URL
   isLoading.value = true
@@ -40,7 +44,7 @@ const getOptions = async () => {
     items.value = response.data.result.map((e) => {
       return {
         ...e,
-        isChecked: props.selectedOptions.options.includes(e._id),
+        isChecked: props.selectedOptions.options?.includes(e._id) || false,
         isOriginalChecked: props.selectedOptions.options.includes(e._id),
       }
     })
@@ -80,6 +84,7 @@ async function submit() {
   }
   init({ message: 'Options updated successfully', color: 'success' })
   isSubmitting.value = false
+  
   emits('cancel')
 }
 </script>
@@ -128,7 +133,9 @@ async function submit() {
     </div>
     <template #footer>
       <div class="flex justify-end mt-4">
-        <VaButton :disabled="isSubmitting" type="button" @click="submit"> Update </VaButton>
+        <VaButton :loading="isSubmitting || isLoading" :disabled="isSubmitting" type="button" @click="submit">
+          Update
+        </VaButton>
       </div>
     </template>
   </VaModal>

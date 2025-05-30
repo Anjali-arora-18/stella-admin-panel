@@ -6,12 +6,14 @@ import { useServiceStore } from '@/stores/services'
 import EditArticleOptionGroupsModal from '../modals/EditArticleOptionGroupsModal.vue'
 import EditArticleOptionGroupsOptionsModal from '../modals/EditArticleOptionGroupsOptionsModal.vue'
 import EditArticleOptionGroupsItemsModal from '../modals/EditArticleOptionGroupsItemsModal.vue'
+import EditOptionGroupArticlesModal from '../modals/EditOptionGroupArticlesModal.vue'
 import axios from 'axios'
 
 const isEditArticleOptionGroupsModal = ref(false)
 const selectedOptionGroups = ref('')
 const isEditArticleOptionsModal = ref(false)
 const isEditArticleOptionGroupsItemsModal = ref(false)
+const isEditOptionGroupArticlesModal = ref(false)
 const selectedOptions = ref('')
 const selectedItems = ref('')
 
@@ -104,6 +106,11 @@ function onButtonEditOptionGroup(rowData) {
 
 function onButtonEditOptionGroupItems(rowData) {
   isEditArticleOptionGroupsItemsModal.value = true
+  selectedItems.value = rowData
+}
+
+function onButtonEditOptionGroupArticles(rowData) {
+  isEditOptionGroupArticlesModal.value = true
   selectedItems.value = rowData
 }
 
@@ -249,7 +256,10 @@ watch(searchQuery, (search) => {
       </template>
 
       <template #cell(menuItems)="{ rowData }">
-        <div class="flex items-center gap-1 cursor-pointer text-primary" @click="onButtonEditOptionGroup(rowData)">
+        <div
+          class="flex items-center gap-1 cursor-pointer text-primary"
+          @click="onButtonEditOptionGroupArticles(rowData)"
+        >
           <span class="whitespace-nowrap font-medium"> {{ rowData.menuItems?.length || 0 }} </span>
         </div>
       </template>
@@ -293,6 +303,11 @@ watch(searchQuery, (search) => {
     v-if="isEditArticleOptionGroupsItemsModal"
     :selected-option-group="selectedItems"
     @cancel="(isEditArticleOptionGroupsItemsModal = false), (selectedItems = ''), emits('getOptionGroups')"
+  />
+  <EditOptionGroupArticlesModal
+    v-if="isEditOptionGroupArticlesModal"
+    :selected-items="selectedItems"
+    @cancel="(isEditOptionGroupArticlesModal = false), (selectedItems = ''), emits('getOptionGroups')"
   />
 </template>
 
