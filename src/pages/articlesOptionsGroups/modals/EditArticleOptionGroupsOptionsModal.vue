@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, defineEmits, watch } from 'vue'
+import { ref, defineEmits, watch, computed } from 'vue'
 import { useServiceStore } from '@/stores/services'
 import axios from 'axios'
 import { useToast } from 'vuestic-ui'
@@ -15,6 +15,12 @@ const items = ref([])
 const { init } = useToast()
 const isLoading = ref(false)
 const isSubmitting = ref(false)
+
+const searchQuery = ref('')
+const filteredItems = computed(() =>
+  items.value.filter((item) => item.name.toLowerCase().includes(searchQuery.value.toLowerCase())),
+)
+
 const selectAll = ref(false)
 const toggleAll = () => {
   items.value.forEach((item) => {
@@ -84,7 +90,6 @@ async function submit() {
   }
   init({ message: 'Options updated successfully', color: 'success' })
   isSubmitting.value = false
-  
   emits('cancel')
 }
 </script>
@@ -101,6 +106,12 @@ async function submit() {
       <h1 class="va-h6 mb-2">Options</h1>
     </template>
     <div class="row align-items-center mb-2">
+      <div class="mt-2 mb-4 w-full flex justify-start">
+        <div class="w-1/2">
+          <VaInput v-model="searchQuery" placeholder="Search..." clearable />
+        </div>
+      </div>
+
       <div class="max-h-[50vh] overflow-y-auto">
         <table class="w-full border-collapse border border-gray-200">
           <thead>
@@ -115,7 +126,7 @@ async function submit() {
 
           <tbody>
             <tr
-              v-for="(item, index) in items"
+              v-for="(item, index) in filteredItems"
               :key="item._id"
               :class="{ 'bg-gray-50': index % 2 === 0 }"
               class="border-b hover:bg-gray-100 transition-colors"

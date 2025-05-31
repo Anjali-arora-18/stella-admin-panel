@@ -14,12 +14,16 @@
       <div class="grid md:grid-cols-2 gap-5">
         <!-- Categories Column -->
         <div>
-          <h1 class="text-base mb-5">Categories</h1>
-
+          <div class="mt-2 mb-4 w-full flex justify-start">
+            <div class="w-full">
+              <VaInput v-model="searchQuery" placeholder="Search..." clearable />
+            </div>
+          </div>
+          <h1 class="text-base mb-5 font-bold">Categories</h1>
           <div class="max-h-[60vh] overflow-y-auto">
             <div class="category-list">
               <div
-                v-for="category in categories"
+                v-for="category in filteredCategories"
                 :key="category.id"
                 class="category-item"
                 :class="{ active: selectedCategory === category }"
@@ -37,7 +41,7 @@
         </div>
         <!-- Subcategories Column -->
         <div>
-          <h1 class="text-base mb-5">Subcategories</h1>
+          <h1 class="text-base mb-5 font-bold">Subcategories</h1>
 
           <div class="max-h-[60vh] overflow-y-auto">
             <div class="subcategory-list">
@@ -90,6 +94,12 @@ const { validate } = useForm('form')
 const { init } = useToast()
 const isLoading = ref(false)
 const isSubmitting = ref(false)
+
+const searchQuery = ref('')
+const filteredCategories = computed(() =>
+  categories.value.filter((cat) => cat.name.toLowerCase().includes(searchQuery.value.toLowerCase())),
+)
+
 const servicesStore = useServiceStore()
 const categoriesStore = useCategoryStore()
 
