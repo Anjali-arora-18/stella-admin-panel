@@ -1,7 +1,17 @@
 <template>
   <VaSidebar v-model="writableVisible" :width="sidebarWidth" :color="color" minimized-width="0">
     <VaAccordion v-model="value" class="mt-5 pl-5">
-      <div class="flex flex-col gap-y-2">
+      <!-- <div v-if="userRole !== 'editor'" class="flex flex-col gap-y-2">
+        <span class="font-bold">Support</span>
+        <RouterLink
+          :class="$route.name === 'callCenter' ? 'text-primary font-bold' : 'text-secondary'"
+          to="/callCenter"
+        >
+          <VaIcon name="restaurant_menu" class="mr-2"></VaIcon>
+          Call Center
+        </RouterLink>
+      </div> -->
+      <div v-if="userRole !== 'caller'" class="flex flex-col gap-y-2">
         <span class="font-bold">Menu</span>
         <RouterLink
           :class="$route.name === 'organizeMenu' ? 'text-primary font-bold' : 'text-secondary'"
@@ -40,7 +50,7 @@
           Allergens
         </RouterLink>
       </div>
-      <div v-if="userRole !== 'editor'" class="flex flex-col gap-y-2 mt-5">
+      <div v-if="userRole.includes('admin')" class="flex flex-col gap-y-2 mt-5">
         <span class="font-bold">Configuration</span>
         <Span
           :class="

@@ -119,7 +119,9 @@ async function deleteArticle(payload) {
   }
   const url = import.meta.env.VITE_API_BASE_URL
   axios
-    .delete(`${url}/menuItems/${payload._id}`)
+    .patch(`${url}/menuItems/${payload._id}`, {
+      isDeleted: true,
+    })
     .then((response) => {
       items.value = response.data
       isLoading.value = false

@@ -1,22 +1,18 @@
 <script setup lang="ts">
 import { defineVaDataTableColumns, useModal, useToast } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
-import { ref, computed, toRef, watch } from 'vue'
+import { ref, watch, toRef, onMounted } from 'vue'
 import { useServiceStore } from '@/stores/services'
 import axios from 'axios'
-const emits = defineEmits([])
-const props = defineProps({
-  items: {
-    type: Array,
-    required: true,
-  },
 
-  loading: { type: Boolean, default: false },
-})
 const { confirm } = useModal()
 const { init } = useToast()
 const router = useRouter()
 const servicesStore = useServiceStore()
+
+const items = ref([])
+const loading = ref(false)
+
 const columns = defineVaDataTableColumns([
   { label: 'ID', key: 'id', sortable: false },
   { label: 'Code', key: 'code', sortable: false },
@@ -26,38 +22,69 @@ const columns = defineVaDataTableColumns([
   { label: 'Actions', key: 'actions', sortable: false },
 ])
 
-const IsActive = ref(true)
-function onRestore(rowData: any) {
-  emits('restorepayment', rowData)
+// Fetch deleted articles
+const fetchDeletedArticles = async () => {
+  try {
+    loading.value = true
+    const url = import.meta.env.VITE_API_BASE_URL
+    const response = await axios.get(`${url}/menuItems?isDeleted=true&outletId=${servicesStore.selectedRest}&limit=500`)
+
+    const result = response.data
+    items.value = result
+  } catch (error: any) {
+    init({
+      message: 'Failed to fetch deleted articles',
+      color: 'danger',
+    })
+    items.value = []
+  } finally {
+    loading.value = false
+  }
 }
 
-const items = ref([
-  {
-    id: 1,
-    code: 'P001',
-    name: 'Pasta',
-    description: 'Italian style',
-    price: 10,
+// Restore article
+const onRestore = async (rowData: any) => {
+  const confirmed = await confirm({
+    title: 'Confirm Restore',
+    message: `Are you sure you want to restore article "${rowData.name}"?`,
+    okText: 'Yes',
+    cancelText: 'Cancel',
+  })
+
+  if (!confirmed) return
+
+  try {
+    const url = import.meta.env.VITE_API_BASE_URL
+    const response = await axios.patch(`${url}/menuItems/${rowData._id}`, {
+      isDeleted: false,
+    })
+    if (response.status === 200) {
+      init({
+        message: 'Article restored successfully',
+        color: 'success',
+      })
+      await fetchDeletedArticles()
+    }
+  } catch (error) {
+    init({
+      message: 'Failed to restore article',
+      color: 'danger',
+    })
+  }
+}
+
+watch(
+  () => servicesStore.selectedRest,
+  () => {
+    fetchDeletedArticles()
   },
-])
+)
 
-// const onButtonPaymentDelete = async (payload) => {
-//   const result = await confirm({
-//     message: 'Are you sure you want to see delete this payment?',
-//     okText: 'Yes',
-//     cancelText: 'No',
-//     size: 'medium',
-//     title: 'Delete Payment',
-//   })
-//   if (result) {
-//     deletepayment(payload)
-//   }
-// }
-// function deletepayment(payload) {
-//   emits('deletepayment', payload)
-// }
-
-// const items = toRef(props, 'items')
+if (servicesStore.selectedRest) {
+  onMounted(() => {
+    fetchDeletedArticles()
+  })
+}
 </script>
 
 <template>
@@ -65,7 +92,7 @@ const items = ref([
     <VaDataTable
       :columns="columns"
       :items="items"
-      :loading="$props.loading"
+      :loading="loading"
       :style="{
         '--va-data-table-height': '500px',
         '--va-data-table-thead-background': 'var(--va-background-element)',
@@ -73,11 +100,6 @@ const items = ref([
       }"
       sticky-header
     >
-      <template #cell(isActive)="{ rowData }">
-        <div class="table-cell-content">
-          <VaCheckbox v-model="rowData.isActive" size="small" />
-        </div>
-      </template>
       <template #cell(actions)="{ rowData }">
         <div class="flex gap-2 justify-end">
           <VaButton color="primary" size="small" @click="onRestore(rowData)"> Restore </VaButton>
@@ -86,26 +108,3 @@ const items = ref([
     </VaDataTable>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.notification-dropdown {
-  cursor: pointer;
-
-  .notification-dropdown__icon {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-  .va-dropdown__anchor {
-    display: inline-block;
-  }
-}
-.va-data-table {
-  ::v-deep(.va-data-table__table-tr) {
-    border-bottom: 1px solid var(--va-background-border);
-  }
-}
-::v-deep(.va-data-table__table thead th:last-child) {
-  text-align: right !important;
-}
-</style>

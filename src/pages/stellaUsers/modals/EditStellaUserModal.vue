@@ -123,6 +123,8 @@ const formData = ref({
 const outlets = ref([])
 const types = [
   { text: 'Admin', value: 'admin' },
+  { text: 'Caller', value: 'caller' },
+  { text: 'Caller & Editor', value: 'caller-editor' },
   { text: 'Editor', value: 'editor' },
 ]
 
@@ -136,6 +138,7 @@ const getOutlets = () => {
 
 if (props.selectedUser) {
   formData.value = props.selectedUser
+  formData.value.outlets = props.selectedUser.outlets.map((e) => e._id)
 }
 
 const submit = () => {

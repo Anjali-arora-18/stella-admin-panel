@@ -61,6 +61,8 @@ function deleteUser(payload) {
 const types = [
   { text: 'Super Admin', value: 'super-admin' },
   { text: 'Admin', value: 'admin' },
+{ text: 'Caller', value: 'caller' },
+{ text: 'Caller & Editor', value: 'caller-editor' },
   { text: 'Editor', value: 'editor' },
 ]
 
