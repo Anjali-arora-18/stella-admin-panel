@@ -1,16 +1,16 @@
 <template>
   <VaSidebar v-model="writableVisible" :width="sidebarWidth" :color="color" minimized-width="0">
-    <VaAccordion v-model="value" class="mt-5 pl-5">
-      <!-- <div v-if="userRole !== 'editor'" class="flex flex-col gap-y-2">
-        <span class="font-bold">Support</span>
+    <VaAccordion class="mt-5 pl-5">
+      <div v-if="userRole !== 'editor'" class="flex flex-col gap-y-2">
+        <span class="font-bold">Call Center</span>
         <RouterLink
-          :class="$route.name === 'callCenter' ? 'text-primary font-bold' : 'text-secondary'"
-          to="/callCenter"
+          :class="$route.name === 'callCenters' ? 'text-primary font-bold' : 'text-secondary'"
+          to="/callCenters"
         >
-          <VaIcon name="restaurant_menu" class="mr-2"></VaIcon>
+          <VaIcon name="headset_mic" class="mr-2"></VaIcon>
           Call Center
         </RouterLink>
-      </div> -->
+      </div>
       <div v-if="userRole !== 'caller'" class="flex flex-col gap-y-2">
         <span class="font-bold">Menu</span>
         <RouterLink
@@ -65,7 +65,7 @@
           <VaIcon name="location_on" class="mr-2"></VaIcon>
           Areas
         </RouterLink>
-        <span class="text-secondary"> <VaIcon name="qr_code" class="mr-2"></VaIcon>QR Codes</span>
+        <span class="text-secondary"> <VaIcon name="qr_code" class="mr-2"></VaIcon>QR Codes </span>
         <RouterLink to="/payments" :class="$route.name === 'payments' ? 'text-primary font-bold' : 'text-secondary'">
           <VaIcon name="payments" class="mr-2"></VaIcon>
           Payments
@@ -77,7 +77,7 @@
           <VaIcon name="local_shipping" class="mr-2"></VaIcon>
           Delivery Zones
         </RouterLink>
-        <span class="text-secondary"> <VaIcon name="language" class="mr-2"></VaIcon>Languages</span>
+        <span class="text-secondary"> <VaIcon name="language" class="mr-2"></VaIcon>Languages </span>
       </div>
       <div v-if="userRole === 'super-admin'" class="flex flex-col gap-y-2 mt-5">
         <span class="font-bold">Admin</span>
@@ -88,8 +88,9 @@
               ? 'text-primary font-bold'
               : 'text-secondary'
           "
-          ><VaIcon name="storefront" class="mr-2"></VaIcon>Outlets</RouterLink
         >
+          <VaIcon name="storefront" class="mr-2"></VaIcon>Outlets
+        </RouterLink>
         <RouterLink
           to="/stellaUsers"
           :class="$route.name === 'stellaUsers' ? 'text-primary font-bold' : 'text-secondary'"
