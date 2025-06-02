@@ -1,7 +1,7 @@
 <template>
   <VaSidebar v-model="writableVisible" :width="sidebarWidth" :color="color" minimized-width="0">
     <VaAccordion class="mt-5 pl-5">
-      <div v-if="userRole !== 'editor'" class="flex flex-col gap-y-2">
+      <div v-if="userRole !== 'editor'" class="flex flex-col gap-y-2 mb-5">
         <span class="font-bold">Call Center</span>
         <RouterLink
           :class="$route.name === 'callCenters' ? 'text-primary font-bold' : 'text-secondary'"
@@ -50,6 +50,7 @@
           Allergens
         </RouterLink>
       </div>
+
       <div v-if="userRole.includes('admin')" class="flex flex-col gap-y-2 mt-5">
         <span class="font-bold">Configuration</span>
         <Span

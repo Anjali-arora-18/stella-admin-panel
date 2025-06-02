@@ -217,6 +217,16 @@ async function removeToken() {
 
 router.beforeEach((to, from, next) => {
   const homePage = 'dashboard'
+  axios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401) {
+        window.sessionStorage.removeItem('token')
+        router.push('/auth/login')
+      }
+      return Promise.reject(error)
+    },
+  )
   const userAlreadyLoggedIn: any = window.sessionStorage.getItem('token')
   if (to.name === '403' || to.name === '404') {
     next()

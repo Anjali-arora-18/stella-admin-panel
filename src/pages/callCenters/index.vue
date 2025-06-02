@@ -1,141 +1,148 @@
 <template>
-    <!-- <h1 class="page-title font-bold">Call Centers</h1> -->
-    <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
-
-        <!-- LEFT SECTION -->
-        <div class="md:col-span-5 bg-slate-100 p-4">
-            <VaCard>
-                <VaCardContent>
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div class="flex flex-wrap gap-4">
-                            <a href="#appetizers" class="bg-blue-500 text-white px-4 py-2 rounded-2xl">Appetizers</a>
-                            <a href="#main_course" class="bg-gray-200 px-4 py-2 rounded-2xl hover:bg-gray-300">Main
-                                Courses</a>
-                            <a href="#desserts" class="bg-gray-200 px-4 py-2 rounded-2xl hover:bg-gray-300">Desserts</a>
-                            <a href="#beverages"
-                                class="bg-gray-200 px-4 py-2 rounded-2xl hover:bg-gray-300">Beverages</a>
-                            <a href="#salads" class="bg-gray-200 px-4 py-2 rounded-2xl hover:bg-gray-300">Salads</a>
-                        </div>
-                        <div class="flex"><span class="bg-black px-4 py-4 text-white text-2xl rounded"> 20:35</span>
-                        </div>
-                    </div>
-
-                    <MenuSection id="appetizers" title="Appetizers" :items="appetizers" />
-                    <MenuSection id="main_course" title="Main Courses" :items="main_courses" />
-                    <MenuSection id="desserts" title="Desserts" :items="desserts" />
-                </VaCardContent>
-            </VaCard>
-
-
-
-
-
-
-        </div>
-
-        <!-- RIGHT SECTION -->
-        <div class="md:col-span-2 bg-slate-100 p-4">
-            <div class="flex flex-col gap-4">
-                <VaCard>
-                    <VaCardContent>
-                        <CustomerDetails />
-                    </VaCardContent>
-                </VaCard>
-                <VaCard>
-                    <VaCardContent>
-
-                        <OrderDetails />
-
-                    </VaCardContent>
-                </VaCard>
+  <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
+    <!-- LEFT SECTION -->
+    <div class="md:col-span-5 bg-slate-100 p-4">
+      <VaCard>
+        <VaCardContent class="overflow-x-scroll">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <div class="flex flex-wrap gap-2">
+              <a
+                v-for="item in filteredCategories"
+                :key="item._id"
+                :href="`#${item._id}`"
+                class="text-white px-4 py-2 rounded-2xl"
+                :class="{
+                  'bg-blue-500': selectedItem === item._id,
+                  'bg-gray-300': selectedItem !== item._id,
+                }"
+                @click="selectedItem = item._id"
+              >
+                {{ toTitleCase(item.name) }}
+              </a>
             </div>
-        </div>
+            <div class="flex"><span class="bg-black px-4 py-4 text-white text-2xl rounded"> 20:35</span></div>
+          </div>
 
+          <MenuSection
+            v-for="cat in filteredCategories"
+            :id="cat._id"
+            :key="cat.name"
+            :title="cat.name"
+            :items="cat.menuItems"
+          />
+        </VaCardContent>
+      </VaCard>
     </div>
 
+    <!-- RIGHT SECTION -->
+    <div class="md:col-span-2 bg-slate-100 p-4">
+      <div class="flex flex-col gap-4">
+        <VaCard>
+          <VaCardContent>
+            <CustomerDetails />
+          </VaCardContent>
+        </VaCard>
+        <VaCard>
+          <VaCardContent>
+            <OrderDetails />
+          </VaCardContent>
+        </VaCard>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import MenuSection from '@/pages/callCenters/widgets/MenuSections.vue';
-import CustomerDetails from '@/pages/callCenters/widgets/CustomerDetails.vue';
-import OrderDetails from '@/pages/callCenters/widgets/OrderDetails.vue';
+import { computed, ref, watch, onMounted } from 'vue'
+import { useMenuStore } from '@/stores/getMenu.js'
+import { useServiceStore } from '@/stores/services.ts'
+import { useRoute } from 'vue-router'
+const route = useRoute()
+const serviceStore = useServiceStore()
+// const emits = defineEmits(['getCat'])
+// const categoryHeader = useTemplateRef('categoryHeader')
+// const isSticky = ref(false)
+// const headerHeight = ref(0)
+// const selectedSubCategory = ref(null)
+// const getButtonStyle = (isActive) => {
+//   const primaryColor = props.restDetails?.primaryColor || '#d9534f'
+//   const backgroundColor = props.restDetails?.backgroundColor || '#ffffff'
+//   return {
+//     backgroundColor: isActive ? primaryColor : '#fff',
+//     border: !isActive ? `1px solid ${primaryColor}` : 'none',
+//     color: isActive ? backgroundColor : primaryColor,
+//     fontWeight: isActive ? 'bold' : '600',
+//   }
+// }
+import MenuSection from '@/pages/callCenters/widgets/MenuSections.vue'
+import CustomerDetails from '@/pages/callCenters/widgets/CustomerDetails.vue'
+import OrderDetails from '@/pages/callCenters/widgets/OrderDetails.vue'
 
-const appetizers = [
-    {
-        id: 1,
-        title: 'Grilled Shrimp',
-        price: '€12.50',
-        icon: '/allergens/vegan.png'
-    },
-    {
-        id: 2,
-        title: 'Caesar Salad',
-        price: '€8.90',
-        icon: '/allergens/spicy.png'
-    },
-    {
-        id: 3,
-        title: 'Grilled Shrimp',
-        price: '€12.50',
-        icon: '/allergens/vegan.png'
-    },
-    {
-        id: 4,
-        title: 'Caesar Salad',
-        price: '€8.90',
-        icon: '/allergens/spicy.png'
-    },
-    {
-        id: 3,
-        title: 'Grilled Shrimp',
-        price: '€12.50',
-        icon: '/allergens/vegan.png'
-    },
-    {
-        id: 4,
-        title: 'Caesar Salad',
-        price: '€8.90',
-        icon: '/allergens/spicy.png'
+const props = defineProps({
+  categories: Array,
+  restDetails: Object,
+})
+
+const categories = computed(() => menuStore.categories)
+const restDetails = computed(() => menuStore.restDetails)
+const isLoading = ref(false)
+const menuStore = useMenuStore()
+
+const toTitleCase = (text) => {
+  if (!text) return ''
+  return text
+    .toLowerCase()
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
+const selectedItem = ref(null)
+
+const menuItems = computed(() => {
+  return (props.categories || []).map((category) => ({
+    id: category._id,
+    _id: category._id,
+    name: category.name,
+    label: category.name,
+  }))
+})
+
+watch(
+  () => serviceStore.selectedRest,
+  (newVal) => {
+    if (newVal) {
+      isLoading.value = true
+      getMenu()
+      isLoading.value = false
     }
-];
-const main_courses = [
-    {
-        id: 1,
-        title: 'Grilled Shrimp',
-        price: '€12.50',
-        icon: '/allergens/vegan.png'
-    },
-    {
-        id: 2,
-        title: 'Caesar Salad',
-        price: '€8.90',
-        icon: '/allergens/spicy.png'
-    },
-    {
-        id: 3,
-        title: 'Grilled Shrimp',
-        price: '€12.50',
-        icon: '/allergens/vegan.png'
+  },
+  { immediate: true },
+)
+
+const filteredCategories = computed(() => {
+  return categories.value.filter(
+    (category) =>
+      category.menuItems.length > 0 ||
+      (category.subCategories.length && category.subCategories.filter((a) => a.menuItems.length).length),
+  )
+})
+
+watch(
+  filteredCategories,
+  (newVal) => {
+    if (newVal.length && !selectedItem.value) {
+      selectedItem.value = newVal[0]._id
     }
-];
-const desserts = [
-    {
-        id: 1,
-        title: 'Grilled Shrimp',
-        price: '€12.50',
-        icon: '/allergens/vegan.png'
-    },
-    {
-        id: 2,
-        title: 'Caesar Salad',
-        price: '€8.90',
-        icon: '/allergens/spicy.png'
-    },
-    {
-        id: 3,
-        title: 'Grilled Shrimp',
-        price: '€12.50',
-        icon: '/allergens/vegan.png'
-    }
-];
+  },
+  { immediate: true },
+)
+
+async function getMenu() {
+  isLoading.value = true
+  const payload = serviceStore.items.find((item) => item._id === serviceStore.selectedRest).slug
+  await menuStore.getOutletDetails(payload)
+  await menuStore.getCategories()
+  isLoading.value = false
+}
 </script>
