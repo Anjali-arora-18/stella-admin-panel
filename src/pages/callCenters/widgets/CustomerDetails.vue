@@ -13,12 +13,13 @@
       <div v-show="isOpen" class="space-y-3">
         <!-- Toggle Buttons -->
         <div class="flex bg-gray-100 rounded overflow-hidden text-sm">
-          <button class="flex-1 py-1 font-semibold text-white bg-blue-500">
+          <button @click="selectedTab = 'takeaway'" :class="selectedTab == 'takeaway' ? 'bg-blue-500 text-white font-semibold' : 'text-gray-600 hover:bg-gray-200'" class="flex-1 py-1 transition-colors">
             Takeaway
           </button>
-          <button class="flex-1 py-1 text-gray-600 hover:bg-gray-200">
+          <button @click="selectedTab = 'delivery'" :class="selectedTab == 'delivery' ? 'bg-blue-500 text-white font-semibold' : 'text-gray-600 hover:bg-gray-200'" class="flex-1 py-1 transition-colors">
             Delivery
           </button>
+          
         </div>
 
         <!-- Phone & Name -->
@@ -38,6 +39,15 @@
           <button class="text-blue-600 bg-blue-600 px-2 py-1 rounded-lg hover:text-blue-800">
             🔍
           </button>
+        </div>
+
+        <!-- Show Postcode if Delivery -->
+        <div v-if="selectedTab === 'delivery'">
+          <input
+            type="text"
+            placeholder="Postcode"
+            class="w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          />
         </div>
 
         <!-- Points & Add New -->
@@ -80,6 +90,7 @@
 <script setup>
 import { ref } from 'vue'
 const isOpen = ref(true)
+const selectedTab = ref('takeaway');
 </script>
 
 <style scoped>

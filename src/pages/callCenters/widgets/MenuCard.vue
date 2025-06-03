@@ -1,7 +1,7 @@
 <!-- components/MenuCard.vue -->
 <template>
-    <div
-        class="bg-white border border-gray-200 hover:border-blue-500 rounded-xl p-4 shadow-sm flex items-center justify-between hover:shadow-md transition min-w-full sm:min-w-[200px]">
+    <div @click="openMenuModal" 
+        class="menu-card bg-white border border-gray-200 hover:border-blue-500 rounded-xl p-4 shadow-sm flex items-center justify-between hover:shadow-md transition min-w-full sm:min-w-[200px]">
         <!-- Text Content -->
         <div class="flex-1 text-left">
             <p class="font-semibold text-gray-800 text-sm truncate">{{ item.title }}</p>
@@ -11,10 +11,29 @@
         <!-- Image -->
         <img :src="item.icon" alt="icon" class="w-12 h-12 ml-4 bg-slate-200 p-2" />
     </div>
+    <MenuModal v-model="showMenuModal" @cancel="closeMenuModal" />
 </template>
 
 <script setup>
+import { ref } from 'vue';
+import MenuModal from '../modals/MenuModal.vue'
+
 defineProps({
     item: Object
 });
+
+const showMenuModal = ref(false);
+
+function openMenuModal() {
+  showMenuModal.value = true
+}
+function closeMenuModal() {
+  showMenuModal.value = false
+}
 </script>
+
+<style scoped>
+    .menu-card{
+        cursor: pointer;
+    }
+</style>

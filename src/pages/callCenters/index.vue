@@ -6,23 +6,26 @@
         <div class="md:col-span-5 bg-slate-100 p-4">
             <VaCard>
                 <VaCardContent>
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div class="flex flex-wrap gap-4">
-                            <a href="#appetizers" class="bg-blue-500 text-white px-4 py-2 rounded-2xl">Appetizers</a>
-                            <a href="#main_course" class="bg-gray-200 px-4 py-2 rounded-2xl hover:bg-gray-300">Main
-                                Courses</a>
-                            <a href="#desserts" class="bg-gray-200 px-4 py-2 rounded-2xl hover:bg-gray-300">Desserts</a>
-                            <a href="#beverages"
-                                class="bg-gray-200 px-4 py-2 rounded-2xl hover:bg-gray-300">Beverages</a>
-                            <a href="#salads" class="bg-gray-200 px-4 py-2 rounded-2xl hover:bg-gray-300">Salads</a>
+                    <div class="overflow-x-auto">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div class="flex flex-wrap gap-4">
+                                <a href="#appetizers" class="bg-blue-500 text-white px-4 py-2 rounded-2xl">Appetizers</a>
+                                <a href="#main_course" class="bg-gray-200 px-4 py-2 rounded-2xl hover:bg-gray-300">Main
+                                    Courses</a>
+                                <a href="#desserts" class="bg-gray-200 px-4 py-2 rounded-2xl hover:bg-gray-300">Desserts</a>
+                                <a href="#beverages"
+                                    class="bg-gray-200 px-4 py-2 rounded-2xl hover:bg-gray-300">Beverages</a>
+                                <a href="#salads" class="bg-gray-200 px-4 py-2 rounded-2xl hover:bg-gray-300">Salads</a>
+                            </div>
+                            <div class="flex"><span class="bg-black px-4 py-4 text-white text-2xl rounded"> 20:35</span>
+                            </div>
                         </div>
-                        <div class="flex"><span class="bg-black px-4 py-4 text-white text-2xl rounded"> 20:35</span>
-                        </div>
-                    </div>
+    
+                        <MenuSection id="appetizers" title="Appetizers" :items="appetizers" />
+                        <MenuSection id="main_course" title="Main Courses" :items="main_courses" />
+                        <MenuSection id="desserts" title="Desserts" :items="desserts" />
 
-                    <MenuSection id="appetizers" title="Appetizers" :items="appetizers" />
-                    <MenuSection id="main_course" title="Main Courses" :items="main_courses" />
-                    <MenuSection id="desserts" title="Desserts" :items="desserts" />
+                    </div>
                 </VaCardContent>
             </VaCard>
 
