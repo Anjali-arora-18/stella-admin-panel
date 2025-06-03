@@ -14,8 +14,8 @@
           <!-- Image -->
           <div class="flex justify-center mb-4">
             <img
-              src="/allergens/vegan.png"
-              alt="Pizza"
+              :src="item.imageUrl || '/missing-image.png'"
+              alt="icon"
               class="w-36 h-36 rounded-full bg-white p-4 object-cover object-center shadow-[0_8px_25px_rgba(0,0,0,0.1)]"
             />
           </div>
@@ -29,7 +29,20 @@
           </p>
 
           <!-- Tags -->
-          <div class="flex flex-wrap justify-center gap-1 mt-3 text-xs">
+
+          <div
+            v-if="item.allergenIds && item.allergenIds.length"
+            class="flex flex-wrap justify-center gap-1 mt-3 text-xs"
+          >
+            <img
+              v-for="allergenId in item.allergenIds"
+              :key="allergenId"
+              :src="allergenIcons[allergenId]"
+              :alt="`Allergen ${allergenId}`"
+              class="w-8 h-8 object-contain bg-pink-100 text-pink-600 px-2 py-1 rounded-full flex items-center gap-1"
+            />
+          </div>
+          <!-- <div class="flex flex-wrap justify-center gap-1 mt-3 text-xs">
             <span
               v-for="alergen in item.allergenIds"
               :key="alergen"
@@ -37,10 +50,10 @@
             >
               {{ alergen }}
             </span>
-          </div>
+          </div> -->
 
           <!-- Price -->
-          <div class="text-green-900 font-bold text-2xl mt-4">€ {{ item.price }}</div>
+          <div class="text-green-900 font-bold text-2xl mt-4">€ {{ parseFloat(item.price).toFixed(2) }}</div>
 
           <!-- Button -->
           <button
@@ -302,6 +315,33 @@ const props = defineProps({
 watch(showMenuModal, (val) => {
   if (!val) emits('cancel')
 })
+
+const allergenIcons = {
+  1: '/allergens/vegan.png',
+  2: '/allergens/plant_based.png',
+  3: '/allergens/vegetarian.png',
+  4: '/allergens/pescatarian.png',
+  5: '/allergens/spicy.png',
+  6: '/allergens/halal.png',
+  7: '/allergens/kosher.png',
+  8: '/allergens/gluten_free.png',
+  9: '/allergens/dairy_free.png',
+  10: '/allergens/nut_free.png',
+  11: '/allergens/gluten.png',
+  12: '/allergens/crustaceans.png',
+  13: '/allergens/eggs.png',
+  14: '/allergens/fish.png',
+  15: '/allergens/peanuts.png',
+  16: '/allergens/soybeans.png',
+  17: '/allergens/milk.png',
+  18: '/allergens/nuts.png',
+  19: '/allergens/celery.png',
+  20: '/allergens/mustard.png',
+  21: '/allergens/sesame_seeds.png',
+  22: '/allergens/sulphur_dioxide.png',
+  23: '/allergens/lupin.png',
+  24: '/allergens/molluscs.png',
+}
 
 const selectedSize = ref('Medium')
 const selectedCrust = ref('Medium')
