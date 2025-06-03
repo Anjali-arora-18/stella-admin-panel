@@ -6,12 +6,12 @@
     <!-- Text Content -->
     <div class="flex-1 text-left">
       <p class="font-semibold text-gray-800 text-sm truncate">{{ item.name }}</p>
-      <p class="text-blue-600 font-semibold mt-1 text-sm">{{ item.price }}</p>
+      <p class="text-blue-600 font-semibold mt-1 text-sm">€{{ parseFloat(item.price).toFixed(2) }}</p>
     </div>
 
     <!-- Image -->
     <img :src="item.imageUrl || '/missing-image.png'" alt="icon" class="w-12 h-12 ml-4 bg-slate-200 p-2" />
-    <MenuModal v-model="showMenuModal" @cancel="closeMenuModal" />
+    <MenuModal :item="item" v-model="showMenuModal" @cancel="closeMenuModal" />
   </div>
 </template>
 
