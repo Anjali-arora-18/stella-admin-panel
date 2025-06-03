@@ -1,6 +1,6 @@
 <template>
   <div
-    class="bg-white border border-gray-200 hover:border-blue-500 rounded-xl p-4 shadow-sm flex items-center justify-between hover:shadow-md transition min-w-full sm:min-w-[200px]"
+    class="cursor-pointer bg-white border border-gray-200 hover:border-blue-500 rounded-xl p-4 shadow-sm flex items-center justify-between hover:shadow-md transition min-w-full sm:min-w-[200px]"
     @click="openMenuModal"
   >
     <!-- Text Content -->

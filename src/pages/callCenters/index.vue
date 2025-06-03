@@ -3,33 +3,35 @@
     <!-- LEFT SECTION -->
     <div class="md:col-span-5 bg-slate-100 p-4">
       <VaCard>
-        <VaCardContent class="overflow-x-scroll">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            <div class="flex flex-wrap gap-2">
-              <a
-                v-for="item in filteredCategories"
-                :key="item._id"
-                :href="`#${item._id}`"
-                class="text-white px-4 py-2 rounded-2xl"
-                :class="{
-                  'bg-blue-500': selectedItem === item._id,
-                  'bg-gray-300': selectedItem !== item._id,
-                }"
-                @click="selectedItem = item._id"
-              >
-                {{ toTitleCase(item.name) }}
-              </a>
+        <VaCardContent>
+          <div class="overflow-x-auto">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+              <div class="flex flex-wrap gap-2">
+                <a
+                  v-for="item in filteredCategories"
+                  :key="item._id"
+                  :href="`#${item._id}`"
+                  class="text-white px-4 py-2 rounded-2xl"
+                  :class="{
+                    'bg-blue-500': selectedItem === item._id,
+                    'bg-gray-300': selectedItem !== item._id,
+                  }"
+                  @click="selectedItem = item._id"
+                >
+                  {{ toTitleCase(item.name) }}
+                </a>
+              </div>
+              <div class="flex"><span class="bg-black px-4 py-4 text-white text-2xl rounded"> 20:35</span></div>
             </div>
-            <div class="flex"><span class="bg-black px-4 py-4 text-white text-2xl rounded"> 20:35</span></div>
-          </div>
 
-          <MenuSection
-            v-for="cat in filteredCategories"
-            :id="cat._id"
-            :key="cat.name"
-            :title="cat.name"
-            :items="cat.menuItems"
-          />
+            <MenuSection
+              v-for="cat in filteredCategories"
+              :id="cat._id"
+              :key="cat.name"
+              :title="cat.name"
+              :items="cat.menuItems"
+            />
+          </div>
         </VaCardContent>
       </VaCard>
     </div>
