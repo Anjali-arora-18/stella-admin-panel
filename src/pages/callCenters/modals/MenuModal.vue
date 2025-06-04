@@ -1,5 +1,5 @@
 <template>
-    <VaModal v-model="showMenuModal" class="big-modal !p-0" :mobile-fullscreen="false" size="large" hide-default-actions
+    <VaModal v-model="showMenuModal" class="big-modal no-padding-modal" :mobile-fullscreen="false" size="large" hide-default-actions
         close-button>
         <div class="grid grid-cols-1 sm:grid-cols-7">
             <!-- LEFT SECTION -->
@@ -293,3 +293,13 @@ function decrement(item) {
     if (item.quantity > 0) item.quantity--
 }
 </script>
+
+<style scoped>
+
+::v-deep(.no-padding-modal .va-modal__inner),
+::v-deep(.no-padding-modal .va-modal__content),
+::v-deep(.no-padding-modal .va-modal__dialog),
+::v-deep(.no-padding-modal .va-modal__body) {
+  padding: 0 !important;
+}
+</style>

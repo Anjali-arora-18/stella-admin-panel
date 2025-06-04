@@ -55,7 +55,7 @@
           <div class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded">
             Points: 250 – €2.50
           </div>
-          <button class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600">
+          <button class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600" @click="openCustomerModal">
             + Add New
           </button>
         </div>
@@ -85,12 +85,25 @@
       </div>
     </transition>
   </div>
+    <CustomerModal v-model="showCustomerModal" @cancel="closeCustomerModal" />
+
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import CustomerModal from '../modals/CustomerModal.vue'
+
 const isOpen = ref(true)
 const selectedTab = ref('takeaway');
+
+const showCustomerModal = ref(false)
+
+function openCustomerModal() {
+  showCustomerModal.value = true
+}
+function closeCustomerModal() {
+  showCustomerModal.value = false
+}
 </script>
 
 <style scoped>
