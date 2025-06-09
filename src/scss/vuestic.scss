@@ -93,6 +93,11 @@
   min-height: 500px;
 }
 
+.big-xl-modal .va-modal__dialog {
+  min-height: 500px;
+  min-width: 95vw;
+}
+
 .big-modal .va-modal__dialog .va-stepper__step-content {
   margin-bottom: 0px !important;
   margin-top: 0px !important;

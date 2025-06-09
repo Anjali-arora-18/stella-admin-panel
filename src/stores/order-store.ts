@@ -34,50 +34,25 @@ export const useOrderStore = defineStore('order', {
     removeItem(index: number) {
       this.cartItems.splice(index, 1)
     },
-    // calculateItemTotal(itemIndex: number) {
-    //   const item = this.cartItems[itemIndex]
-
-    //   let total = item.basePrice;
-    //   let selectionTotal = 0;
-
-    //   item.selectedOptions.forEach(group => {
-    //     group.selected.forEach(selection => {
-    //       total += selection.price * selection.quantity
-    //       selectionTotal += selection.price * selection.quantity
-    //     })
-    //   })
-
-    //   total = total * item.quantity
-
-    //   this.cartItems[itemIndex].totalPrice = total
-    //   this.cartItems[itemIndex].selectionTotalPrice = selectionTotal
-    //   console.log('cartItems3', this.cartItems);
-    // },
-
     calculateItemTotal(itemIndex: number) {
       const item = this.cartItems[itemIndex]
 
-      let total = item.basePrice;
-      let selectionTotal = 0;
+      let total = item.basePrice
+      let selectionTotal = 0
 
-      item.selectedOptions.forEach(group => {
-        group.selected.forEach(selection => {
+      item.selectedOptions.forEach((group) => {
+        group.selected.forEach((selection) => {
           total += selection.price * selection.quantity
           selectionTotal += selection.price * selection.quantity
         })
       })
 
       total = total * item.quantity
-
-      // ✅ Replace the entire object
       this.cartItems[itemIndex] = {
         ...item,
         totalPrice: total,
-        selectionTotalPrice: selectionTotal
+        selectionTotalPrice: selectionTotal,
       }
-    }
-
-
-
+    },
   },
 })

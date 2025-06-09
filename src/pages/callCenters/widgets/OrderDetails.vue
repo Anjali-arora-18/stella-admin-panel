@@ -4,7 +4,6 @@
     <h2 class="font-semibold text-lg text-gray-800 border-b pb-2">Order Details</h2>
 
     <template v-if="items.length">
-
       <!-- Promo Code -->
       <VaInput v-model="promoCode" class="my-4" placeholder="Promotion Code" size="small" input-class="text-sm" />
 
@@ -22,26 +21,42 @@
           <div class="flex-1 px-2">
             <div class="flex justify-between items-center">
               <span class="font-medium text-gray-800">{{ item.name }}</span>
-              <VaIcon name="edit" size="small" @click="getMenuOptions(item.fullItem)"
-                class="text-yellow-600 cursor-pointer" />
+              <VaIcon
+                name="edit"
+                size="small"
+                class="text-yellow-600 cursor-pointer"
+                @click="getMenuOptions(item.fullItem)"
+              />
             </div>
 
             <!-- Options -->
             <div class="flex flex-wrap gap-1 mt-1 text-xs">
-              <span v-for="option in item.additions" :key="option"
-                class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+              <span
+                v-for="option in item.additions"
+                :key="option"
+                class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full"
+              >
                 {{ option }}
               </span>
-              <span v-for="removal in item.removals" :key="removal"
-                class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
+              <span
+                v-for="removal in item.removals"
+                :key="removal"
+                class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full"
+              >
                 -{{ removal }}
               </span>
-              <span v-for="modifier in item.modifierType" :key="modifier"
-                class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+              <span
+                v-for="modifier in item.modifierType"
+                :key="modifier"
+                class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full"
+              >
                 *{{ modifier }}
               </span>
-              <span v-for="article in item.articleType" :key="article"
-                class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+              <span
+                v-for="article in item.articleType"
+                :key="article"
+                class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full"
+              >
                 {{ article }}
               </span>
             </div>
@@ -49,7 +64,9 @@
             <!-- Base Info -->
             <p class="text-[11px] text-gray-500 mt-1 italic">
               Base: €{{ item.basePrice.toFixed(2) }} + €{{ item.selectionTotalPrice.toFixed(2) }} = €{{
-                item.unitTotal.toFixed(2) }} each
+                item.unitTotal.toFixed(2)
+              }}
+              each
             </p>
           </div>
 
@@ -76,18 +93,18 @@
 
       <!-- Checkout -->
       <VaButton class="mt-4 w-full" color="success" size="large"> Checkout Order </VaButton>
-
     </template>
     <template v-else>
-      <div>
-        No Orders Selected
-      </div>
+      <div>No Orders Selected</div>
     </template>
-
   </div>
-  <MenuModal :item="selectedItemWithArticlesOptionsGroups" v-model="showMenuModal" @cancel="closeMenuModal"
-    :isEdit="isEdit" @cancel-edit="isEdit = false; " />
-
+  <MenuModal
+    v-model="showMenuModal"
+    :item="selectedItemWithArticlesOptionsGroups"
+    :is-edit="isEdit"
+    @cancel="closeMenuModal"
+    @cancelEdit="isEdit = false"
+  />
 </template>
 
 <script setup>
@@ -103,24 +120,23 @@ const promoCode = ref('')
 const orderStore = useOrderStore()
 const { cartItems } = storeToRefs(orderStore)
 
-
 const items = computed(() =>
   cartItems.value.map((item, index) => {
     const additions = []
-    const removals = [] // assuming you later add removals logic
-    const modifierType = [] // assuming you later add removals logic
-    const articleType = [] // assuming you later add removals logic
+    const removals = []
+    const modifierType = []
+    const articleType = []
 
-    item.selectedOptions.forEach(group => {
-      group.selected.forEach(sel => {
+    item.selectedOptions.forEach((group) => {
+      group.selected.forEach((sel) => {
         if (sel.type == 'hold') {
-          removals.push(`${sel.name} (+€${sel.price.toFixed(2)})`)
+          removals.push(`${sel.name} (+€${sel.price.toFixed(2) * sel.quantity})`)
         } else if (sel.type == 'extra') {
-          additions.push(`${sel.name} (+€${sel.price.toFixed(2)})`)
+          additions.push(`${sel.name} (+€${sel.price.toFixed(2) * sel.quantity})`)
         } else if (sel.type == 'modifier') {
-          modifierType.push(`${sel.name} (+€${sel.price.toFixed(2)})`)
+          modifierType.push(`${sel.name} (+€${sel.price.toFixed(2) * sel.quantity})`)
         } else if (sel.type == 'article') {
-          articleType.push(`${sel.name} (+€${sel.price.toFixed(2)})`)
+          articleType.push(`${sel.name} (+€${sel.price.toFixed(2) * sel.quantity})`)
         }
       })
     })
@@ -139,12 +155,10 @@ const items = computed(() =>
       articleType,
       unitTotal,
       total: item.totalPrice,
-      fullItem: item
+      fullItem: item,
     }
-  })
+  }),
 )
-
-
 
 const deliveryFee = ref(2.5)
 
@@ -153,8 +167,7 @@ const subtotal = computed(() => items.value.reduce((sum, item) => sum + item.tot
 const total = computed(() => subtotal.value + deliveryFee.value)
 
 const increaseQty = (item) => {
-
-  const index = cartItems.value.findIndex(i => i.itemId === item.id)
+  const index = cartItems.value.findIndex((i) => i.itemId === item.id)
   if (index !== -1) {
     orderStore.cartItems[index].quantity++
     orderStore.calculateItemTotal(index)
@@ -162,14 +175,12 @@ const increaseQty = (item) => {
 }
 
 const decreaseQty = (item) => {
-
-  const index = cartItems.value.findIndex(i => i.itemId === item.id)
+  const index = cartItems.value.findIndex((i) => i.itemId === item.id)
   if (index !== -1 && orderStore.cartItems[index].quantity > 1) {
     orderStore.cartItems[index].quantity--
     orderStore.calculateItemTotal(index)
   }
 }
-
 
 // -----------------TO OPEN THE EDIT MODAL-------------------------
 
@@ -182,7 +193,7 @@ const { init } = useToast()
 const getMenuOptions = async (selectedItem) => {
   const url = import.meta.env.VITE_API_BASE_URL
   isLoading.value = true
-  isEdit.value = true;
+  isEdit.value = true
   try {
     console.log('edit response', selectedItem)
     const response = await axios.get(`${url}/menuItemvoById/${selectedItem.itemId}`)
@@ -195,14 +206,12 @@ const getMenuOptions = async (selectedItem) => {
       articlesOptionsGroups: articlesOptionsGroups || [],
     }
 
-    console.log('selectedItemWithArticlesOptionsGroups', selectedItemWithArticlesOptionsGroups.value);
-
+    console.log('selectedItemWithArticlesOptionsGroups', selectedItemWithArticlesOptionsGroups.value)
 
     // Open modal if there are any groups
     if (articlesOptionsGroups && articlesOptionsGroups.length) {
       openMenuModal()
     }
-
   } catch (error) {
     init({ message: 'Something went wrong', color: 'danger' })
   } finally {
@@ -214,8 +223,6 @@ function openMenuModal() {
 }
 function closeMenuModal() {
   showMenuModal.value = false
-  isEdit.value = false;
-  
+  isEdit.value = false
 }
-
 </script>
