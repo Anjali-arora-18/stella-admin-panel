@@ -50,9 +50,27 @@
             <!-- Group Title -->
             <div class="flex items-center gap-2">
               <span class="text-green-900 font-semibold uppercase text-sm">{{ group.name }}</span>
-              <span v-if="group.mandatory"
-                class="text-[10px] bg-red-500 text-white font-semibold px-2 rounded-full uppercase">
+              <span v-if="group.mandatory" class="text-[10px] bg-red-500 text-white font-semibold px-2 rounded-full">
                 Required
+              </span>
+              <!-- Min Choices -->
+
+              <span v-if="group.minimumChoices"
+                class="text-[10px] bg-blue-100 text-blue-700 font-semibold px-2 rounded-full">
+
+                Min {{ group.minimumChoices }} {{ group.minimumChoices === 1 ? 'Choice' : 'Choices' }}
+
+              </span>
+
+
+
+              <!-- Max Choices -->
+
+              <span v-if="group.maximumChoices"
+                class="text-[10px] bg-blue-100 text-blue-700 font-semibold px-2 rounded-full">
+
+                Up to {{ group.maximumChoices }} Choices
+
               </span>
             </div>
 
@@ -62,8 +80,8 @@
               <label v-for="option in group.options" v-if="group.singleChoice" :key="option._id"
                 class="relative w-full sm:w-[160px] flex items-center border p-2 rounded-lg cursor-pointer transition-all"
                 :class="selectedOptions[group._id] === option._id
-                    ? 'border-gray-700 bg-[#f8f9fa] border-2'
-                    : 'border-gray-200 hover:border-gray-700 hover:border-2'
+                  ? 'border-gray-700 bg-[#f8f9fa] border-2'
+                  : 'border-gray-200 hover:border-gray-700 hover:border-2'
                   " @click="updateSingleChoice(group, option)">
                 <img :src="option.icon || '/missing-image.png'" alt="Option"
                   :class="selectedOptions[group._id] === option._id ? 'bg-white' : 'bg-[#f8f9fa]'"
@@ -79,8 +97,8 @@
               <div v-for="option in group.options" v-if="group.multipleChoice" :key="option._id"
                 class="relative flex flex-col justify-between border rounded-xl p-3 min-w-[180px] transition hover:shadow-sm"
                 :class="getQty(group._id, option._id) > 0
-                    ? 'border-gray-700 bg-[#f8f9fa] border-2'
-                    : 'border-gray-200 hover:border-gray-700 hover:border-2'
+                  ? 'border-gray-700 bg-[#f8f9fa] border-2'
+                  : 'border-gray-200 hover:border-gray-700 hover:border-2'
                   ">
                 <!-- Top content -->
                 <div class="flex items-center gap-3 pr-20">
@@ -100,7 +118,9 @@
                     -
                   </button>
                   <span class="w-5 text-center text-sm">{{ getQty(group._id, option._id) }}</span>
-                  <button class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100"
+                  <button
+                    class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50"
+                    :disabled="getTotalQtyInGroup(group._id) >= group.maximumChoices"
                     @click="() => updateMultipleChoice(group, option, getQty(group._id, option._id) + 1)">
                     +
                   </button>
@@ -146,6 +166,17 @@ const isFormValid = computed(() => {
     if (!selectedGroup || !selectedGroup.selected.length) {
       return false // required group is not selected
     }
+
+    // For multipleChoice with minimumChoices, ensure total quantity is enough
+
+    if (group.multipleChoice && group.minimumChoices) {
+
+      const totalQty = selectedGroup.selected.reduce((sum, opt) => sum + (opt.quantity || 0), 0)
+
+      if (totalQty < group.minimumChoices) return false
+
+    }
+
   }
 
   return true // all required groups have selection
@@ -274,6 +305,16 @@ function getQty(groupId, optionId) {
   const group = selectedOptions.value.find((g) => g.groupId === groupId)
   const opt = group?.selected.find((o) => o.optionId === optionId)
   return opt?.quantity || 0
+}
+
+function getTotalQtyInGroup(groupId: string) {
+
+  const group = selectedOptions.value.find((g) => g.groupId === groupId)
+
+  if (!group) return 0
+
+  return group.selected.reduce((sum, opt) => sum + (opt.quantity || 0), 0)
+
 }
 
 watch(showMenuModal, (val) => {
