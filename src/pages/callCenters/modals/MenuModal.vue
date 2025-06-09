@@ -1,14 +1,23 @@
 <template>
-  <VaModal v-model="showMenuModal" class="big-modal !p-0" :mobile-fullscreen="false" size="large" hide-default-actions
-    close-button>
+  <VaModal
+    v-model="showMenuModal"
+    class="big-modal !p-0"
+    :mobile-fullscreen="false"
+    size="large"
+    hide-default-actions
+    close-button
+  >
     <div class="grid grid-cols-1 sm:grid-cols-7">
       <!-- LEFT SECTION -->
       <div class="sm:col-span-2 bg-slate-100 p-4 sm:p-1 md:p-4">
         <div class="p-4 sm:p-1 md:p-4 text-center w-full mx-auto">
           <!-- Image -->
           <div class="flex justify-center mb-4">
-            <img :src="item.imageUrl || '/missing-image.png'" alt="icon"
-              class="w-36 h-36 rounded-full bg-white p-4 object-cover object-center shadow-[0_8px_25px_rgba(0,0,0,0.1)]" />
+            <img
+              :src="item.imageUrl || '/missing-image.png'"
+              alt="icon"
+              class="w-36 h-36 rounded-full bg-white p-4 object-cover object-center shadow-[0_8px_25px_rgba(0,0,0,0.1)]"
+            />
           </div>
 
           <!-- Title -->
@@ -21,35 +30,32 @@
 
           <!-- Tags -->
 
-          <div v-if="item.allergenIds && item.allergenIds.length"
-            class="flex flex-wrap justify-center gap-1 mt-3 text-xs">
-            <img v-for="allergenId in item.allergenIds" :key="allergenId" :src="allergenIcons[allergenId]"
+          <div
+            v-if="item.allergenIds && item.allergenIds.length"
+            class="flex flex-wrap justify-center gap-1 mt-3 text-xs"
+          >
+            <img
+              v-for="allergenId in item.allergenIds"
+              :key="allergenId"
+              :src="allergenIcons[allergenId] || '/missing-image.png'"
               :alt="`Allergen ${allergenId}`"
-              class="w-8 h-8 object-contain bg-pink-100 text-pink-600 px-2 py-1 rounded-full flex items-center gap-1" />
+              class="w-8 h-8 object-contain bg-pink-100 text-pink-600 px-2 py-1 rounded-full flex items-center gap-1"
+            />
           </div>
-          <!-- <div class="flex flex-wrap justify-center gap-1 mt-3 text-xs">
-                    <span
-                      v-for="alergen in item.allergenIds"
-                      :key="alergen"
-                      class="bg-pink-100 text-pink-600 px-2 py-1 rounded-full flex items-center gap-1"
-                    >
-                      {{ alergen }}
-                    </span>
-                  </div> -->
 
           <!-- Price -->
-          <div class="text-green-900 font-bold text-2xl mt-4">€ {{ totalPrice }}</div>
+          <div class="text-green-900 font-bold text-2xl mt-4">€{{ parseFloat(totalPrice).toFixed(2) }}</div>
 
           <!-- Button -->
-          <button @click="addToBasket(item)" :disabled="!isFormValid"
-            class="mt-4 w-full bg-green-800 hover:bg-green-900 text-white font-semibold py-2 rounded-lg transition">
+          <button
+            :disabled="!isFormValid"
+            class="mt-4 w-full bg-green-800 hover:bg-green-900 text-white font-semibold py-2 rounded-lg transition"
+            @click="addToBasket(item)"
+          >
             ADD TO BASKET
           </button>
 
-          <p v-if="!isFormValid" class="text-red-500 text-xs mt-2 text-center">
-            Please select all required options.
-          </p>
-
+          <p v-if="!isFormValid" class="text-red-500 text-xs mt-2 text-center">Please select all required options.</p>
         </div>
       </div>
 
@@ -60,8 +66,10 @@
             <!-- Group Title -->
             <div class="flex items-center gap-2">
               <span class="text-green-900 font-semibold uppercase text-sm">{{ group.name }}</span>
-              <span v-if="group.mandatory"
-                class="text-[10px] bg-red-500 text-white font-semibold px-2 rounded-full uppercase">
+              <span
+                v-if="group.mandatory"
+                class="text-[10px] bg-red-500 text-white font-semibold px-2 rounded-full uppercase"
+              >
                 Required
               </span>
             </div>
@@ -69,83 +77,85 @@
             <!-- Group Options -->
             <div class="flex flex-wrap gap-4">
               <!-- Single Choice (Radio) -->
-              <label v-if="group.singleChoice" v-for="option in group.options" :key="option._id"
-                @click="updateSingleChoice(group, option)"
+              <label
+                v-for="option in group.options"
+                v-if="group.singleChoice"
+                :key="option._id"
                 class="relative w-full sm:w-[160px] flex items-center border p-2 rounded-lg cursor-pointer transition-all"
-                :class="selectedOptions[group._id] === option._id
-                  ? 'border-gray-700 bg-[#f8f9fa] border-2'
-                  : 'border-gray-200 hover:border-gray-700 hover:border-2'">
-                <img :src="option.icon || '/missing-image.png'" alt="Option"
+                :class="
+                  selectedOptions[group._id] === option._id
+                    ? 'border-gray-700 bg-[#f8f9fa] border-2'
+                    : 'border-gray-200 hover:border-gray-700 hover:border-2'
+                "
+                @click="updateSingleChoice(group, option)"
+              >
+                <img
+                  :src="option.icon || '/missing-image.png'"
+                  alt="Option"
                   :class="selectedOptions[group._id] === option._id ? 'bg-white' : 'bg-[#f8f9fa]'"
-                  class="w-10 h-10 object-cover rounded mr-4 p-2" />
+                  class="w-10 h-10 object-cover rounded mr-4 p-2"
+                />
                 <div class="flex-1">
                   <div class="text-sm font-semibold text-gray-800">{{ option.name }}</div>
-                  <div class="text-gray-800 font-semibold text-sm mt-1">€{{ option.price }}</div>
+                  <div class="text-gray-800 font-semibold text-sm mt-1">€{{ parseFloat(option.price).toFixed(2) }}</div>
                 </div>
-                <input v-model="selectedOptions[group._id]" type="radio" :name="group._id" :value="option._id"
-                  class="absolute bottom-2 right-2 accent-gray-700" />
+                <input
+                  v-model="selectedOptions[group._id]"
+                  type="radio"
+                  :name="group._id"
+                  :value="option._id"
+                  class="absolute bottom-2 right-2 accent-gray-700"
+                />
               </label>
 
-              <!-- Multiple Choice (Checkbox) -->
-              <!-- <label v-else v-for="option in group.options" :key="option._id"
-                class="relative w-full sm:w-[160px] flex items-center border p-2 rounded-lg cursor-pointer transition-all"
-                :class="selectedMultiOptions[group._id]?.includes(option._id)
-                  ? 'border-gray-700 bg-[#f8f9fa] border-2'
-                  : 'border-gray-200 hover:border-gray-700 hover:border-2'">
-                <img :src="option.icon || placeholderImage" alt="Option"
-                  :class="selectedMultiOptions[group._id]?.includes(option._id) ? 'bg-white' : 'bg-[#f8f9fa]'"
-                  class="w-10 h-10 object-cover rounded mr-4 p-2" />
-                <div class="flex-1">
-                  <div class="text-sm font-semibold text-gray-800">{{ option.name }}</div>
-                  <div class="text-gray-800 font-semibold text-sm mt-1">€{{ option.price }}</div>
-                </div>
-                <input v-model="selectedMultiOptions[group._id]" type="checkbox" :value="option._id"
-                  class="absolute bottom-2 right-2 accent-gray-700" />
-              </label> -->
-
-
-              <div v-if="group.multipleChoice" v-for="option in group.options" :key="option._id"
+              <div
+                v-for="option in group.options"
+                v-if="group.multipleChoice"
+                :key="option._id"
                 class="relative flex flex-col justify-between border rounded-xl p-3 min-w-[180px] transition hover:shadow-sm"
-                :class="getQty(group._id, option._id) > 0
-                  ? 'border-gray-700 bg-[#f8f9fa] border-2'
-                  : 'border-gray-200 hover:border-gray-700 hover:border-2'
-                  ">
+                :class="
+                  getQty(group._id, option._id) > 0
+                    ? 'border-gray-700 bg-[#f8f9fa] border-2'
+                    : 'border-gray-200 hover:border-gray-700 hover:border-2'
+                "
+              >
                 <!-- Top content -->
                 <div class="flex items-center gap-3 pr-20">
-                  <img :src="item.imageUrl" alt="topping"
+                  <img
+                    :src="item.imageUrl || '/missing-image.png'"
+                    alt="topping"
                     :class="getQty(group._id, option._id) > 0 ? 'bg-white' : 'bg-[#f8f9fa]'"
-                    class="w-10 h-10 object-cover rounded mr-4 p-2" />
+                    class="w-10 h-10 object-cover rounded mr-4 p-2"
+                  />
                   <div class="text-left">
                     <p class="font-semibold text-sm text-gray-800">{{ option.name }}</p>
-                    <p class="text-sm text-gray-600 font-medium">€{{ option.price }}</p>
+                    <p class="text-sm text-gray-600 font-medium">€{{ parseFloat(option.price).toFixed(2) }}</p>
                   </div>
                 </div>
 
                 <!-- Bottom-right quantity control -->
                 <div class="absolute bottom-2 right-2 flex items-center gap-1">
-                  <button @click="() => updateMultipleChoice(group, option, getQty(group._id, option._id) - 1)"
-                    class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100">
+                  <button
+                    class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100"
+                    @click="() => updateMultipleChoice(group, option, getQty(group._id, option._id) - 1)"
+                  >
                     -
                   </button>
                   <span class="w-5 text-center text-sm">{{ getQty(group._id, option._id) }}</span>
-                  <button @click="() => updateMultipleChoice(group, option, getQty(group._id, option._id) + 1)"
-                    class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100">
+                  <button
+                    class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100"
+                    @click="() => updateMultipleChoice(group, option, getQty(group._id, option._id) + 1)"
+                  >
                     +
                   </button>
                 </div>
               </div>
-
             </div>
           </div>
-
-
         </div>
-
-
       </div>
     </div>
   </VaModal>
-
 </template>
 
 <script setup lang="ts">
@@ -154,9 +164,8 @@ import { useOrderStore } from '@/stores/order-store'
 
 const orderStore = useOrderStore()
 
-
 const showMenuModal = ref(true)
-const emits = defineEmits(['cancel', 'cancel-edit']);
+const emits = defineEmits(['cancel', 'cancel-edit'])
 
 const props = defineProps({
   item: {
@@ -169,19 +178,14 @@ const props = defineProps({
   },
 })
 
-
-
 // Store selected values
 const selectedOptions = ref([])
 
-console.log('props.item.articlesOptionsGroups', props.item);
-
-
 const isFormValid = computed(() => {
-  const requiredGroups = props.item.articlesOptionsGroups.filter(g => g.mandatory)
+  const requiredGroups = props.item.articlesOptionsGroups.filter((g) => g.mandatory)
 
   for (const group of requiredGroups) {
-    const selectedGroup = selectedOptions.value.find(sel => sel.groupId === group._id)
+    const selectedGroup = selectedOptions.value.find((sel) => sel.groupId === group._id)
 
     if (!selectedGroup || !selectedGroup.selected.length) {
       return false // required group is not selected
@@ -191,14 +195,11 @@ const isFormValid = computed(() => {
   return true // all required groups have selection
 })
 
-
 const totalPrice = computed(() => {
-  console.log('edit:::', props.item);
-
   let total = parseFloat(props.item.price) || props.item.basePrice || 0
 
-  selectedOptions.value.forEach(group => {
-    group.selected.forEach(option => {
+  selectedOptions.value.forEach((group) => {
+    group.selected.forEach((option) => {
       const price = parseFloat(option.price) || 0
       const quantity = option.quantity || 1 // for singleChoice, quantity will be 1
       total += price * quantity
@@ -208,100 +209,65 @@ const totalPrice = computed(() => {
   return total.toFixed(2)
 })
 
-// START: ONLY FOR EDITIONG
-
-// onMounted(() => {
-//   console.log('onmounted called');
-
-//   if (props.item?.selectedOptions) {
-//     console.log('onmounted called1');
-//     selectedOptions.value = JSON.parse(JSON.stringify(props.item.selectedOptions))
-//   }
-// })
 watch(
   () => [props.isEdit, props.item],
   ([isEdit, item]) => {
-    console.log('watch triggered:', isEdit)
     if (isEdit && props.item?.selectedOptions) {
-      console.log('watch triggered2:', props.item)
-      selectedOptions.value = props.item.selectedOptions
+      selectedOptions.value = JSON.parse(JSON.stringify(props.item.selectedOptions))
     }
   },
-  { immediate: true } // Optional: triggers on first mount
+  { immediate: true, deep: true },
 )
 
-// END: ONLY FOR EDITIONG
-
 function addToBasket(item: any) {
-  let productEntry = {
+  const productEntry = {
     itemId: props.isEdit ? item.itemId : item._id,
     itemName: props.isEdit ? item.itemName : item.name,
     basePrice: props.isEdit ? item.basePrice : parseFloat(item.price),
     imageUrl: item.imageUrl,
     quantity: props.isEdit ? item.quantity : 1,
-    selectedOptions: selectedOptions.value, // <-- you already have this
+    selectedOptions: selectedOptions.value,
     totalPrice: 0,
-    selectionTotalPrice: 0
+    selectionTotalPrice: 0,
   }
 
-  let index = null;
+  const index = null
   if (props.isEdit) {
-    // Find existing item index in cart
-    const index = orderStore.cartItems.findIndex(i => i.itemId === item._id)
-
+    const index = orderStore.cartItems.findIndex((i) => i.itemId === item.itemId)
     if (index !== -1) {
-      // Update existing item
       orderStore.cartItems.splice(index, 1)
-      orderStore.cartItems.splice(index, 0, structuredClone(productEntry))
-
-      // orderStore.cartItems[index] = productEntry
+      orderStore.cartItems.splice(index, 0, JSON.parse(JSON.stringify(productEntry)))
       orderStore.calculateItemTotal(index)
     }
   } else {
-    // Add as new item
     orderStore.addItemToCart(productEntry)
     const newIndex = orderStore.cartItems.length - 1
     orderStore.calculateItemTotal(newIndex)
   }
 
-  // // Add to cart
-  // orderStore.addItemToCart(productEntry)
-
-  // // Update total
-  // const idx = orderStore.cartItems.length - 1
-  // orderStore.calculateItemTotal(idx)
-
-  // // Optionally reset modal state
-  // selectedOptions.value = []
-  // showMenuModal.value = false;
-  // // if (props.isEdit) {
-  // emits('cancel-edit');
-  // // }
-
-  // Close modal & reset
   selectedOptions.value = []
   showMenuModal.value = false
 
-  // Emit cancel based on edit or not
   if (props.isEdit) {
     emits('cancel-edit')
   }
   emits('cancel')
 }
 
-
 function updateSingleChoice(group: any, option: any) {
-  const index = selectedOptions.value.findIndex(sel => sel.groupId === group._id)
+  const index = selectedOptions.value.findIndex((sel) => sel.groupId === group._id)
   const newEntry = {
     groupId: group._id,
     groupName: group.name,
-    selected: [{
-      optionId: option._id,
-      name: option.name,
-      type: option.type,
-      price: option.price,
-      quantity: 1
-    }]
+    selected: [
+      {
+        optionId: option._id,
+        name: option.name,
+        type: option.type,
+        price: option.price,
+        quantity: 1,
+      },
+    ],
   }
 
   if (index !== -1) {
@@ -309,27 +275,23 @@ function updateSingleChoice(group: any, option: any) {
   } else {
     selectedOptions.value.push(newEntry)
   }
-
-  // console.log('selectedOptions', selectedOptions.value);
-
 }
 
 function updateMultipleChoice(group, option, quantity) {
-  let groupEntry = selectedOptions.value.find(sel => sel.groupId === group._id)
+  let groupEntry = selectedOptions.value.find((sel) => sel.groupId === group._id)
 
   if (!groupEntry) {
     groupEntry = {
       groupId: group._id,
       groupName: group.name,
-      selected: []
+      selected: [],
     }
     selectedOptions.value.push(groupEntry)
   }
 
-  const optionIndex = groupEntry.selected.findIndex(o => o.optionId === option._id)
+  const optionIndex = groupEntry.selected.findIndex((o) => o.optionId === option._id)
 
   if (quantity === 0) {
-    // Remove if exists
     if (optionIndex !== -1) {
       groupEntry.selected.splice(optionIndex, 1)
     }
@@ -340,7 +302,7 @@ function updateMultipleChoice(group, option, quantity) {
         name: option.name,
         type: option.type,
         price: option.price,
-        quantity
+        quantity,
       }
 
       if (optionIndex !== -1) {
@@ -348,30 +310,18 @@ function updateMultipleChoice(group, option, quantity) {
       } else {
         groupEntry.selected.push(newOption)
       }
-
     }
   }
-  // console.log('multiple options', selectedOptions.value);
-
 }
 
 function getQty(groupId, optionId) {
-  const group = selectedOptions.value.find(g => g.groupId === groupId)
-  const opt = group?.selected.find(o => o.optionId === optionId)
+  const group = selectedOptions.value.find((g) => g.groupId === groupId)
+  const opt = group?.selected.find((o) => o.optionId === optionId)
   return opt?.quantity || 0
 }
 
-
-// Watch for closing the modal
 watch(showMenuModal, (val) => {
   if (!val) emits('cancel')
-
-  // console.log('onmounted called val', val);
-  // console.log('onmounted called props.item', props.item);
-  // if (props.item?.selectedOptions) {
-  //   console.log('onmounted called2');
-  //   selectedOptions.value = props.item.selectedOptions
-  // }
 })
 
 const allergenIcons = {
@@ -417,10 +367,4 @@ function decrement(item) {
 ::v-deep(.no-padding-modal .va-modal__body) {
   padding: 0 !important;
 }
-</style>
-<style scoped>
-/* .big-modal {
-  max-width: 90vw !important;
-  width: 90vw !important;
-} */
 </style>
