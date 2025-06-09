@@ -1,23 +1,14 @@
 <template>
-  <VaModal
-    v-model="showMenuModal"
-    class="big-xl-modal !p-0"
-    :mobile-fullscreen="false"
-    size="large"
-    hide-default-actions
-    close-button
-  >
-    <div class="grid grid-cols-1 sm:grid-cols-7">
+  <VaModal v-model="showMenuModal" class="big-xl-modal !p-0" :mobile-fullscreen="false" size="large"
+    hide-default-actions close-button>
+    <div class="grid grid-cols-1 sm:grid-cols-7 sm:max-h-[85vh]">
       <!-- LEFT SECTION -->
       <div class="sm:col-span-2 bg-slate-100 p-4 sm:p-1 md:p-4">
         <div class="p-4 sm:p-1 md:p-4 text-center w-full mx-auto">
           <!-- Image -->
           <div class="flex justify-center mb-4">
-            <img
-              :src="item.imageUrl || '/missing-image.png'"
-              alt="icon"
-              class="w-36 h-36 rounded-full bg-white p-4 object-cover object-center shadow-[0_8px_25px_rgba(0,0,0,0.1)]"
-            />
+            <img :src="item.imageUrl || '/missing-image.png'" alt="icon"
+              class="w-36 h-36 rounded-full bg-white p-4 object-cover object-center shadow-[0_8px_25px_rgba(0,0,0,0.1)]" />
           </div>
 
           <!-- Title -->
@@ -30,30 +21,22 @@
 
           <!-- Tags -->
 
-          <div
-            v-if="item.allergenIds && item.allergenIds.length"
-            class="flex flex-wrap justify-center gap-1 mt-3 text-xs"
-          >
-            <img
-              v-for="allergenId in item.allergenIds"
-              :key="allergenId"
-              :src="allergenIcons[allergenId] || '/missing-image.png'"
-              :alt="`Allergen ${allergenId}`"
-              class="w-8 h-8 object-contain bg-pink-100 text-pink-600 px-2 py-1 rounded-full flex items-center gap-1"
-            />
+          <div v-if="item.allergenIds && item.allergenIds.length"
+            class="flex flex-wrap justify-center gap-1 mt-3 text-xs">
+            <img v-for="allergenId in item.allergenIds" :key="allergenId"
+              :src="allergenIcons[allergenId] || '/missing-image.png'" :alt="`Allergen ${allergenId}`"
+              class="w-8 h-8 object-contain bg-pink-100 text-pink-600 px-2 py-1 rounded-full flex items-center gap-1" />
           </div>
 
           <!-- Price -->
           <div class="text-green-900 font-bold text-2xl mt-4">€{{ parseFloat(totalPrice).toFixed(2) }}</div>
 
           <!-- Button -->
-          <button
-            :disabled="!isFormValid"
+          <button :disabled="!isFormValid"
             class="mt-4 w-full bg-green-800 hover:bg-green-900 text-white font-semibold py-2 rounded-lg transition"
-            @click="addToBasket(item)"
-          >
-          {{ isEdit ? 'UPDATE BASKET' : 'ADD TO BASKET' }}
-            
+            @click="addToBasket(item)">
+            {{ isEdit ? 'UPDATE BASKET' : 'ADD TO BASKET' }}
+
           </button>
 
           <p v-if="!isFormValid" class="text-red-500 text-xs mt-2 text-center">Please select all required options.</p>
@@ -61,16 +44,14 @@
       </div>
 
       <!-- RIGHT SECTION -->
-      <div class="sm:col-span-5 bg-white p-4">
+      <div class="sm:col-span-5 bg-white p-4 sm:overflow-y-auto sm:max-h-[85vh]">
         <div class="space-y-6">
           <div v-for="group in item.articlesOptionsGroups" :key="group._id" class="space-y-4">
             <!-- Group Title -->
             <div class="flex items-center gap-2">
               <span class="text-green-900 font-semibold uppercase text-sm">{{ group.name }}</span>
-              <span
-                v-if="group.mandatory"
-                class="text-[10px] bg-red-500 text-white font-semibold px-2 rounded-full uppercase"
-              >
+              <span v-if="group.mandatory"
+                class="text-[10px] bg-red-500 text-white font-semibold px-2 rounded-full uppercase">
                 Required
               </span>
             </div>
@@ -78,56 +59,34 @@
             <!-- Group Options -->
             <div class="flex flex-wrap gap-4">
               <!-- Single Choice (Radio) -->
-              <label
-                v-for="option in group.options"
-                v-if="group.singleChoice"
-                :key="option._id"
+              <label v-for="option in group.options" v-if="group.singleChoice" :key="option._id"
                 class="relative w-full sm:w-[160px] flex items-center border p-2 rounded-lg cursor-pointer transition-all"
-                :class="
-                  selectedOptions[group._id] === option._id
+                :class="selectedOptions[group._id] === option._id
                     ? 'border-gray-700 bg-[#f8f9fa] border-2'
                     : 'border-gray-200 hover:border-gray-700 hover:border-2'
-                "
-                @click="updateSingleChoice(group, option)"
-              >
-                <img
-                  :src="option.icon || '/missing-image.png'"
-                  alt="Option"
+                  " @click="updateSingleChoice(group, option)">
+                <img :src="option.icon || '/missing-image.png'" alt="Option"
                   :class="selectedOptions[group._id] === option._id ? 'bg-white' : 'bg-[#f8f9fa]'"
-                  class="w-10 h-10 object-cover rounded mr-4 p-2"
-                />
+                  class="w-10 h-10 object-cover rounded mr-4 p-2" />
                 <div class="flex-1">
                   <div class="text-sm font-semibold text-gray-800">{{ option.name }}</div>
                   <div class="text-gray-800 font-semibold text-sm mt-1">€{{ parseFloat(option.price).toFixed(2) }}</div>
                 </div>
-                <input
-                  v-model="selectedOptions[group._id]"
-                  type="radio"
-                  :name="group._id"
-                  :value="option._id"
-                  class="absolute bottom-2 right-2 accent-gray-700"
-                />
+                <input v-model="selectedOptions[group._id]" type="radio" :name="group._id" :value="option._id"
+                  class="absolute bottom-2 right-2 accent-gray-700" />
               </label>
 
-              <div
-                v-for="option in group.options"
-                v-if="group.multipleChoice"
-                :key="option._id"
+              <div v-for="option in group.options" v-if="group.multipleChoice" :key="option._id"
                 class="relative flex flex-col justify-between border rounded-xl p-3 min-w-[180px] transition hover:shadow-sm"
-                :class="
-                  getQty(group._id, option._id) > 0
+                :class="getQty(group._id, option._id) > 0
                     ? 'border-gray-700 bg-[#f8f9fa] border-2'
                     : 'border-gray-200 hover:border-gray-700 hover:border-2'
-                "
-              >
+                  ">
                 <!-- Top content -->
                 <div class="flex items-center gap-3 pr-20">
-                  <img
-                    :src="item.imageUrl || '/missing-image.png'"
-                    alt="topping"
+                  <img :src="item.imageUrl || '/missing-image.png'" alt="topping"
                     :class="getQty(group._id, option._id) > 0 ? 'bg-white' : 'bg-[#f8f9fa]'"
-                    class="w-10 h-10 object-cover rounded mr-4 p-2"
-                  />
+                    class="w-10 h-10 object-cover rounded mr-4 p-2" />
                   <div class="text-left">
                     <p class="font-semibold text-sm text-gray-800">{{ option.name }}</p>
                     <p class="text-sm text-gray-600 font-medium">€{{ parseFloat(option.price).toFixed(2) }}</p>
@@ -136,17 +95,13 @@
 
                 <!-- Bottom-right quantity control -->
                 <div class="absolute bottom-2 right-2 flex items-center gap-1">
-                  <button
-                    class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100"
-                    @click="() => updateMultipleChoice(group, option, getQty(group._id, option._id) - 1)"
-                  >
+                  <button class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100"
+                    @click="() => updateMultipleChoice(group, option, getQty(group._id, option._id) - 1)">
                     -
                   </button>
                   <span class="w-5 text-center text-sm">{{ getQty(group._id, option._id) }}</span>
-                  <button
-                    class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100"
-                    @click="() => updateMultipleChoice(group, option, getQty(group._id, option._id) + 1)"
-                  >
+                  <button class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100"
+                    @click="() => updateMultipleChoice(group, option, getQty(group._id, option._id) + 1)">
                     +
                   </button>
                 </div>
@@ -361,11 +316,27 @@ function decrement(item) {
 }
 </script>
 
-<style scoped>
-::v-deep(.no-padding-modal .va-modal__inner),
-::v-deep(.no-padding-modal .va-modal__content),
-::v-deep(.no-padding-modal .va-modal__dialog),
-::v-deep(.no-padding-modal .va-modal__body) {
-  padding: 0 !important;
+<style>
+.va-modal__close {
+  background: #f8f9fa;
+  padding: 7px 10px;
+  border-radius: 240px;
+  font-size: 13px !important;
+  height: 32px !important;
+
+  margin-right: 10px;
+  margin-top: 10px;
+
+  @media (min-width: 640px) {
+    margin-right: 20px;
+    margin-top: 10px;
+  }
+}
+
+:root {
+  --va-modal-padding-top: 0rem;
+  --va-modal-padding-right: 0rem;
+  --va-modal-padding-bottom: 0rem;
+  --va-modal-padding-left: 0rem;
 }
 </style>
