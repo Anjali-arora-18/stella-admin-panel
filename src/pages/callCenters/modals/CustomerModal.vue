@@ -1,78 +1,94 @@
 <template>
     <VaModal v-model="showCustomerModal" class="big-modal" :mobile-fullscreen="false" size="large" hide-default-actions
         close-button>
-        <div class="bg-[#f8f9fa] p-6 rounded-lg shadow">
+
+        <form>
+
             <!-- Header -->
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold text-gray-800">Add New Customer</h2>
-                <button
+            <!-- <template #header> -->
+            <div class="bg-[#f8f9fa] px-4 py-6 flex justify-between items-center mb-4">
+                <h1 class="va-h6 my-0 text-gray-800">Add New Customer</h1>
+                <!-- <button type="button"
                     class="w-8 h-8 flex items-center justify-center rounded border border-gray-300 hover:bg-gray-200 text-gray-500">
                     ✕
-                </button>
+                </button> -->
+            </div>
+            <!-- </template> -->
+
+            <!-- <div class="bg-[#f8f9fa] p-6 rounded-lg shadow"> -->
+            <div class="bg-white p-4 pb-0">
+                <!-- Form -->
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Left Column -->
+                        <div>
+                            <h3 class="font-semibold text-gray-700 border-b border-green-800 pb-1 mb-4">Customer
+                                Information
+                            </h3>
+
+                            <!-- Mobile Number & Name -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-sm font-medium text-gray-500">Mobile Number *</label>
+                                    <input type="text" placeholder="Enter mobile number"
+                                        class="w-full mt-1 px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-green-700">
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-500">Customer Name *</label>
+                                    <input type="text" placeholder="Enter full name"
+                                        class="w-full mt-1 px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-green-700">
+                                </div>
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="mt-4">
+                                <label class="text-sm font-medium text-gray-500">Customer Notes</label>
+                                <textarea rows="3" placeholder="Special instructions, allergies, preferences..."
+                                    class="w-full mt-1 px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-green-700"></textarea>
+                            </div>
+
+                            <!-- Saved Addresses -->
+                            <div class="mt-4">
+                                <label class="text-sm font-medium text-gray-500">Saved Addresses</label>
+                                <div
+                                    class="flex items-center justify-between mt-1 px-4 py-2 bg-[#f8f9fa] rounded border text-gray-500">
+                                    <span>123 Main St, Apt 4B, Limassol 3036</span>
+                                    <button type="button"
+                                        class="text-sm bg-green-800 text-white px-3 py-1 rounded hover:bg-green-900">Edit</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div>
+                            <h3 class="font-semibold text-gray-700 border-b border-green-800 pb-1 mb-4">Address
+                                Information
+                            </h3>
+
+                            <p class="mb-2 text-sm font-medium text-gray-500">Search Postcode or Street Name</p>
+
+                            <!-- Search Inputs -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <input type="text" placeholder="Postcode"
+                                    class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-green-700">
+                                <input type="text" placeholder="Street Name"
+                                    class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-green-700">
+                                <button
+                                    class="bg-green-800 hover:bg-green-900 text-white p-2 rounded flex items-center justify-center">
+                                    🔍
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
             </div>
 
-            <!-- Form -->
-            <form class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Left Column -->
-                    <div>
-                        <h3 class="font-semibold text-gray-700 border-b border-green-800 pb-1 mb-4">Customer Information
-                        </h3>
-
-                        <!-- Mobile Number & Name -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-sm font-medium text-gray-700">Mobile Number *</label>
-                                <input type="text" placeholder="Enter mobile number"
-                                    class="w-full mt-1 px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-green-700">
-                            </div>
-                            <div>
-                                <label class="text-sm font-medium text-gray-700">Customer Name *</label>
-                                <input type="text" placeholder="Enter full name"
-                                    class="w-full mt-1 px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-green-700">
-                            </div>
-                        </div>
-
-                        <!-- Notes -->
-                        <div class="mt-4">
-                            <label class="text-sm font-medium text-gray-700">Customer Notes</label>
-                            <textarea rows="3" placeholder="Special instructions, allergies, preferences..."
-                                class="w-full mt-1 px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-green-700"></textarea>
-                        </div>
-
-                        <!-- Saved Addresses -->
-                        <div class="mt-4">
-                            <label class="text-sm font-medium text-gray-700">Saved Addresses</label>
-                            <div
-                                class="flex items-center justify-between mt-1 px-4 py-2 bg-white rounded border text-gray-700">
-                                <span>123 Main St, Apt 4B, Limassol 3036</span>
-                                <button
-                                    class="text-sm bg-green-800 text-white px-3 py-1 rounded hover:bg-green-900">Edit</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Column -->
-                    <div>
-                        <h3 class="font-semibold text-gray-700 border-b border-green-800 pb-1 mb-4">Address Information
-                        </h3>
-
-                        <!-- Search Inputs -->
-                        <div class="flex gap-4">
-                            <input type="text" placeholder="Postcode"
-                                class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-green-700">
-                            <input type="text" placeholder="Street Name"
-                                class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-green-700">
-                            <button
-                                class="bg-green-800 hover:bg-green-900 text-white p-2 rounded flex items-center justify-center">
-                                🔍
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
+            <!-- <template #footer> -->
+            <div class="bg-[#f8f9fa] px-4 py-6 w-full">
                 <!-- Action Buttons -->
-                <div class="flex justify-end items-center gap-4 mt-6">
+                <div class="flex flex-wrap sm:justify-end items-center gap-4">
                     <!-- Checkbox Button -->
                     <label
                         class="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-600 cursor-pointer hover:bg-gray-100">
@@ -99,8 +115,9 @@
                         Save Customer
                     </button>
                 </div>
-            </form>
-        </div>
+            </div>
+            <!-- </template> -->
+        </form>
 
     </VaModal>
 </template>
