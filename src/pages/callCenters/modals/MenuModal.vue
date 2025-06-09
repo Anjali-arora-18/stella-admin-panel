@@ -52,7 +52,8 @@
             class="mt-4 w-full bg-green-800 hover:bg-green-900 text-white font-semibold py-2 rounded-lg transition"
             @click="addToBasket(item)"
           >
-            ADD TO BASKET
+          {{ isEdit ? 'UPDATE BASKET' : 'ADD TO BASKET' }}
+            
           </button>
 
           <p v-if="!isFormValid" class="text-red-500 text-xs mt-2 text-center">Please select all required options.</p>
