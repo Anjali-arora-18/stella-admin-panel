@@ -1,7 +1,7 @@
 <template>
   <VaModal
     v-model="showMenuModal"
-    class="big-modal !p-0"
+    class="big-xl-modal !p-0"
     :mobile-fullscreen="false"
     size="large"
     hide-default-actions
