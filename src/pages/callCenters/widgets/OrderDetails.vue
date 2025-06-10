@@ -92,7 +92,7 @@
       </div>
 
       <!-- Checkout -->
-      <VaButton class="mt-4 w-full" color="success" size="large"> Checkout Order </VaButton>
+      <VaButton class="mt-4 w-full" color="success" size="large" @click="openCheckoutModal"> Checkout Order </VaButton>
     </template>
     <template v-else>
       <div>No Orders Selected</div>
@@ -105,6 +105,10 @@
     @cancel="closeMenuModal"
     @cancelEdit="isEdit = false"
   />
+  <CheckOutModal
+    v-model="showCheckoutModal"
+    @cancel="closeCheckoutModal"
+  />
 </template>
 
 <script setup>
@@ -112,6 +116,7 @@ import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useOrderStore } from '@/stores/order-store' // adjust path as needed
 import MenuModal from '../modals/MenuModal.vue'
+import CheckOutModal from '../modals/CheckOutModal.vue'
 import axios from 'axios'
 import { useToast } from 'vuestic-ui'
 
@@ -181,6 +186,21 @@ const decreaseQty = (item) => {
     orderStore.calculateItemTotal(index)
   }
 }
+
+
+// -----------------TO OPEN THE CHECKOUT MODAL---------------------
+const showCheckoutModal = ref(false)
+
+function openCheckoutModal() {
+  showCheckoutModal.value = true
+}
+
+function closeCheckoutModal() {
+  showCheckoutModal.value = false
+}
+
+
+
 
 // -----------------TO OPEN THE EDIT MODAL-------------------------
 
