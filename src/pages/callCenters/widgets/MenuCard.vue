@@ -5,7 +5,7 @@
   >
     <!-- Text Content -->
     <div class="flex-1 text-left">
-      <p class="font-semibold text-gray-800 text-sm truncate">{{ item.name }}</p>
+      <p class="item-text text-gray-800 text-sm truncate">{{ item.name }}</p>
       <p class="text-blue-600 font-semibold mt-1 text-sm">€{{ parseFloat(item.price).toFixed(2) }}</p>
     </div>
 
@@ -71,5 +71,8 @@ function closeMenuModal() {
 <style scoped>
 .menu-card {
   cursor: pointer;
+}
+.item-text {
+  font-weight: 500;
 }
 </style>

@@ -3,70 +3,100 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-3">
       <h2 class="font-semibold text-lg text-gray-800 border-b-2 border-blue-500 pb-2">Customer Details</h2>
-      <button @click="isOpen = !isOpen" class="border rounded p-1 hover:bg-gray-100 text-sm">
+      <button class="border rounded p-1 hover:bg-gray-100 text-sm" @click="isOpen = !isOpen">
         <span :class="isOpen ? 'rotate-45' : ''" class="transition-transform">{{ isOpen ? '-' : '+' }}</span>
       </button>
     </div>
 
     <!-- Collapsible Content -->
-    <transition name="fade">
+    <Transition name="fade">
       <div v-show="isOpen" class="space-y-3">
         <!-- Toggle Buttons -->
         <div class="flex bg-gray-100 rounded overflow-hidden text-sm">
-          <button @click="selectedTab = 'takeaway'" :class="selectedTab == 'takeaway' ? 'bg-blue-500 text-white font-semibold' : 'text-gray-600 hover:bg-gray-200'" class="flex-1 py-1 transition-colors">
+          <button
+            :class="
+              selectedTab == 'takeaway' ? 'bg-blue-500 text-white font-semibold' : 'text-gray-600 hover:bg-gray-200'
+            "
+            class="flex-1 py-1 transition-colors"
+            @click="selectedTab = 'takeaway'"
+          >
             Takeaway
           </button>
-          <button @click="selectedTab = 'delivery'" :class="selectedTab == 'delivery' ? 'bg-blue-500 text-white font-semibold' : 'text-gray-600 hover:bg-gray-200'" class="flex-1 py-1 transition-colors">
+          <button
+            :class="
+              selectedTab == 'delivery' ? 'bg-blue-500 text-white font-semibold' : 'text-gray-600 hover:bg-gray-200'
+            "
+            class="flex-1 py-1 transition-colors"
+            @click="selectedTab = 'delivery'"
+          >
             Delivery
           </button>
-          
         </div>
 
         <!-- Phone & Name -->
-        <div class="flex items-center gap-2">
+        <div v-if="selectedTab" class="flex items-center gap-2">
           <input
+            v-model="phoneNumber"
+            :disable="selectedUser"
             type="text"
-            value="99123456"
             placeholder="Mobile Number"
             class="border rounded w-1/2 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
           />
           <input
+            v-model="name"
             type="text"
-            value="John Doe"
+            :disable="selectedUser"
             placeholder="Customer Name"
             class="border rounded w-1/2 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
           />
-          <button class="text-blue-600 bg-blue-600 px-2 py-1 rounded-lg hover:text-blue-800">
-            🔍
+          <button
+            v-if="!selectedUser"
+            class="text-blue-600 bg-blue-600 px-2 py-1 rounded-lg hover:text-blue-800"
+            @click.prevent="fetchCustomerDetails"
+          >
+            <span v-if="!isUserLoading">🔍</span>
+            <span v-else class="loading-spinner">⌛</span>
+          </button>
+          <button
+            v-else
+            class="text-gray-600 px-2 py-1 rounded-lg hover:text-gray-800"
+            @click.prevent="(selectedUser = ''), (phoneNumber = ''), (name = '')"
+          >
+            ✕
           </button>
         </div>
-
-        <!-- Show Postcode if Delivery -->
-        <div v-if="selectedTab === 'delivery'">
-          <input
-            type="text"
-            placeholder="Postcode"
-            class="w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-          />
+        <div v-if="userResults.length" id="userResults" class="user-results">
+          <ul class="divide divide-y-2">
+            <li
+              v-for="user in userResults"
+              :key="user.ID"
+              class="p-2 cursor-pointer hover:bg-primary-500"
+              @click="selectUser(user)"
+            >
+              {{ user['Name'] }}
+            </li>
+          </ul>
         </div>
 
         <!-- Points & Add New -->
-        <div class="flex items-center justify-between text-sm">
-          <div class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded">
-            Points: 250 – €2.50
-          </div>
-          <button class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600" @click="openCustomerModal">
+        <div v-if="selectedTab" class="flex items-center justify-between text-sm">
+          <div class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded">Today Date</div>
+          <button
+            class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
+            @click="openCustomerModal"
+          >
             + Add New
           </button>
         </div>
 
         <!-- Address -->
-        <div>
+        <div v-if="selectedTab">
           <label class="text-sm text-gray-600 font-medium block mb-1">Address</label>
           <div class="flex items-center gap-2">
             <input
               type="text"
-              value="123 Main Street, Limassol"
+              disabled
+              :value="selectedUser['Address']"
               class="w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             />
             <button class="bg-blue-500 text-white px-2 py-1 rounded">12</button>
@@ -74,29 +104,50 @@
         </div>
 
         <!-- Notes -->
-        <div>
+        <div v-if="selectedTab">
           <label class="text-sm text-gray-600 font-medium block mb-1">Notes</label>
           <textarea
             rows="3"
+            disabled
             placeholder="Special instructions, allergies, delivery notes..."
             class="w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
           ></textarea>
         </div>
       </div>
-    </transition>
+    </Transition>
   </div>
-    <CustomerModal v-model="showCustomerModal" @cancel="closeCustomerModal" />
-
+  <CustomerModal v-model="showCustomerModal" @cancel="closeCustomerModal" />
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useToast, VaDateInput, VaTimeInput } from 'vuestic-ui'
+import axios from 'axios'
+import { useServiceStore } from '@/stores/services.ts'
 import CustomerModal from '../modals/CustomerModal.vue'
 
 const isOpen = ref(true)
-const selectedTab = ref('takeaway');
+const selectedTab = ref('')
+const isUserLoading = ref(false)
+const { init } = useToast()
 
 const showCustomerModal = ref(false)
+
+const phoneNumber = ref('')
+const name = ref('')
+const userResults = ref([])
+const selectedUser = ref('')
+
+watch(
+  () => selectedUser,
+  () => {
+    userResults.value = []
+  },
+)
+
+// Set current date & time by default
+const selectedDate = ref(new Date())
+const selectedTime = ref(new Date().toTimeString().slice(0, 5)) // 'HH:mm'
 
 function openCustomerModal() {
   showCustomerModal.value = true
@@ -104,9 +155,48 @@ function openCustomerModal() {
 function closeCustomerModal() {
   showCustomerModal.value = false
 }
+
+async function fetchCustomerDetails() {
+  userResults.value = []
+  isUserLoading.value = true
+  if (!phoneNumber.value && !name.value) {
+    init({
+      color: 'danger',
+      message: 'Please provide name or phone number',
+    })
+    isUserLoading.value = false
+    return
+  } else {
+    const servicesStore = useServiceStore()
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/winmax/entites`, {
+      params: {
+        outletId: servicesStore.selectedRest,
+        ...(phoneNumber.value && { Phone: phoneNumber.value }),
+        ...(name.value && { Name: name.value }),
+      },
+    })
+    if (response.status === 200) {
+      userResults.value = response.data.data
+    } else {
+      init({
+        color: 'danger',
+        message: response.data.message,
+      })
+    }
+    isUserLoading.value = false
+  }
+}
+
+function selectUser(user) {
+  selectedUser.value = user
+  name.value = user['Name']
+  phoneNumber.value = user['MobilePhone']
+
+  userResults.value = []
+}
 </script>
 
-<style scoped>
+<style>
 .fade-enter-active,
 .fade-leave-active {
   transition: all 0.3s ease;
@@ -115,5 +205,17 @@ function closeCustomerModal() {
 .fade-leave-to {
   opacity: 0;
   transform: scaleY(0.95);
+}
+
+.user-results {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  margin-top: 8px;
+  margin-bottom: 16px;
+  background: white;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 </style>
