@@ -1,80 +1,81 @@
 <template>
-  <div class="w-full mx-auto overflow-x-auto">
+  <div class="w-full mx-auto order-details">
     <!-- Title -->
-    <h2 class="font-semibold text-lg text-gray-800 border-b pb-2">Order Details</h2>
+    <!-- <h2 class="font-semibold text-lg text-gray-800 border-b pb-2">Order Details</h2> -->
 
     <template v-if="items.length">
       <!-- Promo Code -->
       <VaInput v-model="promoCode" class="my-4" placeholder="Promotion Code" size="small" input-class="text-sm" />
 
       <!-- Order Items -->
-      <div v-for="item in items" :key="item.id" class="mb-4 border-b pb-3 last:border-none">
-        <div class="flex items-start justify-between">
-          <!-- Quantity Controls -->
-          <div class="flex items-center gap-2">
-            <VaButton icon="remove" color="success" size="small" class="rounded" @click="decreaseQty(item)" />
-            <VaBadge :text="item.quantity" color="secondary" size="large" class="!py-1 !h-[2rem]" />
-            <VaButton icon="add" color="success" size="small" class="rounded" @click="increaseQty(item)" />
-          </div>
-
-          <!-- Item Info -->
-          <div class="flex-1 px-2">
-            <div class="flex justify-between items-center">
-              <span class="font-medium text-gray-800">{{ item.name }}</span>
-              <VaIcon
-                name="edit"
-                size="small"
-                class="text-yellow-600 cursor-pointer"
-                @click="getMenuOptions(item.fullItem)"
-              />
+      <div class="order-items-height">
+        <div v-for="item in items" :key="item.id" class="mb-4 border-b pb-3 last:border-none">
+          <div class="flex items-start justify-between">
+            <!-- Quantity Controls -->
+            <div class="flex items-center gap-2">
+              <VaButton icon="remove" color="success" size="small" class="rounded" @click="decreaseQty(item)" />
+              <VaBadge :text="item.quantity" color="secondary" size="large" class="!py-1 !h-[2rem]" />
+              <VaButton icon="add" color="success" size="small" class="rounded" @click="increaseQty(item)" />
             </div>
 
-            <!-- Options -->
-            <div class="flex flex-wrap gap-1 mt-1 text-xs">
-              <span
-                v-for="option in item.additions"
-                :key="option"
-                class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full"
-              >
-                {{ option }}
-              </span>
-              <span
-                v-for="removal in item.removals"
-                :key="removal"
-                class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full"
-              >
-                -{{ removal }}
-              </span>
-              <span
-                v-for="modifier in item.modifierType"
-                :key="modifier"
-                class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full"
-              >
-                *{{ modifier }}
-              </span>
-              <span
-                v-for="article in item.articleType"
-                :key="article"
-                class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full"
-              >
-                {{ article }}
-              </span>
+            <!-- Item Info -->
+            <div class="flex-1 px-2">
+              <div class="flex justify-between items-center">
+                <span class="font-medium text-gray-800">{{ item.name }}</span>
+                <VaIcon
+                  name="edit"
+                  size="small"
+                  class="text-yellow-600 cursor-pointer"
+                  @click="getMenuOptions(item.fullItem)"
+                />
+              </div>
+
+              <!-- Options -->
+              <div class="flex flex-wrap gap-1 mt-1 text-xs">
+                <span
+                  v-for="option in item.additions"
+                  :key="option"
+                  class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full"
+                >
+                  {{ option }}
+                </span>
+                <span
+                  v-for="removal in item.removals"
+                  :key="removal"
+                  class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full"
+                >
+                  -{{ removal }}
+                </span>
+                <span
+                  v-for="modifier in item.modifierType"
+                  :key="modifier"
+                  class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full"
+                >
+                  *{{ modifier }}
+                </span>
+                <span
+                  v-for="article in item.articleType"
+                  :key="article"
+                  class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full"
+                >
+                  {{ article }}
+                </span>
+              </div>
+
+              <!-- Base Info -->
+              <p class="text-[11px] text-gray-500 mt-1 italic">
+                Base: €{{ item.basePrice.toFixed(2) }} + €{{ item.selectionTotalPrice.toFixed(2) }} = €{{
+                  item.unitTotal.toFixed(2)
+                }}
+                each
+              </p>
             </div>
 
-            <!-- Base Info -->
-            <p class="text-[11px] text-gray-500 mt-1 italic">
-              Base: €{{ item.basePrice.toFixed(2) }} + €{{ item.selectionTotalPrice.toFixed(2) }} = €{{
-                item.unitTotal.toFixed(2)
-              }}
-              each
-            </p>
+            <!-- Item Total -->
+            <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
           </div>
-
-          <!-- Item Total -->
-          <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
         </div>
       </div>
-
       <!-- Summary -->
       <div class="text-sm mt-4 space-y-1 p-2 bg-slate-50">
         <div class="flex justify-between">
@@ -239,3 +240,9 @@ function closeMenuModal() {
   isEdit.value = false
 }
 </script>
+<style>
+.order-items-height {
+  overflow-y: auto;
+  height: calc(100vh - 480px);
+}
+</style>

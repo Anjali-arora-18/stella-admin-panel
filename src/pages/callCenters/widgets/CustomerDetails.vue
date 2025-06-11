@@ -1,12 +1,6 @@
 <template>
   <div class="w-full">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-3">
-      <h2 class="font-semibold text-lg text-gray-800 border-b-2 border-blue-500 pb-2">Customer Details</h2>
-      <button class="border rounded p-1 hover:bg-gray-100 text-sm" @click="isOpen = !isOpen">
-        <span :class="isOpen ? 'rotate-45' : ''" class="transition-transform p-2">{{ isOpen ? '-' : '+' }}</span>
-      </button>
-    </div>
 
     <!-- Collapsible Content -->
     <Transition name="fade">

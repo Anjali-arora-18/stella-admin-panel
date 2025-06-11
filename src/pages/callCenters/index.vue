@@ -40,18 +40,21 @@
     </div>
 
     <!-- RIGHT SECTION -->
-    <div class="md:col-span-2 bg-slate-100 py-4">
-      <div class="flex flex-col gap-4">
-        <VaCard>
-          <VaCardContent>
-            <CustomerDetails />
-          </VaCardContent>
-        </VaCard>
-        <VaCard>
-          <VaCardContent>
-            <OrderDetails />
-          </VaCardContent>
-        </VaCard>
+    <div class="md:col-span-2 bg-slate-100 pt-4" style="height: calc(100vh - 98px); overflow-y: hidden">
+      <div class="flex flex-col gap-2">
+        <VaAccordion v-model="accordian">
+          <VaCollapse header="Customer Details" class="bg-white rounded-md">
+            <template #content>
+              <CustomerDetails />
+            </template>
+          </VaCollapse>
+
+          <VaCollapse header="Order Details" class="bg-white rounded-md mt-2">
+            <template #content>
+              <OrderDetails />
+            </template>
+          </VaCollapse>
+        </VaAccordion>
       </div>
     </div>
   </div>
@@ -78,7 +81,7 @@ const categories = computed(() => menuStore.categories)
 const restDetails = computed(() => menuStore.restDetails)
 const isLoading = ref(false)
 const menuStore = useMenuStore()
-
+const accordian = ref([false, false])
 const toTitleCase = (text) => {
   if (!text) return ''
   return text
@@ -156,7 +159,7 @@ async function getMenu() {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .menu-section {
   background: white;
   border-radius: 12px;
