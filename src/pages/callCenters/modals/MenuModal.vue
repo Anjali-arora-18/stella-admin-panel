@@ -7,16 +7,18 @@
     hide-default-actions
     close-button
   >
-    <div class="grid grid-cols-1 sm:grid-cols-7 sm:max-h-[85vh]">
+    <div class="flex sm:max-h-[85vh]">
       <!-- LEFT SECTION -->
-      <div class="sm:col-span-2 bg-slate-100 p-4 sm:p-1 md:p-4">
-        <div class="p-4 sm:p-1 md:p-4 text-center w-full mx-auto">
+      <div
+        class="w-[25%] bg-slate-100 p-4 flex-shrink-0 flex items-start justify-start sm:items-center sm:justify-center"
+      >
+        <div class="flex flex-col items-center justify-start sm:justify-center text-center w-full max-w-[250px]">
           <!-- Image -->
           <div class="flex justify-center mb-4">
             <img
               :src="item.imageUrl || '/missing-image.png'"
               alt="icon"
-              class="w-36 h-36 rounded-full bg-white p-4 object-cover object-center shadow-[0_8px_25px_rgba(0,0,0,0.1)]"
+              class="w-48 h-48 rounded-full object-cover object-center shadow-[0_8px_25px_rgba(0,0,0,0.1)]"
             />
           </div>
 
@@ -49,7 +51,7 @@
           <!-- Button -->
           <button
             :disabled="!isFormValid"
-            class="mt-4 w-full bg-green-800 hover:bg-green-900 text-white font-semibold py-2 rounded-lg transition"
+            class="mt-4 w-full bg-green-800 hover:bg-green-900 text-white font-semibold p-4 rounded-lg transition"
             @click="addToBasket(item)"
           >
             {{ isEdit ? 'UPDATE BASKET' : 'ADD TO BASKET' }}
@@ -60,7 +62,7 @@
       </div>
 
       <!-- RIGHT SECTION -->
-      <div class="sm:col-span-5 bg-white p-4 sm:overflow-y-auto sm:max-h-[85vh]">
+      <div class="w-[75%] bg-white p-4 overflow-y-auto max-h-[85vh]">
         <div class="space-y-6">
           <div v-for="group in item.articlesOptionsGroups" :key="group._id" class="space-y-4">
             <!-- Group Title -->
@@ -89,13 +91,13 @@
             </div>
 
             <!-- Group Options -->
-            <div class="flex flex-wrap gap-4">
+            <div class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
               <!-- Single Choice (Radio) -->
               <label
                 v-for="option in group.options"
                 v-if="group.singleChoice"
                 :key="option._id"
-                class="relative w-full sm:w-[160px] flex items-center border p-2 rounded-lg cursor-pointer transition-all"
+                class="w-[200px] h-[80px] relative flex items-center border p-2 rounded-lg cursor-pointer transition-all"
                 :class="
                   selectedOptions[group._id] === option._id
                     ? 'border-gray-700 bg-[#f8f9fa] border-2'
@@ -103,18 +105,24 @@
                 "
                 @click="updateSingleChoice(group, option)"
               >
-                <img
-                  :src="option.icon || '/missing-image.png'"
-                  alt="Option"
-                  :class="selectedOptions[group._id] === option._id ? 'bg-white' : 'bg-[#f8f9fa]'"
-                  class="w-10 h-10 object-cover rounded mr-4 p-2"
-                />
+                <div class="item-image">
+                  <img
+                    :src="option.imageUrl || '/missing-image.png'"
+                    alt="Option"
+                    :class="selectedOptions[group._id] === option._id ? 'bg-white' : 'bg-[#f8f9fa]'"
+                    class="rounded w-full h-full"
+                  />
+                </div>
                 <div class="flex-1">
                   <div class="text-sm font-semibold text-gray-800">{{ option.name }}</div>
-                  <div class="text-gray-800 font-semibold text-sm mt-1">€{{ parseFloat(option.price).toFixed(2) }}</div>
+                  <div v-if="option.price" class="text-gray-800 font-semibold text-sm mt-1">
+                    €{{ parseFloat(option.price).toFixed(2) }}
+                  </div>
                 </div>
+
                 <input
                   v-model="selectedOptions[group._id]"
+                  :checked="isChecked(group, option._id)"
                   type="radio"
                   :name="group._id"
                   :value="option._id"
@@ -122,11 +130,12 @@
                 />
               </label>
 
+              <!-- Multiple Choice -->
               <div
                 v-for="option in group.options"
                 v-if="group.multipleChoice"
                 :key="option._id"
-                class="relative flex flex-col justify-between border rounded-xl p-3 min-w-[180px] transition hover:shadow-sm"
+                class="w-[200px] h-[80px] relative flex flex-col justify-between border rounded-xl p-2 transition hover:shadow-sm"
                 :class="
                   getQty(group._id, option._id) > 0
                     ? 'border-gray-700 bg-[#f8f9fa] border-2'
@@ -134,21 +143,26 @@
                 "
               >
                 <!-- Top content -->
-                <div class="flex items-center gap-3 pr-20">
-                  <img
-                    :src="item.imageUrl || '/missing-image.png'"
-                    alt="topping"
-                    :class="getQty(group._id, option._id) > 0 ? 'bg-white' : 'bg-[#f8f9fa]'"
-                    class="w-10 h-10 object-cover rounded mr-4 p-2"
-                  />
+                <div class="flex items-center gap-1">
+                  <div class="item-image">
+                    <img
+                      :src="item.imageUrl || '/missing-image.png'"
+                      alt="topping"
+                      :class="getQty(group._id, option._id) > 0 ? 'bg-white' : 'bg-[#f8f9fa]'"
+                      class="rounded w-full h-full"
+                    />
+                  </div>
                   <div class="text-left">
                     <p class="font-semibold text-sm text-gray-800">{{ option.name }}</p>
-                    <p class="text-sm text-gray-600 font-medium">€{{ parseFloat(option.price).toFixed(2) }}</p>
                   </div>
                 </div>
 
                 <!-- Bottom-right quantity control -->
-                <div class="absolute bottom-2 right-2 flex items-center gap-1">
+                <div class="absolute bottom-2 right-2 flex items-center bottom-1 gap-1">
+                  <p v-if="option.price" class="text-sm text-gray-600 font-medium mr-2">
+                    €{{ parseFloat(option.price).toFixed(2) }}
+                  </p>
+
                   <button
                     class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100"
                     @click="() => updateMultipleChoice(group, option, getQty(group._id, option._id) - 1)"
@@ -174,7 +188,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, reactive, computed, onMounted } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useOrderStore } from '@/stores/order-store'
 
 const orderStore = useOrderStore()
@@ -300,6 +314,18 @@ function updateSingleChoice(group: any, option: any) {
   }
 }
 
+function isChecked(group, optionId) {
+  const index = selectedOptions.value.findIndex((sel) => sel.groupId === group._id)
+  if (index === -1) {
+    return false
+  } else {
+    if (selectedOptions.value[index].selected.find((a) => a.optionId === optionId)) {
+      return true
+    }
+    return false
+  }
+}
+
 function updateMultipleChoice(group, option, quantity) {
   let groupEntry = selectedOptions.value.find((sel) => sel.groupId === group._id)
 
@@ -398,16 +424,25 @@ function decrement(item) {
   border-radius: 240px;
   font-size: 13px !important;
   height: 32px !important;
-
-  margin-right: 10px;
+  margin-right: 30px;
   margin-top: 10px;
 
   @media (min-width: 640px) {
-    margin-right: 20px;
+    margin-right: 30px;
     margin-top: 10px;
   }
 }
-
+.item-image {
+  width: 60px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  padding: 0px 10px;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  flex-shrink: 0;
+}
 /* :root {
   --va-modal-padding-top: 0rem;
   --va-modal-padding-right: 0rem;

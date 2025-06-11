@@ -1,7 +1,7 @@
 <template>
-  <div class="w-full mx-auto order-details">
+  <div class="w-full mx-auto order-details bg-white p-4">
     <!-- Title -->
-    <!-- <h2 class="font-semibold text-lg text-gray-800 border-b pb-2">Order Details</h2> -->
+    <h2 class="font-semibold text-lg text-gray-800 border-b pb-2">Order Details</h2>
 
     <template v-if="items.length">
       <!-- Promo Code -->
@@ -13,7 +13,15 @@
           <div class="flex items-start justify-between">
             <!-- Quantity Controls -->
             <div class="flex items-center gap-2">
-              <VaButton icon="remove" color="success" size="small" class="rounded" @click="decreaseQty(item)" />
+              <VaButton icon="mso-close" color="danger" size="small" class="rounded" @click="deleteItem(item)" />
+              <VaButton
+                icon="remove"
+                :disabled="item.quantity === 1"
+                color="success"
+                size="small"
+                class="rounded"
+                @click="decreaseQty(item)"
+              />
               <VaBadge :text="item.quantity" color="secondary" size="large" class="!py-1 !h-[2rem]" />
               <VaButton icon="add" color="success" size="small" class="rounded" @click="increaseQty(item)" />
             </div>
@@ -179,6 +187,12 @@ const increaseQty = (item) => {
   }
 }
 
+const deleteItem = (item) => {
+  const index = cartItems.value.findIndex((i) => i.itemId === item.id)
+  orderStore.cartItems.splice(index, 1)
+  orderStore.calculateItemTotal(index)
+}
+
 const decreaseQty = (item) => {
   const index = cartItems.value.findIndex((i) => i.itemId === item.id)
   if (index !== -1 && orderStore.cartItems[index].quantity > 1) {
@@ -245,10 +259,10 @@ function closeMenuModal() {
 <style>
 .order-items-height {
   overflow-y: auto;
-  height: calc(100vh - 480px);
+  height: calc(100vh - 500px);
 }
 .order-items-min-height {
   overflow-y: auto;
-  height: calc(100vh - 790px);
+  height: calc(100vh - 800px);
 }
 </style>

@@ -42,19 +42,12 @@
     <!-- RIGHT SECTION -->
     <div class="md:col-span-2 bg-slate-100 pt-4" style="height: calc(100vh - 98px); overflow-y: hidden">
       <div class="flex flex-col gap-2">
-        <VaAccordion v-model="accordian" multiple>
-          <VaCollapse header="Customer Details" class="bg-white rounded-md">
-            <template #content>
-              <CustomerDetails />
-            </template>
-          </VaCollapse>
-
-          <VaCollapse header="Order Details" class="bg-white rounded-md mt-2">
-            <template #content>
-              <OrderDetails :is-customer-open="accordian[0]" />
-            </template>
-          </VaCollapse>
-        </VaAccordion>
+        <VaCard>
+          <VaCardContent>
+            <CustomerDetails @setOpen="(val) => (accordian[0] = val)" />
+          </VaCardContent>
+        </VaCard>
+        <OrderDetails :is-customer-open="accordian[0]" />
       </div>
     </div>
   </div>

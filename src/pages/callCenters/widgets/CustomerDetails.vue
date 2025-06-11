@@ -1,10 +1,19 @@
 <template>
   <div class="w-full">
     <!-- Header -->
+    <div class="flex items-center justify-between">
+      <h2 class="font-semibold text-lg text-gray-800 border-b border-blue-500">Customer Details</h2>
+      <button
+        class="border rounded p-1 hover:bg-gray-100 text-sm"
+        @click="(isOpen = !isOpen), $emit('setOpen', isOpen)"
+      >
+        <span :class="isOpen ? 'rotate-45' : ''" class="transition-transform p-2">{{ isOpen ? '-' : '+' }}</span>
+      </button>
+    </div>
 
     <!-- Collapsible Content -->
     <Transition name="fade">
-      <div v-show="isOpen" class="space-y-3">
+      <div v-show="isOpen" class="space-y-3 mt-2">
         <!-- Toggle Buttons -->
         <div class="flex bg-gray-100 rounded overflow-hidden text-sm">
           <button
@@ -28,7 +37,7 @@
         </div>
 
         <!-- Phone & Name -->
-        <div v-if="selectedTab" class="flex items-center gap-2">
+        <div v-if="selectedTab" class="flex items-center gap-2 relative">
           <input
             v-model="phoneNumber"
             :disable="selectedUser"
@@ -46,7 +55,7 @@
           <button
             v-if="!selectedUser"
             class="text-blue-600 bg-blue-600 px-2 py-1 rounded-lg hover:text-blue-800"
-            @click.prevent="fetchCustomerDetails"
+            @click.prevent="fetchCustomerDetails(false)"
           >
             <span v-if="!isUserLoading">🔍</span>
             <span v-else class="loading-spinner">⌛</span>
@@ -58,19 +67,18 @@
           >
             ✕
           </button>
-        </div>
-
-        <div v-if="userResults.length" id="userResults" class="user-results">
-          <ul class="divide divide-y-2">
-            <li
-              v-for="user in userResults"
-              :key="user.ID"
-              class="p-2 cursor-pointer hover:bg-primary-500"
-              @click="selectUser(user)"
-            >
-              {{ user['Name'] }}
-            </li>
-          </ul>
+          <div v-if="userResults.length" id="userResults" class="user-results">
+            <ul ref="userList" class="divide divide-y-2">
+              <li
+                v-for="user in userResults"
+                :key="user.ID"
+                class="p-2 cursor-pointer hover:bg-blue-100"
+                @click="selectUser(user)"
+              >
+                {{ user['Name'] }}
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div v-if="selectedTab && !selectedUser" class="flex items-center justify-between text-sm gap-2">
@@ -123,12 +131,15 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import { useToast, VaDateInput, VaTimeInput } from 'vuestic-ui'
+import { ref, watch, defineEmits } from 'vue'
+import { useToast } from 'vuestic-ui'
 import axios from 'axios'
 import { useServiceStore } from '@/stores/services.ts'
 import CustomerModal from '../modals/CustomerModal.vue'
-
+import { onClickOutside } from '@vueuse/core'
+import { useTemplateRef } from 'vue'
+const emits = defineEmits(['setOpen'])
+const target = useTemplateRef('userList')
 const isOpen = ref(true)
 const selectedTab = ref('')
 const isUserLoading = ref(false)
@@ -140,7 +151,7 @@ const phoneNumber = ref('')
 const name = ref('')
 const userResults = ref([])
 const selectedUser = ref('')
-
+onClickOutside(target, (event) => (userResults.value = []))
 watch(
   () => selectedUser,
   () => {
@@ -171,25 +182,30 @@ async function fetchCustomerDetails(setUser = false) {
     return
   } else {
     const servicesStore = useServiceStore()
-    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/winmax/entites`, {
-      params: {
-        outletId: servicesStore.selectedRest,
-        ...(phoneNumber.value && { Phone: phoneNumber.value }),
-        ...(name.value && { Name: name.value }),
-      },
-    })
-    if (response.status === 200) {
-      if (!setUser) {
-        userResults.value = response.data.data
-      } else {
-        selectUser(response.data.data[0])
-      }
-    } else {
-      init({
-        color: 'danger',
-        message: response.data.message,
+    await axios
+      .get(`${import.meta.env.VITE_API_BASE_URL}/winmax/entites`, {
+        params: {
+          outletId: servicesStore.selectedRest,
+          ...(phoneNumber.value && { Phone: phoneNumber.value }),
+          ...(name.value && { Name: name.value }),
+        },
       })
-    }
+      .then((response) => {
+        if (response.status === 200) {
+          if (!setUser) {
+            userResults.value = response.data.data
+          } else {
+            selectUser(response.data.data[0])
+          }
+        }
+      })
+      .catch((err) => {
+        init({
+          color: 'danger',
+          message: err.response.data.message,
+        })
+      })
+
     isUserLoading.value = false
   }
 }
@@ -222,6 +238,9 @@ function selectUser(user) {
 .user-results {
   max-height: 200px;
   overflow-y: auto;
+  width: 100%;
+  top: 80%;
+  position: absolute;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   margin-top: 8px;
