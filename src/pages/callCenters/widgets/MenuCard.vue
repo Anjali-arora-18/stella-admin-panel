@@ -5,7 +5,7 @@
       <div class="item-price">€{{ parseFloat(item.price).toFixed(2) }}</div>
     </div>
     <div class="item-image">
-      <img :src="item.imageUrl || '/missing-image.png'" alt="icon" class="w-full h-full" />
+      <img :src="item.imageUrl || '/missing.png'" alt="icon" class="w-full h-full" />
     </div>
 
     <MenuModal v-model="showMenuModal" :item="itemWithArticlesOptionsGroups" @cancel="closeMenuModal" />
@@ -73,13 +73,12 @@ function closeMenuModal() {
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 15px;
+  padding: 15px 8px;
   transition: all 0.2s ease;
   cursor: pointer;
   width: 200px;
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-start;
 }
 
 .menu-item:hover {
@@ -91,12 +90,12 @@ function closeMenuModal() {
   flex: 1;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 .item-image {
   width: 60px;
   height: 60px;
-  background: #f1f5f9;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -107,6 +106,7 @@ function closeMenuModal() {
 
 .item-name {
   font-size: 12px;
+  flex: 1;
   font-weight: 600;
   color: #1e293b;
   margin-bottom: 6px;

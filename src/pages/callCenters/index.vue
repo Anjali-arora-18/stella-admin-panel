@@ -4,7 +4,7 @@
     <div class="md:col-span-5 bg-slate-100 py-4">
       <VaCard>
         <VaCardContent class="menu-section">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="top-bar flex items-start border-b pb-4 sm:flex-row sm:justify-between gap-4">
             <div class="flex flex-wrap gap-2">
               <a
                 v-for="item in filteredCategories"
@@ -20,16 +20,21 @@
                 {{ toTitleCase(item.name) }}
               </a>
             </div>
-            <div class="flex"><span class="bg-black px-4 py-4 text-white text-2xl rounded"> 20:35</span></div>
+            <div class="flex">
+              <span class="bg-black px-4 py-4 text-white text-2xl rounded">
+                {{ currentTime }}
+              </span>
+            </div>
           </div>
-
-          <MenuSection
-            v-for="cat in filteredCategories"
-            :id="cat._id"
-            :key="cat.name"
-            :title="cat.name"
-            :items="cat.menuItems"
-          />
+          <div class="menu-scroll">
+            <MenuSection
+              v-for="cat in filteredCategories"
+              :id="cat._id"
+              :key="cat.name"
+              :title="cat.name"
+              :items="cat.menuItems"
+            />
+          </div>
         </VaCardContent>
       </VaCard>
     </div>
@@ -94,6 +99,24 @@ const menuItems = computed(() => {
   }))
 })
 
+const currentTime = computed(() => {
+  return new Date().toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+})
+
+onMounted(() => {
+  setInterval(() => {
+    currentTime.value = new Date().toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
+  }, 60000)
+})
+
 watch(
   () => serviceStore.selectedRest,
   (newVal) => {
@@ -137,9 +160,18 @@ async function getMenu() {
 .menu-section {
   background: white;
   border-radius: 12px;
-  padding: 1rem 1rem 3rem 1rem;
+  padding: 1rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 115px);
+}
+.menu-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1 1 auto;
+  padding-right: 0.25rem;
 }
 </style>

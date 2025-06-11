@@ -2,7 +2,7 @@
   <section :id="id" class="menu-grid">
     <div class="category-title">{{ title }}</div>
 
-    <div class="h-[100px] overflow-x-hidden overflow-y-auto">
+    <div class="">
       <div
         class="grid gap-4 sm:min-w-max"
         :class="{
