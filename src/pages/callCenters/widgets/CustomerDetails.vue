@@ -79,9 +79,8 @@
           </ul>
         </div>
 
-        <!-- Points & Add New -->
-        <div v-if="selectedTab && !selectedUser" class="flex items-center justify-between text-sm">
-          <div class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded">Today Date</div>
+        <div v-if="selectedTab && !selectedUser" class="flex items-center justify-between text-sm gap-2">
+          <div class="datetime-display" onclick="toggleDateTime()">Fri - 30/05/2025 - 19:30</div>
           <button
             class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
             @click="openCustomerModal"
@@ -89,27 +88,9 @@
             + Add New
           </button>
         </div>
-        <div v-if="selectedTab && selectedUser" class="flex items-center justify-between text-sm">
-          <div class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded">Today Date</div>
-          <button
-            class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
-            @click="openCustomerModal"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              class="size-6"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-              />
-            </svg>
-          </button>
+        <div v-if="selectedTab && selectedUser" class="flex items-center justify-between text-sm gap-2">
+          <div class="datetime-display" onclick="toggleDateTime()">Fri - 30/05/2025 - 19:30</div>
+          <VaButton class="rounded" color="#B3D943" size="small" icon="mso-edit" @click="openCustomerModal" />
         </div>
 
         <!-- Address -->
@@ -139,7 +120,12 @@
       </div>
     </Transition>
   </div>
-  <CustomerModal v-model="showCustomerModal" :selected-user="selectedUser" @cancel="closeCustomerModal" />
+  <CustomerModal
+    v-if="showCustomerModal"
+    :selected-user="selectedUser"
+    @setUser="setNewUser"
+    @cancel="closeCustomerModal"
+  />
 </template>
 
 <script setup>
@@ -179,7 +165,7 @@ function closeCustomerModal() {
   showCustomerModal.value = false
 }
 
-async function fetchCustomerDetails() {
+async function fetchCustomerDetails(setUser = false) {
   userResults.value = []
   isUserLoading.value = true
   if (!phoneNumber.value && !name.value) {
@@ -199,7 +185,11 @@ async function fetchCustomerDetails() {
       },
     })
     if (response.status === 200) {
-      userResults.value = response.data.data
+      if (!setUser) {
+        userResults.value = response.data.data
+      } else {
+        selectUser(response.data.data[0])
+      }
     } else {
       init({
         color: 'danger',
@@ -208,6 +198,11 @@ async function fetchCustomerDetails() {
     }
     isUserLoading.value = false
   }
+}
+
+function setNewUser(payload) {
+  phoneNumber.value = payload.phoneNumber
+  fetchCustomerDetails(true)
 }
 
 function selectUser(user) {
@@ -240,5 +235,18 @@ function selectUser(user) {
   background: white;
   z-index: 10;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.datetime-display {
+  background: #f1f5f9;
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-weight: 500;
+  color: #475569;
+  font-size: 12px;
+  flex: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 </style>

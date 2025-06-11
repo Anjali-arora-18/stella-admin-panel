@@ -270,7 +270,6 @@ watch(searchQuery, (search) => {
       </template>
       <template #cell(actions)="{ rowData }">
         <div class="flex gap-2 justify-end">
-          <!-- <VaButton color="#B3D943" size="small" icon="mso-add" @click="" /> -->
           <VaButton preset="primary" size="small" icon="mso-content_copy" @click="cloneArticle(rowData)" />
           <VaButton
             preset="primary"

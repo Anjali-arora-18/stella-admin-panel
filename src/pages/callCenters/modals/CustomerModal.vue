@@ -121,7 +121,7 @@
         <label
           class="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-600 cursor-pointer hover:bg-gray-100"
         >
-          <input type="checkbox" class="hidden peer" />
+          <input v-model="entity" type="checkbox" class="hidden peer" />
           <div
             class="w-4 h-4 border border-gray-300 rounded-sm flex items-center justify-center peer-checked:bg-green-600 peer-checked:border-green-600"
           >
@@ -160,7 +160,7 @@ import { useServiceStore } from '@/stores/services.ts'
 
 const { init } = useToast()
 
-const emits = defineEmits(['cancel'])
+const emits = defineEmits(['cancel', 'setUser'])
 
 const props = defineProps<{
   selectedUser?: Record<string, string>
@@ -175,12 +175,12 @@ const name = ref('')
 const phoneNumber = ref('')
 const postCode = ref('')
 const streetAddress = ref('')
-const aptName = ref('')
 const floor = ref('')
 const muncipality = ref('')
 const district = ref('')
 const streetNumber = ref('')
 const aptNumber = ref('')
+const entity = ref(false)
 const streetList = ref([])
 
 watch(showCustomerModal, (val) => {
@@ -190,9 +190,24 @@ watch(showCustomerModal, (val) => {
 if (props.selectedUser) {
   name.value = props.selectedUser['Name']
   postCode.value = props.selectedUser['ZipCode']
-  streetAddress.value = props.selectedUser['Address']
-  //   district.value = props.selectedUser['District']
-  //   muncipality.value = props.selectedUser['Municipality / Community']
+  const add = props.selectedUser['Address'].split(',')
+  if (add.length > 0) {
+    aptNumber.value = add[0]
+  }
+  if (add.length > 1) {
+    floor.value = add[1]
+  }
+  if (add.length > 2) {
+    streetNumber.value = add[2]
+  }
+  if (add.length > 3) {
+    streetAddress.value = add[3]
+  }
+  if (add.length > 4) {
+    district.value = add[4]
+  }
+  muncipality.value = props.selectedUser['Fax']
+  phoneNumber.value = props.selectedUser['MobilePhone']
 }
 
 const isEdit = computed(() => {
@@ -228,13 +243,16 @@ async function fetchStreetName() {
 async function addOrUpdateCustomerDetails() {
   const servicesStore = useServiceStore()
   const payload = {
-    customerName: name.value,
-    phoneNo: phoneNumber.value,
     Name: name.value,
+    Phone: phoneNumber.value,
+    streetNo: streetNumber.value,
     postCode: postCode.value,
-    aptName: aptName.value,
+    AptNo: aptNumber.value,
     floor: floor.value,
-    Address: streetAddress.value,
+    streetName: streetAddress.value,
+    District: district.value,
+    city: muncipality.value,
+    entity: entity.value ? '' : 0,
   }
   let response = ''
   if (props.selectedUser) {
@@ -258,6 +276,8 @@ async function addOrUpdateCustomerDetails() {
       message: response.data.message,
     })
   }
+  emits('setUser', { phoneNumber: phoneNumber.value, name: name.value })
+  emits('cancel')
 }
 </script>
 <style>
