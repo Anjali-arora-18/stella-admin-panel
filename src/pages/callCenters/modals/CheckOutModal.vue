@@ -9,43 +9,25 @@
                     <h3 class="summary-title">Order Summary</h3>
 
                     <div class="order-items">
-                        <div class="order-item">
+                        <div class="order-item" v-for="(item, index) in orderStore.cartItems" :key="item.itemId">
                             <div class="item-main">
                                 <div class="item-details">
-                                    <div class="item-qty-name">2x Margherita Pizza</div>
-                                    <div class="item-base-price">Base price: €15.20 each</div>
+                                    <div class="item-qty-name">{{ item.quantity }}x {{ item.itemName }}</div>
+                                    <div class="item-base-price">Base price: €{{ item.basePrice.toFixed(2) }} each</div>
                                 </div>
-                                <div class="item-total-price">€36.40</div>
+                                <div class="item-total-price">€{{ item.totalPrice.toFixed(2) }}</div>
                             </div>
-                            <div class="item-extras">
-                                <div class="extra-item">
-                                    <span class="extra-name">+ Extra Cheese</span>
-                                    <span class="extra-price">+€1.00</span>
-                                </div>
-                                <div class="extra-item">
-                                    <span class="extra-name">+ Chicken</span>
-                                    <span class="extra-price">+€2.00</span>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="order-item">
-                            <div class="item-main">
-                                <div class="item-details">
-                                    <div class="item-qty-name">1x Caesar Salad</div>
-                                    <div class="item-base-price">Base price: €8.90</div>
+                            <div class="item-extras" v-if="item.selectedOptions.length">
+                                <div v-for="group in item.selectedOptions" :key="group.groupId">
+                                    <template v-for="extra in group.selected" :key="extra.optionId">
+                                        <div class="extra-item">
+                                            <span class="extra-name">+ {{ extra.name }}</span>
+                                            <span class="extra-price">+€{{ (extra.price * extra.quantity).toFixed(2)
+                                            }}</span>
+                                        </div>
+                                    </template>
                                 </div>
-                                <div class="item-total-price">€8.90</div>
-                            </div>
-                        </div>
-
-                        <div class="order-item">
-                            <div class="item-main">
-                                <div class="item-details">
-                                    <div class="item-qty-name">3x Grilled Shrimp</div>
-                                    <div class="item-base-price">Base price: €12.50 each</div>
-                                </div>
-                                <div class="item-total-price">€37.50</div>
                             </div>
                         </div>
                     </div>
@@ -53,18 +35,17 @@
                     <div class="summary-totals">
                         <div class="total-row">
                             <span>Subtotal:</span>
-                            <span>€82.80</span>
+                            <span>€{{ subtotal.toFixed(2) }}</span>
                         </div>
                         <div class="total-row">
                             <span>Delivery Fee:</span>
-                            <span>€2.50</span>
+                            <span>€{{ deliveryFee.toFixed(2) }}</span>
                         </div>
                         <div class="total-row total-final">
                             <span>Total Amount:</span>
-                            <span>€85.30</span>
+                            <span>€{{ totalAmount.toFixed(2) }}</span>
                         </div>
                     </div>
-
 
 
                 </div>
@@ -79,14 +60,17 @@
 
                     <div class="payment-content">
                         <div class="payment-section">
-                            <div class="payment-options flex flex-col sm:flex-row sm:justify-center min-[640px]:grid min-[640px]:grid-cols-2">
-                                <div class="payment-option" @click="selectedPayment='cash'" :class="selectedPayment=='cash' ? 'selected' : ''">
+                            <div
+                                class="payment-options flex flex-col sm:flex-row sm:justify-center min-[640px]:grid min-[640px]:grid-cols-2">
+                                <div class="payment-option" @click="selectedPayment = 'cash'"
+                                    :class="selectedPayment == 'cash' ? 'selected' : ''">
                                     <div class="payment-icon">💵</div>
                                     <div class="payment-label">Cash Payment</div>
                                     <div class="payment-desc">Pay with cash on delivery or pickup</div>
                                 </div>
 
-                                <div class="payment-option" @click="selectedPayment='visa'" :class="selectedPayment=='visa' ? 'selected' : ''">
+                                <div class="payment-option" @click="selectedPayment = 'visa'"
+                                    :class="selectedPayment == 'visa' ? 'selected' : ''">
                                     <div class="payment-icon">💳</div>
                                     <div class="payment-label">Credit Card</div>
                                     <div class="payment-desc">Secure payment with Visa/Mastercard</div>
@@ -94,7 +78,7 @@
                             </div>
 
                             <!-- Credit Card Form -->
-                            <div v-if="selectedPayment=='visa'" class="card-form" id="cardForm">
+                            <div v-if="selectedPayment == 'visa'" class="card-form" id="cardForm">
                                 <div class="form-row flex flex-col md:flex-row">
                                     <div class="form-group card-number">
                                         <label class="form-label">Card Number</label>
@@ -154,7 +138,7 @@
     </VaModal>
 </template>
 
-<script setup lang="ts">
+<!-- <script setup lang="ts">
 import { ref, watch } from 'vue'
 
 const showCheckoutModal = ref(true)
@@ -165,7 +149,31 @@ watch(showCheckoutModal, (val) => {
     if (!val) emits('cancel')
 })
 
+</script> -->
+
+<script setup lang="ts">
+import { ref, watch, computed } from 'vue'
+import { useOrderStore } from '@/stores/order-store' // Adjust path as needed
+
+const showCheckoutModal = ref(true)
+const selectedPayment = ref('')
+const emits = defineEmits(['cancel'])
+
+watch(showCheckoutModal, (val) => {
+    if (!val) emits('cancel')
+})
+
+const orderStore = useOrderStore()
+
+// Computed total values
+const subtotal = computed(() => {
+    return orderStore.cartItems.reduce((acc, item) => acc + item.totalPrice, 0)
+})
+
+const deliveryFee = 2.5
+const totalAmount = computed(() => subtotal.value + deliveryFee)
 </script>
+
 
 <style scoped>
 .order-items {
@@ -502,7 +510,7 @@ watch(showCheckoutModal, (val) => {
     box-shadow: 0 4px 12px rgba(45, 93, 42, 0.3);
 }
 
-.btn-primary:hover{
+.btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(45, 93, 42, 0.4);
 }
@@ -518,22 +526,23 @@ watch(showCheckoutModal, (val) => {
 
 
 .modal-body-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  max-height: 100vh; /* ensure modal does not exceed viewport */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 100vh;
+    /* ensure modal does not exceed viewport */
 }
 
 .action-container {
-  position: sticky;
-  bottom: 0;
-  background: #f9fafb;
-  padding: 24px 32px;
-  border-top: 2px solid #e5e7eb;
-  display: flex;
-  justify-content: center;
-  flex-shrink: 0;
-  z-index: 10;
+    position: sticky;
+    bottom: 0;
+    background: #f9fafb;
+    padding: 24px 32px;
+    border-top: 2px solid #e5e7eb;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+    z-index: 10;
 }
 
 /* .form-input {
@@ -562,7 +571,8 @@ watch(showCheckoutModal, (val) => {
     --va-modal-padding-bottom: 0rem;
     --va-modal-padding-left: 0rem;
 }
-:root .va-modal__message{
+
+:root .va-modal__message {
     margin-bottom: 0px !important;
 }
 </style>
