@@ -1,23 +1,20 @@
 <template>
-  <VaLayout :top="{ fixed: true, order: 2 }"
+  <VaLayout
+    :top="{ fixed: true, order: 2 }"
     :left="{ fixed: true, absolute: breakpoints.mdDown, order: 1, overlay: breakpoints.mdDown && !isSidebarMinimized }"
-    @leftOverlayClick="isSidebarMinimized = true">
+    @leftOverlayClick="isSidebarMinimized = true"
+  >
     <template #top>
       <AppNavbar :is-mobile="isMobile" />
     </template>
 
     <template #left>
-      <span v-if="!isTablet" :class="isSidebarMinimized ? 'left-4 bg-white rounded-full shadow' : 'left-[9rem]'" class="cursor-pointer fixed z-50 p-1 transition-all duration-300 ease-in-out" @click="isSidebarMinimized = !isSidebarMinimized">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-          class="w-6 h-6 ">
-          <path stroke-linecap="round" stroke-linejoin="round" d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5" />
-        </svg>
-      </span>
-
-
-
-      <AppSidebar :minimized="isSidebarMinimized" :visible="!isSidebarMinimized"
-        :animated="!isMobile" :mobile="isMobile" />
+      <AppSidebar
+        :minimized="isSidebarMinimized"
+        :visible="!isSidebarMinimized"
+        :animated="!isMobile"
+        :mobile="isMobile"
+      />
     </template>
 
     <template #content>

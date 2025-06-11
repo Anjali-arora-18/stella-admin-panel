@@ -1,10 +1,9 @@
 <template>
   <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
     <!-- LEFT SECTION -->
-    <div class="md:col-span-5 bg-slate-100 p-4">
+    <div class="md:col-span-5 bg-slate-100 py-4">
       <VaCard>
         <VaCardContent class="menu-section">
-          <!-- <div class="overflow-x-auto"> -->
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex flex-wrap gap-2">
               <a
@@ -31,13 +30,12 @@
             :title="cat.name"
             :items="cat.menuItems"
           />
-          <!-- </div> -->
         </VaCardContent>
       </VaCard>
     </div>
 
     <!-- RIGHT SECTION -->
-    <div class="md:col-span-2 bg-slate-100 p-4">
+    <div class="md:col-span-2 bg-slate-100 py-4">
       <div class="flex flex-col gap-4">
         <VaCard>
           <VaCardContent>
@@ -61,21 +59,7 @@ import { useServiceStore } from '@/stores/services.ts'
 import { useRoute } from 'vue-router'
 const route = useRoute()
 const serviceStore = useServiceStore()
-// const emits = defineEmits(['getCat'])
-// const categoryHeader = useTemplateRef('categoryHeader')
-// const isSticky = ref(false)
-// const headerHeight = ref(0)
-// const selectedSubCategory = ref(null)
-// const getButtonStyle = (isActive) => {
-//   const primaryColor = props.restDetails?.primaryColor || '#d9534f'
-//   const backgroundColor = props.restDetails?.backgroundColor || '#ffffff'
-//   return {
-//     backgroundColor: isActive ? primaryColor : '#fff',
-//     border: !isActive ? `1px solid ${primaryColor}` : 'none',
-//     color: isActive ? backgroundColor : primaryColor,
-//     fontWeight: isActive ? 'bold' : '600',
-//   }
-// }
+
 import MenuSection from '@/pages/callCenters/widgets/MenuSections.vue'
 import CustomerDetails from '@/pages/callCenters/widgets/CustomerDetails.vue'
 import OrderDetails from '@/pages/callCenters/widgets/OrderDetails.vue'
@@ -151,11 +135,11 @@ async function getMenu() {
 
 <style lang="scss" scoped>
 .menu-section {
-  grid-column: 1 / 4;
   background: white;
   border-radius: 12px;
   padding: 1rem 1rem 3rem 1rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
+  overflow-x: hidden;
 }
 </style>

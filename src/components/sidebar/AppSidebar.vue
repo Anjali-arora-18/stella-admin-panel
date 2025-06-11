@@ -1,24 +1,29 @@
 <template>
   <VaSidebar v-model="writableVisible" :width="sidebarWidth" :color="color" minimized-width="0">
     <VaAccordion class="mt-5 pl-5">
-
       <div v-if="userRole !== 'editor'" class="flex flex-col gap-y-2 mb-5">
         <span class="font-bold">Call Center</span>
-        <RouterLink :class="$route.name === 'callCenters' ? 'text-primary font-bold' : 'text-secondary'"
-          to="/callCenters">
+        <RouterLink
+          :class="$route.name === 'callCenters' ? 'text-primary font-bold' : 'text-secondary'"
+          to="/callCenters"
+        >
           <VaIcon name="headset_mic" class="mr-2"></VaIcon>
           Call Center
         </RouterLink>
       </div>
       <div v-if="userRole !== 'caller'" class="flex flex-col gap-y-2">
         <span class="font-bold">Menu</span>
-        <RouterLink :class="$route.name === 'organizeMenu' ? 'text-primary font-bold' : 'text-secondary'"
-          to="/organizeMenu">
+        <RouterLink
+          :class="$route.name === 'organizeMenu' ? 'text-primary font-bold' : 'text-secondary'"
+          to="/organizeMenu"
+        >
           <VaIcon name="restaurant_menu" class="mr-2"></VaIcon>
           Organize Menu
         </RouterLink>
-        <RouterLink :class="$route.name === 'categories' ? 'text-primary font-bold' : 'text-secondary'"
-          to="/categories">
+        <RouterLink
+          :class="$route.name === 'categories' ? 'text-primary font-bold' : 'text-secondary'"
+          to="/categories"
+        >
           <VaIcon name="category" class="mr-2"></VaIcon>
           Categories
         </RouterLink>
@@ -26,13 +31,17 @@
           <VaIcon name="article" class="mr-2"></VaIcon>
           Articles
         </RouterLink>
-        <RouterLink to="/articlesOptions/groups"
-          :class="$route.name === 'articlesOptionsGroups' ? 'text-primary font-bold' : 'text-secondary'">
+        <RouterLink
+          to="/articlesOptions/groups"
+          :class="$route.name === 'articlesOptionsGroups' ? 'text-primary font-bold' : 'text-secondary'"
+        >
           <VaIcon name="tune" class="mr-2"></VaIcon>
           Articles Options
         </RouterLink>
-        <RouterLink to="/deletedArticles"
-          :class="$route.name === 'deletedArticles' ? 'text-primary font-bold' : 'text-secondary'">
+        <RouterLink
+          to="/deletedArticles"
+          :class="$route.name === 'deletedArticles' ? 'text-primary font-bold' : 'text-secondary'"
+        >
           <VaIcon name="delete" class="mr-2"></VaIcon>
           Deleted Articles
         </RouterLink>
@@ -44,8 +53,12 @@
 
       <div v-if="userRole.includes('admin')" class="flex flex-col gap-y-2 mt-5">
         <span class="font-bold">Configuration</span>
-        <Span :class="$route.name === 'update-outlet' ? 'cursor-pointer text-primary font-bold' : ' cursor-pointer text-secondary'
-          " @click="goToOutlet">
+        <Span
+          :class="
+            $route.name === 'update-outlet' ? 'cursor-pointer text-primary font-bold' : ' cursor-pointer text-secondary'
+          "
+          @click="goToOutlet"
+        >
           <VaIcon name="store" class="mr-2"></VaIcon>
           Outlet
         </Span>
@@ -53,32 +66,36 @@
           <VaIcon name="location_on" class="mr-2"></VaIcon>
           Areas
         </RouterLink>
-        <span class="text-secondary">
-          <VaIcon name="qr_code" class="mr-2"></VaIcon>QR Codes
-        </span>
+        <span class="text-secondary"> <VaIcon name="qr_code" class="mr-2"></VaIcon>QR Codes </span>
         <RouterLink to="/payments" :class="$route.name === 'payments' ? 'text-primary font-bold' : 'text-secondary'">
           <VaIcon name="payments" class="mr-2"></VaIcon>
           Payments
         </RouterLink>
-        <RouterLink to="/deliveryZone"
-          :class="$route.name === 'deliveryZone' ? 'text-primary font-bold' : 'text-secondary'">
+        <RouterLink
+          to="/deliveryZone"
+          :class="$route.name === 'deliveryZone' ? 'text-primary font-bold' : 'text-secondary'"
+        >
           <VaIcon name="local_shipping" class="mr-2"></VaIcon>
           Delivery Zones
         </RouterLink>
-        <span class="text-secondary">
-          <VaIcon name="language" class="mr-2"></VaIcon>Languages
-        </span>
+        <span class="text-secondary"> <VaIcon name="language" class="mr-2"></VaIcon>Languages </span>
       </div>
       <div v-if="userRole === 'super-admin'" class="flex flex-col gap-y-2 mt-5">
         <span class="font-bold">Admin</span>
-        <RouterLink to="/outlets/list" :class="$route.name === 'list' || $route.name === 'admin-update-outlet'
-            ? 'text-primary font-bold'
-            : 'text-secondary'
-          ">
+        <RouterLink
+          to="/outlets/list"
+          :class="
+            $route.name === 'list' || $route.name === 'admin-update-outlet'
+              ? 'text-primary font-bold'
+              : 'text-secondary'
+          "
+        >
           <VaIcon name="storefront" class="mr-2"></VaIcon>Outlets
         </RouterLink>
-        <RouterLink to="/stellaUsers"
-          :class="$route.name === 'stellaUsers' ? 'text-primary font-bold' : 'text-secondary'">
+        <RouterLink
+          to="/stellaUsers"
+          :class="$route.name === 'stellaUsers' ? 'text-primary font-bold' : 'text-secondary'"
+        >
           <VaIcon name="people" class="mr-2"></VaIcon>
           Users
         </RouterLink>

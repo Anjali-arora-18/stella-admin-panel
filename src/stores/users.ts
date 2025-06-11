@@ -7,6 +7,7 @@ export const useUsersStore = defineStore('users', {
     return {
       items: [] as User[],
       userDetails: null,
+      isSidebarOpen: true,
       pagination: { page: 1, perPage: 10, total: 0 },
     }
   },

@@ -95,7 +95,7 @@
       <VaButton class="mt-4 w-full" color="success" size="large" @click="openCheckoutModal"> Checkout Order </VaButton>
     </template>
     <template v-else>
-      <div>No Orders Selected</div>
+      <div class="mt-4 w-full">No Orders Selected</div>
     </template>
   </div>
   <MenuModal
@@ -105,10 +105,7 @@
     @cancel="closeMenuModal"
     @cancelEdit="isEdit = false"
   />
-  <CheckOutModal
-    v-model="showCheckoutModal"
-    @cancel="closeCheckoutModal"
-  />
+  <CheckOutModal v-model="showCheckoutModal" @cancel="closeCheckoutModal" />
 </template>
 
 <script setup>
@@ -187,7 +184,6 @@ const decreaseQty = (item) => {
   }
 }
 
-
 // -----------------TO OPEN THE CHECKOUT MODAL---------------------
 const showCheckoutModal = ref(false)
 
@@ -198,9 +194,6 @@ function openCheckoutModal() {
 function closeCheckoutModal() {
   showCheckoutModal.value = false
 }
-
-
-
 
 // -----------------TO OPEN THE EDIT MODAL-------------------------
 

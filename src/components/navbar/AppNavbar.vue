@@ -2,12 +2,11 @@
   <VaNavbar class="app-layout-navbar py-2 px-0">
     <template #left>
       <div class="left">
-        <Transition v-if="isMobile" name="icon-fade" mode="out-in">
-          <VaIcon
-            color="primary"
-            :name="isSidebarMinimized ? 'menu' : 'close'"
-            size="24px"
-            style="margin-top: 3px"
+        <Transition name="icon-fade" mode="out-in">
+          <VaIconMenuCollapsed
+            class="cursor-pointer"
+            :class="{ 'x-flip': !isSidebarMinimized }"
+            :color="collapseIconColor"
             @click="isSidebarMinimized = !isSidebarMinimized"
           />
         </Transition>
@@ -26,7 +25,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+import { useColors } from 'vuestic-ui'
+import VaIconMenuCollapsed from '../icons/VaIconMenuCollapsed.vue'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '../../stores/global-store'
 import AppNavbarActions from './components/AppNavbarActions.vue'
@@ -45,7 +46,9 @@ const selectedRest = ref('')
 const restOptions = ref([])
 const restlist = ref([])
 const { isSidebarMinimized } = storeToRefs(GlobalStore)
+const { getColor } = useColors()
 
+const collapseIconColor = computed(() => getColor('secondary'))
 const getOutlets = () => {
   servicesStore.getAll().then(() => {
     restlist.value = servicesStore.items
@@ -126,5 +129,8 @@ watch(selectedRest, (newValue) => {
 .icon-fade-enter,
 .icon-fade-leave-to {
   transform: scale(0.5);
+}
+.x-flip {
+  transform: scaleX(-100%);
 }
 </style>

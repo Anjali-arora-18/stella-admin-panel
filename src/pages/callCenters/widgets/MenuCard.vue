@@ -1,20 +1,13 @@
 <template>
-  <div
-    class="cursor-pointer bg-white border border-gray-200 hover:border-blue-500 rounded-xl p-4 shadow-sm flex items-center justify-between hover:shadow-md transition min-w-full sm:min-w-[200px] group"
-    @click="getMenuOptions"
-  >
-    <!-- Text Content -->
-    <div class="flex-1 text-left">
-      <p class="item-text text-gray-800 text-sm truncate">{{ item.name }}</p>
-      <p class="text-blue-600 font-semibold mt-1 text-sm">€{{ parseFloat(item.price).toFixed(2) }}</p>
+  <div class="menu-item" @click="getMenuOptions">
+    <div class="item-content">
+      <div class="item-name">{{ item.name }}</div>
+      <div class="item-price">€{{ parseFloat(item.price).toFixed(2) }}</div>
+    </div>
+    <div class="item-image">
+      <img :src="item.imageUrl || '/missing-image.png'" alt="icon" class="w-full h-full" />
     </div>
 
-    <!-- Image -->
-    <img
-      :src="item.imageUrl || '/missing-image.png'"
-      alt="icon"
-      class="w-12 h-12 ml-4 bg-slate-200 p-2 transform transition-transform duration-300 ease-in-out group-hover:scale-105"
-    />
     <MenuModal v-model="showMenuModal" :item="itemWithArticlesOptionsGroups" @cancel="closeMenuModal" />
   </div>
 </template>
@@ -74,5 +67,59 @@ function closeMenuModal() {
 }
 .item-text {
   font-weight: 500;
+}
+
+.menu-item {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 15px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  width: 200px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.menu-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #2d5d2a;
+}
+
+.item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.item-image {
+  width: 60px;
+  height: 60px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  flex-shrink: 0;
+}
+
+.item-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 6px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.item-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2d5d2a;
 }
 </style>
