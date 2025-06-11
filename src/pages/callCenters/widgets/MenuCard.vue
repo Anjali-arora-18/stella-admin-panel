@@ -17,6 +17,7 @@ import { ref } from 'vue'
 import MenuModal from '../modals/MenuModal.vue'
 import axios from 'axios'
 import { useToast } from 'vuestic-ui'
+import { useOrderStore } from '@/stores/order-store'
 
 const props = defineProps({
   item: Object,
@@ -25,15 +26,32 @@ const props = defineProps({
 const showMenuModal = ref(false)
 const isLoading = ref(false)
 const itemWithArticlesOptionsGroups = ref({})
+const orderStore = useOrderStore()
 
 const { init } = useToast()
+
+function addToBasket(item) {
+  const productEntry = {
+    itemId: item._id,
+    itemName: item.name,
+    basePrice: parseFloat(item.price),
+    imageUrl: item.imageUrl,
+    quantity: 1,
+    selectedOptions: [],
+    totalPrice: 0,
+    selectionTotalPrice: 0,
+  }
+
+  orderStore.addItemToCart(productEntry)
+  const newIndex = orderStore.cartItems.length - 1
+  orderStore.calculateItemTotal(newIndex)
+}
 
 const getMenuOptions = async () => {
   const url = import.meta.env.VITE_API_BASE_URL
   isLoading.value = true
   try {
     const response = await axios.get(`${url}/menuItemvoById/${props.item._id}`)
-    console.log('response', response)
 
     const articlesOptionsGroups = response.data.articlesOptionsGroups
 
@@ -46,6 +64,8 @@ const getMenuOptions = async () => {
     // Open modal if there are any groups
     if (articlesOptionsGroups && articlesOptionsGroups.length) {
       openMenuModal()
+    } else {
+      addToBasket(itemWithArticlesOptionsGroups.value)
     }
   } catch (error) {
     init({ message: 'Something went wrong', color: 'danger' })

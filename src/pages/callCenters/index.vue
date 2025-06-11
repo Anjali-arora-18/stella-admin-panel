@@ -42,7 +42,7 @@
     <!-- RIGHT SECTION -->
     <div class="md:col-span-2 bg-slate-100 pt-4" style="height: calc(100vh - 98px); overflow-y: hidden">
       <div class="flex flex-col gap-2">
-        <VaAccordion v-model="accordian">
+        <VaAccordion v-model="accordian" multiple>
           <VaCollapse header="Customer Details" class="bg-white rounded-md">
             <template #content>
               <CustomerDetails />
@@ -51,7 +51,7 @@
 
           <VaCollapse header="Order Details" class="bg-white rounded-md mt-2">
             <template #content>
-              <OrderDetails />
+              <OrderDetails :is-customer-open="accordian[0]" />
             </template>
           </VaCollapse>
         </VaAccordion>
@@ -81,7 +81,7 @@ const categories = computed(() => menuStore.categories)
 const restDetails = computed(() => menuStore.restDetails)
 const isLoading = ref(false)
 const menuStore = useMenuStore()
-const accordian = ref([false, false])
+const accordian = ref([true, true])
 const toTitleCase = (text) => {
   if (!text) return ''
   return text
@@ -92,6 +92,7 @@ const toTitleCase = (text) => {
 }
 
 const selectedItem = ref(null)
+const currentTime = ref('')
 
 const menuItems = computed(() => {
   return (props.categories || []).map((category) => ({
@@ -102,22 +103,19 @@ const menuItems = computed(() => {
   }))
 })
 
-const currentTime = computed(() => {
-  return new Date().toLocaleTimeString('en-GB', {
+onMounted(() => {
+  currentTime.value = new Date().toLocaleTimeString('en-GB', {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
   })
-})
-
-onMounted(() => {
   setInterval(() => {
     currentTime.value = new Date().toLocaleTimeString('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
     })
-  }, 60000)
+  }, 3000)
 })
 
 watch(

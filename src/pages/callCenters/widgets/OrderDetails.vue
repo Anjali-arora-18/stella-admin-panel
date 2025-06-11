@@ -8,7 +8,7 @@
       <VaInput v-model="promoCode" class="my-4" placeholder="Promotion Code" size="small" input-class="text-sm" />
 
       <!-- Order Items -->
-      <div class="order-items-height">
+      <div :class="isCustomerOpen ? 'order-items-min-height' : 'order-items-height'">
         <div v-for="item in items" :key="item.id" class="mb-4 border-b pb-3 last:border-none">
           <div class="flex items-start justify-between">
             <!-- Quantity Controls -->
@@ -117,6 +117,8 @@ import MenuModal from '../modals/MenuModal.vue'
 import CheckOutModal from '../modals/CheckOutModal.vue'
 import axios from 'axios'
 import { useToast } from 'vuestic-ui'
+
+const props = defineProps(['isCustomerOpen'])
 
 const promoCode = ref('')
 
@@ -244,5 +246,9 @@ function closeMenuModal() {
 .order-items-height {
   overflow-y: auto;
   height: calc(100vh - 480px);
+}
+.order-items-min-height {
+  overflow-y: auto;
+  height: calc(100vh - 790px);
 }
 </style>
