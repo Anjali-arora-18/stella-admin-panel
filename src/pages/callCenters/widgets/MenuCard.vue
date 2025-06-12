@@ -114,7 +114,8 @@ function closeMenuModal() {
 }
 
 .item-image {
-  width: 80px;
+  width: 8
+  px;
   height: 60px;
   border-radius: 8px;
   display: flex;

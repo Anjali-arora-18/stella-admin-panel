@@ -98,14 +98,21 @@
         <!-- Address -->
         <div v-if="selectedTab">
           <label class="text-sm text-gray-600 font-medium block mb-1">Address</label>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 relative">
             <input
               type="text"
               disabled
               :value="selectedUser['Address']"
               class="w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             />
-            <button class="bg-blue-500 text-white px-2 py-1 rounded">12</button>
+            <button class="bg-blue-500 text-white px-2 py-1 rounded" @click="showDropdown = !showDropdown">12</button>
+            <div v-if="showDropdown" class="absolute right-0 top-full mt-1 w-40 bg-white border rounded shadow z-10">
+              <ul class="text-sm">
+                <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer">Option 1</li>
+                <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer">Option 2</li>
+                <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer">Option 3</li>
+              </ul>
+            </div>
           </div>
         </div>
 

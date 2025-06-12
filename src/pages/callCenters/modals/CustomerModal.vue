@@ -7,18 +7,18 @@
     hide-default-actions
     close-button
   >
-    <div class="bg-[#f8f9fa] px-4 py-6 flex justify-between items-center mb-4">
+    <div class="bg-[#f8f9fa] px-4 py-6 flex justify-between items-center">
       <h1 class="va-h6 my-0 text-gray-800">{{ isEdit ? 'Edit' : 'Add New' }} Customer</h1>
     </div>
 
     <div class="bg-white p-4 pb-0">
-      <div class="space-y-6">
+      <div class="space-y-4 text-sm">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Customer Info -->
           <div>
             <h3 class="font-semibold text-gray-700 border-b border-green-800 pb-1 mb-4">Customer Information</h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label class="text-sm font-medium text-gray-500">Mobile Number *</label>
                 <VaInput v-model="phoneNumber" placeholder="Enter mobile number" class="mt-1" />
@@ -35,9 +35,18 @@
             </div>
 
             <div class="mt-4">
-              <label class="text-sm font-medium text-gray-500">Saved Addresses (Not Implmented yet)</label>
-              <div class="flex items-center justify-between mt-1 px-4 py-2 bg-[#f8f9fa] rounded border text-gray-500">
-                <span>123 Main St, Apt 4B, Limassol 3036</span>
+              <label class="text-sm font-medium text-gray-500">Saved Addresses</label>
+              <div
+                v-for="addr in address"
+                :key="addr"
+                class="flex items-center justify-between mt-1 px-4 py-2 bg-[#f8f9fa] rounded border text-gray-500"
+              >
+                <div>
+                  <span v-if="addr.aptNo">{{ addr.aptNo }},</span>
+                  <span v-if="addr.floor">{{ addr.floor }},</span>
+                  <span v-if="addr.streetName || addr.streetNo">{{ addr.streetName }} {{ addr.streetNo }},</span>
+                  <span v-if="addr.district">{{ addr.district }}</span>
+                </div>
                 <VaButton preset="secondary" size="small" class="bg-green-800 hover:bg-green-900 text-white">
                   Edit
                 </VaButton>
@@ -109,19 +118,32 @@
             </div>
             <div class="flex flex-col gap-1 mb-4">
               <label class="text-sm font-medium text-gray-500">Address Notes</label>
-              <VaTextarea disabled placeholder="Delivery instructions, building access..." rows="3" />
+
+              <VaTextarea placeholder="Delivery instructions, building access..." rows="3" />
+
+              <div class="mt-2 flex justify-end">
+                <VaButton
+                  size="small"
+                  preset="secondary"
+                  color="primary"
+                  class="!text-xs !px-1 !py-1"
+                  @click="addAddress"
+                >
+                  {{ editAddress !== -1 ? 'Edit' : 'Add' }} Address
+                </VaButton>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="bg-[#f8f9fa] px-4 py-6 w-full">
+    <div class="bg-[#f8f9fa] px-3 py-4 w-full">
       <div class="flex flex-wrap sm:justify-end items-center gap-4">
         <label
           class="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-600 cursor-pointer hover:bg-gray-100"
         >
-          <input v-model="entity" type="checkbox" class="hidden peer" />
+          <input v-model="isTick" type="checkbox" class="hidden peer" />
           <div
             class="w-4 h-4 border border-gray-300 rounded-sm flex items-center justify-center peer-checked:bg-green-600 peer-checked:border-green-600"
           >
@@ -142,8 +164,9 @@
 
         <VaButton
           type="submit"
+          :disabled="!isFormValid || isSubmitting"
           class="bg-green-800 text-white hover:bg-green-900 text-sm font-semibold"
-          @click="addOrUpdateCustomerDetails"
+          @click="handleSubmit"
         >
           {{ isEdit ? 'Save' : 'Add Customer' }}
         </VaButton>
@@ -180,8 +203,14 @@ const muncipality = ref('')
 const district = ref('')
 const streetNumber = ref('')
 const aptNumber = ref('')
-const entity = ref(false)
+const isTick = ref(false)
 const streetList = ref([])
+const address = ref([])
+const isSubmitting = ref(false)
+const editAddress = ref(-1)
+const isFormValid = computed(() => {
+  return name.value.trim() !== '' && phoneNumber.value.trim() !== ''
+})
 
 watch(showCustomerModal, (val) => {
   if (!val) emits('cancel')
@@ -190,21 +219,26 @@ watch(showCustomerModal, (val) => {
 if (props.selectedUser) {
   name.value = props.selectedUser['Name']
   postCode.value = props.selectedUser['ZipCode']
-  const add = props.selectedUser['Address'].split(',')
-  if (add.length > 0) {
-    aptNumber.value = add[0]
-  }
-  if (add.length > 1) {
-    floor.value = add[1]
-  }
-  if (add.length > 2) {
-    streetNumber.value = add[2]
-  }
-  if (add.length > 3) {
-    streetAddress.value = add[3]
-  }
-  if (add.length > 4) {
-    district.value = add[4]
+  if (typeof props.selectedUser['Address'] === 'string') {
+    const add = props.selectedUser['Address'].split(',')
+    address.value.push({
+      floor: add[1] || '',
+      aptNo: add[0] || '',
+      streetName: add[3] || '',
+      streetNo: add[2] || '',
+      district: add[4] || '',
+    })
+  } else {
+    props.selectedUser['Address'].map((e: any) => {
+      const add = e.split(',')
+      address.value.push({
+        floor: add[1] || '',
+        aptNo: add[0] || '',
+        streetName: add[3] || '',
+        streetNo: add[2] || '',
+        district: add[4] || '',
+      })
+    })
   }
   muncipality.value = props.selectedUser['Fax']
   phoneNumber.value = props.selectedUser['MobilePhone']
@@ -220,6 +254,21 @@ function setAddress(address) {
   district.value = address['District']
   muncipality.value = address['Municipality / Community']
   streetList.value = []
+}
+
+function addAddress() {
+  const payload = {
+    floor: floor.value,
+    aptNo: aptNumber.value,
+    streetName: streetAddress.value,
+    streetNo: streetNumber.value,
+    district: district.value,
+  }
+  if (editAddress.value !== -1) {
+    address.value[editAddress.value] = payload
+  } else {
+    address.value.push(payload)
+  }
 }
 
 async function fetchStreetName() {
@@ -245,23 +294,14 @@ async function addOrUpdateCustomerDetails() {
   const payload = {
     Name: name.value,
     Phone: phoneNumber.value,
-    streetNo: streetNumber.value,
     postCode: postCode.value,
-    AptNo: aptNumber.value,
-    floor: floor.value,
-    streetName: streetAddress.value,
-    District: district.value,
+    address: address.value,
     city: muncipality.value,
-    entity: entity.value ? '' : 0,
+    isTick: isTick.value ? '' : 0,
   }
   let response = ''
   if (props.selectedUser) {
-    response = await axios.patch(
-      `${import.meta.env.VITE_API_BASE_URL}/winmax/entites?outletId=${servicesStore.selectedRest}/${
-        props.selectedUser.ID
-      }`,
-      payload,
-    )
+    response = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/customers/${props.selectedUser._id}`, payload)
   } else {
     response = await axios.post(
       `${import.meta.env.VITE_API_BASE_URL}/winmax/entites?outletId=${servicesStore.selectedRest}`,
@@ -277,7 +317,20 @@ async function addOrUpdateCustomerDetails() {
     })
   }
   emits('setUser', { phoneNumber: phoneNumber.value, name: name.value })
-  emits('cancel')
+  // emits('cancel')
+}
+
+async function handleSubmit() {
+  if (!isFormValid.value || isSubmitting.value) return
+
+  isSubmitting.value = true
+
+  try {
+    await addOrUpdateCustomerDetails()
+    showCustomerModal.value = false
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 <style>

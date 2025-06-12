@@ -50,14 +50,16 @@
 
           <!-- Button -->
           <button
-            :disabled="!isFormValid"
-            class="mt-4 w-full bg-green-800 hover:bg-green-900 text-white font-semibold p-4 rounded-lg transition"
+            :disabled="formSubmitted && !isFormValid"
+            class="mt-4 w-full bg-green-800 hover:bg-green-900 text-white font-semibold p-4 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
             @click="addToBasket(item)"
           >
             {{ isEdit ? 'UPDATE BASKET' : 'ADD TO BASKET' }}
           </button>
 
-          <p v-if="!isFormValid" class="text-red-500 text-xs mt-2 text-center">Please select all required options.</p>
+          <p v-if="formSubmitted && !isFormValid" class="text-red-500 text-xs mt-2 text-center">
+            Please select all required options.
+          </p>
         </div>
       </div>
 
@@ -210,6 +212,8 @@ const props = defineProps({
 // Store selected values
 const selectedOptions = ref([])
 
+const formSubmitted = ref(false)
+
 const isFormValid = computed(() => {
   const requiredGroups = props.item.articlesOptionsGroups.filter((g) => g.mandatory)
 
@@ -217,7 +221,7 @@ const isFormValid = computed(() => {
     const selectedGroup = selectedOptions.value.find((sel) => sel.groupId === group._id)
 
     if (!selectedGroup || !selectedGroup.selected.length) {
-      return false // required group is not selected
+      return false
     }
 
     // For multipleChoice with minimumChoices, ensure total quantity is enough
@@ -229,7 +233,7 @@ const isFormValid = computed(() => {
     }
   }
 
-  return true // all required groups have selection
+  return true
 })
 
 const totalPrice = computed(() => {
@@ -257,6 +261,12 @@ watch(
 )
 
 function addToBasket(item: any) {
+  formSubmitted.value = true
+
+  if (!isFormValid.value) {
+    return
+  }
+
   const productEntry = {
     itemId: props.isEdit ? item.itemId : item._id,
     itemName: props.isEdit ? item.itemName : item.name,
@@ -284,6 +294,7 @@ function addToBasket(item: any) {
 
   selectedOptions.value = []
   showMenuModal.value = false
+  formSubmitted.value = false
 
   if (props.isEdit) {
     emits('cancel-edit')
