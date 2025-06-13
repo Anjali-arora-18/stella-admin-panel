@@ -44,10 +44,18 @@
       <div class="flex flex-col gap-2">
         <VaCard>
           <VaCardContent>
-            <CustomerDetails @setOpen="(val) => (accordian[0] = val)" />
+            <CustomerDetails
+              @setCustomerDetailsId="(val) => (customerDetailsId = val)"
+              @setOrderType="(val) => (orderType = val)"
+              @setOpen="(val) => (accordian[0] = val)"
+            />
           </VaCardContent>
         </VaCard>
-        <OrderDetails :is-customer-open="accordian[0]" />
+        <OrderDetails
+          :customer-details-id="customerDetailsId"
+          :order-type="orderType"
+          :is-customer-open="accordian[0]"
+        />
       </div>
     </div>
   </div>
@@ -70,6 +78,8 @@ const props = defineProps({
   restDetails: Object,
 })
 
+const customerDetailsId = ref('')
+const orderType = ref('')
 const categories = computed(() => menuStore.categories)
 const restDetails = computed(() => menuStore.restDetails)
 const isLoading = ref(false)

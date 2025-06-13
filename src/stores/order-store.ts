@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-
+import axios from 'axios'
 export const useOrderStore = defineStore('order', {
   state: () => ({
     cartItems: [] as {
@@ -53,6 +53,10 @@ export const useOrderStore = defineStore('order', {
         totalPrice: total,
         selectionTotalPrice: selectionTotal,
       }
+    },
+    async createOrder(payload) {
+      const url = import.meta.env.VITE_API_BASE_URL
+      return await axios.post(`${url}/orders`, payload)
     },
   },
 })

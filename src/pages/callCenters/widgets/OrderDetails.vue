@@ -101,7 +101,15 @@
       </div>
 
       <!-- Checkout -->
-      <VaButton class="mt-4 w-full" color="success" size="large" @click="openCheckoutModal"> Checkout Order </VaButton>
+      <VaButton
+        :disabled="!customerDetailsId || !orderType"
+        class="mt-4 w-full"
+        color="success"
+        size="large"
+        @click="openCheckoutModal"
+      >
+        Checkout Order
+      </VaButton>
     </template>
     <template v-else>
       <div class="mt-4 w-full">No Orders Selected</div>
@@ -114,7 +122,13 @@
     @cancel="closeMenuModal"
     @cancelEdit="isEdit = false"
   />
-  <CheckOutModal v-model="showCheckoutModal" @cancel="closeCheckoutModal" />
+  <CheckOutModal
+    v-model="showCheckoutModal"
+    :delivery-fee="deliveryFee"
+    :customer-details-id="customerDetailsId"
+    :order-type="orderType"
+    @cancel="closeCheckoutModal"
+  />
 </template>
 
 <script setup>
@@ -126,7 +140,11 @@ import CheckOutModal from '../modals/CheckOutModal.vue'
 import axios from 'axios'
 import { useToast } from 'vuestic-ui'
 
-const props = defineProps(['isCustomerOpen'])
+const props = defineProps({
+  isCustomerOpen: Boolean,
+  customerDetailsId: [String, Number],
+  orderType: String,
+})
 
 const promoCode = ref('')
 

@@ -145,7 +145,7 @@ import { useServiceStore } from '@/stores/services.ts'
 import CustomerModal from '../modals/CustomerModal.vue'
 import { onClickOutside } from '@vueuse/core'
 import { useTemplateRef } from 'vue'
-const emits = defineEmits(['setOpen'])
+const emits = defineEmits(['setOpen', 'setOrderType', 'setCustomerDetailsId'])
 const target = useTemplateRef('userList')
 const isOpen = ref(true)
 const selectedTab = ref('')
@@ -160,9 +160,19 @@ const userResults = ref([])
 const selectedUser = ref('')
 onClickOutside(target, (event) => (userResults.value = []))
 watch(
-  () => selectedUser,
+  () => selectedUser.value,
   () => {
+    emits('setOrderType', selectedTab.value)
+    emits('setCustomerDetailsId', selectedUser.value._id)
     userResults.value = []
+  },
+)
+
+watch(
+  () => selectedTab.value,
+  () => {
+    emits('setOrderType', selectedTab.value)
+    emits('setCustomerDetailsId', selectedUser.value._id)
   },
 )
 

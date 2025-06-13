@@ -36,20 +36,31 @@
 
             <div class="mt-4">
               <label class="text-sm font-medium text-gray-500">Saved Addresses</label>
-              <div
-                v-for="addr in address"
-                :key="addr"
-                class="flex items-center justify-between mt-1 px-4 py-2 bg-[#f8f9fa] rounded border text-gray-500"
-              >
-                <div>
-                  <span v-if="addr.aptNo">{{ addr.aptNo }},</span>
-                  <span v-if="addr.floor">{{ addr.floor }},</span>
-                  <span v-if="addr.streetName || addr.streetNo">{{ addr.streetName }} {{ addr.streetNo }},</span>
-                  <span v-if="addr.district">{{ addr.district }}</span>
+              <div ref="addressListRef" class="overflow-y-auto max-h-[200px] pr-1 custom-scroll">
+                <div
+                  v-for="(addr, index) in address"
+                  :key="index"
+                  :class="[
+                    'flex items-center justify-between mt-1 px-4 py-2 rounded border text-gray-500',
+                    editAddress === index ? 'bg-yellow-100 border-yellow-500' : 'bg-[#f8f9fa]',
+                  ]"
+                >
+                  <div>
+                    <span v-if="addr.aptNo">{{ addr.aptNo }},</span>
+                    <span v-if="addr.floor">{{ addr.floor }},</span>
+                    <span v-if="addr.streetName || addr.streetNo">{{ addr.streetName }} {{ addr.streetNo }},</span>
+                    <span v-if="addr.district">{{ addr.district }}</span>
+                    <span v-if="addr.city">,{{ addr.city }}</span>
+                    <span v-if="addr.postCode">,{{ addr.postCode }}</span>
+                  </div>
+                  <VaButton
+                    preset="secondary"
+                    size="small"
+                    icon="mso-edit"
+                    aria-label="Edit Address"
+                    @click="editAddressFields(addr, index)"
+                  />
                 </div>
-                <VaButton preset="secondary" size="small" class="bg-green-800 hover:bg-green-900 text-white">
-                  Edit
-                </VaButton>
               </div>
             </div>
           </div>
@@ -124,9 +135,9 @@
               <div class="mt-2 flex justify-end">
                 <VaButton
                   size="small"
-                  preset="secondary"
-                  color="primary"
-                  class="!text-xs !px-1 !py-1"
+                  class="!text-xs !px-1 !py-1 text-white rounded"
+                  style="background-color: #154ec1"
+                  :disabled="!isAddressValid"
                   @click="addAddress"
                 >
                   {{ editAddress !== -1 ? 'Edit' : 'Add' }} Address
@@ -176,7 +187,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, reactive, computed } from 'vue'
+import { ref, watch, reactive, computed, nextTick } from 'vue'
 import { useToast } from 'vuestic-ui'
 import axios from 'axios'
 import { useServiceStore } from '@/stores/services.ts'
@@ -188,6 +199,8 @@ const emits = defineEmits(['cancel', 'setUser'])
 const props = defineProps<{
   selectedUser?: Record<string, string>
 }>()
+const addressListRef = ref(null)
+const addressItems = ref([])
 
 const showCustomerModal = ref(true)
 const searchAdd = reactive({
@@ -216,32 +229,31 @@ watch(showCustomerModal, (val) => {
   if (!val) emits('cancel')
 })
 
+const isAddressValid = computed(() => {
+  return (
+    postCode.value.trim() !== '' &&
+    streetAddress.value.trim() !== '' &&
+    district.value.trim() !== '' &&
+    muncipality.value.trim() !== ''
+  )
+})
+
 if (props.selectedUser) {
   name.value = props.selectedUser['Name']
-  postCode.value = props.selectedUser['ZipCode']
-  if (typeof props.selectedUser['Address'] === 'string') {
-    const add = props.selectedUser['Address'].split(',')
+  phoneNumber.value = props.selectedUser['MobilePhone']
+  props.selectedUser['OtherAddresses'].map((e: any) => {
+    const add = e.Address.split(',')
     address.value.push({
+      designation: 'Other',
       floor: add[1] || '',
       aptNo: add[0] || '',
       streetName: add[3] || '',
       streetNo: add[2] || '',
       district: add[4] || '',
+      city: add[5] || '',
+      postCode: add[6] || '',
     })
-  } else {
-    props.selectedUser['Address'].map((e: any) => {
-      const add = e.split(',')
-      address.value.push({
-        floor: add[1] || '',
-        aptNo: add[0] || '',
-        streetName: add[3] || '',
-        streetNo: add[2] || '',
-        district: add[4] || '',
-      })
-    })
-  }
-  muncipality.value = props.selectedUser['Fax']
-  phoneNumber.value = props.selectedUser['MobilePhone']
+  })
 }
 
 const isEdit = computed(() => {
@@ -249,26 +261,66 @@ const isEdit = computed(() => {
 })
 
 function setAddress(address) {
-  postCode.value = address['Postal Code']
   streetAddress.value = address['Street Name']
   district.value = address['District']
+  postCode.value = address['Postal Code']
   muncipality.value = address['Municipality / Community']
   streetList.value = []
 }
 
 function addAddress() {
+  if (!isAddressValid.value) {
+    init({ color: 'danger', message: 'Please fill all required address fields.' })
+    return
+  }
   const payload = {
+    designation: 'Other',
     floor: floor.value,
     aptNo: aptNumber.value,
     streetName: streetAddress.value,
     streetNo: streetNumber.value,
     district: district.value,
+    postCode: postCode.value,
+    city: muncipality.value,
   }
   if (editAddress.value !== -1) {
     address.value[editAddress.value] = payload
   } else {
     address.value.push(payload)
   }
+  floor.value = ''
+  aptNumber.value = ''
+  streetAddress.value = ''
+  streetNumber.value = ''
+  district.value = ''
+  postCode.value = ''
+  muncipality.value = ''
+
+  // Clear search fields too
+  searchAdd.postalCode = ''
+  searchAdd.street = ''
+
+  editAddress.value = -1
+}
+
+function editAddressFields(addr, index) {
+  postCode.value = addr.postCode || ''
+  muncipality.value = addr.city || ''
+  streetAddress.value = addr.streetName || ''
+  streetNumber.value = addr.streetNo || ''
+  aptNumber.value = addr.aptNo || ''
+  floor.value = addr.floor || ''
+  district.value = addr.district || ''
+
+  editAddress.value = index
+
+  nextTick(() => {
+    const el = addressItems.value[index]
+    if (el && addressListRef.value) {
+      const parent = addressListRef.value
+      parent.scrollTop = el.offsetTop - parent.offsetTop
+    }
+  })
 }
 
 async function fetchStreetName() {
@@ -292,16 +344,21 @@ async function fetchStreetName() {
 async function addOrUpdateCustomerDetails() {
   const servicesStore = useServiceStore()
   const payload = {
-    Name: name.value,
-    Phone: phoneNumber.value,
-    postCode: postCode.value,
+    name: name.value,
+    phone: phoneNumber.value,
     address: address.value,
-    city: muncipality.value,
-    isTick: isTick.value ? '' : 0,
+    isTick: isTick.value,
+    customerNote: '',
+    addressNote: '',
   }
   let response = ''
   if (props.selectedUser) {
-    response = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/customers/${props.selectedUser._id}`, payload)
+    response = await axios.put(
+      `${import.meta.env.VITE_API_BASE_URL}/winmax/entites/${props.selectedUser['ID']}?outletId=${
+        servicesStore.selectedRest
+      }`,
+      payload,
+    )
   } else {
     response = await axios.post(
       `${import.meta.env.VITE_API_BASE_URL}/winmax/entites?outletId=${servicesStore.selectedRest}`,
@@ -347,5 +404,15 @@ async function handleSubmit() {
   background: white;
   z-index: 10;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.custom-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background-color: transparent;
 }
 </style>

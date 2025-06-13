@@ -134,7 +134,14 @@ async function submit() {
               <td class="p-2">
                 <div class="flex items-center gap-2">
                   <VaCheckbox v-model="item.isChecked" class="m-0" @update:modelValue="updateSelectAll" />
-                  <span>{{ item.name }}</span>
+                  <span>
+                    <template v-if="item.code">{{ item.code }}</template>
+                    <template v-if="item.code && (item.name || item.posName)"> - </template>
+                    <template v-if="item.name">{{ item.name }}</template>
+                    <template v-if="item.name && item.posName"> - </template>
+                    <template v-if="item.posName">{{ item.posName }}</template>
+                  </span>
+                  <!-- <span>{{ item.code }} - {{ item.name }} - {{ item.posName }}</span> -->
                 </div>
               </td>
             </tr>
