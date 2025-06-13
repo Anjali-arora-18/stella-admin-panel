@@ -353,6 +353,7 @@ async function addOrUpdateCustomerDetails() {
   }
   let response = ''
   if (props.selectedUser) {
+    payload['_id'] = props.selectedUser._id
     response = await axios.put(
       `${import.meta.env.VITE_API_BASE_URL}/winmax/entites/${props.selectedUser['ID']}?outletId=${
         servicesStore.selectedRest
