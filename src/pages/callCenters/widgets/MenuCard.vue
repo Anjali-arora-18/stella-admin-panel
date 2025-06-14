@@ -4,8 +4,8 @@
       <div class="item-name">{{ item.name }}</div>
       <div class="item-price">€{{ parseFloat(item.price).toFixed(2) }}</div>
     </div>
-    <div class="item-image">
-      <img :src="item.imageUrl || '/missing.png'" alt="icon" class="w-full h-full" />
+    <div v-if="item.imageUrl" class="item-image">
+      <img :src="item.imageUrl" alt="icon" class="w-full h-full" />
     </div>
 
     <MenuModal v-model="showMenuModal" :item="itemWithArticlesOptionsGroups" @cancel="closeMenuModal" />
@@ -114,8 +114,7 @@ function closeMenuModal() {
 }
 
 .item-image {
-  width: 8
-  px;
+  width: 80px;
   height: 60px;
   border-radius: 8px;
   display: flex;

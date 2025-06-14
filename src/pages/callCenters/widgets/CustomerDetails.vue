@@ -96,21 +96,45 @@
         </div>
 
         <!-- Address -->
-        <div v-if="selectedTab">
+        <div v-if="selectedTab && selectedUser">
           <label class="text-sm text-gray-600 font-medium block mb-1">Address</label>
           <div class="flex items-center gap-2 relative">
-            <input
-              type="text"
-              disabled
-              :value="selectedUser['Address']"
-              class="w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            <!-- Address dropdown -->
+            <VaSelect
+              v-model="selectedAddress"
+              label=""
+              close-on-change
+              :options="
+                selectedUser['OtherAddresses'].map((e, index) => {
+                  return { text: `${e.Address}`, value: index }
+                })
+              "
+              track-by="value"
+              searchable
+              highlight-matched-text
             />
-            <button class="bg-blue-500 text-white px-2 py-1 rounded" @click="showDropdown = !showDropdown">12</button>
-            <div v-if="showDropdown" class="absolute right-0 top-full mt-1 w-40 bg-white border rounded shadow z-10">
+            <button
+              :disable="!selectedAddress"
+              class="bg-blue-500 text-white px-2 py-1 rounded"
+              @click="handleDeliveryZoneFetch"
+            >
+              12
+            </button>
+
+            <!--dropdown for 12 button -->
+            <div
+              v-if="showDeliveryDropdown"
+              class="absolute right-0 top-full mt-1 w-40 bg-white border rounded shadow z-10"
+            >
               <ul class="text-sm">
-                <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer">Option 1</li>
-                <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer">Option 2</li>
-                <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer">Option 3</li>
+                <li
+                  v-for="(zone, index) in deliveryZoneOptions"
+                  :key="index"
+                  class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                  @click="selectDeliveryZone(zone)"
+                >
+                  {{ zone.name || zone.label || zone }}
+                </li>
               </ul>
             </div>
           </div>
@@ -132,6 +156,8 @@
   <CustomerModal
     v-if="showCustomerModal"
     :selected-user="selectedUser"
+    :user-name="name"
+    :user-number="phoneNumber"
     @setUser="setNewUser"
     @cancel="closeCustomerModal"
   />
@@ -150,6 +176,7 @@ const target = useTemplateRef('userList')
 const isOpen = ref(true)
 const selectedTab = ref('')
 const isUserLoading = ref(false)
+const selectedAddress = ref('')
 const { init } = useToast()
 
 const showCustomerModal = ref(false)
@@ -162,6 +189,9 @@ onClickOutside(target, (event) => (userResults.value = []))
 watch(
   () => selectedUser.value,
   () => {
+    if (selectedUser.value) {
+      selectedAddress.value = { text: selectedUser.value['OtherAddresses'][0].Address, value: 0 }
+    }
     emits('setOrderType', selectedTab.value)
     emits('setCustomerDetailsId', selectedUser.value._id)
     userResults.value = []
@@ -175,6 +205,12 @@ watch(
     emits('setCustomerDetailsId', selectedUser.value._id)
   },
 )
+
+const showDeliveryDropdown = ref(false)
+
+function selectAddress(address) {
+  selectedUser.value.Address = address
+}
 
 // Set current date & time by default
 const selectedDate = ref(new Date())
@@ -216,11 +252,8 @@ async function fetchCustomerDetails(setUser = false) {
           }
         }
       })
-      .catch((err) => {
-        init({
-          color: 'danger',
-          message: err.response.data.message,
-        })
+      .catch(() => {
+        openCustomerModal()
       })
 
     isUserLoading.value = false
@@ -238,6 +271,36 @@ function selectUser(user) {
   phoneNumber.value = user['MobilePhone']
 
   userResults.value = []
+}
+
+const deliveryZoneOptions = ref([])
+
+async function handleDeliveryZoneFetch() {
+  const postalCode =
+    selectedUser.value['OtherAddresses'][selectedAddress.value.value].ZipCode || selectedUser.value.ZipCode
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/deliveryZones/postcode/${postalCode}`)
+    console.log('API Response:', response.data)
+
+    deliveryZoneOptions.value = response.data.data
+    if (!response.data.data.length) {
+      init({
+        color: 'danger',
+        message: 'No delivery zones.',
+      })
+    } else {
+      showDeliveryDropdown.value = true
+    }
+  } catch (err) {
+    init({
+      color: 'danger',
+      message: err?.response?.data?.message || 'Failed to fetch delivery zones.',
+    })
+  }
+}
+
+function selectDeliveryZone(zone) {
+  showDeliveryDropdown.value = false
 }
 </script>
 

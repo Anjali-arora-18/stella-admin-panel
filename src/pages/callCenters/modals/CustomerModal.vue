@@ -1,16 +1,13 @@
 <template>
   <VaModal
     v-model="showCustomerModal"
-    class="big-modal"
+    class="big-xl-modal"
     :mobile-fullscreen="false"
     size="large"
     hide-default-actions
     close-button
   >
-    <div class="bg-[#f8f9fa] px-4 py-6 flex justify-between items-center">
-      <h1 class="va-h6 my-0 text-gray-800">{{ isEdit ? 'Edit' : 'Add New' }} Customer</h1>
-    </div>
-
+    <h3 class="va-h3 ml-3">{{ isEdit ? 'Edit Customer' : 'Add New Customer' }}</h3>
     <div class="bg-white p-4 pb-0">
       <div class="space-y-4 text-sm">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -34,18 +31,23 @@
               <VaTextarea disabled placeholder="Special instructions, allergies, preferences..." rows="3" />
             </div>
 
-            <div class="mt-4">
+            <div v-if="address.length" class="mt-4">
               <label class="text-sm font-medium text-gray-500">Saved Addresses</label>
               <div ref="addressListRef" class="overflow-y-auto max-h-[200px] pr-1 custom-scroll">
                 <div
                   v-for="(addr, index) in address"
                   :key="index"
+                  ref="addressItems"
+                  :ref="(el) => (addressItems.value[index] = el)"
                   :class="[
                     'flex items-center justify-between mt-1 px-4 py-2 rounded border text-gray-500',
                     editAddress === index ? 'bg-yellow-100 border-yellow-500' : 'bg-[#f8f9fa]',
                   ]"
                 >
                   <div>
+                    <span v-if="addr.designation">
+                      <strong>{{ addr.designation }}</strong> -
+                    </span>
                     <span v-if="addr.aptNo">{{ addr.aptNo }},</span>
                     <span v-if="addr.floor">{{ addr.floor }},</span>
                     <span v-if="addr.streetName || addr.streetNo">{{ addr.streetName }} {{ addr.streetNo }},</span>
@@ -95,7 +97,7 @@
                 </ul>
               </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-2">
               <div>
                 <label class="text-sm font-small text-gray-500">Post Code</label>
                 <VaInput v-model="postCode" class="mt-1" />
@@ -113,7 +115,7 @@
                 <VaInput v-model="floor" class="mt-1" />
               </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
               <div>
                 <label class="text-sm font-small text-gray-500">Street Name</label>
                 <VaInput v-model="streetAddress" class="mt-1" />
@@ -126,6 +128,10 @@
                 <label class="text-sm font-medium text-gray-500">City</label>
                 <VaInput v-model="muncipality" class="mt-1" />
               </div>
+            </div>
+            <div class="flex flex-col gap-1 mb-2">
+              <label class="text-sm font-medium text-gray-500">Designation</label>
+              <VaInput v-model="designation" type="text" />
             </div>
             <div class="flex flex-col gap-1 mb-4">
               <label class="text-sm font-medium text-gray-500">Address Notes</label>
@@ -198,6 +204,8 @@ const emits = defineEmits(['cancel', 'setUser'])
 
 const props = defineProps<{
   selectedUser?: Record<string, string>
+  userName: string
+  userNumber: number
 }>()
 const addressListRef = ref(null)
 const addressItems = ref([])
@@ -216,6 +224,7 @@ const muncipality = ref('')
 const district = ref('')
 const streetNumber = ref('')
 const aptNumber = ref('')
+const designation = ref('')
 const isTick = ref(false)
 const streetList = ref([])
 const address = ref([])
@@ -241,10 +250,11 @@ const isAddressValid = computed(() => {
 if (props.selectedUser) {
   name.value = props.selectedUser['Name']
   phoneNumber.value = props.selectedUser['MobilePhone']
+
   props.selectedUser['OtherAddresses'].map((e: any) => {
     const add = e.Address.split(',')
     address.value.push({
-      designation: 'Other',
+      designation: e.Designation,
       floor: add[1] || '',
       aptNo: add[0] || '',
       streetName: add[3] || '',
@@ -254,6 +264,9 @@ if (props.selectedUser) {
       postCode: add[6] || '',
     })
   })
+} else {
+  name.value = props.userName
+  phoneNumber.value = props.userNumber
 }
 
 const isEdit = computed(() => {
@@ -274,7 +287,7 @@ function addAddress() {
     return
   }
   const payload = {
-    designation: 'Other',
+    designation: designation.value,
     floor: floor.value,
     aptNo: aptNumber.value,
     streetName: streetAddress.value,
@@ -290,6 +303,7 @@ function addAddress() {
   }
   floor.value = ''
   aptNumber.value = ''
+  designation.value = ''
   streetAddress.value = ''
   streetNumber.value = ''
   district.value = ''
@@ -311,6 +325,7 @@ function editAddressFields(addr, index) {
   aptNumber.value = addr.aptNo || ''
   floor.value = addr.floor || ''
   district.value = addr.district || ''
+  designation.value = addr.designation || ''
 
   editAddress.value = index
 
@@ -353,7 +368,7 @@ async function addOrUpdateCustomerDetails() {
   }
   let response = ''
   if (props.selectedUser) {
-    payload['_id'] = props.selectedUser._id
+    payload['id'] = props.selectedUser._id
     response = await axios.put(
       `${import.meta.env.VITE_API_BASE_URL}/winmax/entites/${props.selectedUser['ID']}?outletId=${
         servicesStore.selectedRest
