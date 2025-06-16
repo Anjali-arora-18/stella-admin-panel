@@ -45,13 +45,18 @@
         <VaCard>
           <VaCardContent>
             <CustomerDetails
+              :force-remount="forceRemount"
+              @setDeliveryFee="(val) => (deliveryFee = val)"
               @setCustomerDetailsId="(val) => (customerDetailsId = val)"
+              @setDeliveryZone="(val) => (isDeliveryZoneSelected = val)"
               @setOrderType="(val) => (orderType = val)"
               @setOpen="(val) => (accordian[0] = val)"
             />
           </VaCardContent>
         </VaCard>
         <OrderDetails
+          :delivery-fee="deliveryFee"
+          :is-delivery-zone-selected="isDeliveryZoneSelected"
           :customer-details-id="customerDetailsId"
           :order-type="orderType"
           :is-customer-open="accordian[0]"
@@ -62,9 +67,10 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useMenuStore } from '@/stores/getMenu.js'
 import { useServiceStore } from '@/stores/services.ts'
+import { useOrderStore } from '@/stores/order-store'
 import { useRoute } from 'vue-router'
 const route = useRoute()
 const serviceStore = useServiceStore()
@@ -80,11 +86,14 @@ const props = defineProps({
 
 const customerDetailsId = ref('')
 const orderType = ref('')
+const isDeliveryZoneSelected = ref('')
 const categories = computed(() => menuStore.categories)
 const restDetails = computed(() => menuStore.restDetails)
 const isLoading = ref(false)
 const menuStore = useMenuStore()
 const accordian = ref([true, true])
+const deliveryFee = ref(0)
+const orderStore = useOrderStore()
 const toTitleCase = (text) => {
   if (!text) return ''
   return text
@@ -96,7 +105,7 @@ const toTitleCase = (text) => {
 
 const selectedItem = ref(null)
 const currentTime = ref('')
-
+const forceRemount = ref(0)
 const menuItems = computed(() => {
   return (props.categories || []).map((category) => ({
     id: category._id,
@@ -121,12 +130,22 @@ onMounted(() => {
   }, 3000)
 })
 
+onUnmounted(() => {
+  orderStore.cartItems = []
+  orderStore.paymentId = ''
+  orderStore.redirectUrl = ''
+})
+
 watch(
   () => serviceStore.selectedRest,
   (newVal) => {
     if (newVal) {
       isLoading.value = true
       getMenu()
+      orderStore.cartItems = []
+      orderStore.paymentId = ''
+      orderStore.redirectUrl = ''
+      forceRemount.value++
       isLoading.value = false
     }
   },

@@ -161,7 +161,7 @@ const items = toRef(props, 'items')
           <span v-else-if="parseFloat(rowData.deliveryCharge)">
             €{{ parseFloat(rowData.deliveryCharge).toFixed(2) }}
           </span>
-          <span v-else></span>
+          <span v-else>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
         </div>
       </template>
       <template #cell(actions)="{ rowData }">

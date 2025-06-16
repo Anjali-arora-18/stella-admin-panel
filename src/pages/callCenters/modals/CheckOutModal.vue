@@ -1,12 +1,5 @@
 <template>
-  <VaModal
-    v-model="showCheckoutModal"
-    class="big-xl-modal"
-    :mobile-fullscreen="false"
-    size="large"
-    hide-default-actions
-    close-button
-  >
+  <VaModal v-model="showCheckoutModal" no-dismiss class="big-xl-modal" size="large" hide-default-actions>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50 min-h-screen">
       <!-- Order Summary -->
       <div class="md:col-span-1">
@@ -41,7 +34,7 @@
               <span>Subtotal:</span>
               <span>€{{ subtotal.toFixed(2) }}</span>
             </div>
-            <div class="total-row">
+            <div v-if="orderType === 'delivery'" class="total-row">
               <span>Delivery Fee:</span>
               <span>€{{ deliveryFee.toFixed(2) }}</span>
             </div>
@@ -52,9 +45,8 @@
           </div>
         </div>
       </div>
-
       <!-- Payment Section -->
-      <div class="md:col-span-2">
+      <div v-if="!redirectUrl" class="md:col-span-2">
         <div class="bg-white shadow-md">
           <div class="header-container">
             <h3 class="payment-header">Complete Order</h3>
@@ -70,7 +62,6 @@
                   :class="selectedPayment == 'Cash' ? 'selected' : ''"
                   @click="selectedPayment = 'Cash'"
                 >
-                  >
                   <div class="payment-icon">💵</div>
                   <div class="payment-label">Cash Payment</div>
                   <div class="payment-desc">Pay with cash on delivery or pickup</div>
@@ -81,7 +72,6 @@
                   :class="selectedPayment == 'Card' ? 'selected' : ''"
                   @click="selectedPayment = 'Card'"
                 >
-                  >
                   <div class="payment-icon">💳</div>
                   <div class="payment-label">Credit Card</div>
                   <div class="payment-desc">Secure payment with Visa/Mastercard</div>
@@ -135,22 +125,33 @@
           </div>
 
           <div class="action-container">
-            <button id="confirmBtn" class="btn btn-primary">
-              <span id="btnText" :disabled="apiLoading || !selectedPayment" @click="createOrder">Complete Payment</span>
-              <div id="loadingSpinner" class="loading-spinner hidden"></div>
+            <button
+              id="confirmBtn"
+              :disabled="apiLoading || !selectedPayment"
+              class="btn btn-primary"
+              @click="createOrder"
+            >
+              <span v-if="!apiLoading" id="btnText">
+                {{ orderId && selectedPayment === 'Card' ? 'Retry Payment' : 'Complete Payment' }}</span
+              >
+              <div v-if="apiLoading" id="loadingSpinner" class="loading-spinner animate-spin"></div>
             </button>
           </div>
         </div>
+      </div>
+      <div v-else class="col-span-2 px-5 flex items-center px-10 py-10 bg-white">
+        <iframe :src="redirectUrl" width="100%" height="100%" />
       </div>
     </div>
   </VaModal>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { useToast } from 'vuestic-ui'
 import { useOrderStore } from '@/stores/order-store' // Adjust path as needed
 import { useServiceStore } from '@/stores/services'
+import { storeToRefs } from 'pinia'
 const showCheckoutModal = ref(true)
 const selectedPayment = ref('')
 const apiLoading = ref(false)
@@ -161,22 +162,49 @@ const props = defineProps<{
   customerDetailsId: string
   orderType: string
 }>()
-
-const interVal: any = ref('')
+const orderStore = useOrderStore()
 const serviceStore = useServiceStore()
 
+const orderId: any = ref('')
+const redirectUrl = computed(() => orderStore.redirectUrl)
+const checkInterval: any = ref('')
 watch(showCheckoutModal, (val) => {
   if (!val) emits('cancel')
 })
 
-const orderStore = useOrderStore()
-
+function setInter() {
+  checkInterval.value = setInterval(() => {
+    const iframe = document.querySelector('iframe')
+    if (iframe && iframe.contentWindow) {
+      try {
+        const currentUrl = iframe.contentWindow.location.href
+        if (currentUrl.includes('loader')) {
+          checkPaymentStatus(orderId.value)
+          resetInter()
+          apiLoading.value = false
+        }
+      } catch (e) {
+        // Handle cross-origin errors silently
+      }
+    }
+  }, 2000)
+}
+function resetInter() {
+  // Clear interval when component unmounts
+  clearInterval(checkInterval.value)
+}
 // Computed total values
 const subtotal = computed(() => {
   return orderStore.cartItems.reduce((acc, item) => acc + item.totalPrice, 0)
 })
 
-const totalAmount = computed(() => subtotal.value + props.deliveryFee)
+const totalAmount = computed(() => {
+  if (props.orderType === 'delivery') {
+    return subtotal.value + props.deliveryFee
+  } else {
+    return subtotal.value
+  }
+})
 
 async function checkPaymentStatus(requestId) {
   const response = await orderStore.checkPaymentStatus(requestId)
@@ -185,11 +213,16 @@ async function checkPaymentStatus(requestId) {
       color: 'success',
       message: 'Payment Success',
     })
-    clearInterval(interVal.value)
     setTimeout(() => {
       orderStore.cartItems = []
       window.location.reload()
     }, 800)
+  } else {
+    init({
+      color: 'danger',
+      message: response.data.message,
+    })
+    orderStore.setPaymentLink('')
   }
 }
 
@@ -216,17 +249,31 @@ async function createOrder() {
     orderDateTime: new Date(Date.now() + 2 * 60 * 1000).toLocaleString('en-US', { timeZone: 'UTC' }),
     paymentMode: selectedPayment.value,
   }
-  const response = await orderStore.createOrder(payload)
-  if (response.status === 201) {
-    init({
-      color: 'success',
-      message: 'Order created.',
-    })
+  let response: any = ''
+  if (orderId.value) {
+    response = await orderStore.retryPayment(orderId.value)
+  } else {
+    response = await orderStore.createOrder(payload)
+  }
+
+  if (response.status === 201 || response.status === 200) {
+    if (!orderId.value) {
+      init({
+        color: 'success',
+        message: 'Order created.',
+      })
+    }
+
     if (selectedPayment.value === 'Card') {
-      window.open(response.data.data.redirectUrl, '_blank', 'width=800,height=600,toolbar=0,menubar=0,location=0')
-      interVal.value = setInterval(() => {
-        checkPaymentStatus(response.data.data.requestId)
-      }, 5000)
+      orderStore.setPaymentLink(response.data.data.redirectUrl)
+      orderId.value = response.data.data.requestId
+      setInter()
+    } else {
+      apiLoading.value = false
+      setTimeout(() => {
+        orderStore.cartItems = []
+        window.location.reload()
+      }, 800)
     }
   }
   apiLoading.value = false

@@ -181,7 +181,7 @@
 
         <VaButton
           type="submit"
-          :disabled="!isFormValid || isSubmitting"
+          :disabled="!address.length || isSubmitting"
           class="bg-green-800 text-white hover:bg-green-900 text-sm font-semibold"
           @click="handleSubmit"
         >
@@ -231,10 +231,6 @@ const address = ref([])
 const isSubmitting = ref(false)
 const editAddress = ref(-1)
 
-const isFormValid = computed(() => {
-  return name.value.trim() !== '' && phoneNumber.value.trim() !== '' && designation.value.trim() !== ''
-})
-
 watch(showCustomerModal, (val) => {
   if (!val) emits('cancel')
 })
@@ -244,7 +240,8 @@ const isAddressValid = computed(() => {
     postCode.value.trim() !== '' &&
     streetAddress.value.trim() !== '' &&
     district.value.trim() !== '' &&
-    muncipality.value.trim() !== ''
+    muncipality.value.trim() !== '' &&
+    designation.value.trim() !== ''
   )
 })
 
@@ -395,7 +392,7 @@ async function addOrUpdateCustomerDetails() {
 }
 
 async function handleSubmit() {
-  if (!isFormValid.value || isSubmitting.value) return
+  if (!address.value.length || isSubmitting.value) return
 
   isSubmitting.value = true
 

@@ -6,6 +6,11 @@ import axios from 'axios'
 import RouteViewComponent from '../layouts/RouterBypass.vue'
 const routes: Array<RouteRecordRaw> = [
   {
+    name: 'loader',
+    path: '/loader/:paymentId',
+    component: () => import('../pages/loader/index.vue'),
+  },
+  {
     name: 'admin',
     path: '/',
     component: AppLayout,
@@ -98,11 +103,7 @@ const routes: Array<RouteRecordRaw> = [
       //   path: 'companies',
       //   component: () => import('../pages/companies/index.vue'),
       // },
-      {
-        name: 'order-payment',
-        path: '/order-payment/:paymentId',
-        component: () => import('../pages/order-payment/index.vue'),
-      },
+
       {
         name: 'outlets',
         path: 'outlets',

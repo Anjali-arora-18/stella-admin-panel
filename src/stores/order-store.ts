@@ -22,10 +22,14 @@ export const useOrderStore = defineStore('order', {
       }[]
       totalPrice: number
       selectionTotalPrice: number
-      paymentId: string
     }[],
+    paymentId: '',
+    redirectUrl: '',
   }),
   actions: {
+    setPaymentLink(payload) {
+      this.redirectUrl = payload
+    },
     addItemToCart(item: any) {
       this.cartItems.push(item)
     },
@@ -62,6 +66,10 @@ export const useOrderStore = defineStore('order', {
     async checkPaymentStatus(orderId) {
       const url = import.meta.env.VITE_API_BASE_URL
       return await axios.put(`${url}/payments/verify/${orderId}`)
+    },
+    async retryPayment(orderId) {
+      const url = import.meta.env.VITE_API_BASE_URL
+      return await axios.post(`${url}/payments/retry/${orderId}`)
     },
   },
 })

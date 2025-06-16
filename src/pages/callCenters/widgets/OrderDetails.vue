@@ -90,7 +90,7 @@
           <span class="text-gray-600">Subtotal:</span>
           <span>€{{ subtotal.toFixed(2) }}</span>
         </div>
-        <div class="flex justify-between">
+        <div v-if="orderType === 'delivery'" class="flex justify-between">
           <span class="text-gray-600">Delivery Fee:</span>
           <span>€{{ deliveryFee.toFixed(2) }}</span>
         </div>
@@ -102,7 +102,7 @@
 
       <!-- Checkout -->
       <VaButton
-        :disabled="!customerDetailsId || !orderType"
+        :disabled="!customerDetailsId || !orderType || !props.isDeliveryZoneSelected"
         class="mt-4 w-full"
         color="success"
         size="large"
@@ -144,6 +144,8 @@ const props = defineProps({
   isCustomerOpen: Boolean,
   customerDetailsId: [String, Number],
   orderType: String,
+  deliveryFee: Number,
+  isDeliveryZoneSelected: Boolean,
 })
 
 const promoCode = ref('')
@@ -191,11 +193,15 @@ const items = computed(() =>
   }),
 )
 
-const deliveryFee = ref(2.5)
-
 const subtotal = computed(() => items.value.reduce((sum, item) => sum + item.total, 0))
 
-const total = computed(() => subtotal.value + deliveryFee.value)
+const total = computed(() => {
+  if (props.orderType === 'delivery') {
+    return subtotal.value + props.deliveryFee
+  } else {
+    return subtotal.value
+  }
+})
 
 const increaseQty = (item) => {
   const index = cartItems.value.findIndex((i) => i.itemId === item.id)

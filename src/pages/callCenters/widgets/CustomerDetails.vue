@@ -116,7 +116,7 @@
             <button
               :disable="!selectedAddress"
               class="bg-blue-500 text-white px-2 py-1 rounded"
-              @click="handleDeliveryZoneFetch"
+              @click="showDeliveryDropdown = true"
             >
               12
             </button>
@@ -124,16 +124,20 @@
             <!--dropdown for 12 button -->
             <div
               v-if="showDeliveryDropdown"
-              class="absolute right-0 top-full mt-1 w-40 bg-white border rounded shadow z-10"
+              class="absolute right-0 top-full mt-1 w-full text-left bg-white border rounded shadow z-10"
             >
-              <ul class="text-sm">
+              <ul ref="deliveryList " class="text-sm">
                 <li
                   v-for="(zone, index) in deliveryZoneOptions"
                   :key="index"
-                  class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                  @click="selectDeliveryZone(zone)"
+                  class="px-3 py-2 hover:bg-gray-100 cursor-pointer border border-b-1"
+                  :class="{
+                    'bg-gray-100 !cursor-not-allowed': selectedTab === 'delivery',
+                    'text-primary font-bold': selectedZone === zone.name,
+                  }"
+                  @click="selectedTab === 'takeaway' ? selectDeliveryZone(zone) : ''"
                 >
-                  {{ zone.name || zone.label || zone }}
+                  {{ zone.name }} - {{ zone.district }}
                 </li>
               </ul>
             </div>
@@ -170,9 +174,10 @@ import axios from 'axios'
 import { useServiceStore } from '@/stores/services.ts'
 import CustomerModal from '../modals/CustomerModal.vue'
 import { onClickOutside } from '@vueuse/core'
-import { useTemplateRef } from 'vue'
-const emits = defineEmits(['setOpen', 'setOrderType', 'setCustomerDetailsId'])
-const target = useTemplateRef('userList')
+const props = defineProps(['forceRemount'])
+const emits = defineEmits(['setOpen', 'setOrderType', 'setCustomerDetailsId', 'setDeliveryFee', 'setDeliveryZone'])
+const target = ref('userList')
+const deliveryTarget = ref('deliveryList')
 const isOpen = ref(true)
 const selectedTab = ref('')
 const isUserLoading = ref(false)
@@ -185,32 +190,10 @@ const phoneNumber = ref('')
 const name = ref('')
 const userResults = ref([])
 const selectedUser = ref('')
-onClickOutside(target, (event) => (userResults.value = []))
-watch(
-  () => selectedUser.value,
-  () => {
-    if (selectedUser.value) {
-      selectedAddress.value = { text: selectedUser.value['OtherAddresses'][0].Address, value: 0 }
-    }
-    emits('setOrderType', selectedTab.value)
-    emits('setCustomerDetailsId', selectedUser.value._id)
-    userResults.value = []
-  },
-)
-
-watch(
-  () => selectedTab.value,
-  () => {
-    emits('setOrderType', selectedTab.value)
-    emits('setCustomerDetailsId', selectedUser.value._id)
-  },
-)
-
+const selectedZone = ref('')
 const showDeliveryDropdown = ref(false)
-
-function selectAddress(address) {
-  selectedUser.value.Address = address
-}
+onClickOutside(target, (event) => (userResults.value = []), { ignore: [deliveryTarget] })
+onClickOutside(deliveryTarget, (event) => (showDeliveryDropdown.value = false), { ignore: [target] })
 
 // Set current date & time by default
 const selectedDate = ref(new Date())
@@ -275,21 +258,42 @@ function selectUser(user) {
 
 const deliveryZoneOptions = ref([])
 
+function selectDeliveryZone(zone) {
+  emits('setDeliveryFee', zone.deliveryCharge)
+  emits('setDeliveryZone', true)
+  selectedZone.value = zone.name
+  showDeliveryDropdown.value = false
+}
+
 async function handleDeliveryZoneFetch() {
-  const postalCode =
-    selectedUser.value['OtherAddresses'][selectedAddress.value.value].ZipCode || selectedUser.value.ZipCode
+  const addressArray = selectedAddress.value.text
+  if (!selectedAddress.value) return
+  const addressSplit = addressArray.split(',')
+  let postalCode = ''
+  if (addressSplit.length) {
+    postalCode = addressSplit[addressSplit.length - 1]
+  } else {
+    init({
+      color: 'danger',
+      message: 'No zipcode to find postal code',
+    })
+    return
+  }
+
   try {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/deliveryZones/postcode/${postalCode}`)
-    console.log('API Response:', response.data)
 
     deliveryZoneOptions.value = response.data.data
+
     if (!response.data.data.length) {
       init({
         color: 'danger',
         message: 'No delivery zones.',
       })
     } else {
-      showDeliveryDropdown.value = true
+      if (selectedTab.value === 'delivery') {
+        selectDeliveryZone(response.data.data[0])
+      }
     }
   } catch (err) {
     init({
@@ -299,9 +303,64 @@ async function handleDeliveryZoneFetch() {
   }
 }
 
-function selectDeliveryZone(zone) {
-  showDeliveryDropdown.value = false
-}
+watch(
+  () => selectedUser.value,
+  () => {
+    if (selectedUser.value) {
+      selectedAddress.value = { text: selectedUser.value['OtherAddresses'][0].Address, value: 0 }
+    }
+    emits('setOrderType', selectedTab.value)
+    emits('setCustomerDetailsId', selectedUser.value._id)
+    handleDeliveryZoneFetch()
+    userResults.value = []
+  },
+)
+
+watch(
+  () => selectedTab.value,
+  () => {
+    emits('setOrderType', selectedTab.value)
+    emits('setDeliveryFee', 0)
+    emits('setDeliveryZone', false)
+    selectedZone.value = ''
+    if (selectedUser.value) {
+      handleDeliveryZoneFetch()
+    }
+    emits('setCustomerDetailsId', selectedUser.value._id)
+  },
+)
+
+watch(
+  () => selectedAddress.value,
+  () => {
+    emits('setDeliveryFee', 0)
+    emits('setDeliveryZone', false)
+    selectedZone.value = ''
+    if (selectedUser.value) {
+      handleDeliveryZoneFetch()
+    }
+  },
+)
+
+watch(
+  () => props.forceRemount,
+  () => {
+    isOpen.value = true
+    selectedTab.value = ''
+    isUserLoading.value = false
+    selectedAddress.value = ''
+    phoneNumber.value = ''
+    name.value = ''
+    userResults.value = []
+    selectedUser.value = ''
+    selectedZone.value = ''
+    showDeliveryDropdown.value = false
+    selectedDate.value = new Date()
+    selectedTime.value = new Date().toTimeString().slice(0, 5)
+    showCustomerModal.value = false
+    deliveryZoneOptions.value = []
+  },
+)
 </script>
 
 <style>
