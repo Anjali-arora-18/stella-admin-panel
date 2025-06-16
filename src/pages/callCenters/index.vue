@@ -134,6 +134,8 @@ onUnmounted(() => {
   orderStore.cartItems = []
   orderStore.paymentId = ''
   orderStore.redirectUrl = ''
+  orderStore.setAddress('')
+  orderStore.setDeliveryZone('')
 })
 
 watch(

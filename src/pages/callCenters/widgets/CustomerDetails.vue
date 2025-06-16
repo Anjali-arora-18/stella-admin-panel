@@ -173,6 +173,7 @@ import { useToast } from 'vuestic-ui'
 import axios from 'axios'
 import { useServiceStore } from '@/stores/services.ts'
 import CustomerModal from '../modals/CustomerModal.vue'
+import { useOrderStore } from '@/stores/order-store'
 import { onClickOutside } from '@vueuse/core'
 const props = defineProps(['forceRemount'])
 const emits = defineEmits(['setOpen', 'setOrderType', 'setCustomerDetailsId', 'setDeliveryFee', 'setDeliveryZone'])
@@ -183,7 +184,7 @@ const selectedTab = ref('')
 const isUserLoading = ref(false)
 const selectedAddress = ref('')
 const { init } = useToast()
-
+const orderStore = useOrderStore()
 const showCustomerModal = ref(false)
 
 const phoneNumber = ref('')
@@ -261,6 +262,7 @@ const deliveryZoneOptions = ref([])
 function selectDeliveryZone(zone) {
   emits('setDeliveryFee', zone.deliveryCharge)
   emits('setDeliveryZone', true)
+  orderStore.setDeliveryZone(zone._id)
   selectedZone.value = zone.name
   showDeliveryDropdown.value = false
 }
@@ -339,6 +341,7 @@ watch(
     if (selectedUser.value) {
       handleDeliveryZoneFetch()
     }
+    orderStore.setAddress(selectedAddress.value.text)
   },
 )
 

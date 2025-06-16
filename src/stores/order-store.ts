@@ -25,8 +25,16 @@ export const useOrderStore = defineStore('order', {
     }[],
     paymentId: '',
     redirectUrl: '',
+    deliveryZone: '',
+    address: '',
   }),
   actions: {
+    setDeliveryZone(payload) {
+      this.deliveryZone = payload
+    },
+    setAddress(payload) {
+      this.address = payload
+    },
     setPaymentLink(payload) {
       this.redirectUrl = payload
     },
