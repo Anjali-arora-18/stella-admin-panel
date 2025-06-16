@@ -99,6 +99,11 @@ const routes: Array<RouteRecordRaw> = [
       //   component: () => import('../pages/companies/index.vue'),
       // },
       {
+        name: 'order-payment',
+        path: '/order-payment/:paymentId',
+        component: () => import('../pages/order-payment/index.vue'),
+      },
+      {
         name: 'outlets',
         path: 'outlets',
         children: [

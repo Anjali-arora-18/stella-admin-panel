@@ -162,6 +162,7 @@ const props = defineProps<{
   orderType: string
 }>()
 
+const interVal: any = ref('')
 const serviceStore = useServiceStore()
 
 watch(showCheckoutModal, (val) => {
@@ -176,6 +177,21 @@ const subtotal = computed(() => {
 })
 
 const totalAmount = computed(() => subtotal.value + props.deliveryFee)
+
+async function checkPaymentStatus(requestId) {
+  const response = await orderStore.checkPaymentStatus(requestId)
+  if (response.data.data.status === 'Completed') {
+    init({
+      color: 'success',
+      message: 'Payment Success',
+    })
+    clearInterval(interVal.value)
+    setTimeout(() => {
+      orderStore.cartItems = []
+      window.location.reload()
+    }, 800)
+  }
+}
 
 async function createOrder() {
   apiLoading.value = true
@@ -206,6 +222,12 @@ async function createOrder() {
       color: 'success',
       message: 'Order created.',
     })
+    if (selectedPayment.value === 'Card') {
+      window.open(response.data.data.redirectUrl, '_blank', 'width=800,height=600,toolbar=0,menubar=0,location=0')
+      interVal.value = setInterval(() => {
+        checkPaymentStatus(response.data.data.requestId)
+      }, 5000)
+    }
   }
   apiLoading.value = false
 }

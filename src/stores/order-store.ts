@@ -22,6 +22,7 @@ export const useOrderStore = defineStore('order', {
       }[]
       totalPrice: number
       selectionTotalPrice: number
+      paymentId: string
     }[],
   }),
   actions: {
@@ -57,6 +58,10 @@ export const useOrderStore = defineStore('order', {
     async createOrder(payload) {
       const url = import.meta.env.VITE_API_BASE_URL
       return await axios.post(`${url}/orders`, payload)
+    },
+    async checkPaymentStatus(orderId) {
+      const url = import.meta.env.VITE_API_BASE_URL
+      return await axios.put(`${url}/payments/verify/${orderId}`)
     },
   },
 })

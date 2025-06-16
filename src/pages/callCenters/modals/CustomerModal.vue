@@ -130,7 +130,7 @@
               </div>
             </div>
             <div class="flex flex-col gap-1 mb-2">
-              <label class="text-sm font-medium text-gray-500">Designation</label>
+              <label class="text-sm font-medium text-gray-500">Designation *</label>
               <VaInput v-model="designation" type="text" />
             </div>
             <div class="flex flex-col gap-1 mb-4">
@@ -230,8 +230,9 @@ const streetList = ref([])
 const address = ref([])
 const isSubmitting = ref(false)
 const editAddress = ref(-1)
+
 const isFormValid = computed(() => {
-  return name.value.trim() !== '' && phoneNumber.value.trim() !== ''
+  return name.value.trim() !== '' && phoneNumber.value.trim() !== '' && designation.value.trim() !== ''
 })
 
 watch(showCustomerModal, (val) => {
