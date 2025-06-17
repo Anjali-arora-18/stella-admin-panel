@@ -102,7 +102,7 @@
 
       <!-- Checkout -->
       <VaButton
-        :disabled="!customerDetailsId || !orderType || !props.isDeliveryZoneSelected"
+        :disabled="!customerDetailsId || !orderType || !props.isDeliveryZoneSelected || total === 0"
         class="mt-4 w-full"
         color="success"
         size="large"

@@ -131,7 +131,12 @@
             </div>
             <div class="flex flex-col gap-1 mb-2">
               <label class="text-sm font-medium text-gray-500">Designation *</label>
-              <VaInput v-model="designation" type="text" />
+              <VaInput
+                v-model="designation"
+                type="text"
+                :readonly="editAddress !== -1"
+                :class="editAddress !== -1 ? 'bg-gray-100 cursor-not-allowed' : ''"
+              />
             </div>
             <div class="flex flex-col gap-1 mb-4">
               <label class="text-sm font-medium text-gray-500">Address Notes</label>
@@ -157,19 +162,22 @@
 
     <div class="bg-[#f8f9fa] px-3 py-4 w-full">
       <div class="flex flex-wrap sm:justify-end items-center gap-4">
-        <label
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-600 cursor-pointer hover:bg-gray-100"
-        >
-          <input v-model="isTick" type="checkbox" class="hidden peer" />
-          <div
-            class="w-4 h-4 border border-gray-300 rounded-sm flex items-center justify-center peer-checked:bg-green-600 peer-checked:border-green-600"
-          >
-            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-              <path d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <span class="text-sm font-medium">Save Data</span>
-        </label>
+        <VaButtonToggle
+          v-model="isTick"
+          :options="[
+            {
+              label: 'Save Data',
+              value: true,
+              icon: 'va-check',
+            },
+            {
+              label: `Don't Save`,
+              value: false,
+              icon: 'va-close',
+            },
+          ]"
+          icon-color="warning"
+        />
 
         <VaButton
           preset="secondary"

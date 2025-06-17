@@ -41,9 +41,10 @@
           <input
             v-model="phoneNumber"
             :disable="selectedUser"
-            type="text"
+            type="number"
             placeholder="Mobile Number"
             class="border rounded w-1/2 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            @keyup.enter="fetchCustomerDetails(false)"
           />
           <input
             v-model="name"
@@ -51,6 +52,7 @@
             :disable="selectedUser"
             placeholder="Customer Name"
             class="border rounded w-1/2 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            @keyup.enter="fetchCustomerDetails(false)"
           />
           <button
             v-if="!selectedUser"
@@ -102,13 +104,8 @@
             <!-- Address dropdown -->
             <VaSelect
               v-model="selectedAddress"
-              label=""
               close-on-change
-              :options="
-                selectedUser['OtherAddresses'].map((e, index) => {
-                  return { text: `${e.Address}`, value: index }
-                })
-              "
+              :options="filteredAddresses"
               track-by="value"
               searchable
               highlight-matched-text
@@ -168,7 +165,7 @@
 </template>
 
 <script setup>
-import { ref, watch, defineEmits } from 'vue'
+import { ref, watch, defineEmits, computed } from 'vue'
 import { useToast } from 'vuestic-ui'
 import axios from 'axios'
 import { useServiceStore } from '@/stores/services.ts'
@@ -246,6 +243,7 @@ async function fetchCustomerDetails(setUser = false) {
 
 function setNewUser(payload) {
   phoneNumber.value = payload.phoneNumber
+  name.value = payload.name
   fetchCustomerDetails(true)
 }
 
@@ -269,11 +267,12 @@ function selectDeliveryZone(zone) {
 
 async function handleDeliveryZoneFetch() {
   const addressArray = selectedAddress.value.text
+  console.log(addressArray)
   if (!selectedAddress.value) return
   const addressSplit = addressArray.split(',')
   let postalCode = ''
   if (addressSplit.length) {
-    postalCode = addressSplit[addressSplit.length - 1]
+    postalCode = addressSplit[addressSplit.length - 1].trim()
   } else {
     init({
       color: 'danger',
@@ -305,15 +304,63 @@ async function handleDeliveryZoneFetch() {
   }
 }
 
+function getParsedAddress(payload) {
+  const add = payload.split(',')
+
+  let address = ''
+  if (add[0]) {
+    address += add[0] + (add[1] ? ',' : '')
+  }
+  if (add[1]) {
+    address += add[1] + (add[2] ? ',' : '')
+  }
+  if (add[2]) {
+    address += add[2] + (!add[3] && add[4] ? ',' : ' ')
+  }
+  if (add[3]) {
+    address += add[3] + (add[4] ? ',' : ' ')
+  }
+  if (add[4]) {
+    address += add[4] + (add[5] ? ',' : '')
+  }
+  if (add[5]) {
+    address += add[5] + (add[6] ? ',' : '')
+  }
+  if (add[6]) {
+    address += add[6]
+  }
+
+  return address
+}
+
+const filteredAddresses = computed(() => {
+  if (selectedUser.value) {
+    return selectedUser.value['OtherAddresses'].map((e, index) => {
+      return {
+        text: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
+        value: index,
+      }
+    })
+  } else {
+    return []
+  }
+})
+
 watch(
   () => selectedUser.value,
   () => {
     if (selectedUser.value) {
-      selectedAddress.value = { text: selectedUser.value['OtherAddresses'][0].Address, value: 0 }
+      const firstAddress = selectedUser.value['OtherAddresses'][0]
+
+      selectedAddress.value = {
+        text: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}${getParsedAddress(
+          firstAddress.Address,
+        )}`,
+        value: 0,
+      }
     }
     emits('setOrderType', selectedTab.value)
     emits('setCustomerDetailsId', selectedUser.value._id)
-    handleDeliveryZoneFetch()
     userResults.value = []
   },
 )
@@ -364,6 +411,12 @@ watch(
     deliveryZoneOptions.value = []
   },
 )
+
+watch(name, (newVal) => {
+  if (!newVal.trim()) {
+    userResults.value = []
+  }
+})
 </script>
 
 <style>
