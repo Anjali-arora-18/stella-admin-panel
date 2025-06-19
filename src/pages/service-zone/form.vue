@@ -553,7 +553,7 @@
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4 w-full mt-4">
-              <VaInput v-model="restaurantData.fontFamily" label="Font Family" type="text" class="w-full" />
+              <VaInput v-model="restaurantData.fontFamily" label="Font Family" type="font" class="w-full" />
               <div class="flex-1">
                 <label
                   class="va-input-label va-input-wrapper__label va-input-wrapper__label--outer"
