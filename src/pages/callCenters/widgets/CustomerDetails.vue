@@ -99,31 +99,45 @@
 
         <!-- Address -->
         <div v-if="selectedTab && selectedUser">
-          <label class="text-sm text-gray-600 font-medium block mb-1">Address</label>
-          <div class="flex items-center gap-2 relative">
-            <!-- Address dropdown -->
-            <VaSelect
-              v-model="selectedAddress"
-              close-on-change
-              :options="filteredAddresses"
-              track-by="value"
-              searchable
-              highlight-matched-text
-            />
-            <button
-              :disable="!selectedAddress"
-              class="bg-blue-500 text-white px-2 py-1 rounded"
-              @click="showDeliveryDropdown = true"
-            >
-              12
-            </button>
+          <label class="text-sm text-gray-600 font-medium block mb-1">
+            {{ selectedTab === 'takeaway' ? 'Delivery Zone' : 'Address' }}
+          </label>
 
-            <!--dropdown for 12 button -->
+          <div class="flex items-center gap-2 relative">
+            <template v-if="selectedTab === 'takeaway'">
+              <input
+                type="text"
+                :value="selectedZone || 'No Zone Selected'"
+                disabled
+                class="border rounded w-full px-2 py-1 text-sm bg-gray-100"
+              />
+              <button class="bg-blue-500 text-white px-2 py-1 rounded" @click="showDeliveryDropdown = true">12</button>
+            </template>
+
+            <template v-else>
+              <VaSelect
+                v-model="selectedAddress"
+                close-on-change
+                :options="filteredAddresses"
+                track-by="value"
+                searchable
+                highlight-matched-text
+              />
+              <button
+                :disable="!selectedAddress"
+                class="bg-blue-500 text-white px-2 py-1 rounded"
+                @click="showDeliveryDropdown = true"
+              >
+                12
+              </button>
+            </template>
+
+            <!-- Delivery dropdown (shared) -->
             <div
               v-if="showDeliveryDropdown"
               class="absolute right-0 top-full mt-1 w-full text-left bg-white border rounded shadow z-10"
             >
-              <ul ref="deliveryList " class="text-sm">
+              <ul ref="deliveryList" class="text-sm">
                 <li
                   v-for="(zone, index) in deliveryZoneOptions"
                   :key="index"
@@ -267,7 +281,6 @@ function selectDeliveryZone(zone) {
 
 async function handleDeliveryZoneFetch() {
   const addressArray = selectedAddress.value.text
-  console.log(addressArray)
   if (!selectedAddress.value) return
   const addressSplit = addressArray.split(',')
   let postalCode = ''
@@ -292,8 +305,11 @@ async function handleDeliveryZoneFetch() {
         message: 'No delivery zones.',
       })
     } else {
-      if (selectedTab.value === 'delivery') {
-        selectDeliveryZone(response.data.data[0])
+      // const firstZone = response.data.data[0]
+      // selectDeliveryZone(firstZone)
+      if (!selectedZone.value && response.data.data.length) {
+        const firstZone = response.data.data[0]
+        selectDeliveryZone(firstZone)
       }
     }
   } catch (err) {

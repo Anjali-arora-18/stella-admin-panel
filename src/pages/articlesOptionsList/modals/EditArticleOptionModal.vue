@@ -13,7 +13,7 @@
     </template>
 
     <VaForm ref="form" @submit.prevent="submit">
-      <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-1 gap-3">
         <VaInput
           v-model="formData.name"
           :rules="[validators.required]"
@@ -33,6 +33,22 @@
           value-by="value"
         />
         <VaInput v-model="formData.price" label="Price" placeholder="Price" type="number" />
+        <div class="flex flex-col sm:flex-row gap-4">
+          <VaInput
+            v-model="formData.minimumChoices"
+            label="Minimum Choices"
+            placeholder="Minimum Choices"
+            type="number"
+            class="w-full"
+          />
+          <VaInput
+            v-model="formData.maximumChoices"
+            label="Maximum Choices"
+            placeholder="Maximum Choices"
+            type="number"
+            class="w-full"
+          />
+        </div>
         <div class="flex-1">
           <label
             class="va-input-label va-input-wrapper__label va-input-wrapper__label--outer mt-2"
@@ -94,6 +110,8 @@ const formData = ref({
   code: '',
   type: '',
   price: 0,
+  minimumChoices: 0,
+  maximumChoices: 0,
   imageUrl: '',
   assetId: '',
   outletId: '',
@@ -126,6 +144,8 @@ if (props.selectedOption && props.selectedOption._id) {
     code: props.selectedOption.code || '',
     type: props.selectedOption.type || '',
     price: props.selectedOption.price || 0,
+    minimumChoices: props.selectedOption.minimumChoices || 0,
+    maximumChoices: props.selectedOption.maximumChoices || 0,
     imageUrl: props.selectedOption.imageUrl || '',
     assetId: props.selectedOption.assetId || '',
     outletId: servicesStore.selectedRest,

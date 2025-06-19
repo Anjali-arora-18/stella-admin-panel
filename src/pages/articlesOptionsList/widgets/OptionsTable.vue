@@ -32,6 +32,8 @@ const columns = defineVaDataTableColumns([
   { label: 'Code', key: 'code', sortable: true, sortingOptions: ['desc', 'asc'] },
   { label: 'Type', key: 'type', sortable: false },
   { label: 'Price', key: 'price', sortable: true, sortingOptions: ['desc', 'asc'] },
+  { label: 'Min Choices', key: 'minimumChoices' },
+  { label: 'Max Choices', key: 'maximumChoices' },
   { label: 'Image', key: 'imageUrl' },
   { label: 'Active', key: 'isActive', sortable: false },
   { label: 'Actions', key: 'actions', sortable: false },
@@ -50,6 +52,8 @@ async function updateData(rowData) {
     code: rowData.code,
     type: rowData.type,
     price: rowData.price,
+    minimumChoices: rowData.minimumChoices,
+    maximumChoices: rowData.maximumChoices,
     isActive: rowData.isActive,
     isDeleted: rowData.isDeleted,
     articlesOptionsGroups: rowData.articlesOptionsGroups.map((group) => group._id),
@@ -164,6 +168,34 @@ watch(searchQuery, (search) => {
           <input
             v-else
             v-model="rowData.price"
+            class="w-1/2 p-1 border rounded"
+            type="number"
+            @change="updateData(rowData)"
+          />
+        </div>
+      </template>
+      <template #cell(minimumChoices)="{ rowData }">
+        <div class="table-cell-content">
+          <div v-if="!rowData.editMinimumChoices" @click="rowData.editMinimumChoices = true">
+            {{ rowData.minimumChoices }}
+          </div>
+          <input
+            v-else
+            v-model="rowData.minimumChoices"
+            class="w-1/2 p-1 border rounded"
+            type="number"
+            @change="updateData(rowData)"
+          />
+        </div>
+      </template>
+      <template #cell(maximumChoices)="{ rowData }">
+        <div class="table-cell-content">
+          <div v-if="!rowData.editMaximumChoices" @click="rowData.editMaximumChoices = true">
+            {{ rowData.maximumChoices }}
+          </div>
+          <input
+            v-else
+            v-model="rowData.maximumChoices"
             class="w-1/2 p-1 border rounded"
             type="number"
             @change="updateData(rowData)"

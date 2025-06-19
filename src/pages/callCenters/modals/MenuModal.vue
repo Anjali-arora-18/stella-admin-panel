@@ -166,15 +166,17 @@
                   </p>
 
                   <button
-                    class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100"
+                    class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50"
+                    :disabled="getQty(group._id, option._id) === 0"
                     @click="() => updateMultipleChoice(group, option, getQty(group._id, option._id) - 1)"
                   >
                     -
                   </button>
                   <span class="w-5 text-center text-sm">{{ getQty(group._id, option._id) }}</span>
                   <button
+                    title="Max quantity reached"
                     class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50"
-                    :disabled="getTotalQtyInGroup(group._id) >= group.maximumChoices"
+                    :disabled="getQty(group._id, option._id) >= (option.maximumChoices || group.maximumChoices || 99)"
                     @click="() => updateMultipleChoice(group, option, getQty(group._id, option._id) + 1)"
                   >
                     +
@@ -338,6 +340,11 @@ function isChecked(group, optionId) {
 }
 
 function updateMultipleChoice(group, option, quantity) {
+  const min = option.minimumChoices || 0
+  const max = option.maximumChoices || group.maximumChoices || 99
+
+  if (quantity < 0 || quantity > max) return
+
   let groupEntry = selectedOptions.value.find((sel) => sel.groupId === group._id)
 
   if (!groupEntry) {
@@ -350,27 +357,31 @@ function updateMultipleChoice(group, option, quantity) {
   }
 
   const optionIndex = groupEntry.selected.findIndex((o) => o.optionId === option._id)
+  const isNewOption = optionIndex === -1
+  if (isNewOption && groupEntry.selected.length >= (group.maximumChoices || 99)) {
+    return
+  }
 
   if (quantity === 0) {
-    if (optionIndex !== -1) {
+    if (!isNewOption) {
       groupEntry.selected.splice(optionIndex, 1)
     }
   } else {
-    if (quantity > 0) {
-      const newOption = {
-        optionId: option._id,
-        name: option.name,
-        type: option.type,
-        price: option.price,
-        quantity,
-      }
-
-      if (optionIndex !== -1) {
-        groupEntry.selected[optionIndex] = newOption
-      } else {
-        groupEntry.selected.push(newOption)
-      }
+    // if (quantity > 0) {
+    const newOption = {
+      optionId: option._id,
+      name: option.name,
+      type: option.type,
+      price: option.price,
+      quantity,
     }
+
+    if (!isNewOption) {
+      groupEntry.selected[optionIndex] = newOption
+    } else {
+      groupEntry.selected.push(newOption)
+    }
+    // }
   }
 }
 

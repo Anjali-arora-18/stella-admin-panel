@@ -189,7 +189,7 @@
 
         <VaButton
           type="submit"
-          :disabled="!address.length || isSubmitting"
+          :disabled="!address.length || isSubmitting || isTick === null"
           class="bg-green-800 text-white hover:bg-green-900 text-sm font-semibold"
           @click="handleSubmit"
         >
@@ -233,7 +233,7 @@ const district = ref('')
 const streetNumber = ref('')
 const aptNumber = ref('')
 const designation = ref('')
-const isTick = ref(false)
+const isTick = ref(null)
 const streetList = ref([])
 const address = ref([])
 const isSubmitting = ref(false)
@@ -256,6 +256,11 @@ const isAddressValid = computed(() => {
 if (props.selectedUser) {
   name.value = props.selectedUser['Name']
   phoneNumber.value = props.selectedUser['MobilePhone']
+  if (typeof props.selectedUser['isTick'] !== 'undefined') {
+    isTick.value = props.selectedUser['isTick']
+  } else {
+    isTick.value = true
+  }
 
   props.selectedUser['OtherAddresses'].map((e: any) => {
     const add = e.Address.split(',')
@@ -273,6 +278,7 @@ if (props.selectedUser) {
 } else {
   name.value = props.userName
   phoneNumber.value = props.userNumber
+  isTick.value = null
 }
 
 const isEdit = computed(() => {
@@ -372,31 +378,35 @@ async function addOrUpdateCustomerDetails() {
     customerNote: '',
     addressNote: '',
   }
-  let response = ''
-  if (props.selectedUser) {
-    payload['id'] = props.selectedUser._id
-    response = await axios.put(
-      `${import.meta.env.VITE_API_BASE_URL}/winmax/entites/${props.selectedUser['ID']}?outletId=${
-        servicesStore.selectedRest
-      }`,
-      payload,
-    )
-  } else {
-    response = await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL}/winmax/entites?outletId=${servicesStore.selectedRest}`,
-      payload,
-    )
-  }
-  if (response.status === 200) {
-    console.log(response)
-  } else {
+  try {
+    let response
+    if (props.selectedUser) {
+      payload['id'] = props.selectedUser._id
+      response = await axios.put(
+        `${import.meta.env.VITE_API_BASE_URL}/winmax/entites/${props.selectedUser['ID']}?outletId=${
+          servicesStore.selectedRest
+        }`,
+        payload,
+      )
+    } else {
+      response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/winmax/entites?outletId=${servicesStore.selectedRest}`,
+        payload,
+      )
+    }
+
+    emits('setUser', { phoneNumber: phoneNumber.value, name: name.value })
+  } catch (error) {
+    let message = 'Something went wrong.'
+
+    if (error.response && error.response.data && error.response.data.error) {
+      message = error.response.data.error
+    }
     init({
       color: 'danger',
-      message: response.data.message,
+      message,
     })
   }
-  emits('setUser', { phoneNumber: phoneNumber.value, name: name.value })
-  // emits('cancel')
 }
 
 async function handleSubmit() {

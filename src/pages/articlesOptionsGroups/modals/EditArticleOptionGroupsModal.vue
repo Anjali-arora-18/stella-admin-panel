@@ -32,18 +32,22 @@
           :max-rows="3"
           class="mb-1 w-full"
         />
-        <VaInput
-          v-model="formData.minimumChoices"
-          label="Minimum Choices"
-          placeholder="Minimum Choices"
-          type="number"
-        />
-        <VaInput
-          v-model="formData.maximumChoices"
-          label="Maximum Choices"
-          placeholder="Maximum Choices"
-          type="number"
-        />
+        <div class="flex flex-col sm:flex-row gap-4">
+          <VaInput
+            v-model="formData.minimumChoices"
+            label="Minimum Choices"
+            placeholder="Minimum Choices"
+            type="number"
+            class="w-full"
+          />
+          <VaInput
+            v-model="formData.maximumChoices"
+            label="Maximum Choices"
+            placeholder="Maximum Choices"
+            type="number"
+            class="w-full"
+          />
+        </div>
         <div class="flex flex-wrap gap-4 items-center">
           <VaCheckbox
             v-model="formData.singleChoice"

@@ -32,6 +32,8 @@ const getOptions = async () => {
         editCode: false,
         editType: false,
         editPrice: false,
+        editMinimumChoices: false,
+        editMaximumChoices: false,
         editIsActive: false,
         editArticlesOptionsGroups: false,
         editIsDeleted: false,
