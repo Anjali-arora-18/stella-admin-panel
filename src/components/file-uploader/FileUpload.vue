@@ -49,6 +49,10 @@ export default {
       type: String,
       default: '',
     },
+    fileType: {
+      type: String,
+      default: 'image',
+    },
   },
 
   data() {
@@ -112,7 +116,7 @@ export default {
           // Second API call to create asset
           const assetPayload = {
             name: uploadResponse.data.key,
-            type: 'image',
+            type: this.fileType,
             url: uploadResponse.data.url,
             mimeType: uploadResponse.data.mimeType,
             size: uploadResponse.data.fileSize,

@@ -456,7 +456,7 @@
       <VaCard>
         <VaCardContent>
           <div class="flex-col justify-start items-start gap-4 inline-flex w-full">
-            <div class="flex gap-8 flex-col sm:flex-row w-full">
+            <div class="flex gap-8 flex-col sm:flex-row sm:items-center w-full">
               <VaColorInput
                 v-model="restaurantData.primaryColor"
                 label="Primary Color"
@@ -477,6 +477,27 @@
               />
               <VaColorInput v-model="restaurantData.headerColor" label="Header Color" placeholder="#000" class="w-28" />
               <VaColorInput v-model="restaurantData.footerColor" label="Footer Color" placeholder="#000" class="w-28" />
+              <VaSwitch
+                v-model="restaurantData.hideHeader"
+                :true-value="true"
+                label="Hide Header"
+                left-label
+                size="small"
+              />
+              <VaSwitch
+                v-model="restaurantData.hideLogo"
+                :true-value="true"
+                label="Hide Logo"
+                left-label
+                size="small"
+              />
+              <VaSwitch
+                v-model="restaurantData.hideDetails"
+                :true-value="true"
+                label="Hide Outlet details"
+                left-label
+                size="small"
+              />
             </div>
             <div class="flex flex-col sm:flex-row w-full gap-1">
               <div class="flex-1">
@@ -497,7 +518,7 @@
                     size="medium"
                     color="danger"
                     icon="mso-delete"
-                    class="ml-2 h-12 w-12"
+                    class="ml-2 h-6 w-6"
                     @click="deleteAsset('logo')"
                   />
                 </div>
@@ -525,8 +546,36 @@
                     size="medium"
                     color="danger"
                     icon="mso-delete"
-                    class="ml-2 h-12 w-12"
+                    class="ml-2 h-6 w-6"
                     @click="deleteAsset('header')"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4 w-full mt-4">
+              <VaInput v-model="restaurantData.fontFamily" label="Font Family" type="text" class="w-full" />
+              <div class="flex-1">
+                <label
+                  class="va-input-label va-input-wrapper__label va-input-wrapper__label--outer"
+                  style="color: var(--va-primary)"
+                  >Font URL</label
+                >
+                <FileUpload
+                  v-if="!restaurantData.fontUrl"
+                  :selected-rest="restaurantData._id"
+                  :file-type="file"
+                  @uploadSuccess="(data) => setImage(data, 'font')"
+                />
+                <div v-else class="flex items-center gap-2">
+                  <VaInput v-model="restaurantData.fontUrl" type="url" disabled class="flex-1" />
+                  <VaButton
+                    v-if="restaurantData.fontUrl"
+                    preset="primary"
+                    size="medium"
+                    color="danger"
+                    icon="mso-delete"
+                    class="h-6 w-6"
+                    @click="deleteAsset('font')"
                   />
                 </div>
               </div>
@@ -740,6 +789,11 @@ export default {
         backgroundColor: '',
         headerColor: '',
         footerColor: '',
+        fontFamily: '',
+        fontUrl: '',
+        hideHeader: '',
+        hideLogo: '',
+        hideDetails: '',
       },
       active: true,
       isGalleryViewEnabled: true,
@@ -803,8 +857,10 @@ export default {
       }
       if (type === 'logo') {
         this.restaurantData.logoUrl = data.url
-      } else {
+      } else if (type === 'header') {
         this.restaurantData.headerUrl = data.url
+      } else if (type === 'font') {
+        this.restaurantData.fontUrl = data.url
       }
     },
     deleteAsset(type) {
@@ -822,8 +878,10 @@ export default {
       }
       if (type === 'logo') {
         this.restaurantData.logoUrl = ''
-      } else {
+      } else if (type === 'header') {
         this.restaurantData.headerUrl = ''
+      } else if (type === 'font') {
+        this.restaurantData.fontUrl = ''
       }
     },
     async fetchRestaurantDetails() {
@@ -1206,6 +1264,11 @@ export default {
         headerUrl: this.restaurantData.headerUrl,
         logoUrl: this.restaurantData.logoUrl,
         closingSoonMinutes: this.restaurantData.closingSoonMinutes || null,
+        fontFamily: this.restaurantData.fontFamily || false,
+        fontUrl: this.restaurantData.fontUrl || false,
+        hideHeader: this.restaurantData.hideHeader || false,
+        hideLogo: this.restaurantData.hideLogo || false,
+        hideDetails: this.restaurantData.hideDetails || false,
       }
       return data
     },
