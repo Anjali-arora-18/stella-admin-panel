@@ -211,7 +211,6 @@ const props = defineProps({
   },
 })
 
-// Store selected values
 const selectedOptions = ref([])
 
 const formSubmitted = ref(false)
@@ -225,8 +224,6 @@ const isFormValid = computed(() => {
     if (!selectedGroup || !selectedGroup.selected.length) {
       return false
     }
-
-    // For multipleChoice with minimumChoices, ensure total quantity is enough
 
     if (group.multipleChoice && group.minimumChoices) {
       const totalQty = selectedGroup.selected.reduce((sum, opt) => sum + (opt.quantity || 0), 0)
@@ -244,7 +241,7 @@ const totalPrice = computed(() => {
   selectedOptions.value.forEach((group) => {
     group.selected.forEach((option) => {
       const price = parseFloat(option.price) || 0
-      const quantity = option.quantity || 1 // for singleChoice, quantity will be 1
+      const quantity = option.quantity || 1
       total += price * quantity
     })
   })
@@ -357,17 +354,18 @@ function updateMultipleChoice(group, option, quantity) {
   }
 
   const optionIndex = groupEntry.selected.findIndex((o) => o.optionId === option._id)
-  const isNewOption = optionIndex === -1
-  if (isNewOption && groupEntry.selected.length >= (group.maximumChoices || 99)) {
+  const opt = groupEntry.selected[optionIndex]
+
+  const totalQtyInGroup = groupEntry.selected.reduce((sum, o) => sum + (o.quantity || 0), 0)
+  const maxAllowed = group.maximumChoices || 99
+
+  if (totalQtyInGroup - (opt?.quantity || 0) + quantity > maxAllowed) {
     return
   }
 
   if (quantity === 0) {
-    if (!isNewOption) {
-      groupEntry.selected.splice(optionIndex, 1)
-    }
+    if (optionIndex !== -1) groupEntry.selected.splice(optionIndex, 1)
   } else {
-    // if (quantity > 0) {
     const newOption = {
       optionId: option._id,
       name: option.name,
@@ -376,12 +374,11 @@ function updateMultipleChoice(group, option, quantity) {
       quantity,
     }
 
-    if (!isNewOption) {
+    if (optionIndex !== -1) {
       groupEntry.selected[optionIndex] = newOption
     } else {
       groupEntry.selected.push(newOption)
     }
-    // }
   }
 }
 
