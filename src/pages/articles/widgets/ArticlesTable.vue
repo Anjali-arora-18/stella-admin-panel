@@ -173,27 +173,27 @@ function openFileModal(data) {
         </div>
       </template>
       <template #cell(name)="{ rowData }">
-        <div class="max-w-[120px] ellipsis" @click="rowData.editing = 'name'">
+        <div class="editable-field" @click="rowData.editing = 'name'">
           <input
             v-if="rowData.editing === 'name'"
             v-model="rowData.name"
-            class="w-full p-1 border rounded"
+            class="editable-input"
             autofocus
             @blur="$emit('updateArticle', rowData), (rowData.editing = '')"
           />
-          <span v-else>{{ rowData.name }}</span>
+          <span v-else class="editable-text">{{ rowData.name }}</span>
         </div>
       </template>
       <template #cell(description)="{ rowData }">
-        <div class="max-w-[120px] ellipsis" @click="rowData.editing = 'description'">
+        <div class="editable-field" @click="rowData.editing = 'description'">
           <input
             v-if="rowData.editing === 'description'"
             v-model="rowData.description"
-            class="w-full p-1 border rounded"
+            class="editable-input"
             autofocus
             @blur="$emit('updateArticle', rowData), (rowData.editing = '')"
           />
-          <span v-else>{{ rowData.description }}</span>
+          <span v-else class="editable-text">{{ rowData.description }}</span>
         </div>
       </template>
       <template #cell(price)="{ rowData }">
@@ -433,5 +433,27 @@ function openFileModal(data) {
 .options {
   font-size: 12px;
   line-height: 1.2rem;
+}
+.editable-field {
+  max-width: 120px;
+  cursor: pointer;
+}
+
+.editable-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  line-height: 1.3em;
+  max-height: 2.6em; /* 1.3em * 2 lines */
+}
+
+.editable-input {
+  width: 100%;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 </style>
