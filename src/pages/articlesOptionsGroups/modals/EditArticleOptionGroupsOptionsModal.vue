@@ -21,6 +21,12 @@ const filteredItems = computed(() =>
   items.value.filter((item) => item.name.toLowerCase().includes(searchQuery.value.toLowerCase())),
 )
 
+const defaultOptions = ref([])
+
+console.log(props.selectedOptions)
+
+defaultOptions.value = props.selectedOptions.defaultOptions
+
 const selectAll = ref(false)
 const toggleAll = () => {
   items.value.forEach((item) => {
@@ -62,8 +68,36 @@ const getOptions = async () => {
 }
 getOptions()
 
+const setDefaultOptions = async () => {
+  const url = import.meta.env.VITE_API_BASE_URL
+  try {
+    await axios.patch(`${url}/articles-options-groups/${props.selectedOptions._id}`, {
+      defaultOptions: defaultOptions.value,
+    })
+  } catch (error) {
+    console.error('Error loading default options:', error.response?.data || error)
+    init({ message: 'Failed to load default options', color: 'warning' })
+  }
+}
+
+const initOptions = async () => {
+  if (!props.selectedOptions || !props.selectedOptions._id) return
+  await getOptions()
+}
+
+watch(
+  () => props.selectedOptions,
+  (val) => {
+    if (val && val._id) {
+      initOptions()
+    }
+  },
+  { immediate: true },
+)
+
 async function submit() {
   isSubmitting.value = true
+  setDefaultOptions()
   const url = import.meta.env.VITE_API_BASE_URL
   const selectedOptions = items.value.filter((item) => item.isChecked).map((item) => item._id)
   const removedOptions = items.value.filter((item) => !item.isChecked && item.isOriginalChecked).map((item) => item._id)
@@ -91,6 +125,14 @@ async function submit() {
   init({ message: 'Options updated successfully', color: 'success' })
   isSubmitting.value = false
   emits('cancel')
+}
+
+function checkDefaultOptions(id: any) {
+  if (defaultOptions.value.includes(id)) {
+    defaultOptions.value = defaultOptions.value.filter((optionId) => optionId !== id)
+  } else {
+    defaultOptions.value.push(id)
+  }
 }
 </script>
 <template>
@@ -141,7 +183,17 @@ async function submit() {
                     <template v-if="item.name && item.posName"> - </template>
                     <template v-if="item.posName">{{ item.posName }}</template>
                   </span>
-                  <!-- <span>{{ item.code }} - {{ item.name }} - {{ item.posName }}</span> -->
+
+                  <span
+                    class="ml-2 cursor-pointer text-xs px-2 py-0.5 rounded-full"
+                    :class="{
+                      'border border-green-100 text-green-100 bg-white ': !defaultOptions.includes(item._id),
+                      ' bg-green-100 text-green-700': defaultOptions.includes(item._id),
+                    }"
+                    @click="checkDefaultOptions(item._id)"
+                  >
+                    <pre>Default</pre>
+                  </span>
                 </div>
               </td>
             </tr>

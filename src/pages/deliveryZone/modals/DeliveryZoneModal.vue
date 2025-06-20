@@ -3,39 +3,34 @@
     v-model="isVisible"
     class="big-form"
     :mobile-fullscreen="false"
-    size="small"
+    size="medium"
     hide-default-actions
     close-button
   >
     <template #header>
-      <h1 class="va-h6 mb-2">Add Zone</h1>
+      <h1 class="va-h6 mb-2">Add Delivery Zone</h1>
     </template>
 
     <VaForm ref="form" @submit.prevent="submit">
-      <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
+      <div class="grid grid-cols-1 gap-4">
         <VaInput v-model="formData.deliveryZone" label="Delivery Zone" placeholder="Delivery Zone" type="text" />
-        <VaInput
-          v-model="districts"
-          :option="districtsOptions"
-          label="District"
-          placeholder="Select District"
-          type="select"
-        ></VaInput>
-        <VaInput
-          v-model="municipalities"
-          :option="municipalitiesOptions"
-          label="Municipalities"
-          placeholder=" Select Municipalities"
-          type="select"
-        ></VaInput>
         <VaInput
           v-model="formData.deliveryCharges"
           label="Delivery Charges"
           placeholder="Delivery Charges"
           type="number"
         />
+        <VaInput v-model="formData.terminalNo" label="Terminal No." placeholder="Terminal No." type="number" />
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 mt-4">
+        <VaInput v-model="formData.ccFromTable" label="CC From Table" placeholder="CC From Table" type="number" />
+        <VaInput v-model="formData.ccToTable" label="CC To Table" placeholder="CC To Table" type="number" />
+        <VaInput v-model="formData.webFromTable" label="Web From Table" placeholder="Web From Table" type="number" />
+        <VaInput v-model="formData.webToTable" label="Web To Table" placeholder="Web To Table" type="number" />
       </div>
     </VaForm>
+
     <template #footer>
       <div class="flex justify-end mt-4">
         <VaButton type="submit" @click="submit">Add</VaButton>
@@ -52,7 +47,6 @@ const emits = defineEmits(['cancel'])
 
 const isVisible = ref(true)
 
-// Watch for closing the modal
 watch(isVisible, (val) => {
   if (!val) emits('cancel')
 })
@@ -63,13 +57,17 @@ const { init } = useToast()
 const formData = ref({
   deliveryZone: '',
   deliveryCharges: '',
+  terminalNo: '',
+  ccFromTable: '',
+  ccToTable: '',
+  webFromTable: '',
+  webToTable: '',
 })
 
 const submit = async () => {
   const { isValid } = await validate()
   if (!isValid) return
   init({ message: 'Submitted successfully', color: 'success' })
-  // Close modal
   isVisible.value = false
 }
 </script>

@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import DeliveryTable from '@/pages/deliveryZone/widgets/DeliveryTable.vue'
+import DeliveryZoneModal from './modals/DeliveryZoneModal.vue'
 import { useServiceStore } from '../../stores/services'
 import { useToast } from 'vuestic-ui'
 import axios from 'axios'
@@ -49,6 +50,9 @@ if (servicesStore.selectedRest) {
   <div>
     <div class="flex items-center justify-between">
       <h1 class="page-title font-bold">Delivery Zones</h1>
+      <div class="flex gap-2">
+        <VaButton size="small" color="primary" @click="isDeliveryZoneModalOpen = true">Add Delivery Zone</VaButton>
+      </div>
     </div>
 
     <VaCard>
@@ -56,5 +60,6 @@ if (servicesStore.selectedRest) {
         <DeliveryTable :key="forceReMount" :items="items" :loading="isLoading" @getDeliveryZones="getDeliveryZones" />
       </VaCardContent>
     </VaCard>
+    <DeliveryZoneModal v-if="isDeliveryZoneModalOpen" @cancel="isDeliveryZoneModalOpen = false" />
   </div>
 </template>

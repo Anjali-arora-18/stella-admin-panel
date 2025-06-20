@@ -252,8 +252,45 @@ const totalPrice = computed(() => {
 watch(
   () => [props.isEdit, props.item],
   ([isEdit, item]) => {
-    if (isEdit && props.item?.selectedOptions) {
-      selectedOptions.value = JSON.parse(JSON.stringify(props.item.selectedOptions))
+    if (
+      !item ||
+      typeof item !== 'object' ||
+      !Array.isArray(item.articlesOptionsGroups) ||
+      !item.articlesOptionsGroups.length
+    )
+      return
+
+    if (isEdit && item?.selectedOptions) {
+      selectedOptions.value = JSON.parse(JSON.stringify(item.selectedOptions))
+    } else {
+      // Fresh selection
+      selectedOptions.value = []
+
+      item.articlesOptionsGroups.forEach((group) => {
+        const defaults = Array.isArray(group.defaultOptions) ? group.defaultOptions : []
+        const selected = []
+
+        defaults.forEach((optionId) => {
+          const option = group.options.find((o) => o._id === optionId)
+          if (option) {
+            selected.push({
+              optionId: option._id,
+              name: option.name,
+              type: option.type,
+              price: option.price,
+              quantity: group.multipleChoice ? 1 : 1,
+            })
+          }
+        })
+
+        if (selected.length) {
+          selectedOptions.value.push({
+            groupId: group._id,
+            groupName: group.name,
+            selected: group.singleChoice ? [selected[0]] : selected,
+          })
+        }
+      })
     }
   },
   { immediate: true, deep: true },
