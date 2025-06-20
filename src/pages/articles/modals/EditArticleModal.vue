@@ -13,15 +13,7 @@
     </template>
     <VaForm ref="form" @submit.prevent="submit">
       <div class="flex items-center gap-x-10 mb-2">
-        <VaInput
-          v-model="formData.code"
-          class="mb-1 max-w-[150px]"
-          label="Code"
-          :rules="[validators.required]"
-          placeholder="Code"
-          required-mark
-          type="text"
-        />
+        <VaInput v-model="formData.code" class="mb-1 max-w-[150px]" label="Code" placeholder="Code" type="text" />
         <VaInput
           v-model="formData.name"
           :rules="[validators.required]"
@@ -197,7 +189,7 @@ const titleName = computed(() => {
 const submit = () => {
   if (validate()) {
     const data = formData.value
-    data.code = formData.value.code.toString()
+    // data.code = formData.value.code.toString()
     const cate = JSON.parse(JSON.stringify(categories.value))
     const subCate = JSON.parse(JSON.stringify(subCategories.value))
     data.categories = formData.value.categories
@@ -226,9 +218,9 @@ const submit = () => {
     }
     const url: any = import.meta.env.VITE_API_BASE_URL
     if (formData.value._id) {
-      if (data.code === props.selectedCategory.code) {
-        delete data.code
-      }
+      // if (data.code === props.selectedCategory.code) {
+      //   delete data.code
+      // }
       axios
         .patch(`${url}/menuItems/${formData.value._id}`, data)
         .then((response) => {
