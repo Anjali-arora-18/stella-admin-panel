@@ -61,8 +61,8 @@ function deleteUser(payload) {
 const types = [
   { text: 'Super Admin', value: 'super-admin' },
   { text: 'Admin', value: 'admin' },
-{ text: 'Caller', value: 'caller' },
-{ text: 'Caller & Editor', value: 'caller-editor' },
+  { text: 'Caller', value: 'caller' },
+  { text: 'Caller & Editor', value: 'caller-editor' },
   { text: 'Editor', value: 'editor' },
 ]
 
@@ -121,7 +121,7 @@ watch(searchQuery, (search) => {
       :loading="$props.loading"
       :disable-client-side-sorting="true"
       :style="{
-        '--va-data-table-height': '500px',
+        '--va-data-table-height': '650px',
         '--va-data-table-thead-background': 'var(--va-background-element)',
         '--va-data-table-thead-color': '#2C82E0',
       }"

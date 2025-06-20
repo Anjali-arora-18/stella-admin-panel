@@ -79,7 +79,7 @@ const items = toRef(props, 'items')
       :items="items"
       :loading="$props.loading"
       :style="{
-        '--va-data-table-height': '500px',
+        '--va-data-table-height': '710px',
         '--va-data-table-thead-background': 'var(--va-background-element)',
         '--va-data-table-thead-color': '#2C82E0',
       }"

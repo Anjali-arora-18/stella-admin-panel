@@ -149,7 +149,7 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { useToast } from 'vuestic-ui'
-import { useOrderStore } from '@/stores/order-store' // Adjust path as needed
+import { useOrderStore } from '@/stores/order-store'
 import { useServiceStore } from '@/stores/services'
 import { storeToRefs } from 'pinia'
 const showCheckoutModal = ref(true)
@@ -228,58 +228,72 @@ async function checkPaymentStatus(requestId) {
 
 async function createOrder() {
   apiLoading.value = true
-  const payload = {
-    customerDetailId: props.customerDetailsId,
-    orderType: props.orderType === 'takeaway' ? 'Takeaway' : 'Delivery',
-    deliveryZoneId: orderStore.deliveryZone,
-    address: orderStore.address,
-    menuItems: orderStore.cartItems.map((e) => {
-      return {
-        menuItem: e.itemId,
-        quantity: e.quantity,
-
-        options: e.selectedOptions.flatMap((group) =>
-          group.selected.map((option) => ({
-            option: option.optionId,
-            quantity: option.quantity,
-          })),
-        ),
-      }
-    }),
-    orderNotes: '',
-    deliveryFee: props.deliveryFee,
-    outletId: serviceStore.selectedRest,
-    orderDateTime: new Date(Date.now() + 2 * 60 * 1000).toLocaleString('en-US', { timeZone: 'UTC' }),
-    paymentMode: selectedPayment.value,
-  }
-  let response: any = ''
-  if (orderId.value) {
-    response = await orderStore.retryPayment(orderId.value)
-  } else {
-    response = await orderStore.createOrder(payload)
-  }
-
-  if (response.status === 201 || response.status === 200) {
-    if (!orderId.value) {
-      init({
-        color: 'success',
-        message: 'Order created.',
-      })
+  try {
+    const payload = {
+      customerDetailId: props.customerDetailsId,
+      orderType: props.orderType === 'takeaway' ? 'Takeaway' : 'Delivery',
+      deliveryZoneId: orderStore.deliveryZone,
+      address: orderStore.address,
+      menuItems: orderStore.cartItems.map((e) => {
+        return {
+          menuItem: e.itemId,
+          quantity: e.quantity,
+          options: e.selectedOptions.flatMap((group) =>
+            group.selected.map((option) => ({
+              option: option.optionId,
+              quantity: option.quantity,
+            })),
+          ),
+        }
+      }),
+      orderNotes: '',
+      deliveryFee: props.deliveryFee,
+      outletId: serviceStore.selectedRest,
+      orderDateTime: new Date(Date.now() + 2 * 60 * 1000).toLocaleString('en-US', { timeZone: 'UTC' }),
+      paymentMode: selectedPayment.value,
     }
 
-    if (selectedPayment.value === 'Card') {
-      orderStore.setPaymentLink(response.data.data.redirectUrl)
-      orderId.value = response.data.data.requestId
-      setInter()
+    let response: any = ''
+    if (orderId.value) {
+      response = await orderStore.retryPayment(orderId.value)
     } else {
-      apiLoading.value = false
-      setTimeout(() => {
-        orderStore.cartItems = []
-        window.location.reload()
-      }, 800)
+      response = await orderStore.createOrder(payload)
     }
+
+    if (response.status === 201 || response.status === 200) {
+      if (!orderId.value) {
+        init({ color: 'success', message: 'Order created.' })
+      }
+
+      if (selectedPayment.value === 'Card') {
+        orderStore.setPaymentLink(response.data.data.redirectUrl)
+        orderId.value = response.data.data.requestId
+        setInter()
+      } else {
+        setTimeout(() => {
+          orderStore.cartItems = []
+          window.location.reload()
+        }, 800)
+      }
+    } else {
+      throw new Error(response.data?.message || 'Something went wrong')
+    }
+  } catch (err: any) {
+    // Handle error — show toast
+    init({
+      color: 'danger',
+      message: err?.message || 'Order failed, please try again.',
+    })
+
+    // If backend returns partial data like requestId, save it for retry
+    if (err?.response?.data?.data?.requestId) {
+      orderId.value = err.response.data.data.requestId
+    }
+
+    orderStore.setPaymentLink('')
+  } finally {
+    apiLoading.value = false
   }
-  apiLoading.value = false
 }
 </script>
 
