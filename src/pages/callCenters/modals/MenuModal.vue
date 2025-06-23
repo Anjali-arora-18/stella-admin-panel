@@ -107,9 +107,9 @@
                 "
                 @click="updateSingleChoice(group, option)"
               >
-                <div class="item-image">
+                <div v-if="option.imageUrl" class="item-image">
                   <img
-                    :src="option.imageUrl || '/missing-image.png'"
+                    :src="option.imageUrl"
                     alt="Option"
                     :class="selectedOptions[group._id] === option._id ? 'bg-white' : 'bg-[#f8f9fa]'"
                     class="rounded w-full h-full"
@@ -146,10 +146,10 @@
               >
                 <!-- Top content -->
                 <div class="flex items-center gap-1">
-                  <div class="item-image">
+                  <div v-if="option.imageUrl" class="item-image">
                     <img
-                      :src="option.imageUrl || '/missing-image.png'"
-                      alt="topping"
+                      :src="option.imageUrl"
+                      alt="Topping"
                       :class="getQty(group._id, option._id) > 0 ? 'bg-white' : 'bg-[#f8f9fa]'"
                       class="rounded w-full h-full"
                     />

@@ -62,44 +62,45 @@ async function updateData(rowData) {
     })
 }
 
-function validateAndUpdateCC(rowData) {
+async function validateAndUpdateCC(rowData) {
+  if (rowData._ccUpdating) return
+  rowData._ccUpdating = true
+
   const from = Number(rowData.ccFromTable)
   const to = Number(rowData.ccToTable)
 
-  if (!rowData.ccFromTable || rowData.ccToTable === '') {
+  if (!rowData.ccFromTable || rowData.ccToTable === '' || to > from) {
     rowData.ccError = ''
-    updateData(rowData)
-    rowData.editCC = false
-    return
-  }
-
-  if (to > from) {
-    rowData.ccError = ''
-    updateData(rowData)
+    await updateData(rowData)
     rowData.editCC = false
   } else {
     rowData.ccError = 'CC To must be greater than CC From'
   }
+
+  // Small timeout ensures both blur & enter won't double trigger
+  setTimeout(() => {
+    rowData._ccUpdating = false
+  }, 300)
 }
 
-function validateAndUpdateWeb(rowData) {
+async function validateAndUpdateWeb(rowData) {
+  if (rowData._webUpdating) return
+  rowData._webUpdating = true
+
   const from = Number(rowData.webFromTable)
   const to = Number(rowData.webToTable)
 
-  if (!rowData.webFromTable || rowData.webToTable === '') {
+  if (!rowData.webFromTable || rowData.webToTable === '' || to > from) {
     rowData.webError = ''
-    updateData(rowData)
-    rowData.editWeb = false
-    return
-  }
-
-  if (to > from) {
-    rowData.webError = ''
-    updateData(rowData)
+    await updateData(rowData)
     rowData.editWeb = false
   } else {
     rowData.webError = 'Web To must be greater than Web From'
   }
+
+  setTimeout(() => {
+    rowData._webUpdating = false
+  }, 300)
 }
 
 const onButtonDeliveryDelete = async (payload) => {
@@ -229,14 +230,22 @@ const items = toRef(props, 'items')
       <template #cell(ccFromTable)="{ rowData }">
         <div class="table-cell-content">
           <template v-if="rowData.editCC">
-            <input v-model="rowData.ccFromTable" class="w-[60px] p-1 border rounded mr-1" type="number" />
+            <input
+              v-model="rowData.ccFromTable"
+              class="w-[60px] p-1 border rounded mr-1"
+              type="number"
+              @blur="validateAndUpdateCC(rowData)"
+              @keyup.enter="validateAndUpdateCC(rowData)"
+            />
             <span>-</span>
             <input
               v-model="rowData.ccToTable"
               class="w-[60px] p-1 border rounded mx-1"
               type="number"
-              @change="validateAndUpdateCC(rowData)"
+              @blur="validateAndUpdateCC(rowData)"
+              @keyup.enter="validateAndUpdateCC(rowData)"
             />
+
             <div v-if="rowData.ccError" class="text-red-500 text-sm mt-1">
               {{ rowData.ccError }}
             </div>
@@ -248,13 +257,20 @@ const items = toRef(props, 'items')
       <template #cell(webFromTable)="{ rowData }">
         <div class="table-cell-content">
           <template v-if="rowData.editWeb">
-            <input v-model="rowData.webFromTable" class="w-[60px] p-1 border rounded mr-1" type="number" />
+            <input
+              v-model="rowData.webFromTable"
+              class="w-[60px] p-1 border rounded mr-1"
+              type="number"
+              @blur="validateAndUpdateWeb(rowData)"
+              @keyup.enter="validateAndUpdateWeb(rowData)"
+            />
             <span>-</span>
             <input
               v-model="rowData.webToTable"
               class="w-[60px] p-1 border rounded mx-1"
               type="number"
-              @change="validateAndUpdateWeb(rowData)"
+              @blur="validateAndUpdateWeb(rowData)"
+              @keyup.enter="validateAndUpdateWeb(rowData)"
             />
             <div v-if="rowData.webError" class="text-red-500 text-sm mt-1">
               {{ rowData.webError }}
