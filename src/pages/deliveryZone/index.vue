@@ -25,6 +25,11 @@ const getDeliveryZones = async () => {
         ...e,
         editName: false,
         editDeliveryCharge: false,
+        editTerminalNumber: false,
+        editccFromTable: false,
+        editccToTable: false,
+        editwebFromTable: false,
+        editwebToTable: false,
       }
     })
   } catch (error) {
@@ -60,6 +65,6 @@ if (servicesStore.selectedRest) {
         <DeliveryTable :key="forceReMount" :items="items" :loading="isLoading" @getDeliveryZones="getDeliveryZones" />
       </VaCardContent>
     </VaCard>
-    <DeliveryZoneModal v-if="isDeliveryZoneModalOpen" @cancel="isDeliveryZoneModalOpen = false" />
+    <DeliveryZoneModal v-if="isDeliveryZoneModalOpen" @cancel="(isDeliveryZoneModalOpen = false), getDeliveryZones()" />
   </div>
 </template>

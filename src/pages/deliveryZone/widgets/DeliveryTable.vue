@@ -21,6 +21,9 @@ const columns = defineVaDataTableColumns([
   { label: 'Delivery Zone', key: 'name', sortable: false },
   { label: 'Postcode', key: 'postalCodes', sortable: false },
   { label: 'Delivery Charges', key: 'deliveryCharge', sortable: false },
+  { label: 'Terminal Number', key: 'terminalNumber' },
+  { label: 'CC From - To', key: 'ccFromTable' },
+  { label: 'Web From - To', key: 'webFromTable' },
   { label: 'Active', key: 'isActive', sortable: false },
   { label: 'Actions', key: 'actions', sortable: false },
 ])
@@ -42,6 +45,7 @@ async function updateData(rowData) {
     name: rowData.name,
     isDeleted: rowData.isDeleted,
     deliveryCharge: rowData.deliveryCharge,
+    terminalNumber: rowData.terminalNumber,
   }
   await axios
     .patch(`${url}/deliveryZones/${rowData._id}`, data)
@@ -163,6 +167,26 @@ const items = toRef(props, 'items')
           </span>
           <span v-else>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
         </div>
+      </template>
+      <template #cell(terminalNumber)="{ rowData }">
+        <div class="table-cell-content">
+          <div v-if="!rowData.editTerminalNumber" @click="rowData.editTerminalNumber = true">
+            {{ rowData.terminalNumber }}
+          </div>
+          <input
+            v-else
+            v-model="rowData.terminalNumber"
+            class="w-1/2 p-1 border rounded"
+            type="number"
+            @change="updateData(rowData)"
+          />
+        </div>
+      </template>
+      <template #cell(ccFromTable)="{ rowData }">
+        <div class="table-cell-content">{{ rowData.ccFromTable }} - {{ rowData.ccToTable }}</div>
+      </template>
+      <template #cell(webFromTable)="{ rowData }">
+        <div class="table-cell-content">{{ rowData.webFromTable }} - {{ rowData.webToTable }}</div>
       </template>
       <template #cell(actions)="{ rowData }">
         <div class="flex gap-2 justify-end">
