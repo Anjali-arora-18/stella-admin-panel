@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { ref, computed, toRef, watch } from 'vue'
 import { useServiceStore } from '@/stores/services'
 import EditArticleOptionModal from '../modals/EditArticleOptionModal.vue'
+import FileUpload from '@/components/file-uploader/FileUpload.vue'
 import axios from 'axios'
 
 const isEditArticleOptionModal = ref(false)
@@ -25,6 +26,7 @@ const { confirm } = useModal()
 const { init } = useToast()
 const router = useRouter()
 const servicesStore = useServiceStore()
+const selectedRest = computed(() => servicesStore.selectedRest)
 const columns = defineVaDataTableColumns([
   { label: 'ID', key: 'ID', sortable: false },
   { label: 'Name', key: 'name', sortable: true, sortingOptions: ['desc', 'asc'] },
@@ -104,6 +106,45 @@ const searchQuery = ref('')
 watch(searchQuery, (search) => {
   emits('getOptions', searchQuery.value)
 })
+
+function openFileModal(data) {
+  console.log(data)
+  document.getElementById('file-upload-' + data._id).click()
+}
+const deleteAsset = async (assetId) => {
+  const url: any = import.meta.env.VITE_API_BASE_URL
+  await axios
+    .delete(`${url}/assets/${assetId}`)
+    .then(() => {
+      init({ message: 'Asset deleted successfully', color: 'success' })
+    })
+    .catch((err) => {
+      init({ message: err.response.data.error, color: 'danger' })
+    })
+}
+const onButtonOptionImageDelete = async (payload) => {
+  const result = await confirm({
+    message: 'Are you sure you want to delete this image?',
+    okText: 'Yes',
+    cancelText: 'No',
+    size: 'medium',
+    title: 'Delete Image',
+  })
+
+  if (!result) return
+
+  try {
+    if (payload.assetId && payload.assetId._id) {
+      await deleteAsset(payload.assetId._id)
+    }
+
+    payload.imageUrl = ''
+    payload.assetId = ''
+    await updateData(payload)
+  } catch (err) {
+    init({ message: err?.response?.data?.message || 'Failed to delete image', color: 'danger' })
+  }
+}
 </script>
 
 <template>
@@ -203,11 +244,45 @@ watch(searchQuery, (search) => {
         </div>
       </template>
       <template #cell(imageUrl)="{ rowData }">
-        <div class="table-cell-content">
-          <div v-if="!rowData.editImageUrl">
-            <img v-if="rowData.imageUrl" :src="rowData.imageUrl" alt="Option Image" class="w-12 h-12 object-cover" />
-            <img v-else :src="rowData.imageUrl || '/missing-image.png'" alt="Image" class="w-10 h-10 object-cover" />
-          </div>
+        <div class="relative group w-10 h-10 overflow-hidden rounded">
+          <!-- Image Display -->
+          <img
+            :src="rowData.imageUrl || '/missing-image.png'"
+            alt="Article Image"
+            class="w-full h-full object-cover cursor-pointer"
+            @click="openFileModal(rowData)"
+            @error="
+              (e) => {
+                e.target.src = '/missing-image.png'
+              }
+            "
+          />
+
+          <!-- Delete Button (Top-Right Corner) -->
+          <VaButton
+            v-if="rowData.imageUrl"
+            preset="plain"
+            size="small"
+            icon="mso-delete"
+            color="danger"
+            class="!absolute !top-0 !right-0 !p-0 !w-5 !h-5 !rounded-full hidden group-hover:flex items-center justify-center z-10"
+            @click.prevent="onButtonOptionImageDelete(rowData)"
+          />
+
+          <!-- File Upload Trigger -->
+          <FileUpload
+            :attr-id="'file-upload-' + rowData._id"
+            class="hidden"
+            :selected-rest="selectedRest"
+            @uploadSuccess="
+              (data) => {
+                rowData.imageUrl = data.url
+                rowData.assetId = data._id
+                updateData(rowData)
+                rowData.editing = ''
+              }
+            "
+          />
         </div>
       </template>
       <template #cell(isActive)="{ rowData }">

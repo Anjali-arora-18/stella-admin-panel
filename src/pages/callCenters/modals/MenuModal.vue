@@ -148,7 +148,7 @@
                 <div class="flex items-center gap-1">
                   <div class="item-image">
                     <img
-                      :src="item.imageUrl || '/missing-image.png'"
+                      :src="option.imageUrl || '/missing-image.png'"
                       alt="topping"
                       :class="getQty(group._id, option._id) > 0 ? 'bg-white' : 'bg-[#f8f9fa]'"
                       class="rounded w-full h-full"

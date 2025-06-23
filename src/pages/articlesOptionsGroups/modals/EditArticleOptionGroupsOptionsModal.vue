@@ -183,17 +183,19 @@ function checkDefaultOptions(id: any) {
                     <template v-if="item.name && item.posName"> - </template>
                     <template v-if="item.posName">{{ item.posName }}</template>
                   </span>
-
-                  <span
-                    class="ml-2 cursor-pointer text-xs px-2 py-0.5 rounded-full"
-                    :class="{
-                      'border border-green-100 text-green-100 bg-white ': !defaultOptions.includes(item._id),
-                      ' bg-green-100 text-green-700': defaultOptions.includes(item._id),
-                    }"
-                    @click="checkDefaultOptions(item._id)"
-                  >
-                    <pre>Default</pre>
-                  </span>
+                  <div class="flex items-center flex-wrap gap-2">
+                    <span
+                      class="ml-2 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                      :class="{
+                        'bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-green-900 border border-green-500':
+                          defaultOptions.includes(item._id),
+                        'bg-gray-200 text-gray-700 hover:bg-gray-300': !defaultOptions.includes(item._id),
+                      }"
+                      @click="checkDefaultOptions(item._id)"
+                    >
+                      Default
+                    </span>
+                  </div>
                 </div>
               </td>
             </tr>
