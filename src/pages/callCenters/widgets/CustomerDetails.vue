@@ -288,6 +288,7 @@ async function handleDeliveryZoneFetch() {
 
   const addressSplit = addressArray.split(',')
   let postalCode = ''
+  const servicesStore = useServiceStore()
   if (addressSplit.length) {
     postalCode = addressSplit[addressSplit.length - 1].trim()
   } else {
@@ -299,7 +300,9 @@ async function handleDeliveryZoneFetch() {
   }
 
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/deliveryZones/postcode/${postalCode}`)
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_BASE_URL}/deliveryZones/${servicesStore.selectedRest}?postalCode=${postalCode}`,
+    )
 
     deliveryZoneOptions.value = response.data.data
 
