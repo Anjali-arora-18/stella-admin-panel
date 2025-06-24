@@ -188,17 +188,18 @@ const items = toRef(props, 'items')
         </div>
       </template>
       <template #cell(serviceZoneId)="{ rowData }">
-        <div class="table-cell-content">
-          <div v-if="!rowData.editServiceZoneId" @click="rowData.editServiceZoneId = true">
-            {{ rowData.serviceZoneId }}
-          </div>
+        <div class="max-w-[120px] ellipsis" @click="rowData.editServiceZoneId = true">
           <input
-            v-else
+            v-if="rowData.editServiceZoneId"
             v-model="rowData.serviceZoneId"
-            class="w-1/2 p-1 border rounded"
-            type="text"
-            @change="updateData(rowData)"
+            class="w-full p-1 border rounded"
+            type="number"
+            @change="updateData(rowData), (rowData.editServiceZoneId = false)"
           />
+          <span v-else-if="rowData.serviceZoneId">
+            {{ rowData.serviceZoneId }}
+          </span>
+          <span v-else>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
         </div>
       </template>
       <template #cell(name)="{ rowData }">

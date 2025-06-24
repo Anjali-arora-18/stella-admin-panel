@@ -141,11 +141,4 @@ const submit = async () => {
     }
   }
 }
-
-// const submit = async () => {
-//   const { isValid } = await validate()
-//   if (!isValid) return
-//   init({ message: 'Submitted successfully', color: 'success' })
-//   isVisible.value = false
-// }
 </script>
