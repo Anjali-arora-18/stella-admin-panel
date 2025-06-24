@@ -23,6 +23,7 @@ const getDeliveryZones = async () => {
     items.value = item.map((e) => {
       return {
         ...e,
+        editServiceZoneId: false,
         editName: false,
         editDeliveryCharge: false,
         editTerminalNumber: false,

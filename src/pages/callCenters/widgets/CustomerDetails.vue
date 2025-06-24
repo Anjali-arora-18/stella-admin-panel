@@ -111,7 +111,9 @@
                 disabled
                 class="border rounded w-full px-2 py-1 text-sm bg-gray-100"
               />
-              <button class="bg-blue-500 text-white px-2 py-1 rounded" @click="showDeliveryDropdown = true">12</button>
+              <button class="bg-blue-500 text-white px-2 py-1 rounded" @click="showDeliveryDropdown = true">
+                {{ serviceZoneId || 'N/A' }}
+              </button>
             </template>
 
             <template v-else>
@@ -128,7 +130,7 @@
                 class="bg-blue-500 text-white px-2 py-1 rounded"
                 @click="showDeliveryDropdown = true"
               >
-                12
+                {{ serviceZoneId || 'N/A' }}
               </button>
             </template>
 
@@ -197,7 +199,7 @@ const selectedAddress = ref('')
 const { init } = useToast()
 const orderStore = useOrderStore()
 const showCustomerModal = ref(false)
-
+const serviceZoneId = ref('')
 const phoneNumber = ref('')
 const name = ref('')
 const userResults = ref([])
@@ -276,12 +278,14 @@ function selectDeliveryZone(zone) {
   emits('setDeliveryZone', true)
   orderStore.setDeliveryZone(zone._id)
   selectedZone.value = zone.name
+  serviceZoneId.value = zone.serviceZoneId
   showDeliveryDropdown.value = false
 }
 
 async function handleDeliveryZoneFetch() {
-  const addressArray = selectedAddress.value.text
+  const addressArray = selectedAddress.value?.text
   if (!selectedAddress.value) return
+
   const addressSplit = addressArray.split(',')
   let postalCode = ''
   if (addressSplit.length) {
@@ -300,19 +304,30 @@ async function handleDeliveryZoneFetch() {
     deliveryZoneOptions.value = response.data.data
 
     if (!response.data.data.length) {
+      selectedZone.value = ''
+      if (selectedTab.value === 'delivery') {
+        serviceZoneId.value = ''
+      }
       init({
         color: 'danger',
-        message: 'No delivery zones.',
+        message: 'No delivery zones found for selected address.',
       })
     } else {
-      // const firstZone = response.data.data[0]
-      // selectDeliveryZone(firstZone)
-      if (!selectedZone.value && response.data.data.length) {
+      if (selectedTab.value === 'delivery') {
         const firstZone = response.data.data[0]
-        selectDeliveryZone(firstZone)
+        serviceZoneId.value = firstZone.serviceZoneId
+      } else {
+        if (!selectedZone.value) {
+          const firstZone = response.data.data[0]
+          selectDeliveryZone(firstZone)
+        }
       }
     }
   } catch (err) {
+    selectedZone.value = ''
+    if (selectedTab.value === 'delivery') {
+      serviceZoneId.value = ''
+    }
     init({
       color: 'danger',
       message: err?.response?.data?.message || 'Failed to fetch delivery zones.',

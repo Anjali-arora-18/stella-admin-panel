@@ -18,6 +18,7 @@ const { init } = useToast()
 const router = useRouter()
 const servicesStore = useServiceStore()
 const columns = defineVaDataTableColumns([
+  { label: 'Service Zone', key: 'serviceZoneId', sortable: false },
   { label: 'Delivery Zone', key: 'name', sortable: false },
   { label: 'Postcode', key: 'postalCodes', sortable: false },
   { label: 'Delivery Charges', key: 'deliveryCharge', sortable: false },
@@ -42,6 +43,7 @@ async function updateData(rowData) {
   const url = import.meta.env.VITE_API_BASE_URL
   const data = {
     isActive: rowData.isActive,
+    serviceZoneId: rowData.serviceZoneId,
     name: rowData.name,
     isDeleted: rowData.isDeleted,
     deliveryCharge: rowData.deliveryCharge,
@@ -77,7 +79,6 @@ async function validateAndUpdateCC(rowData) {
     rowData.ccError = 'CC To must be greater than CC From'
   }
 
-  // Small timeout ensures both blur & enter won't double trigger
   setTimeout(() => {
     rowData._ccUpdating = false
   }, 300)
@@ -184,6 +185,20 @@ const items = toRef(props, 'items')
       <template #cell(isActive)="{ rowData }">
         <div class="table-cell-content">
           <VaCheckbox v-model="rowData.isActive" size="small" @click="updateData(rowData)" />
+        </div>
+      </template>
+      <template #cell(serviceZoneId)="{ rowData }">
+        <div class="table-cell-content">
+          <div v-if="!rowData.editServiceZoneId" @click="rowData.editServiceZoneId = true">
+            {{ rowData.serviceZoneId }}
+          </div>
+          <input
+            v-else
+            v-model="rowData.serviceZoneId"
+            class="w-1/2 p-1 border rounded"
+            type="text"
+            @change="updateData(rowData)"
+          />
         </div>
       </template>
       <template #cell(name)="{ rowData }">
