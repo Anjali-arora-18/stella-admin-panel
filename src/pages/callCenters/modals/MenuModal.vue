@@ -100,11 +100,10 @@
                 v-if="group.singleChoice"
                 :key="option._id"
                 class="w-[200px] h-[80px] relative flex items-center border p-2 rounded-lg cursor-pointer transition-all"
-                :class="
-                  selectedOptions[group._id] === option._id
-                    ? 'border-gray-700 bg-[#f8f9fa] border-2'
-                    : 'border-gray-200 hover:border-gray-700 hover:border-2'
-                "
+                :class="{
+                  'border-gray-700 bg-[#f8f9fa] border-2': isChecked(group, option._id),
+                  'border-gray-200 hover:border-gray-700 hover:border-2': !isChecked(group, option._id),
+                }"
                 @click="updateSingleChoice(group, option)"
               >
                 <div v-if="option.imageUrl" class="item-image">
@@ -128,7 +127,7 @@
                   type="radio"
                   :name="group._id"
                   :value="option._id"
-                  class="absolute bottom-2 right-2 accent-gray-700"
+                  class="absolute bottom-2 right-2 accent-gray-700 pointer-events-none"
                 />
               </label>
 
