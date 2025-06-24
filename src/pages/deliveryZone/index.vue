@@ -17,7 +17,7 @@ const getDeliveryZones = async () => {
   const url = import.meta.env.VITE_API_BASE_URL
   isLoading.value = true
   try {
-    const response = await axios.get(url + '/deliveryZones?outletId=' + servicesStore.selectedRest)
+    const response = await axios.get(url + '/deliveryZones/' + servicesStore.selectedRest)
     const item = response.data.data
     forceReMount.value++
     items.value = item.map((e) => {
