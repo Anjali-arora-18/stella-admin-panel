@@ -38,6 +38,10 @@
           <VaIcon name="tune" class="mr-2"></VaIcon>
           Articles Options
         </RouterLink>
+        <RouterLink to="/offers" :class="$route.name === 'offers' ? 'text-primary font-bold' : 'text-secondary'">
+          <VaIcon name="local_offer" class="mr-2"></VaIcon>
+          Offers
+        </RouterLink>
         <RouterLink
           to="/deletedArticles"
           :class="$route.name === 'deletedArticles' ? 'text-primary font-bold' : 'text-secondary'"

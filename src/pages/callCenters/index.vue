@@ -11,7 +11,7 @@
                 href="#offers"
                 @click="selectedItem = 'offers'"
               >
-                Offers
+                OFFERS
               </a>
               <a
                 v-for="item in filteredCategories"
@@ -34,7 +34,7 @@
             </div>
           </div>
           <div class="menu-scroll">
-            <MenuSection id="offers" title="Offers" :items="[]" />
+            <MenuSection id="offers" title="OFFERS" :items="offers" />
             <MenuSection
               v-for="cat in filteredCategories"
               :id="cat._id"
@@ -80,6 +80,9 @@ import { useMenuStore } from '@/stores/getMenu.js'
 import { useServiceStore } from '@/stores/services.ts'
 import { useOrderStore } from '@/stores/order-store'
 import { useRoute } from 'vue-router'
+import { useToast } from 'vuestic-ui'
+import axios from 'axios'
+const { init } = useToast()
 const route = useRoute()
 const serviceStore = useServiceStore()
 
@@ -114,6 +117,15 @@ const toTitleCase = (text) => {
 const selectedItem = ref(null)
 const currentTime = ref('')
 const forceRemount = ref(0)
+const offers = ref([])
+
+const getOffers = async () => {
+  const url = import.meta.env.VITE_API_BASE_URL
+
+  const response = await axios.get(url + '/offers/?outletId=' + serviceStore.selectedRest)
+  offers.value = response.data.data
+}
+
 const menuItems = computed(() => {
   return (props.categories || []).map((category) => ({
     id: category._id,
@@ -152,6 +164,7 @@ watch(
     if (newVal) {
       isLoading.value = true
       getMenu()
+      getOffers()
       orderStore.cartItems = []
       orderStore.paymentId = ''
       orderStore.redirectUrl = ''

@@ -10,8 +10,9 @@
           'grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6': !isSidebarMinimized,
         }"
       >
-        <OfferCard />
-        <MenuCard v-for="item in items" :key="item.id" :item="item" />
+        <OfferCard v-for="item in items" v-if="id === 'offers'" :key="item.id" :item="item" />
+
+        <MenuCard v-for="item in items" v-else :key="item.id" :item="item" />
       </div>
     </div>
   </section>
@@ -22,6 +23,7 @@ import MenuCard from '@/pages/callCenters/widgets/MenuCard.vue'
 import OfferCard from '@/pages/callCenters/widgets/OfferCard.vue'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
+
 defineProps({
   id: String,
   title: String,

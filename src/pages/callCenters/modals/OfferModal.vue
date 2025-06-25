@@ -13,13 +13,14 @@
 
         <!-- LEFT: Offer Info -->
         <div class="offer-info">
-          <div class="offer-icon">🎉</div>
+          <div class="offer-icon">
+            <img :src="item.imageUrl" alt="Offer Icon" class="w-full h-full object-cover rounded-full" />
+          </div>
           <div class="offer-details">
-            <h3 class="offer-name">Family Feast Bundle</h3>
+            <h3 class="offer-name">{{ item.name }}</h3>
             <div class="offer-contents">
               <p style="font-size: 14px; line-height: 1.5; margin-bottom: 0; text-align: center; opacity: 0.95">
-                Perfect for sharing with family and friends! This generous bundle includes everything you need for a
-                complete meal - delicious XL pizzas, crispy chicken sides, golden wedges, and drinks.
+                {{ item.description }}
               </p>
             </div>
             <div class="price-section">
@@ -135,8 +136,13 @@ const totalSelected = computed(() => selectionGroups.reduce((sum, group) => sum 
   background: rgba(0, 0, 0, 0.1);
   border: none;
   border-radius: 50%;
+  color: #666;
   font-size: 20px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
 }
 
 .offer-info {

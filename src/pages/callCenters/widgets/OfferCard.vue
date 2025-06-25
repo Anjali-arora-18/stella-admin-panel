@@ -1,13 +1,13 @@
 <template>
   <div class="menu-item" @click="getOffers">
     <div class="item-content">
-      <div class="item-name">Offers</div>
-      <div class="item-price">€ 8</div>
+      <div class="item-name">{{ item.name }}</div>
+      <div class="item-price">€{{ parseFloat(item.price).toFixed(2) }}</div>
     </div>
-    <!-- <div  class="item-image">
+    <div v-if="item.imageUrl" class="item-image">
       <img :src="item.imageUrl" alt="icon" class="w-full h-full" />
-    </div> -->
-    <OfferModal v-if="showOfferModal" :item="item" :item-with-offers="itemWithOffers" @cancel="closeOfferModal" />
+    </div>
+    <OfferModal v-if="showOfferModal" :item="item" @cancel="closeOfferModal" />
   </div>
 </template>
 

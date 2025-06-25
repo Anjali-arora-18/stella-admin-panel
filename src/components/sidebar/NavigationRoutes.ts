@@ -101,6 +101,14 @@ export default {
       },
     },
     {
+      name: 'offers',
+      displayName: 'menu.offers',
+      visible: true,
+      meta: {
+        icon: 'group',
+      },
+    },
+    {
       name: 'stellaUsers',
       displayName: 'menu.stellaUsers',
       visible: true,

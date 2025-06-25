@@ -29,7 +29,7 @@
         v-for="n in group.max - selectedItems.length"
         :key="'ph-' + n"
         class="selection-item placeholder"
-        @click="openSelectionModal"
+        @click="openSelectionItemModal"
       >
         <div class="item-image" style="color: #2d5016">➕</div>
         <div class="item-content">
@@ -40,17 +40,23 @@
         <div class="selection-status"></div>
       </div>
     </div>
+    <PizzaSelectionModal ref="pizzaModal" />
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
+import PizzaSelectionModal from './PizzaSelectionModal.vue'
 
 const props = defineProps({
   group: Object,
   selectedItems: Array,
 })
 const emit = defineEmits(['update:selectedItems'])
+const pizzaModal = ref(null)
+function openSelectionItemModal() {
+  pizzaModal.value?.openModal()
+}
 
 const percent = computed(() => (props.selectedItems.length / props.group.max) * 100)
 
