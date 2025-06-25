@@ -7,6 +7,13 @@
           <div class="top-bar flex items-start border-b pb-4 sm:flex-row sm:justify-between gap-4">
             <div class="flex flex-wrap gap-2">
               <a
+                :class="['text-white px-4 py-2 rounded-2xl', selectedItem === 'offers' ? 'bg-blue-500' : 'bg-gray-300']"
+                href="#offers"
+                @click="selectedItem = 'offers'"
+              >
+                Offers
+              </a>
+              <a
                 v-for="item in filteredCategories"
                 :key="item._id"
                 :href="`#${item._id}`"
@@ -27,6 +34,7 @@
             </div>
           </div>
           <div class="menu-scroll">
+            <MenuSection id="offers" title="Offers" :items="[]" />
             <MenuSection
               v-for="cat in filteredCategories"
               :id="cat._id"
@@ -155,11 +163,13 @@ watch(
 )
 
 const filteredCategories = computed(() => {
-  return categories.value.filter(
+  const validCategories = categories.value.filter(
     (category) =>
       category.menuItems.length > 0 ||
-      (category.subCategories.length && category.subCategories.filter((a) => a.menuItems.length).length),
+      (category.subCategories.length && category.subCategories.some((a) => a.menuItems.length)),
   )
+
+  return [...validCategories]
 })
 
 watch(
