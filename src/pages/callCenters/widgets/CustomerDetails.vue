@@ -137,7 +137,7 @@
             <!-- Delivery dropdown (shared) -->
             <div
               v-if="showDeliveryDropdown"
-              class="absolute right-0 top-full mt-1 w-full text-left bg-white border rounded shadow z-10"
+              class="absolute right-0 top-full max-h-[300px] overflow-y-auto mt-1 w-full text-left bg-white border rounded shadow z-10"
             >
               <ul ref="deliveryList" class="text-sm">
                 <li
@@ -283,22 +283,24 @@ function selectDeliveryZone(zone) {
 }
 
 async function handleDeliveryZoneFetch() {
+  deliveryZoneOptions.value = []
   const addressArray = selectedAddress.value?.text
   if (!selectedAddress.value) return
 
   const addressSplit = addressArray.split(',')
   let postalCode = ''
   const servicesStore = useServiceStore()
-  if (addressSplit.length) {
-    postalCode = addressSplit[addressSplit.length - 1].trim()
-  } else {
-    init({
-      color: 'danger',
-      message: 'No zipcode to find postal code',
-    })
-    return
+  if (selectedTab.value === 'delivery') {
+    if (addressSplit.length) {
+      postalCode = addressSplit[addressSplit.length - 1].trim()
+    } else {
+      init({
+        color: 'danger',
+        message: 'No zipcode to find postal code',
+      })
+      return
+    }
   }
-
   try {
     const response = await axios.get(
       `${import.meta.env.VITE_API_BASE_URL}/deliveryZones/${servicesStore.selectedRest}?postalCode=${postalCode}`,
@@ -316,11 +318,9 @@ async function handleDeliveryZoneFetch() {
         message: 'No delivery zones found for selected address.',
       })
     } else {
-      if (selectedTab.value === 'delivery') {
-        const firstZone = response.data.data[0]
-        serviceZoneId.value = firstZone.serviceZoneId
-        selectDeliveryZone(firstZone)
-      }
+      const firstZone = response.data.data[0]
+      serviceZoneId.value = firstZone.serviceZoneId
+      selectDeliveryZone(firstZone)
     }
   } catch (err) {
     selectedZone.value = ''
