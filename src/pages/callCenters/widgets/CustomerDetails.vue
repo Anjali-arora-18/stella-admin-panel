@@ -319,11 +319,7 @@ async function handleDeliveryZoneFetch() {
       if (selectedTab.value === 'delivery') {
         const firstZone = response.data.data[0]
         serviceZoneId.value = firstZone.serviceZoneId
-      } else {
-        if (!selectedZone.value) {
-          const firstZone = response.data.data[0]
-          selectDeliveryZone(firstZone)
-        }
+        selectDeliveryZone(firstZone)
       }
     }
   } catch (err) {
