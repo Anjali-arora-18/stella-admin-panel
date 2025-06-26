@@ -9,7 +9,7 @@ export const useMenuStore = defineStore('menu', {
       url: import.meta.env.VITE_API_BASE_URL,
       restDetails: null,
       unFilteredMenuItems: [],
-      offer: {},
+      offer: null,
     }
   },
   actions: {

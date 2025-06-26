@@ -103,10 +103,14 @@ watch(showOfferModal, (val) => {
   }
 })
 const totalRequired = computed(() => {
-  return props.item.selections.reduce((total, group) => total + group.min, 0)
+  if (!offer.value) return 0
+  return offer.value.selections.reduce((total, group) => total + group.min, 0)
 })
 
-const totalSelected = computed(() => props.item.selections.reduce((sum, group) => sum + group.selected, 0))
+const totalSelected = computed(() => {
+  if (!offer.value) return 0
+  return offer.value.selections.reduce((sum, group) =>  sum + group.addedItems.length, 0)
+})
 </script>
 <style>
 .offer-modal {
