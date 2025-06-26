@@ -6,24 +6,15 @@
         <VaCardContent class="menu-section">
           <div class="top-bar flex items-start border-b pb-4 sm:flex-row sm:justify-between gap-4">
             <div class="flex flex-wrap gap-2">
-              <a
-                :class="['text-white px-4 py-2 rounded-2xl', selectedItem === 'offers' ? 'bg-blue-500' : 'bg-gray-300']"
-                href="#offers"
-                @click="selectedItem = 'offers'"
-              >
+              <a v-if="offers.length" :class="['text-white px-4 py-2 rounded-2xl', selectedItem === 'offers' ? 'bg-blue-500' : 'bg-gray-300']"
+                href="#offers" @click="selectedItem = 'offers'">
                 OFFERS
               </a>
-              <a
-                v-for="item in filteredCategories"
-                :key="item._id"
-                :href="`#${item._id}`"
-                class="text-white px-4 py-2 rounded-2xl"
-                :class="{
+              <a v-for="item in filteredCategories" :key="item._id" :href="`#${item._id}`"
+                class="text-white px-4 py-2 rounded-2xl" :class="{
                   'bg-blue-500': selectedItem === item._id,
                   'bg-gray-300': selectedItem !== item._id,
-                }"
-                @click="selectedItem = item._id"
-              >
+                }" @click="selectedItem = item._id">
                 {{ toTitleCase(item.name) }}
               </a>
             </div>
@@ -34,14 +25,9 @@
             </div>
           </div>
           <div class="menu-scroll">
-            <MenuSection id="offers" title="OFFERS" :items="offers" />
-            <MenuSection
-              v-for="cat in filteredCategories"
-              :id="cat._id"
-              :key="cat.name"
-              :title="cat.name"
-              :items="cat.menuItems"
-            />
+            <MenuSection v-if="offers.length" id="offers" title="OFFERS" :items="offers" />
+            <MenuSection v-for="cat in filteredCategories" :id="cat._id" :key="cat.name" :title="cat.name"
+              :items="cat.menuItems" />
           </div>
         </VaCardContent>
       </VaCard>
@@ -52,23 +38,14 @@
       <div class="flex flex-col gap-2">
         <VaCard>
           <VaCardContent>
-            <CustomerDetails
-              :force-remount="forceRemount"
-              @setDeliveryFee="(val) => (deliveryFee = val)"
+            <CustomerDetails :force-remount="forceRemount" @setDeliveryFee="(val) => (deliveryFee = val)"
               @setCustomerDetailsId="(val) => (customerDetailsId = val)"
-              @setDeliveryZone="(val) => (isDeliveryZoneSelected = val)"
-              @setOrderType="(val) => (orderType = val)"
-              @setOpen="(val) => (accordian[0] = val)"
-            />
+              @setDeliveryZone="(val) => (isDeliveryZoneSelected = val)" @setOrderType="(val) => (orderType = val)"
+              @setOpen="(val) => (accordian[0] = val)" />
           </VaCardContent>
         </VaCard>
-        <OrderDetails
-          :delivery-fee="deliveryFee"
-          :is-delivery-zone-selected="isDeliveryZoneSelected"
-          :customer-details-id="customerDetailsId"
-          :order-type="orderType"
-          :is-customer-open="accordian[0]"
-        />
+        <OrderDetails :delivery-fee="deliveryFee" :is-delivery-zone-selected="isDeliveryZoneSelected"
+          :customer-details-id="customerDetailsId" :order-type="orderType" :is-customer-open="accordian[0]" />
       </div>
     </div>
   </div>
@@ -162,6 +139,9 @@ watch(
   () => serviceStore.selectedRest,
   (newVal) => {
     if (newVal) {
+      if (window.location.hash) {
+        history.replaceState(null, '', window.location.pathname + window.location.search)
+      }
       isLoading.value = true
       getMenu()
       getOffers()
@@ -195,6 +175,24 @@ const filteredCategories = computed(() => {
 //   { immediate: true },
 // )
 
+// Watch route hash and scroll to section if present
+watch(
+  () => route.hash,
+  (hash) => {
+    if (hash && !selectedItem.value) {
+      setTimeout(() => {
+        const el = document.getElementById(hash.replace('#', ''))
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          selectedItem.value = hash.replace('#', '')
+        }
+      }, 3000);
+
+    }
+  },
+  { immediate: true }
+)
+
 async function getMenu() {
   isLoading.value = true
   menuStore.resetUnFilteredMenuItems()
@@ -217,6 +215,7 @@ async function getMenu() {
   flex-direction: column;
   height: calc(100vh - 115px);
 }
+
 .menu-scroll {
   overflow-y: auto;
   overflow-x: hidden;
