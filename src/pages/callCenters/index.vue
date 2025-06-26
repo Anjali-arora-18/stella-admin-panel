@@ -185,15 +185,15 @@ const filteredCategories = computed(() => {
   return [...validCategories]
 })
 
-watch(
-  filteredCategories,
-  (newVal) => {
-    if (newVal.length && !selectedItem.value) {
-      selectedItem.value = newVal[0]._id
-    }
-  },
-  { immediate: true },
-)
+// watch(
+//   filteredCategories,
+//   (newVal) => {
+//     if (newVal.length && !selectedItem.value) {
+//       selectedItem.value = newVal[0]._id
+//     }
+//   },
+//   { immediate: true },
+// )
 
 async function getMenu() {
   isLoading.value = true
