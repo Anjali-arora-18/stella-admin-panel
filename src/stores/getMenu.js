@@ -12,6 +12,25 @@ export const useMenuStore = defineStore('menu', {
       offer: null,
     }
   },
+  getters: {
+    addOnPrice: (state) => {
+      let selectionTotal = 0
+      if (!state.offer) {
+        return selectionTotal
+      }
+      state.offer.selections.forEach((item) => {
+        item.addedItems.forEach((addedItem) => {
+          addedItem.selectedOptions.forEach((group) => {
+            group.selected.forEach((selection) => {
+              selectionTotal += selection.price * selection.quantity
+            })
+          })
+        })
+      })
+
+      return selectionTotal
+    },
+  },
   actions: {
     setOffer(offer) {
       this.offer = offer

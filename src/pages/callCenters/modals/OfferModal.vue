@@ -23,8 +23,10 @@
                 {{ item.description }}
               </p>
             </div>
-            <div class="price-section">
+            <div class="price-section flex flex-col items-center space-y-2">
               <div class="offer-price">€{{ parseFloat(item.price).toFixed(2) }}</div>
+              <div v-if="addOnPrice">+</div>
+              <div v-if="addOnPrice" class="offer-price flex space-x-2 items-center"> €{{ parseFloat(addOnPrice).toFixed(2) }} <span class="text-xs ml-2">(Add-ons)</span></div>
             </div>
             <button class="add-to-basket" :disabled="totalSelected < totalRequired">
               {{
@@ -111,6 +113,8 @@ const totalSelected = computed(() => {
   if (!offer.value) return 0
   return offer.value.selections.reduce((sum, group) =>  sum + group.addedItems.length, 0)
 })
+
+const {addOnPrice} = storeToRefs(menuStore)
 </script>
 <style>
 .offer-modal {
