@@ -12,13 +12,9 @@
 
       <div class="modal-body">
         <div class="pizzas-grid">
-          <div
-            v-for="item in menuItems"
-            :key="item._id"
-            class="pizza-card"
+          <div v-for="item in menuItems" :key="item._id" class="pizza-card"
             :class="{ selected: selectedArticle && selectedArticle.id === item.id }"
-            @click.prevent="selectArticle(item)"
-          >
+            @click.prevent="selectArticle(item)">
             <div class="pizza-image"><img :src="item.imageUrl" class="object-fit" /></div>
             <div class="pizza-content">
               <div class="pizza-name">{{ item.name }}</div>
@@ -29,14 +25,8 @@
         </div>
       </div>
     </div>
-    <OffersMenuModal
-      v-if="showOptionsGroup"
-      :item="selectedArticle"
-      :offerGroup="group"
-      :show-menu-modal="showOptionsGroup"
-      @items-added="closeModal()"
-      @cancel="showOptionsGroup = false"
-    />
+    <OffersMenuModal v-if="showOptionsGroup" :item="selectedArticle" :offerGroup="group"
+      :show-menu-modal="showOptionsGroup" @items-added="closeModal()" @cancel="showOptionsGroup = false" />
   </div>
 </template>
 
@@ -62,26 +52,27 @@ function openModal() {
 
 function closeModal() {
   isVisible.value = false
+  selectedArticle.value = null
   showOptionsGroup.value = false
 }
 
 function selectArticle(article) {
   selectedArticle.value = article
   if (article.optionGroups.length) {
-  showOptionsGroup.value = true
+    showOptionsGroup.value = true
   } else {
-     const productEntry = {
-    itemId:  article.id,
-    itemName: article.name,
-    itemDescription: article.description,
-    basePrice:  parseFloat(article.price),
-    imageUrl: article.imageUrl,
-    quantity:  1,
-    selectedOptions: [],
-    totalPrice: 0,
-    selectionTotalPrice: 0,
-  }
-  menuStore.addItemToOffer(props.group, productEntry)
+    const productEntry = {
+      itemId: article.id,
+      itemName: article.name,
+      itemDescription: article.description,
+      basePrice: parseFloat(article.price),
+      imageUrl: article.imageUrl,
+      quantity: 1,
+      selectedOptions: [],
+      totalPrice: 0,
+      selectionTotalPrice: 0,
+    }
+    menuStore.addItemToOffer(props.group, productEntry)
     closeModal()
   }
 }
@@ -102,6 +93,7 @@ defineExpose({ openModal })
   justify-content: center;
   z-index: 999;
 }
+
 .modal {
   background: white;
   border-radius: 12px;
@@ -114,6 +106,7 @@ defineExpose({ openModal })
   flex-direction: column;
   overflow: hidden;
 }
+
 .modal-header {
   background: linear-gradient(135deg, #2d5016 0%, #3a6b1d 100%);
   color: white;

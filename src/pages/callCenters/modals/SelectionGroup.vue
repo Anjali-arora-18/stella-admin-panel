@@ -12,11 +12,11 @@
     </div>
     <div class="items-grid">
       <div
-        v-for="item in group.addedItems"
+        v-for="(item,index) in group.addedItems"
         :key="item"
         class="selection-item selected"
         
-        @click="toggleSelection(item)"
+        @click="toggleSelection(group,index)"
       >
         <div class="item-image"><img :src="item.imageUrl" /></div>
         <div class="item-content">
@@ -48,7 +48,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import OffersMenuItemsSelectionModal from './OffersMenuItemsSelectionModal.vue'
-
+import {useMenuStore} from '@/stores/getMenu'
 const props = defineProps({
   group: Object,
 })
@@ -62,10 +62,9 @@ function openSelectionItemModal(payload) {
 const selectedItems = computed(() => props.group.addedItems.map((item) => item._id))
 const percent = computed(() => (selectedItems.value.length / props.group.max) * 100)
 
-function toggleSelection(item) {
-  // eslint-disable-next-line vue/no-mutating-props
-  props.group.addedItems = props.group.addedItems.map((i) => (i._id === item._id ? { ...i, selected: !isSelected } : i))
-  emit('update:selectedItems', updated)
+function toggleSelection(group, index) {
+  useMenuStore().removeItemFromOffer(group, index)
+  
 }
 </script>
 

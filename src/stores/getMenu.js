@@ -23,6 +23,12 @@ export const useMenuStore = defineStore('menu', {
         this.offer[group] = []
       }
     },
+    removeItemFromOffer(group, index) {
+      const itemIndex = this.offer.selections.findIndex(a => a._id === group._id)
+      if (itemIndex !== -1) {
+        this.offer.selections[itemIndex].addedItems.splice(index, 1)
+      }
+    },
     resetUnFilteredMenuItems() {
       this.unFilteredMenuItems
     },
