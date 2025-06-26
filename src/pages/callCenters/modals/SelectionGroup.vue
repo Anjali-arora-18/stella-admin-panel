@@ -14,14 +14,14 @@
       <div
         v-for="item in group.addedItems"
         :key="item"
-        class="selection-item"
-        :class="{ selected: selectedItems.includes(item._id) }"
+        class="selection-item selected"
+        
         @click="toggleSelection(item)"
       >
         <div class="item-image"><img :src="item.imageUrl" /></div>
         <div class="item-content">
-          <div class="item-name">{{ item.name }}</div>
-          <div class="item-description">{{ item.description }}</div>
+          <div class="item-name">{{ item.itemName }}</div>
+          <div class="item-description">{{ item.itemDescription }}</div>
         </div>
         <div class="selection-status"></div>
       </div>

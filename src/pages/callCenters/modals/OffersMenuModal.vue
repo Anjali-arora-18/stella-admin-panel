@@ -58,9 +58,9 @@
             {{ isEdit ? 'UPDATE OFFER' : 'ADD TO OFFER' }}
           </button>
 
-          <p v-if="formSubmitted && !isFormValid" class="text-red-500 text-xs mt-2 text-center">
+          <!-- <p v-if="formSubmitted && !isFormValid" class="text-red-500 text-xs mt-2 text-center">
             Please select all required options.
-          </p>
+          </p> -->
         </div>
       </div>
 
@@ -158,8 +158,11 @@
 
                 <!-- Bottom-right quantity control -->
                 <div class="absolute bottom-2 right-2 flex items-center bottom-1 gap-1">
-                  <p v-if="option.price" class="text-sm text-gray-600 font-medium mr-2">
+                  <p v-if="option.price && !option.isFree" class="text-sm text-gray-600 font-medium mr-2">
                     €{{ parseFloat(option.price).toFixed(2) }}
+                  </p>
+                   <p v-if="option.isFree" class="text-sm text-gray-600 font-medium mr-2">
+                    Free
                   </p>
 
                   <button
@@ -194,12 +197,16 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { useOrderStore } from '@/stores/order-store'
-
+import { useMenuStore } from '@/stores/getMenu'
 const orderStore = useOrderStore()
 
-const emits = defineEmits(['cancel', 'cancel-edit'])
+const emits = defineEmits(['cancel', 'cancel-edit', 'items-added'])
 
 const props = defineProps({
+  offerGroup: {
+    type: Object,
+    required: false,
+  },
   item: {
     type: Object,
     required: true,
@@ -215,28 +222,28 @@ const props = defineProps({
 })
 
 const selectedOptions = ref([])
-
+const menuStore = useMenuStore()
 const formSubmitted = ref(false)
 
-const isFormValid = computed(() => {
-  const requiredGroups = props.item.articlesOptionsGroups.filter((g) => g.mandatory)
+// const isFormValid = computed(() => {
+//   const requiredGroups = props.item.articlesOptionsGroups.filter((g) => g.mandatory)
 
-  for (const group of requiredGroups) {
-    const selectedGroup = selectedOptions.value.find((sel) => sel.groupId === group.optionGroupId)
+//   for (const group of requiredGroups) {
+//     const selectedGroup = selectedOptions.value.find((sel) => sel.groupId === group.optionGroupId)
 
-    if (!selectedGroup || !selectedGroup.selected.length) {
-      return false
-    }
+//     if (!selectedGroup || !selectedGroup.selected.length) {
+//       return false
+//     }
 
-    if (group.multipleChoice && group.minimumChoices) {
-      const totalQty = selectedGroup.selected.reduce((sum, opt) => sum + (opt.quantity || 0), 0)
+//     if (group.multipleChoice && group.minimumChoices) {
+//       const totalQty = selectedGroup.selected.reduce((sum, opt) => sum + (opt.quantity || 0), 0)
 
-      if (totalQty < group.minimumChoices) return false
-    }
-  }
+//       if (totalQty < group.minimumChoices) return false
+//     }
+//   }
 
-  return true
-})
+//   return true
+// })
 
 const totalPrice = computed(() => {
   let total = parseFloat(props.item.price) || props.item.basePrice || 0
@@ -302,13 +309,14 @@ watch(
 function addToBasket(item: any) {
   formSubmitted.value = true
 
-  if (!isFormValid.value) {
-    return
-  }
+  // if (!isFormValid.value) {
+  //   return
+  // }
 
   const productEntry = {
     itemId: props.isEdit ? item.itemId : item.id,
     itemName: props.isEdit ? item.itemName : item.name,
+    itemDescription: item.description,
     basePrice: props.isEdit ? item.basePrice : parseFloat(item.price),
     imageUrl: item.imageUrl,
     quantity: props.isEdit ? item.quantity : 1,
@@ -317,28 +325,28 @@ function addToBasket(item: any) {
     selectionTotalPrice: 0,
   }
 
-  const index = null
-  if (props.isEdit) {
-    const index = orderStore.cartItems.findIndex((i) => i.itemId === item.itemId)
-    if (index !== -1) {
-      orderStore.cartItems.splice(index, 1)
-      orderStore.cartItems.splice(index, 0, JSON.parse(JSON.stringify(productEntry)))
-      orderStore.calculateItemTotal(index)
-    }
-  } else {
-    orderStore.addItemToCart(productEntry)
-    const newIndex = orderStore.cartItems.length - 1
-    orderStore.calculateItemTotal(newIndex)
-  }
+  // const index = null
+  // if (props.isEdit) {
+  //   const index = orderStore.cartItems.findIndex((i) => i.itemId === item.itemId)
+  //   if (index !== -1) {
+  //     orderStore.cartItems.splice(index, 1)
+  //     orderStore.cartItems.splice(index, 0, JSON.parse(JSON.stringify(productEntry)))
+  //     orderStore.calculateItemTotal(index)
+  //   }
+  // } else {
+  //   orderStore.addItemToCart(productEntry)
+  //   const newIndex = orderStore.cartItems.length - 1
+  //   orderStore.calculateItemTotal(newIndex)
+  // }
 
+  menuStore.addItemToOffer(props.offerGroup, productEntry)
   selectedOptions.value = []
-  showMenuModal.value = false
   formSubmitted.value = false
 
-  if (props.isEdit) {
-    emits('cancel-edit')
-  }
-  emits('cancel')
+  // if (props.isEdit) {
+  //   emits('cancel-edit')
+  // }
+  emits('items-added')
 }
 
 function updateSingleChoice(group: any, option: any) {
@@ -351,7 +359,7 @@ function updateSingleChoice(group: any, option: any) {
         optionId: option.optionId,
         name: option.name,
         type: option.type,
-        price: option.price,
+        price: option.isFree ? 0 : option.price,
         quantity: 1,
       },
     ],
@@ -410,7 +418,7 @@ function updateMultipleChoice(group, option, quantity) {
       optionId: option.optionId,
       name: option.name,
       type: option.type,
-      price: option.price,
+      price: option.isFree ? 0 : option.price,
       quantity,
     }
 

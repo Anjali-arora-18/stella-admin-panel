@@ -32,7 +32,9 @@
     <OffersMenuModal
       v-if="showOptionsGroup"
       :item="selectedArticle"
+      :offerGroup="group"
       :show-menu-modal="showOptionsGroup"
+      @items-added="closeModal()"
       @cancel="showOptionsGroup = false"
     />
   </div>
@@ -41,6 +43,7 @@
 <script setup>
 import { ref, defineExpose } from 'vue'
 import OffersMenuModal from './OffersMenuModal.vue'
+import { useMenuStore } from '@/stores/getMenu'
 const props = defineProps({
   group: Object,
   menuItems: {
@@ -48,6 +51,7 @@ const props = defineProps({
     required: true,
   },
 })
+const menuStore = useMenuStore()
 const isVisible = ref(false)
 const selectedArticle = ref(null)
 const showOptionsGroup = ref(false)
@@ -63,7 +67,23 @@ function closeModal() {
 
 function selectArticle(article) {
   selectedArticle.value = article
+  if (article.optionGroups.length) {
   showOptionsGroup.value = true
+  } else {
+     const productEntry = {
+    itemId:  article.id,
+    itemName: article.name,
+    itemDescription: article.description,
+    basePrice:  parseFloat(article.price),
+    imageUrl: article.imageUrl,
+    quantity:  1,
+    selectedOptions: [],
+    totalPrice: 0,
+    selectionTotalPrice: 0,
+  }
+  menuStore.addItemToOffer(props.group, productEntry)
+    closeModal()
+  }
 }
 
 defineExpose({ openModal })

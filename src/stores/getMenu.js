@@ -16,6 +16,13 @@ export const useMenuStore = defineStore('menu', {
     setOffer(offer) {
       this.offer = offer
     },
+    addItemToOffer(group, product) {
+      const index = this.offer.selections.findIndex(a => a._id === group._id)
+      this.offer.selections[index].addedItems.push(product)
+      if (!this.offer) {
+        this.offer[group] = []
+      }
+    },
     resetUnFilteredMenuItems() {
       this.unFilteredMenuItems
     },
