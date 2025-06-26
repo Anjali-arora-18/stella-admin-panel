@@ -12,11 +12,10 @@
     </div>
     <div class="items-grid">
       <div
-        v-for="(item,index) in group.addedItems"
+        v-for="(item, index) in group.addedItems"
         :key="item"
         class="selection-item selected"
-        
-        @click="toggleSelection(group,index)"
+        @click="toggleSelection(group, index)"
       >
         <div class="item-image"><img :src="item.imageUrl" /></div>
         <div class="item-content">
@@ -32,8 +31,8 @@
         class="selection-item placeholder"
         @click="openSelectionItemModal(group.menuItems)"
       >
-        <div class="item-image" style="color: #2d5016">➕</div>
-        <div class="item-content">
+        <div class="item-image cursor-pointer" style="color: #2d5016">➕</div>
+        <div class="item-content cursor-pointer">
           <div class="item-label">{{ group.name }} {{ n }}</div>
           <div class="item-name">Select Your {{ group.description }}</div>
           <div class="item-description">Choose from options</div>
@@ -48,7 +47,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import OffersMenuItemsSelectionModal from './OffersMenuItemsSelectionModal.vue'
-import {useMenuStore} from '@/stores/getMenu'
+import { useMenuStore } from '@/stores/getMenu'
 const props = defineProps({
   group: Object,
 })
@@ -64,7 +63,6 @@ const percent = computed(() => (selectedItems.value.length / props.group.max) * 
 
 function toggleSelection(group, index) {
   useMenuStore().removeItemFromOffer(group, index)
-  
 }
 </script>
 
@@ -121,12 +119,14 @@ function toggleSelection(group, index) {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 12px;
+  padding-bottom: 20px;
+  margin-top: 10px;
 }
 
 .selection-item {
   border: 2px solid #e9ecef;
   border-radius: 12px;
-  padding: 16px;
+  padding: 12px;
   cursor: pointer;
   display: flex;
   align-items: center;

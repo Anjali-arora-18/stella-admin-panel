@@ -70,10 +70,10 @@
           <div v-for="group in item.optionGroups" :key="group.optionGroupId" class="space-y-4">
             <!-- Group Title -->
             <div class="flex items-center gap-2">
-              <span class="text-green-900 font-semibold uppercase text-sm">{{ group.name }}</span>
-              <span v-if="group.mandatory" class="text-[10px] bg-red-500 text-white font-semibold px-2 rounded-full">
+              <span class="text-green-900 font-bold uppercase text-sm">{{ group.name }}</span>
+              <!-- <span v-if="group.mandatory" class="text-[10px] bg-red-500 text-white font-semibold px-2 rounded-full">
                 Required
-              </span>
+              </span> -->
 
               <span
                 v-if="group.minimumChoices"
@@ -161,9 +161,7 @@
                   <p v-if="option.price && !option.isFree" class="text-sm text-gray-600 font-medium mr-2">
                     €{{ parseFloat(option.price).toFixed(2) }}
                   </p>
-                   <p v-if="option.isFree" class="text-sm text-gray-600 font-medium mr-2">
-                    Free
-                  </p>
+                  <p v-if="option.isFree" class="text-sm text-gray-600 font-medium mr-2">Free</p>
 
                   <button
                     class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50"
