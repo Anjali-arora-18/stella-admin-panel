@@ -8,9 +8,17 @@ export const useMenuStore = defineStore('menu', {
       services: useServiceStore().$state,
       url: import.meta.env.VITE_API_BASE_URL,
       restDetails: null,
+      unFilteredMenuItems: [],
+      offer: {},
     }
   },
   actions: {
+    setOffer(offer) {
+      this.offer = offer
+    },
+    resetUnFilteredMenuItems() {
+      this.unFilteredMenuItems
+    },
     async getOutletDetails(payload) {
       const response = await axios.get(`${this.url}/outletsvo`, {
         params: {
@@ -51,6 +59,7 @@ export const useMenuStore = defineStore('menu', {
           },
         })
         .then((response) => {
+          this.unFilteredMenuItems.push(...response.data)
           const categoryIndex = this.categories.findIndex((category) => category._id === item._id)
           if (categoryIndex !== -1) {
             const itemsWithSubCategories = response.data.filter((item) => item.subCategories.length)

@@ -150,7 +150,7 @@
                   }"
                   @click="selectedTab === 'takeaway' ? selectDeliveryZone(zone) : ''"
                 >
-                  {{ zone.name }} - {{ zone.district }}
+                  {{ zone.serviceZoneId }} - {{ zone.name }}
                 </li>
               </ul>
             </div>

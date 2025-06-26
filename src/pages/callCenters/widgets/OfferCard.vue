@@ -7,7 +7,11 @@
     <div v-if="item.imageUrl" class="item-image">
       <img :src="item.imageUrl" alt="icon" class="w-full h-full" />
     </div>
-    <OfferModal v-if="showOfferModal" :item="item" @cancel="closeOfferModal" />
+    <OfferModal
+      v-if="showOfferModal"
+      :item="{ ...item, selections: item.selections.map((e) => ({ ...e, selected: 0 })) }"
+      @cancel="closeOfferModal"
+    />
   </div>
 </template>
 

@@ -14,7 +14,7 @@
         <!-- LEFT: Offer Info -->
         <div class="offer-info">
           <div class="offer-icon">
-            <img :src="item.imageUrl" alt="Offer Icon" class="w-full h-full object-cover rounded-full" />
+            <img :src="item.imageUrl" alt="Offer Icon" class="w-full h-full object-fit rounded-full" />
           </div>
           <div class="offer-details">
             <h3 class="offer-name">{{ item.name }}</h3>
@@ -24,7 +24,7 @@
               </p>
             </div>
             <div class="price-section">
-              <div class="offer-price">€10.99</div>
+              <div class="offer-price">€{{ parseFloat(item.price).toFixed(2) }}</div>
             </div>
             <button class="add-to-basket" :disabled="totalSelected < totalRequired">
               {{
@@ -37,13 +37,14 @@
         </div>
 
         <!-- RIGHT: Selection Area -->
+        {{}}
         <div class="selection-area">
-          <SelectionGroup
-            v-for="group in selectionGroups"
-            :key="group.title"
-            v-model:selectedItems="group.selected"
-            :group="group"
-          />
+          <div v-if="!offer" class="text-center p-4 flex items-center justify-center h-full">
+            <p class="text-center text-gray-500">Loading offer details...</p>
+          </div>
+          <div v-else>
+            <SelectionGroup v-for="group in offer.selections" :key="group.title" :group="group" />
+          </div>
         </div>
       </div>
     </div>
@@ -51,10 +52,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, reactive } from 'vue'
+import { ref, watch, computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useOrderStore } from '@/stores/order-store'
 import SelectionGroup from './SelectionGroup.vue'
-
+import axios from 'axios'
+import { useMenuStore } from '@/stores/getMenu'
 const orderStore = useOrderStore()
 
 const showOfferModal = ref(true)
@@ -70,38 +73,40 @@ const props = defineProps({
     required: false,
   },
 })
-watch(showOfferModal, (val) => {
-  if (!val) emits('cancel')
-})
-const totalRequired = 9
-const selectionGroups = reactive([
-  {
-    title: 'XLarge Pizzas',
-    max: 3,
-    items: ['Margherita 🍕', 'Pepperoni 🍕', 'BBQ Chicken 🍕'],
-    selected: ['Margherita 🍕'],
-  },
-  {
-    title: 'Chicken Sides',
-    max: 2,
-    items: ['Chicken Wings 🍗', 'Spicy Strips 🍗'],
-    selected: [],
-  },
-  {
-    title: 'Potato Wedges',
-    max: 2,
-    items: ['Cheesy Wedges 🧀', 'Spicy Wedges 🌶️'],
-    selected: [],
-  },
-  {
-    title: 'Drinks 1.5L',
-    max: 2,
-    items: ['Coke 🥤', 'Sprite 🥤'],
-    selected: [],
-  },
-])
+const menuStore = useMenuStore()
+const { offer } = storeToRefs(menuStore)
 
-const totalSelected = computed(() => selectionGroups.reduce((sum, group) => sum + group.selected.length, 0))
+function getMenu() {
+  const url = import.meta.env.VITE_API_BASE_URL + '/offers/' + props.item._id
+  axios
+    .get(url)
+    .then((response) => {
+      const resp = {
+        ...response.data.data,
+        selections: response.data.data.selections.map((group) => ({
+          ...group,
+          addedItems: [],
+        })),
+      }
+
+      menuStore.setOffer(resp)
+    })
+    .catch((error) => {
+      console.error('Error fetching offer details:', error)
+    })
+}
+getMenu()
+watch(showOfferModal, (val) => {
+  if (!val) {
+    emits('cancel')
+    menuStore.setOffer(null)
+  }
+})
+const totalRequired = computed(() => {
+  return props.item.selections.reduce((total, group) => total + group.min, 0)
+})
+
+const totalSelected = computed(() => props.item.selections.reduce((sum, group) => sum + group.selected, 0))
 </script>
 <style>
 .offer-modal {

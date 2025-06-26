@@ -4,7 +4,7 @@
       <div class="modal-header">
         <div class="header-content">
           <div class="header-text">
-            <h2>Select Your XL Pizza 1</h2>
+            <h2>{{ group.name }}</h2>
           </div>
         </div>
         <button class="close-btn" @click="closeModal">×</button>
@@ -13,30 +13,44 @@
       <div class="modal-body">
         <div class="pizzas-grid">
           <div
-            v-for="pizza in pizzas"
-            :key="pizza.id"
+            v-for="item in menuItems"
+            :key="item._id"
             class="pizza-card"
-            :class="{ selected: selectedPizza === pizza.id }"
-            @click="selectPizza(pizza)"
+            :class="{ selected: selectedArticle && selectedArticle.id === item.id }"
+            @click.prevent="selectArticle(item)"
           >
-            <div class="pizza-image">🍕</div>
+            <div class="pizza-image"><img :src="item.imageUrl" class="object-fit" /></div>
             <div class="pizza-content">
-              <div class="pizza-name">{{ pizza.name }}</div>
-              <div class="pizza-description">{{ pizza.description }}</div>
+              <div class="pizza-name">{{ item.name }}</div>
+              <div class="pizza-description">{{ item.description }}</div>
             </div>
             <div class="selection-status"></div>
           </div>
         </div>
       </div>
     </div>
+    <OffersMenuModal
+      v-if="showOptionsGroup"
+      :item="selectedArticle"
+      :show-menu-modal="showOptionsGroup"
+      @cancel="showOptionsGroup = false"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, defineExpose } from 'vue'
-
+import OffersMenuModal from './OffersMenuModal.vue'
+const props = defineProps({
+  group: Object,
+  menuItems: {
+    type: Array,
+    required: true,
+  },
+})
 const isVisible = ref(false)
-const selectedPizza = ref(null)
+const selectedArticle = ref(null)
+const showOptionsGroup = ref(false)
 
 function openModal() {
   isVisible.value = true
@@ -44,58 +58,15 @@ function openModal() {
 
 function closeModal() {
   isVisible.value = false
+  showOptionsGroup.value = false
 }
 
-function selectPizza(pizza) {
-  selectedPizza.value = pizza.id
-  alert(`You selected: ${pizza.name}`)
-  closeModal()
+function selectArticle(article) {
+  selectedArticle.value = article
+  showOptionsGroup.value = true
 }
 
 defineExpose({ openModal })
-
-const pizzas = [
-  {
-    id: 'margherita',
-    name: 'Margherita',
-    description: 'Pizza Sauce, Mozzarella Cheese, Fresh Basil',
-  },
-  {
-    id: 'pepperoni',
-    name: 'Pepperoni',
-    description: 'Pizza Sauce, Mozzarella Cheese, Pepperoni Slices',
-  },
-  {
-    id: 'supreme',
-    name: 'Supreme',
-    description: 'Pizza Sauce, Mozzarella, Pepperoni, Mushrooms, Bell Peppers, Onions',
-  },
-  {
-    id: 'hawaiian',
-    name: 'Hawaiian',
-    description: 'Pizza Sauce, Mozzarella Cheese, Ham, Pineapple',
-  },
-  {
-    id: 'meat-lovers',
-    name: 'Meat Lovers',
-    description: 'Pizza Sauce, Mozzarella, Pepperoni, Italian Sausage, Ham, Bacon',
-  },
-  {
-    id: 'veggie-deluxe',
-    name: 'Veggie Deluxe',
-    description: 'Pizza Sauce, Mozzarella, Mushrooms, Bell Peppers, Onions, Tomatoes, Olives',
-  },
-  {
-    id: 'bbq-chicken',
-    name: 'BBQ Chicken',
-    description: 'BBQ Sauce, Mozzarella Cheese, Grilled Chicken, Red Onions, Cilantro',
-  },
-  {
-    id: 'quattro-stagioni',
-    name: 'Quattro Stagioni',
-    description: 'Pizza Sauce, Mozzarella, Ham, Mushrooms, Artichokes, Olives',
-  },
-]
 </script>
 
 <style scoped>
@@ -115,7 +86,7 @@ const pizzas = [
   background: white;
   border-radius: 12px;
   width: 95vw;
-  max-width: 1000px;
+  /* max-width: 1000px; */
   height: 85vh;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   position: relative;
@@ -224,8 +195,7 @@ const pizzas = [
 .pizza-image {
   width: 80px;
   height: 80px;
-  background: #f8f9fa;
-  border-radius: 12px;
+  object-fit: contain;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -298,12 +268,6 @@ const pizzas = [
   .pizza-card {
     padding: 16px;
     gap: 12px;
-  }
-
-  .pizza-image {
-    width: 60px;
-    height: 60px;
-    font-size: 30px;
   }
 
   .pizza-name {

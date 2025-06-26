@@ -197,6 +197,7 @@ watch(
 
 async function getMenu() {
   isLoading.value = true
+  menuStore.resetUnFilteredMenuItems()
   const payload = serviceStore.items.find((item) => item._id === serviceStore.selectedRest).slug
   await menuStore.getOutletDetails(payload)
   await menuStore.getCategories()

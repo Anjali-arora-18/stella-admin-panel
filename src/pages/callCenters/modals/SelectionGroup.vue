@@ -1,7 +1,8 @@
+<!-- eslint-disable vue/no-mutating-props -->
 <template>
   <div class="selection-group">
     <div class="group-header">
-      <h3 class="group-title">{{ group.title }}</h3>
+      <h3 class="group-title">{{ group.name }}</h3>
       <div class="selection-progress">
         <span>{{ selectedItems.length }}/{{ group.max }} selected</span>
         <div class="progress-bar">
@@ -11,59 +12,59 @@
     </div>
     <div class="items-grid">
       <div
-        v-for="item in group.items"
+        v-for="item in group.addedItems"
         :key="item"
         class="selection-item"
         :class="{ selected: selectedItems.includes(item._id) }"
         @click="toggleSelection(item)"
       >
-        <div class="item-image">🍕</div>
+        <div class="item-image"><img :src="item.imageUrl" /></div>
         <div class="item-content">
-          <div class="item-name">{{ item }}</div>
-          <div class="item-description">Item description here</div>
+          <div class="item-name">{{ item.name }}</div>
+          <div class="item-description">{{ item.description }}</div>
         </div>
         <div class="selection-status"></div>
       </div>
 
       <div
-        v-for="n in group.max - selectedItems.length"
+        v-for="n in group.max - group.addedItems.length"
         :key="'ph-' + n"
         class="selection-item placeholder"
-        @click="openSelectionItemModal"
+        @click="openSelectionItemModal(group.menuItems)"
       >
         <div class="item-image" style="color: #2d5016">➕</div>
         <div class="item-content">
-          <div class="item-label">{{ group.title }} {{ selectedItems.length + n }}</div>
-          <div class="item-name">Select Your {{ group.title }}</div>
+          <div class="item-label">{{ group.name }} {{ n }}</div>
+          <div class="item-name">Select Your {{ group.description }}</div>
           <div class="item-description">Choose from options</div>
         </div>
         <div class="selection-status"></div>
       </div>
     </div>
-    <PizzaSelectionModal ref="pizzaModal" />
+    <OffersMenuItemsSelectionModal ref="pizzaModal" :group="group" :menu-items="group.menuItems" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import PizzaSelectionModal from './PizzaSelectionModal.vue'
+import OffersMenuItemsSelectionModal from './OffersMenuItemsSelectionModal.vue'
 
 const props = defineProps({
   group: Object,
-  selectedItems: Array,
 })
 const emit = defineEmits(['update:selectedItems'])
 const pizzaModal = ref(null)
-function openSelectionItemModal() {
+const menuItems = ref(null)
+function openSelectionItemModal(payload) {
+  menuItems.value = payload || null
   pizzaModal.value?.openModal()
 }
-
-const percent = computed(() => (props.selectedItems.length / props.group.max) * 100)
+const selectedItems = computed(() => props.group.addedItems.map((item) => item._id))
+const percent = computed(() => (selectedItems.value.length / props.group.max) * 100)
 
 function toggleSelection(item) {
-  const isSelected = props.selectedItems.includes(item._id)
-  if (!isSelected && props.selectedItems.length >= props.group.max) return
-  const updated = isSelected ? props.selectedItems.filter((i) => i !== item._id) : [...props.selectedItems, item._id]
+  // eslint-disable-next-line vue/no-mutating-props
+  props.group.addedItems = props.group.addedItems.map((i) => (i._id === item._id ? { ...i, selected: !isSelected } : i))
   emit('update:selectedItems', updated)
 }
 </script>
