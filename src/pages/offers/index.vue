@@ -10,8 +10,14 @@ const isOfferModalOpen = ref(false)
 const servicesStore = useServiceStore()
 const items = ref([])
 const forceReMount = ref(0)
+const selectedOffers = ref('')
 const isLoading = ref(false)
 const { init } = useToast()
+
+function editOffers(payload) {
+  isOfferModalOpen.value = true
+  selectedOffers.value = payload
+}
 
 const getOffers = async () => {
   const url = import.meta.env.VITE_API_BASE_URL
@@ -27,11 +33,9 @@ const getOffers = async () => {
         editDescription: false,
         editPrice: false,
         editImage: false,
-        editStartDate: false,
-        editEndDate: false,
+        editDate: false,
         editWeekDays: false,
-        editTimeFrom: false,
-        editTimeTo: false,
+        editTime: false,
         editOrderType: false,
         editSelections: false,
       }
@@ -66,9 +70,19 @@ if (servicesStore.selectedRest) {
 
     <VaCard>
       <VaCardContent>
-        <OfferTable :key="forceReMount" :items="items" :loading="isLoading" @getOffers="getOffers" />
+        <OfferTable
+          :key="forceReMount"
+          :items="items"
+          :loading="isLoading"
+          @editOffers="editOffers"
+          @getOffers="getOffers"
+        />
       </VaCardContent>
     </VaCard>
-    <OfferModal v-if="isOfferModalOpen" @cancel="(isOfferModalOpen = false), getOffers()" />
+    <OfferModal
+      v-if="isOfferModalOpen"
+      :selected-option="selectedOffers"
+      @cancel="(isOfferModalOpen = false), (selectedOffers = ''), getOffers(servicesStore.selectedRest)"
+    />
   </div>
 </template>
