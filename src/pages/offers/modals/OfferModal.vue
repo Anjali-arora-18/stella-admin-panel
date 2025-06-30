@@ -202,17 +202,6 @@ watch(
   { immediate: true },
 )
 
-// if (props.selectedOption) {
-//   axios
-//     .get(`${import.meta.env.VITE_API_BASE_URL}/offers/${props.selectedOption._id}`)
-//     .then((response) => {
-//       formData.value = response.data.data
-//     })
-//     .catch((error) => {
-//       init({ message: error.response.data.message, color: 'danger' })
-//     })
-// }
-
 const submit = async () => {
   console.log('Submitting form data:', formData.value)
   if (validate()) {

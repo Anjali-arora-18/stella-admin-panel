@@ -14,7 +14,11 @@
         <!-- LEFT: Offer Info -->
         <div class="offer-info">
           <div class="offer-icon">
-            <img :src="item.imageUrl" alt="Offer Icon" class="w-full h-full object-fit rounded-full" />
+            <img
+              :src="item.imageUrl || '/missing-image.png'"
+              alt="Offer Icon"
+              class="w-full h-full object-fit rounded-full"
+            />
           </div>
           <div class="offer-details">
             <h3 class="offer-name">{{ item.name }}</h3>

@@ -3,8 +3,10 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
       <h2 class="font-semibold text-lg text-gray-800 border-b border-blue-500">Customer Details</h2>
-      <button class="border rounded p-1 hover:bg-gray-100 text-sm"
-        @click="(isOpen = !isOpen), $emit('setOpen', isOpen)">
+      <button
+        class="border rounded p-1 hover:bg-gray-100 text-sm"
+        @click="(isOpen = !isOpen), $emit('setOpen', isOpen)"
+      >
         <span :class="isOpen ? 'rotate-45' : ''" class="transition-transform p-2">{{ isOpen ? '-' : '+' }}</span>
       </button>
     </div>
@@ -14,37 +16,67 @@
       <div v-show="isOpen" class="space-y-3 mt-2">
         <!-- Toggle Buttons -->
         <div class="flex bg-gray-100 rounded overflow-hidden text-sm">
-          <button :class="selectedTab == 'takeaway' ? 'bg-blue-500 text-white font-semibold' : 'text-gray-600 hover:bg-gray-200'
-            " class="flex-1 py-1 transition-colors" @click="selectedTab = 'takeaway'">
+          <button
+            :class="
+              selectedTab == 'takeaway' ? 'bg-blue-500 text-white font-semibold' : 'text-gray-600 hover:bg-gray-200'
+            "
+            class="flex-1 py-1 transition-colors"
+            @click="selectedTab = 'takeaway'"
+          >
             Takeaway
           </button>
-          <button :class="selectedTab == 'delivery' ? 'bg-blue-500 text-white font-semibold' : 'text-gray-600 hover:bg-gray-200'
-            " class="flex-1 py-1 transition-colors" @click="selectedTab = 'delivery'">
+          <button
+            :class="
+              selectedTab == 'delivery' ? 'bg-blue-500 text-white font-semibold' : 'text-gray-600 hover:bg-gray-200'
+            "
+            class="flex-1 py-1 transition-colors"
+            @click="selectedTab = 'delivery'"
+          >
             Delivery
           </button>
         </div>
 
         <!-- Phone & Name -->
         <div v-if="selectedTab" class="flex items-center gap-2 relative">
-          <input v-model="phoneNumber" :disable="selectedUser" type="number" placeholder="Mobile Number"
+          <input
+            v-model="phoneNumber"
+            :disable="selectedUser"
+            type="number"
+            placeholder="Mobile Number"
             class="border rounded w-1/2 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            @keyup.enter="fetchCustomerDetails(false)" />
-          <input v-model="name" type="text" :disable="selectedUser" placeholder="Customer Name"
+            @keyup.enter="fetchCustomerDetails(false)"
+          />
+          <input
+            v-model="name"
+            type="text"
+            :disable="selectedUser"
+            placeholder="Customer Name"
             class="border rounded w-1/2 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            @keyup.enter="fetchCustomerDetails(false)" />
-          <button v-if="!selectedUser" class="text-blue-600 bg-blue-600 px-2 py-1 rounded-lg hover:text-blue-800"
-            @click.prevent="fetchCustomerDetails(false)">
+            @keyup.enter="fetchCustomerDetails(false)"
+          />
+          <button
+            v-if="!selectedUser"
+            class="text-blue-600 bg-blue-600 px-2 py-1 rounded-lg hover:text-blue-800"
+            @click.prevent="fetchCustomerDetails(false)"
+          >
             <span v-if="!isUserLoading">🔍</span>
             <span v-else class="loading-spinner">⌛</span>
           </button>
-          <button v-else class="text-gray-600 px-2 py-1 rounded-lg hover:text-gray-800"
-            @click.prevent="(selectedUser = ''), (phoneNumber = ''), (name = '')">
+          <button
+            v-else
+            class="text-gray-600 px-2 py-1 rounded-lg hover:text-gray-800"
+            @click.prevent="(selectedUser = ''), (phoneNumber = ''), (name = '')"
+          >
             ✕
           </button>
           <div v-if="userResults.length" id="userResults" class="user-results">
             <ul ref="userList" class="divide divide-y-2">
-              <li v-for="user in userResults" :key="user.ID" class="p-2 cursor-pointer hover:bg-blue-100"
-                @click="selectUser(user)">
+              <li
+                v-for="user in userResults"
+                :key="user.ID"
+                class="p-2 cursor-pointer hover:bg-blue-100"
+                @click="selectUser(user)"
+              >
                 {{ user['Name'] }}
               </li>
             </ul>
@@ -53,8 +85,10 @@
 
         <div v-if="selectedTab && !selectedUser" class="flex items-center justify-between text-sm gap-2">
           <div class="datetime-display" onclick="toggleDateTime()">Fri - 30/05/2025 - 19:30</div>
-          <button class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
-            @click="openCustomerModal">
+          <button
+            class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
+            @click="openCustomerModal"
+          >
             + Add New
           </button>
         </div>
@@ -71,31 +105,51 @@
 
           <div class="flex items-center gap-2 relative">
             <template v-if="selectedTab === 'takeaway'">
-              <input type="text" :value="selectedZone || 'No Zone Selected'" disabled
-                class="border rounded w-full px-2 py-1 text-sm bg-gray-100" />
+              <input
+                type="text"
+                :value="selectedZone || 'No Zone Selected'"
+                disabled
+                class="border rounded w-full px-2 py-1 text-sm bg-gray-100"
+              />
               <button class="bg-blue-500 text-white px-2 py-1 rounded" @click="showDeliveryDropdown = true">
                 {{ serviceZoneId || 'N/A' }}
               </button>
             </template>
 
             <template v-else>
-              <VaSelect v-model="selectedAddress" close-on-change :options="filteredAddresses" track-by="value"
-                searchable highlight-matched-text />
-              <button :disable="!selectedAddress" class="bg-blue-500 text-white px-2 py-1 rounded"
-                @click="showDeliveryDropdown = true">
+              <VaSelect
+                v-model="selectedAddress"
+                close-on-change
+                :options="filteredAddresses"
+                track-by="value"
+                searchable
+                highlight-matched-text
+              />
+              <button
+                :disable="!selectedAddress"
+                class="bg-blue-500 text-white px-2 py-1 rounded"
+                @click="showDeliveryDropdown = true"
+              >
                 {{ serviceZoneId || 'N/A' }}
               </button>
             </template>
 
             <!-- Delivery dropdown (shared) -->
-            <div v-if="showDeliveryDropdown"
-              class="absolute right-0 top-full max-h-[300px] overflow-y-auto mt-1 w-full text-left bg-white border rounded shadow z-10">
+            <div
+              v-if="showDeliveryDropdown"
+              class="absolute right-0 top-full max-h-[300px] overflow-y-auto mt-1 w-full text-left bg-white border rounded shadow z-10"
+            >
               <ul ref="deliveryList" class="text-sm">
-                <li v-for="(zone, index) in deliveryZoneOptions" :key="index"
-                  class="px-3 py-2 hover:bg-gray-100 cursor-pointer border border-b-1" :class="{
+                <li
+                  v-for="(zone, index) in deliveryZoneOptions"
+                  :key="index"
+                  class="px-3 py-2 hover:bg-gray-100 cursor-pointer border border-b-1"
+                  :class="{
                     'bg-gray-100 !cursor-not-allowed': selectedTab === 'delivery',
                     'text-primary font-bold': selectedZone === zone.name,
-                  }" @click="selectedTab === 'takeaway' ? selectDeliveryZone(zone) : ''">
+                  }"
+                  @click="selectedTab === 'takeaway' ? selectDeliveryZone(zone) : ''"
+                >
                   {{ zone.serviceZoneId }} - {{ zone.name }}
                 </li>
               </ul>
@@ -106,14 +160,24 @@
         <!-- Notes -->
         <div v-if="selectedTab">
           <label class="text-sm text-gray-600 font-medium block mb-1">Notes</label>
-          <textarea rows="3" disabled placeholder="Special instructions, allergies, delivery notes..."
-            class="w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"></textarea>
+          <textarea
+            rows="3"
+            disabled
+            placeholder="Special instructions, allergies, delivery notes..."
+            class="w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          ></textarea>
         </div>
       </div>
     </Transition>
   </div>
-  <CustomerModal v-if="showCustomerModal" :selected-user="selectedUser" :user-name="name" :user-number="phoneNumber"
-    @setUser="setNewUser" @cancel="closeCustomerModal" />
+  <CustomerModal
+    v-if="showCustomerModal"
+    :selected-user="selectedUser"
+    :user-name="name"
+    :user-number="phoneNumber"
+    @setUser="setNewUser"
+    @cancel="closeCustomerModal"
+  />
 </template>
 
 <script setup>
@@ -169,7 +233,7 @@ async function fetchCustomerDetails(setUser = false) {
   } else {
     const servicesStore = useServiceStore()
     await axios
-      .get(`${import.meta.env.VITE_API_BASE_URL}/winmax/entites`, {
+      .get(`${import.meta.env.VITE_API_BASE_URL}/winmax/entities`, {
         params: {
           outletId: servicesStore.selectedRest,
           ...(phoneNumber.value && { Phone: phoneNumber.value }),
@@ -257,7 +321,7 @@ async function handleDeliveryZoneFetch() {
         message: 'No delivery zones found for selected address.',
       })
     } else {
-      const firstZone = response.data.data.find(a => a.postalCodes.includes(postalCode))
+      const firstZone = response.data.data.find((a) => a.postalCodes.includes(postalCode))
       serviceZoneId.value = firstZone.serviceZoneId
       if (firstZone) {
         selectDeliveryZone(firstZone)

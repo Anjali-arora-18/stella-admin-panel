@@ -4,9 +4,9 @@ import { useRouter } from 'vue-router'
 import { ref, toRef } from 'vue'
 import { useServiceStore } from '@/stores/services'
 import FileUpload from '@/components/file-uploader/FileUpload.vue'
-
+import AddSelectionModal from '../modals/AddSelectionModal.vue'
 import axios from 'axios'
-const emits = defineEmits(['getOffers', 'editOffers'])
+const emits = defineEmits(['getOffers', 'editOffers', 'addSelection', 'editSelection'])
 const props = defineProps({
   items: {
     type: Array,
@@ -14,8 +14,12 @@ const props = defineProps({
   },
   loading: { type: Boolean, default: false },
 })
+
+const isAddSelectionModalOpen = ref(false)
+
 const { confirm } = useModal()
 const { init } = useToast()
+const offerId = ref('')
 const router = useRouter()
 const servicesStore = useServiceStore()
 const columns = defineVaDataTableColumns([
@@ -27,7 +31,15 @@ const columns = defineVaDataTableColumns([
   { label: 'Week Days', key: 'weeklyOffer', width: '150px' },
   { label: 'Time From-To', key: 'timeRange' },
   { label: 'Order Type', key: 'orderType' },
-  { label: 'Selections', key: 'selection' },
+  { label: 'Selections', key: 'selections' },
+  { label: 'Actions', key: 'actions' },
+])
+
+const selectionColumns = defineVaDataTableColumns([
+  { label: 'Name', key: 'name' },
+  { label: 'Articles', key: 'menuItems' },
+  { label: 'Max Choice', key: 'max' },
+  { label: 'Min Choice', key: 'min' },
   { label: 'Actions', key: 'actions' },
 ])
 
@@ -159,18 +171,11 @@ function formatReadableDate(dateStr: string): string {
   const date = new Date(dateStr)
   if (isNaN(date.getTime())) return ''
 
-  const formatter = new Intl.DateTimeFormat('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = String(date.getFullYear()).slice(-2)
 
-  const parts = formatter.formatToParts(date)
-  const day = parts.find((p) => p.type === 'day')?.value
-  const month = parts.find((p) => p.type === 'month')?.value
-  const year = parts.find((p) => p.type === 'year')?.value
-
-  return `${day} ${month}, ${year}`
+  return `${day}/${month}/${year}`
 }
 </script>
 
@@ -280,7 +285,7 @@ function formatReadableDate(dateStr: string): string {
       <template #cell(startDate)="{ rowData }">
         <div>
           {{ formatReadableDate(rowData.dateOffer?.startDate) }}
-          <span v-if="rowData.dateOffer?.startDate && rowData.dateOffer?.endDate" class="mx-1 font-bold">To</span>
+          <span v-if="rowData.dateOffer?.startDate && rowData.dateOffer?.endDate" class="mx-1 font-bold"> - </span>
           {{ formatReadableDate(rowData.dateOffer?.endDate) }}
         </div>
       </template>
@@ -288,7 +293,7 @@ function formatReadableDate(dateStr: string): string {
       <template #cell(timeRange)="{ rowData }">
         <div>
           {{ rowData.timeOffer?.startTime || '' }}
-          <span v-if="rowData.timeOffer?.startTime && rowData.timeOffer?.endTime" class="mx-1 font-bold">To</span>
+          <span v-if="rowData.timeOffer?.startTime && rowData.timeOffer?.endTime" class="mx-1 font-bold"> - </span>
           {{ rowData.timeOffer?.endTime || '' }}
         </div>
       </template>
@@ -300,6 +305,115 @@ function formatReadableDate(dateStr: string): string {
               .map((day) => weekdayShortMap[day.toLowerCase()] || '')
               .join(', ')
           }}
+        </div>
+      </template>
+      <template #cell(selections)="{ row, rowData, isExpanded }">
+        <div class="ellipsis">
+          <VaButton
+            :icon="isExpanded ? 'va-arrow-up' : 'va-arrow-down'"
+            preset="secondary"
+            @click="row.toggleRowDetails()"
+          >
+            {{ rowData.selections?.length || 0 }} Selections
+          </VaButton>
+        </div>
+      </template>
+      <template #expandableRow="{ rowData, itemKey }">
+        <div class="expandable_table rounded p-5">
+          <div class="flex justify-end mb-4">
+            <VaButton color="primary" icon="mso-add" @click="(isAddSelectionModalOpen = true), (offerId = rowData._id)">
+              Add Selection
+            </VaButton>
+          </div>
+          <VaDataTable
+            style="flex-grow: 1; width: 100%"
+            :items="rowData.selections || []"
+            :columns="selectionColumns"
+            :style="{
+              '--va-data-table-thead-background': 'var(--va-background-element)',
+              '--va-data-table-thead-color': '#2C82E0',
+            }"
+            sticky-header
+          >
+            <template #cell(name)="{ rowData }">
+              <div class="table-cell-content">
+                <div v-if="!rowData.editName" @click="rowData.editName = true">{{ rowData.name }}</div>
+                <input
+                  v-else
+                  v-model="rowData.name"
+                  class="w-1/2 p-1 border rounded"
+                  type="text"
+                  @change="
+                    () => {
+                      updateData(rowData)
+                      rowData.editName = false
+                    }
+                  "
+                />
+              </div>
+            </template>
+            <template #cell(menuItems)="{ rowData }">
+              <div class="table-cell-content">{{ rowData.menuItems?.length || 0 }} Article</div>
+            </template>
+            <template #cell(min)="{ rowData }">
+              <div class="table-cell-content">
+                <div v-if="!rowData.editMinChoice" @click="rowData.editMinChoice = true">
+                  {{ rowData.min }}
+                </div>
+                <input
+                  v-else
+                  v-model="rowData.min"
+                  class="w-1/2 p-1 border rounded"
+                  type="text"
+                  @change="
+                    () => {
+                      updateData(rowData)
+                      rowData.editMinChoice = false
+                    }
+                  "
+                />
+              </div>
+            </template>
+            <template #cell(max)="{ rowData }">
+              <div class="table-cell-content">
+                <div v-if="!rowData.editMaxChoice" @click="rowData.editMaxChoice = true">
+                  {{ rowData.max }}
+                </div>
+                <input
+                  v-else
+                  v-model="rowData.max"
+                  class="w-1/2 p-1 border rounded"
+                  type="text"
+                  @change="
+                    () => {
+                      updateData(rowData)
+                      rowData.editMaxChoice = false
+                    }
+                  "
+                />
+              </div>
+            </template>
+            <template #cell(actions)="{ rowData }">
+              <div class="flex justify-center">
+                <VaButton
+                  preset="primary"
+                  size="small"
+                  icon="mso-edit"
+                  aria-label="Edit table"
+                  @click="$emit('editSelection', rowData)"
+                />
+
+                <VaButton
+                  preset="primary"
+                  size="small"
+                  icon="mso-delete"
+                  color="danger"
+                  class="ml-2"
+                  @click="onButtonClick(rowData._id)"
+                />
+              </div>
+            </template>
+          </VaDataTable>
         </div>
       </template>
 
@@ -316,6 +430,12 @@ function formatReadableDate(dateStr: string): string {
         </div>
       </template>
     </VaDataTable>
+    <AddSelectionModal
+      v-if="isAddSelectionModalOpen"
+      :selected-option="selectedOffers"
+      :offer-id="offerId"
+      @cancel="(isAddSelectionModalOpen = false), (selectedOffers = '')"
+    />
   </div>
 </template>
 
@@ -340,6 +460,17 @@ function formatReadableDate(dateStr: string): string {
 ::v-deep(.va-data-table__table thead th:last-child) {
   text-align: right !important;
 }
+.expandable_table {
+  background-color: var(--va-background-element);
+  color: var(--va-on-background-element);
+}
+.inline-input {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  font-size: 0.875rem;
+}
 .description-ellipsis {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -354,7 +485,7 @@ function formatReadableDate(dateStr: string): string {
 }
 .weekdays-ellipsis {
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* Show only 2 lines */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;

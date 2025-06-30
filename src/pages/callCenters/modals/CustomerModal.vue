@@ -383,14 +383,14 @@ async function addOrUpdateCustomerDetails() {
     if (props.selectedUser) {
       payload['id'] = props.selectedUser._id
       response = await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/winmax/entites/${props.selectedUser['ID']}?outletId=${
+        `${import.meta.env.VITE_API_BASE_URL}/winmax/entities/${props.selectedUser['ID']}?outletId=${
           servicesStore.selectedRest
         }`,
         payload,
       )
     } else {
       response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/winmax/entites?outletId=${servicesStore.selectedRest}`,
+        `${import.meta.env.VITE_API_BASE_URL}/winmax/entities?outletId=${servicesStore.selectedRest}`,
         payload,
       )
     }
