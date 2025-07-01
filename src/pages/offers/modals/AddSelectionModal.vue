@@ -122,7 +122,20 @@
                         style="display: table"
                       >
                         <td class="p-2">
-                          <VaCheckbox v-model="option.selected" :true-value="option.id" :label="option.name" />
+                          <div class="flex items-center justify-between">
+                            <VaCheckbox v-model="option.selected" :true-value="option.id" :label="option.name" />
+                            <span
+                              class="ml-2 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                              :class="{
+                                'bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-blue-900 border border-blue-500':
+                                  option.isFree,
+                                'bg-gray-200 text-gray-700 hover:bg-gray-300': !option.isFree,
+                              }"
+                              @click="option.isFree = !option.isFree"
+                            >
+                              Free
+                            </span>
+                          </div>
                         </td>
                       </tr>
                     </template>
@@ -274,7 +287,7 @@ const getArticles = async () => {
         }
         return {
           ...e,
-          selected: groupSelected ? e._id : '',
+          selected: groupSelected ? e._id : !props.isEditSelection ? e._id : '',
           articlesOptions: e.articlesOptions.map((opt) => {
             let optionSelected = false
             if (groupSelected) {
@@ -282,8 +295,8 @@ const getArticles = async () => {
             }
             return {
               ...opt,
-              selected: optionSelected ? opt.id : '',
-              isFree: false,
+              selected: optionSelected ? opt.id : !props.isEditSelection ? opt.id : '',
+              isFree: optionSelected?.isFree || false,
             }
           }),
         }
