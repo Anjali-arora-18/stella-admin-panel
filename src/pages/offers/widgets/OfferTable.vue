@@ -19,7 +19,9 @@ const isAddSelectionModalOpen = ref(false)
 
 const { confirm } = useModal()
 const { init } = useToast()
-const offerId = ref('')
+const offerData = ref('')
+const offerSelection = ref('')
+const isEditSelection = ref(false)
 const router = useRouter()
 const servicesStore = useServiceStore()
 const columns = defineVaDataTableColumns([
@@ -112,9 +114,39 @@ const onButtonOfferDelete = async (payload) => {
   }
 }
 
+const onDeleteSelection = async (payload) => {
+  const result = await confirm({
+    message: 'Are you sure you want to see delete this Offer selection?',
+    okText: 'Yes',
+    cancelText: 'No',
+    size: 'medium',
+    title: 'Delete Offer Selection',
+  })
+  if (result) {
+    deleteSelection(payload)
+  }
+}
+
 async function deleteOffer(payload) {
   await axios
     .delete(`${import.meta.env.VITE_API_BASE_URL}/offers/${payload._id}`)
+    .then(() => {
+      init({ message: 'Offer deleted successfully', color: 'success' })
+      emits('getOffers')
+    })
+    .catch((err) => {
+      init({ message: err.response?.data?.error || 'Delete failed', color: 'danger' })
+    })
+}
+
+async function deleteSelection(payload) {
+  console.log(payload, payload.selections.filter((selection) => selection._id !== payload.selectionId))
+  await axios
+    .put(`${import.meta.env.VITE_API_BASE_URL}/offers/${payload.offerId}/selections`,
+      {
+        selections: payload.selections.filter((selection) => selection._id !== payload.selectionId)
+      }
+    )
     .then(() => {
       init({ message: 'Offer deleted successfully', color: 'success' })
       emits('getOffers')
@@ -181,96 +213,58 @@ function formatReadableDate(dateStr: string): string {
 
 <template>
   <div>
-    <VaDataTable
-      :columns="columns"
-      :items="items"
-      :loading="$props.loading"
-      :style="{
-        '--va-data-table-height': '710px',
-        '--va-data-table-thead-background': 'var(--va-background-element)',
-        '--va-data-table-thead-color': '#2C82E0',
-      }"
-      sticky-header
-    >
+    <VaDataTable :columns="columns" :items="items" :loading="$props.loading" :style="{
+      '--va-data-table-height': '710px',
+      '--va-data-table-thead-background': 'var(--va-background-element)',
+      '--va-data-table-thead-color': '#2C82E0',
+    }" sticky-header>
       <template #cell(name)="{ rowData }">
         <div class="table-cell-content">
           <div v-if="!rowData.editName" @click="rowData.editName = true">{{ rowData.name }}</div>
-          <input
-            v-else
-            v-model="rowData.name"
-            class="w-1/2 p-1 border rounded"
-            type="text"
-            @change="
-              () => {
-                updateData(rowData)
-                rowData.editName = false
-              }
-            "
-          />
+          <input v-else v-model="rowData.name" class="w-1/2 p-1 border rounded" type="text" @change="
+            () => {
+              updateData(rowData)
+              rowData.editName = false
+            }
+          " />
         </div>
       </template>
       <template #cell(description)="{ rowData }">
         <div v-if="!rowData.editDescription" class="description-ellipsis" @click="rowData.editDescription = true">
           {{ rowData.description }}
         </div>
-        <textarea
-          v-else
-          v-model="rowData.description"
-          class="description-edit"
-          rows="2"
-          @blur="
-            () => {
-              updateData(rowData)
-              rowData.editDescription = false
-            }
-          "
-        />
+        <textarea v-else v-model="rowData.description" class="description-edit" rows="2" @blur="
+          () => {
+            updateData(rowData)
+            rowData.editDescription = false
+          }
+        " />
       </template>
       <template #cell(price)="{ rowData }">
         <div class="table-cell-content">
           <div v-if="!rowData.editPrice" @click="rowData.editPrice = true">{{ rowData.price }}</div>
-          <input
-            v-else
-            v-model="rowData.price"
-            class="w-1/2 p-1 border rounded"
-            type="text"
-            @change="
-              () => {
-                updateData(rowData)
-                rowData.editName = false
-              }
-            "
-          />
+          <input v-else v-model="rowData.price" class="w-1/2 p-1 border rounded" type="text" @change="
+            () => {
+              updateData(rowData)
+              rowData.editName = false
+            }
+          " />
         </div>
       </template>
       <template #cell(imageUrl)="{ rowData }">
         <div class="relative group w-10 h-10 overflow-hidden rounded">
-          <img
-            :src="rowData.imageUrl || '/missing-image.png'"
-            alt="Article Image"
-            class="w-full h-full object-cover cursor-pointer"
-            @click="openFileModal(rowData)"
-            @error="
+          <img :src="rowData.imageUrl || '/missing-image.png'" alt="Article Image"
+            class="w-full h-full object-cover cursor-pointer" @click="openFileModal(rowData)" @error="
               (e) => {
                 e.target.src = '/missing-image.png'
               }
-            "
-          />
+            " />
 
-          <VaButton
-            v-if="rowData.imageUrl"
-            preset="plain"
-            size="small"
-            icon="mso-delete"
-            color="danger"
+          <VaButton v-if="rowData.imageUrl" preset="plain" size="small" icon="mso-delete" color="danger"
             class="!absolute !top-0 !right-0 !p-0 !w-5 !h-5 !rounded-full hidden group-hover:flex items-center justify-center z-10"
-            @click.prevent="onButtonOptionImageDelete(rowData)"
-          />
+            @click.prevent="onButtonOptionImageDelete(rowData)" />
 
-          <FileUpload
-            :attr-id="'file-upload-' + rowData._id"
-            class="hidden"
-            :selected-rest="selectedRest"
+          <FileUpload :attr-id="'file-upload-' + rowData._id" class="hidden" :selected-rest="selectedRest"
             @uploadSuccess="
               (data) => {
                 rowData.imageUrl = data.url
@@ -278,8 +272,7 @@ function formatReadableDate(dateStr: string): string {
                 updateData(rowData)
                 rowData.editing = ''
               }
-            "
-          />
+            " />
         </div>
       </template>
       <template #cell(startDate)="{ rowData }">
@@ -309,11 +302,8 @@ function formatReadableDate(dateStr: string): string {
       </template>
       <template #cell(selections)="{ row, rowData, isExpanded }">
         <div class="ellipsis">
-          <VaButton
-            :icon="isExpanded ? 'va-arrow-up' : 'va-arrow-down'"
-            preset="secondary"
-            @click="row.toggleRowDetails()"
-          >
+          <VaButton :icon="isExpanded ? 'va-arrow-up' : 'va-arrow-down'" preset="secondary"
+            @click="row.toggleRowDetails()">
             {{ rowData.selections?.length || 0 }} Selections
           </VaButton>
         </div>
@@ -321,121 +311,85 @@ function formatReadableDate(dateStr: string): string {
       <template #expandableRow="{ rowData, itemKey }">
         <div class="expandable_table rounded p-5">
           <div class="flex justify-end mb-4">
-            <VaButton color="primary" icon="mso-add" @click="(isAddSelectionModalOpen = true), (offerId = rowData._id)">
+            <VaButton color="primary" icon="mso-add" @click="(isAddSelectionModalOpen = true), (offerData = rowData)">
               Add Selection
             </VaButton>
           </div>
-          <VaDataTable
-            style="flex-grow: 1; width: 100%"
-            :items="rowData.selections || []"
-            :columns="selectionColumns"
-            :style="{
-              '--va-data-table-thead-background': 'var(--va-background-element)',
-              '--va-data-table-thead-color': '#2C82E0',
-            }"
-            sticky-header
-          >
-            <template #cell(name)="{ rowData }">
-              <div class="table-cell-content">
-                <div v-if="!rowData.editName" @click="rowData.editName = true">{{ rowData.name }}</div>
-                <input
-                  v-else
-                  v-model="rowData.name"
-                  class="w-1/2 p-1 border rounded"
-                  type="text"
-                  @change="
-                    () => {
-                      updateData(rowData)
-                      rowData.editName = false
-                    }
-                  "
-                />
-              </div>
-            </template>
-            <template #cell(menuItems)="{ rowData }">
-              <div class="table-cell-content">{{ rowData.menuItems?.length || 0 }} Article</div>
-            </template>
-            <template #cell(min)="{ rowData }">
-              <div class="table-cell-content">
-                <div v-if="!rowData.editMinChoice" @click="rowData.editMinChoice = true">
-                  {{ rowData.min }}
-                </div>
-                <input
-                  v-else
-                  v-model="rowData.min"
-                  class="w-1/2 p-1 border rounded"
-                  type="text"
-                  @change="
-                    () => {
-                      updateData(rowData)
-                      rowData.editMinChoice = false
-                    }
-                  "
-                />
-              </div>
-            </template>
-            <template #cell(max)="{ rowData }">
-              <div class="table-cell-content">
-                <div v-if="!rowData.editMaxChoice" @click="rowData.editMaxChoice = true">
-                  {{ rowData.max }}
-                </div>
-                <input
-                  v-else
-                  v-model="rowData.max"
-                  class="w-1/2 p-1 border rounded"
-                  type="text"
-                  @change="
-                    () => {
-                      updateData(rowData)
-                      rowData.editMaxChoice = false
-                    }
-                  "
-                />
-              </div>
-            </template>
-            <template #cell(actions)="{ rowData }">
-              <div class="flex justify-center">
-                <VaButton
-                  preset="primary"
-                  size="small"
-                  icon="mso-edit"
-                  aria-label="Edit table"
-                  @click="$emit('editSelection', rowData)"
-                />
+          <tr class="flex justify-between items-center mb-2">
+            <th>NAME</th>
+            <th>ARTICLES</th>
+            <th>MAX CHOICE</th>
+            <th>MIN CHOICE</th>
+            <th>ACTIONS</th>
+          </tr>
 
-                <VaButton
-                  preset="primary"
-                  size="small"
-                  icon="mso-delete"
-                  color="danger"
-                  class="ml-2"
-                  @click="onButtonClick(rowData._id)"
-                />
+          <tr v-for="selection in rowData.selections" class="flex justify-between items-center mb-2">
+            <td>
+              <div v-if="!selection.editName" @click="selection.editName = true">{{ selection.name }}</div>
+              <input v-else v-model="selection.name" class="w-1/2 p-1 border rounded" type="text" @change="
+                () => {
+                  updateData(selection)
+                  selection.editName = false
+                }
+              " />
+            </td>
+            <td>
+              <div class="table-cell-content">{{ selection.menuItems?.length || 0 }} Article</div>
+            </td>
+            <td>
+              <div class="table-cell-content">
+                <div v-if="!selection.editMinChoice" @click="selection.editMinChoice = true">
+                  {{ selection.min }}
+                </div>
+                <input v-else v-model="selection.min" class="w-1/2 p-1 border rounded" type="text" @change="
+                  () => {
+                    updateData(selection)
+                    selection.editMinChoice = false
+                  }
+                " />
               </div>
-            </template>
-          </VaDataTable>
+            </td>
+            <td>
+              <div v-if="!selection.editMaxChoice" @click="selection.editMaxChoice = true">
+                {{ selection.max }}
+              </div>
+              <input v-else v-model="selection.max" class="w-1/2 p-1 border rounded" type="text" @change="
+                () => {
+                  updateData(selection)
+                  selection.editMaxChoice = false
+                }
+              " />
+            </td>
+            <td>
+              <div class="flex justify-center">
+                <VaButton preset="primary" size="small" icon="mso-edit" aria-label="Edit table" @click="
+                  isAddSelectionModalOpen = true,
+                  offerData = rowData,
+                  isEditSelection = true,
+                  offerSelection = selection" />
+
+                <VaButton preset="primary" size="small" icon="mso-delete" color="danger" class="ml-2"
+                  @click="onDeleteSelection({...rowData, selectionId: selection._id, offerId: rowData._id})" />
+              </div>
+            </td>
+          </tr>
+
+
+
         </div>
       </template>
 
       <template #cell(actions)="{ rowData }">
         <div class="flex gap-2 justify-end">
           <VaButton preset="primary" size="small" icon="mso-edit" @click="emits('editOffers', rowData)" />
-          <VaButton
-            preset="primary"
-            size="small"
-            color="danger"
-            icon="mso-delete"
-            @click="onButtonOfferDelete(rowData)"
-          />
+          <VaButton preset="primary" size="small" color="danger" icon="mso-delete"
+            @click="onButtonOfferDelete(rowData)" />
         </div>
       </template>
     </VaDataTable>
-    <AddSelectionModal
-      v-if="isAddSelectionModalOpen"
-      :selected-option="selectedOffers"
-      :offer-id="offerId"
-      @cancel="(isAddSelectionModalOpen = false), (selectedOffers = '')"
-    />
+    <AddSelectionModal v-if="isAddSelectionModalOpen" :isEditSelection="isEditSelection"
+      :offer-selection="offerSelection" :offerData="offerData"
+      @cancel="(isAddSelectionModalOpen = false), (offerSelection = ''), isEditSelection = false" />
   </div>
 </template>
 
@@ -448,22 +402,27 @@ function formatReadableDate(dateStr: string): string {
     display: flex;
     align-items: center;
   }
+
   .va-dropdown__anchor {
     display: inline-block;
   }
 }
+
 .va-data-table {
   ::v-deep(.va-data-table__table-tr) {
     border-bottom: 1px solid var(--va-background-border);
   }
 }
+
 ::v-deep(.va-data-table__table thead th:last-child) {
   text-align: right !important;
 }
+
 .expandable_table {
   background-color: var(--va-background-element);
   color: var(--va-on-background-element);
 }
+
 .inline-input {
   border: none !important;
   box-shadow: none !important;
@@ -471,6 +430,7 @@ function formatReadableDate(dateStr: string): string {
   padding: 0 !important;
   font-size: 0.875rem;
 }
+
 .description-ellipsis {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -483,6 +443,7 @@ function formatReadableDate(dateStr: string): string {
   word-break: break-word;
   cursor: pointer;
 }
+
 .weekdays-ellipsis {
   display: -webkit-box;
   -webkit-line-clamp: 2;

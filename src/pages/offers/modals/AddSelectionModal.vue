@@ -8,31 +8,14 @@
       <div class="grid gap-4">
         <!-- Combined Input Row -->
         <div class="grid md:grid-cols-3 gap-4">
-          <VaInput
-            v-model="formData.name"
-            label="Name"
-            placeholder="Enter name"
-            required-mark
-            :rules="[validators.required]"
-          />
+          <VaInput v-model="formData.name" label="Name" placeholder="Enter name" required-mark
+            :rules="[validators.required]" />
 
-          <VaInput
-            v-model="formData.min"
-            label="Min"
-            type="number"
-            min="0"
-            required-mark
-            :rules="[validators.required]"
-          />
+          <VaInput v-model="formData.min" label="Min" type="number" min="0" required-mark
+            :rules="[validators.required]" />
 
-          <VaInput
-            v-model="formData.max"
-            label="Max"
-            type="number"
-            min="0"
-            required-mark
-            :rules="[validators.required]"
-          />
+          <VaInput v-model="formData.max" label="Max" type="number" min="0" required-mark
+            :rules="[validators.required]" />
         </div>
 
         <div class="grid md:grid-cols-3 gap-4 text-sm leading-tight">
@@ -44,11 +27,8 @@
                 <tbody>
                   <tr v-for="article in items" :key="article._id" class="border-b hover:bg-orange-50">
                     <td class="p-2">
-                      <VaCheckbox
-                        v-model="article.selected"
-                        :true-value="article._id"
-                        :label="article.code + ' - ' + article.name"
-                      />
+                      <VaCheckbox v-model="article.selected" :true-value="article._id"
+                        :label="article.code + ' - ' + article.name" />
                     </td>
                   </tr>
                 </tbody>
@@ -79,19 +59,11 @@
               <table v-if="items.filter((a) => a.selected).length" class="w-full text-sm">
                 <tbody>
                   <div v-for="item in items.filter((a) => a.selected && a.articlesOptionsGroup.length)" :key="item._id">
-                    <tr
-                      v-for="group in item.articlesOptionsGroup"
-                      :key="group._id"
-                      class="hover:bg-green-50"
-                      style="display: table"
-                    >
+                    <tr v-for="group in item.articlesOptionsGroup" :key="group._id" class="hover:bg-green-50"
+                      style="display: table">
                       <td class="p-2 w-full border-b">
-                        <VaCheckbox
-                          v-model="group.selected"
-                          :true-value="group._id"
-                          :label="group.name"
-                          class="w-full"
-                        />
+                        <VaCheckbox v-model="group.selected" :true-value="group._id" :label="group.name"
+                          class="w-full" />
                       </td>
                     </tr>
                   </div>
@@ -107,44 +79,36 @@
             <div class="max-h-[40vh] overflow-y-auto border rounded shadow-sm bg-white">
               <table v-if="items.filter((a) => a.selected).length" class="w-full text-sm">
                 <tbody>
-                  <tr
-                    v-for="item in items.filter(
-                      (a) => a.selected && a.articlesOptionsGroup.some((g) => g.selected && g.articlesOptions.length),
-                    )"
-                    :key="item._id"
-                  >
+                  <tr v-for="item in items.filter(
+                    (a) => a.selected && a.articlesOptionsGroup.some((g) => g.selected && g.articlesOptions.length),
+                  )" :key="item._id">
                     <template
-                      v-for="group in item.articlesOptionsGroup.filter((g) => g.selected && g.articlesOptions.length)"
-                    >
-                      <tr
-                        v-for="option in group.articlesOptions"
-                        :key="option._id"
-                        class="border-b hover:bg-green-50 w-full"
-                        style="display: table"
-                      >
-                        <td class="p-2">
-                          <VaCheckbox v-model="option.selected" :true-value="option.id" :label="option.name" />
-                        </td>
-                      </tr>
-                    </template>
+                      v-for="group in item.articlesOptionsGroup.filter((g) => g.selected && g.articlesOptions.length)">
+                  <tr v-for="option in group.articlesOptions" :key="option._id"
+                    class="border-b hover:bg-green-50 w-full" style="display: table">
+                    <td class="p-2">
+                      <VaCheckbox v-model="option.selected" :true-value="option.id" :label="option.name" />
+                    </td>
                   </tr>
-                </tbody>
-              </table>
-              <div v-else class="text-gray-500 italic text-center py-2">No groups available</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </VaForm>
+</template>
+</tr>
+</tbody>
+</table>
+<div v-else class="text-gray-500 italic text-center py-2">No groups available</div>
+</div>
+</div>
+</div>
+</div>
+</VaForm>
 
-    <template #footer>
-      <div class="flex justify-end mt-6 w-full">
-        <VaButton type="submit" @click="submit()">
-          {{ isUpdating ? 'Update' : 'Add' }}
-        </VaButton>
-      </div>
-    </template>
-  </VaModal>
+<template #footer>
+  <div class="flex justify-end mt-6 w-full">
+    <VaButton type="submit" @click="submit()">
+      {{ isUpdating ? 'Update' : 'Add' }}
+    </VaButton>
+  </div>
+</template>
+</VaModal>
 </template>
 
 <script setup lang="ts">
@@ -161,11 +125,21 @@ const props = defineProps({
     type: Object,
     default: () => null,
   },
-  offerId: {
-    type: String,
+  offerData: {
+    type: Object,
     default: '',
   },
+  isEditSelection: {
+    type: Boolean,
+    default: false,
+  },
+  offerSelection: {
+    type: Object,
+    default: () => null,
+  },
 })
+
+console.log(props)
 
 const isLoading = ref(false)
 const items = ref([])
@@ -188,6 +162,18 @@ const formData = ref({
   max: null,
 })
 
+if (props.isEditSelection) {
+  isUpdating.value = true
+  formData.value = {
+    ...formData.value,
+    name: props.offerSelection.name,
+    min: props.offerSelection.min.toString(),
+    max: props.offerSelection.max.toString(),
+  }
+} else {
+  isUpdating.value = false
+}
+
 const getArticles = async () => {
   isLoading.value = true
   const url = import.meta.env.VITE_API_BASE_URL
@@ -201,23 +187,35 @@ const getArticles = async () => {
     },
   })
   items.value = res.data.map((e) => {
+    const selected = props.offerSelection?.menuItems?.find((item) => item.menuItemId === e._id)
+
     return {
       ...e,
-      selected: '',
+      selected: selected ? e._id : '',
       articlesOptionsGroup: e.articlesOptionsGroup.map((e) => {
+        let groupSelected = false
+        if (selected) {
+          groupSelected = selected.optionGroups.find((group) => group.optionGroupId === e._id)
+        }
         return {
           ...e,
-          selected: '',
-          articlesOptions: e.articlesOptions.map((opt) => ({
-            ...opt,
-            selected: '',
-            isFree: false,
-          })),
+          selected: groupSelected ? e._id : '',
+          articlesOptions: e.articlesOptions.map((opt) => {
+            let optionSelected = false
+            if (groupSelected) {
+              optionSelected = groupSelected
+                ?.selectedOptions.find((option) => option.optionId === opt.id)
+            }
+            return {
+              ...opt,
+              selected: optionSelected ? opt.id : '',
+              isFree: false,
+            }
+          }),
         }
       }),
     }
   })
-  console.log(items.value)
   isLoading.value = false
 }
 
@@ -227,13 +225,13 @@ onMounted(() => {
 
 const submit = async () => {
   if (validate()) {
+    let payload = {
+      selections: props.offerData.selections,
+    }
     const data = JSON.parse(JSON.stringify(formData.value))
-
-    delete data.createdAt
-    delete data.updatedAt
-    delete data.__v
-    data.offerId = props.offerId
-    data.outletId = servicesStore.selectedRest
+    data.min = parseInt(data.min)
+    data.max = parseInt(data.max)
+    data.isActive = true
     data.menuItems = items.value
       .filter((item) => item.selected)
       .map((item) => {
@@ -256,13 +254,16 @@ const submit = async () => {
             }),
         }
       })
-    data.min = parseInt(data.min)
-    data.max = parseInt(data.max)
-    data.isActive = true
-    const url = import.meta.env.VITE_API_BASE_URL
 
+    const url = import.meta.env.VITE_API_BASE_URL
+    if (props.isEditSelection) {
+      const index = props.offerData.selections.findIndex((e) => e._id === props.offerSelection._id)
+      payload.selections[index] = data
+    } else {
+      payload.selections.push(data)
+    }
     try {
-      await axios.put(`${url}/offers/${props.offerId}/selections`, data)
+      await axios.put(`${url}/offers/${props.offerData._id}/selections`, payload)
       init({ message: 'Offers updated successfully!', color: 'success' })
       emits('cancel')
     } catch (err: any) {
@@ -275,9 +276,11 @@ const submit = async () => {
 tr {
   width: 100%;
 }
+
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.1);
   border-radius: 3px;
