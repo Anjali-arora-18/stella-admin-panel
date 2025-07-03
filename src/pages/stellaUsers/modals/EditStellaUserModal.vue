@@ -41,14 +41,7 @@
           :multiple="true"
           value-by="value"
         />
-        <VaInput
-          v-model="formData.username"
-          :rules="[validators.required]"
-          label="Username"
-          required-mark
-          placeholder="User Name"
-          type="text"
-        />
+        <VaInput v-model="formData.username" label="Username" placeholder="User Name" type="text" />
 
         <VaInput
           v-model="formData.email"

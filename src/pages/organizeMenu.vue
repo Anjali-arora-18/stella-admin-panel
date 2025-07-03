@@ -236,44 +236,252 @@ watch(
                 v-for="subcategory in category.subCategories"
                 :key="subcategory._id || subcategory.id"
                 :header="`${subcategory.name} - Sub Category`"
-                :class="{ 'no-arrow': !(subcategory.articles && subcategory.articles.length) }"
+                :class="{
+                  'no-arrow':
+                    !(subcategory.articles && subcategory.articles.length) &&
+                    !(subcategory.articlesOptionsGroup && subcategory.articlesOptionsGroup.length),
+                }"
+                color="#DEE5F2"
+                solid
+                class="list-group-item m-1 rounded-md text-center"
+              >
+                <VaAccordion v-if="subcategory.articles && subcategory.articles.length">
+                  <VueDraggableNext
+                    class="dragArea list-group w-full"
+                    :list="subcategory.articles"
+                    @change="movedArticle($event, category, subcategory)"
+                  >
+                    <VaCollapse
+                      v-for="article in subcategory.articles"
+                      :key="article._id || article.id"
+                      :header="`${article.name} - Article`"
+                      :class="{ 'no-arrow': !(article.articlesOptionsGroup && article.articlesOptionsGroup.length) }"
+                      color="#DEE5F2"
+                      solid
+                      class="list-group-item m-1 rounded-md text-center"
+                    >
+                      <VaAccordion v-if="article.articlesOptionsGroup && article.articlesOptionsGroup.length">
+                        <VueDraggableNext
+                          v-if="article.articlesOptionsGroup && article.articlesOptionsGroup.length"
+                          class="dragArea list-group w-full"
+                          :list="article.articlesOptionsGroup"
+                          @change="
+                            movedArticleGroup({
+                              is: 'articles',
+                              $event: $event,
+                              category: category,
+                              subCategory: subcategory,
+                            })
+                          "
+                        >
+                          <VaCollapse
+                            v-for="articlesOptionsGroup in article.articlesOptionsGroup"
+                            :key="articlesOptionsGroup._id || articlesOptionsGroup.id"
+                            :header="`${articlesOptionsGroup.name} - Articles Options Group`"
+                            :class="{ 'no-arrow': !articlesOptionsGroup.articlesOptions.length }"
+                            color="#DEE5F2"
+                            solid
+                            class="list-group-item m-1 rounded-md text-center"
+                          >
+                            <VueDraggableNext
+                              v-if="articlesOptionsGroup.articlesOptions.length"
+                              class="dragArea list-group w-full"
+                              :list="articlesOptionsGroup.articlesOptions"
+                              :disabled="!articlesOptionsGroup.articlesOptions.length"
+                              @change="
+                                movedArticleOption({
+                                  is: 'articles',
+                                  $event: $event,
+                                  category: category,
+                                  subCategory: subcategory,
+                                  articlesOptionsGroup: articlesOptionsGroup,
+                                })
+                              "
+                            >
+                              <div
+                                v-for="articlesOptions in articlesOptionsGroup.articlesOptions"
+                                :key="articlesOptions._id || articlesOptions.id"
+                                class="list-group-item bg-gray-100 m-1 p-2 text-center"
+                              >
+                                {{ articlesOptions.name }} - Article Option
+                              </div>
+                            </VueDraggableNext>
+                          </VaCollapse>
+                        </VueDraggableNext>
+                      </VaAccordion>
+                    </VaCollapse>
+                  </VueDraggableNext>
+                </VaAccordion>
+
+                <VaAccordion v-if="subcategory.articlesOptionsGroup && subcategory.articlesOptionsGroup.length">
+                  <VueDraggableNext
+                    v-if="subcategory.articlesOptionsGroup && subcategory.articlesOptionsGroup.length"
+                    class="dragArea list-group w-full"
+                    :list="subcategory.articlesOptionsGroup"
+                    @change="
+                      movedArticleGroup({
+                        is: 'subCategory',
+                        $event: $event,
+                        category: category,
+                        subCategory: subcategory,
+                      })
+                    "
+                  >
+                    <VaCollapse
+                      v-for="articlesOptionsGroup in subcategory.articlesOptionsGroup"
+                      :key="articlesOptionsGroup._id || articlesOptionsGroup.id"
+                      :header="`${articlesOptionsGroup.name} - Articles Options Group`"
+                      :class="{ 'no-arrow': !articlesOptionsGroup.articlesOptions.length }"
+                      color="#DEE5F2"
+                      solid
+                      class="list-group-item m-1 rounded-md text-center"
+                    >
+                      <VueDraggableNext
+                        v-if="articlesOptionsGroup.articlesOptions.length"
+                        class="dragArea list-group w-full"
+                        :list="articlesOptionsGroup.articlesOptions"
+                        :disabled="!articlesOptionsGroup.articlesOptions.length"
+                        @change="
+                          movedArticleOption({
+                            is: 'subCategory',
+                            $event: $event,
+                            category: category,
+                            subCategory: subcategory,
+                            articlesOptionsGroup: articlesOptionsGroup,
+                          })
+                        "
+                      >
+                        <div
+                          v-for="articlesOptions in articlesOptionsGroup.articlesOptions"
+                          :key="articlesOptions._id || articlesOptions.id"
+                          class="list-group-item bg-gray-100 m-1 p-2 text-center"
+                        >
+                          {{ articlesOptions.name }} - Article Option
+                        </div>
+                      </VueDraggableNext>
+                    </VaCollapse>
+                  </VueDraggableNext>
+                </VaAccordion>
+              </VaCollapse>
+            </VueDraggableNext>
+          </VaAccordion>
+
+          <VaAccordion v-if="category.articles && category.articles.length">
+            <VueDraggableNext
+              class="dragArea list-group w-full"
+              :list="category.articles"
+              @change="movedArticle($event, category)"
+            >
+              <VaCollapse
+                v-for="article in category.articles"
+                :key="article._id || article.id"
+                :header="`${article.name} - Article`"
+                :class="{ 'no-arrow': !(article.articlesOptionsGroup && article.articlesOptionsGroup.length) }"
+                color="#DEE5F2"
+                solid
+                class="list-group-item m-1 rounded-md text-center"
+              >
+                <VaAccordion v-if="article.articlesOptionsGroup && article.articlesOptionsGroup.length">
+                  <VueDraggableNext
+                    v-if="article.articlesOptionsGroup && article.articlesOptionsGroup.length"
+                    class="dragArea list-group w-full"
+                    :list="article.articlesOptionsGroup"
+                    @change="
+                      movedArticleGroup({
+                        is: 'articles',
+                        $event: $event,
+                        category: category,
+                        subCategory: '',
+                      })
+                    "
+                  >
+                    <VaCollapse
+                      v-for="articlesOptionsGroup in article.articlesOptionsGroup"
+                      :key="articlesOptionsGroup._id || articlesOptionsGroup.id"
+                      :header="`${articlesOptionsGroup.name} - Articles Options Group`"
+                      :class="{ 'no-arrow': !articlesOptionsGroup.articlesOptions.length }"
+                      color="#DEE5F2"
+                      solid
+                      class="list-group-item m-1 rounded-md text-center"
+                    >
+                      <VueDraggableNext
+                        v-if="articlesOptionsGroup.articlesOptions.length"
+                        class="dragArea list-group w-full"
+                        :list="articlesOptionsGroup.articlesOptions"
+                        :disabled="!articlesOptionsGroup.articlesOptions.length"
+                        @change="
+                          movedArticleOption({
+                            is: 'articles',
+                            $event: $event,
+                            category: category,
+                            subCategory: '',
+                            articlesOptionsGroup: articlesOptionsGroup,
+                          })
+                        "
+                      >
+                        <div
+                          v-for="articlesOptions in articlesOptionsGroup.articlesOptions"
+                          :key="articlesOptions._id || articlesOptions.id"
+                          class="list-group-item bg-gray-100 m-1 p-2 text-center"
+                        >
+                          {{ articlesOptions.name }} - Article Option
+                        </div>
+                      </VueDraggableNext>
+                    </VaCollapse>
+                  </VueDraggableNext>
+                </VaAccordion>
+              </VaCollapse>
+            </VueDraggableNext>
+          </VaAccordion>
+
+          <VaAccordion v-if="category.articlesOptionsGroup && category.articlesOptionsGroup.length">
+            <VueDraggableNext
+              class="dragArea list-group w-full"
+              :list="category.articlesOptionsGroup"
+              @change="
+                movedArticleGroup({
+                  is: 'category',
+                  $event: $event,
+                  category: category,
+                  subCategory: '',
+                })
+              "
+            >
+              <VaCollapse
+                v-for="articlesOptionsGroup in category.articlesOptionsGroup"
+                :key="articlesOptionsGroup._id || articlesOptionsGroup.id"
+                :header="`${articlesOptionsGroup.name} - Articles Options Group`"
+                :class="{ 'no-arrow': !articlesOptionsGroup.articlesOptions.length }"
                 color="#DEE5F2"
                 solid
                 class="list-group-item m-1 rounded-md text-center"
               >
                 <VueDraggableNext
-                  v-if="subcategory.articles && subcategory.articles.length"
+                  v-if="articlesOptionsGroup.articlesOptions.length"
                   class="dragArea list-group w-full"
-                  :list="subcategory.articles"
-                  :disabled="!subcategory.articles"
-                  @change="movedArticle($event, category, subcategory)"
+                  :list="articlesOptionsGroup.articlesOptions"
+                  :disabled="!articlesOptionsGroup.articlesOptions.length"
+                  @change="
+                    movedArticleOption({
+                      is: 'category',
+                      $event: $event,
+                      category: category,
+                      subCategory: subCategory,
+                      articlesOptionsGroup: articlesOptionsGroup,
+                    })
+                  "
                 >
                   <div
-                    v-for="article in subcategory.articles"
-                    :key="article._id || article.id"
+                    v-for="articlesOptions in articlesOptionsGroup.articlesOptions"
+                    :key="articlesOptions._id || articlesOptions.id"
                     class="list-group-item bg-gray-100 m-1 p-2 text-center"
                   >
-                    {{ article.name }} - Article
+                    {{ articlesOptions.name }} - Article Option
                   </div>
                 </VueDraggableNext>
               </VaCollapse>
             </VueDraggableNext>
           </VaAccordion>
-          <VueDraggableNext
-            v-if="category.articles && category.articles.length"
-            class="dragArea list-group w-full"
-            :list="category.articles"
-            :disabled="!category.articles"
-            @change="movedCategoryArticle($event, category)"
-          >
-            <div
-              v-for="article in category.articles"
-              :key="article._id || article.id"
-              class="list-group-item bg-gray-100 m-1 p-2 text-center"
-            >
-              {{ article.name }} - Article
-            </div>
-          </VueDraggableNext>
         </VaCollapse>
       </VueDraggableNext>
     </VaAccordion>

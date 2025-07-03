@@ -72,7 +72,7 @@
             :rules="[validators.required]"
             required-mark
             label="Order Type"
-            :options="['takeaway', 'delivery', 'all']"
+            :options="['takeaway', 'delivery', 'dine-in']"
           />
         </div>
 
