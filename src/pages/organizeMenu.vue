@@ -381,7 +381,7 @@ watch(
                               <div
                                 v-for="articlesOptions in articlesOptionsGroup.articlesOptions"
                                 :key="articlesOptions._id || articlesOptions.id"
-                                class="list-group-item bg-gray-100 m-1 p-2 text-center"
+                                class="list-group-item bg-gray-100 m-1 p-2 text-center cursor-pointer"
                               >
                                 {{ articlesOptions.name }} - Article Option
                               </div>
@@ -436,7 +436,7 @@ watch(
                         <div
                           v-for="articlesOptions in articlesOptionsGroup.articlesOptions"
                           :key="articlesOptions._id || articlesOptions.id"
-                          class="list-group-item bg-gray-100 m-1 p-2 text-center"
+                          class="list-group-item bg-gray-100 m-1 p-2 text-center cursor-pointer"
                         >
                           {{ articlesOptions.name }} - Article Option
                         </div>
@@ -506,7 +506,7 @@ watch(
                         <div
                           v-for="articlesOptions in articlesOptionsGroup.articlesOptions"
                           :key="articlesOptions._id || articlesOptions.id"
-                          class="list-group-item bg-gray-100 m-1 p-2 text-center"
+                          class="list-group-item bg-gray-100 m-1 p-2 text-center cursor-pointer"
                         >
                           {{ articlesOptions.name }} - Article Option
                         </div>
@@ -560,7 +560,7 @@ watch(
                   <div
                     v-for="articlesOptions in articlesOptionsGroup.articlesOptions"
                     :key="articlesOptions._id || articlesOptions.id"
-                    class="list-group-item bg-gray-100 m-1 p-2 text-center"
+                    class="list-group-item bg-gray-100 m-1 p-2 text-center cursor-pointer"
                   >
                     {{ articlesOptions.name }} - Article Option
                   </div>
