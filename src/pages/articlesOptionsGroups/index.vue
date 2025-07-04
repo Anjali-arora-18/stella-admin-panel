@@ -20,7 +20,7 @@ const getOptionGroups = async () => {
   try {
     const response = await axios.get(
       url +
-        `/articles-options-groups?search=${searchValue.value}&sortKey=${sortBy.value}&sortValue=${sortOrder.value}&outletId=${servicesStore.selectedRest}`,
+        `/articles-options-groups?limit=100000&search=${searchValue.value}&sortKey=${sortBy.value}&sortValue=${sortOrder.value}&outletId=${servicesStore.selectedRest}`,
     )
     const item = response.data.result
     items.value = item.map((e) => {

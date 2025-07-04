@@ -212,6 +212,16 @@ const movedArticleGroup = async (payload) => {
 
 const movedArticleOption = async (payload) => {
   let data = {}
+
+  if (payload.subCategory) {
+    data.subcategoryId = payload.subCategory._id
+  }
+  if (payload.category) {
+    data.categoryId = payload.category._id
+  }
+  if (payload.menuItems) {
+    data.menuitemId = payload.menuItems._id
+  }
   const resourceType = 'articleoptions'
   const selectedCategory = JSON.parse(JSON.stringify(categories.value.find((a) => a._id === payload.category._id)))
   let selectedSubCategory = []
@@ -240,6 +250,7 @@ const movedArticleOption = async (payload) => {
     articleOptions = articlesOptionsGroup.find((a) => a.id === payload.articlesOptionsGroup.id).articlesOptions
   }
   data = {
+    ...data,
     articlesOptionsGroupId: payload.articlesOptionsGroup.id,
     resourceType: resourceType,
     items: articleOptions.map((e, index) => {

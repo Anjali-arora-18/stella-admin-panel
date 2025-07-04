@@ -82,12 +82,15 @@ const submit = () => {
             window.sessionStorage.setItem('user', response.data.user.id)
             serviceStore.setRest(response.data.user.outlets[0])
             window.sessionStorage.setItem('selectedRest', response.data.user.outlets[0])
-            push({
-              name: 'update-outlet',
-              params: {
-                id: response.data.user.outlets[0],
-              },
-            })
+            if (response.data.user.role.includes('caller')) {
+              push({
+                name: 'callCenters',
+              })
+            } else {
+              push({
+                name: 'articles',
+              })
+            }
           } else {
             init({ message: err.response.data.message, color: 'danger' })
           }

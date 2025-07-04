@@ -40,6 +40,8 @@ const columns = defineVaDataTableColumns([
   { label: 'Active', key: 'isActive', sortable: false },
   { label: 'Actions', key: 'actions', sortable: false },
 ])
+const typeOptions = ['Extra', 'Hold', 'Modifier', 'Article']
+
 function editOption(payload) {
   isEditArticleOptionModal.value = true
   selectedOptions.value = payload
@@ -203,6 +205,27 @@ const onButtonOptionImageDelete = async (payload) => {
           />
         </div>
       </template>
+      <template #cell(type)="{ rowData }">
+        <div class="table-cell-content">
+          <div v-if="!rowData.editType" @click="rowData.editType = true">{{ rowData.type }}</div>
+          <VaSelect
+            v-else
+            v-model="rowData.type"
+            :options="typeOptions"
+            class="w-40"
+            size="small"
+            @update:modelValue="
+              (value) => {
+                rowData.type = value
+                updateData(rowData)
+                rowData.editType = false
+              }
+            "
+            @blur="rowData.editType = false"
+          />
+        </div>
+      </template>
+
       <template #cell(price)="{ rowData }">
         <div class="table-cell-content">
           <div v-if="!rowData.editPrice" @click="rowData.editPrice = true">{{ rowData.price }}</div>
