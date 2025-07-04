@@ -166,21 +166,88 @@ const movedArticle = async ($event, category, subcategory = null) => {
   await updateSortOrder(data)
 }
 
-const movedCategoryArticle = async ($event, category) => {
-  const selectedCategory = JSON.parse(JSON.stringify(categories.value.find((a) => a._id === category._id)))
-  const data = {
-    categories: [
-      {
-        id: selectedCategory._id,
-        sortOrder: selectedCategory.sortOrder,
-        articles: selectedCategory.articles.map((e, index) => {
-          return {
-            id: e._id,
-            sortOrder: index,
-          }
-        }),
-      },
-    ],
+const movedArticleGroup = async (payload) => {
+  let data = {}
+  const resourceType = 'articleoptionsgroups'
+
+  if (payload.subCategory) {
+    data.subcategoryId = payload.subCategory._id
+  }
+  if (payload.category) {
+    data.categoryId = payload.category._id
+  }
+  if (payload.menuItems) {
+    data.menuitemId = payload.menuItems._id
+  }
+  const selectedCategory = JSON.parse(JSON.stringify(categories.value.find((a) => a._id === payload.category._id)))
+  let selectedSubCategory = []
+  let articlesOptionsGroup = []
+  if (payload.subCategory) {
+    selectedSubCategory = selectedCategory.subCategories.find((a) => a._id === payload.subCategory._id)
+    if (payload.menuItems) {
+      articlesOptionsGroup = payload.menuItems.articlesOptionsGroup
+    } else {
+      articlesOptionsGroup = selectedSubCategory.articlesOptionsGroup
+    }
+    articlesOptionsGroup = selectedSubCategory.articlesOptionsGroup
+  } else {
+    if (payload.menuItems) {
+      articlesOptionsGroup = payload.menuItems.articlesOptionsGroup
+    } else {
+      articlesOptionsGroup = selectedCategory.articlesOptionsGroup
+    }
+  }
+  data = {
+    ...data,
+    resourceType: resourceType,
+    items: articlesOptionsGroup.map((e, index) => {
+      return {
+        id: e.id,
+        sortOrder: index,
+      }
+    }),
+  }
+  await updateSortOrder(data)
+}
+
+const movedArticleOption = async (payload) => {
+  let data = {}
+  const resourceType = 'articleoptions'
+  const selectedCategory = JSON.parse(JSON.stringify(categories.value.find((a) => a._id === payload.category._id)))
+  let selectedSubCategory = []
+  let articlesOptionsGroup = []
+  if (payload.subCategory) {
+    selectedSubCategory = selectedCategory.subCategories.find((a) => a._id === payload.subCategory._id)
+    if (payload.menuItems) {
+      articlesOptionsGroup = payload.menuItems.articlesOptionsGroup
+    } else {
+      articlesOptionsGroup = selectedSubCategory.articlesOptionsGroup
+    }
+    articlesOptionsGroup = selectedSubCategory.articlesOptionsGroup
+  } else {
+    if (payload.menuItems) {
+      articlesOptionsGroup = payload.menuItems.articlesOptionsGroup
+    } else {
+      articlesOptionsGroup = selectedCategory.articlesOptionsGroup
+    }
+  }
+
+  console.log('articlesOptionsGroup', articlesOptionsGroup, payload.articlesOptionsGroup)
+
+  let articleOptions = []
+
+  if (articlesOptionsGroup.length) {
+    articleOptions = articlesOptionsGroup.find((a) => a.id === payload.articlesOptionsGroup.id).articlesOptions
+  }
+  data = {
+    articlesOptionsGroupId: payload.articlesOptionsGroup.id,
+    resourceType: resourceType,
+    items: articleOptions.map((e, index) => {
+      return {
+        id: e.id,
+        sortOrder: index,
+      }
+    }),
   }
   await updateSortOrder(data)
 }
@@ -271,6 +338,7 @@ watch(
                               $event: $event,
                               category: category,
                               subCategory: subcategory,
+                              menuItems: article,
                             })
                           "
                         >
@@ -295,6 +363,7 @@ watch(
                                   category: category,
                                   subCategory: subcategory,
                                   articlesOptionsGroup: articlesOptionsGroup,
+                                  menuItems: article,
                                 })
                               "
                             >
@@ -324,6 +393,7 @@ watch(
                         $event: $event,
                         category: category,
                         subCategory: subcategory,
+                        menuItems: '',
                       })
                     "
                   >
@@ -347,6 +417,7 @@ watch(
                             $event: $event,
                             category: category,
                             subCategory: subcategory,
+                            menuItems: '',
                             articlesOptionsGroup: articlesOptionsGroup,
                           })
                         "
@@ -392,6 +463,7 @@ watch(
                         $event: $event,
                         category: category,
                         subCategory: '',
+                        menuItems: article,
                       })
                     "
                   >
@@ -416,6 +488,7 @@ watch(
                             category: category,
                             subCategory: '',
                             articlesOptionsGroup: articlesOptionsGroup,
+                            menuItems: article,
                           })
                         "
                       >
@@ -444,6 +517,7 @@ watch(
                   $event: $event,
                   category: category,
                   subCategory: '',
+                  menuItems: '',
                 })
               "
             >
@@ -468,6 +542,7 @@ watch(
                       category: category,
                       subCategory: subCategory,
                       articlesOptionsGroup: articlesOptionsGroup,
+                      menuItems: '',
                     })
                   "
                 >
