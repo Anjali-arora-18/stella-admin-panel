@@ -78,7 +78,7 @@ const updateSortOrder = (payload) => {
   const url = import.meta.env.VITE_API_BASE_URL
 
   axios
-    .post(`${url}/menuCategories-sort`, payload)
+    .post(`${url}/organize-menu`, payload)
     .then((response) => {
       init({
         message: 'Order updated.',
@@ -105,7 +105,8 @@ const movedCategory = async ($event) => {
     })
   }
   const data = {
-    categories: category.map((e) => {
+    resourceType: 'categories',
+    items: category.map((e) => {
       return {
         id: e._id,
         sortOrder: e.sortOrder,
@@ -124,44 +125,43 @@ const movedSubCategory = async ($event, category) => {
     }
   })
   const data = {
-    categories: [
-      {
-        id: selectedCategory._id,
-        sortOrder: selectedCategory.sortOrder,
-        subOrder: subCategories
-          .filter((a) => !a.isArticle)
-          .map((e) => {
-            return {
-              id: e._id,
-              sortOrder: e.sortOrder,
-            }
-          }),
-      },
-    ],
+    resourceType: 'subcategories',
+    categoryId: selectedCategory._id,
+    items: subCategories
+      .filter((a) => !a.isArticle)
+      .map((e) => {
+        return {
+          id: e._id,
+          sortOrder: e.sortOrder,
+        }
+      }),
   }
   await updateSortOrder(data)
 }
 
-const movedArticle = async ($event, category, subcategory) => {
+const movedArticle = async ($event, category, subcategory = null) => {
   const selectedCategory = JSON.parse(JSON.stringify(categories.value.find((a) => a._id === category._id)))
-  const selectedSubCategory = selectedCategory.subCategories.find((a) => a._id === subcategory._id)
+  let selectedSubCategory = []
+  let articles = []
+  if (subcategory) {
+    selectedSubCategory = selectedCategory.subCategories.find((a) => a._id === subcategory._id)
+    articles = selectedSubCategory.articles
+  } else {
+    articles = selectedCategory.articles
+  }
   const data = {
-    categories: [
-      {
-        id: selectedCategory._id,
-        sortOrder: selectedCategory.sortOrder,
-        subOrder: {
-          id: selectedSubCategory._id,
-          sortOrder: selectedSubCategory.sortOrder,
-          articles: selectedSubCategory.articles.map((e, index) => {
-            return {
-              id: e._id,
-              sortOrder: index,
-            }
-          }),
-        },
-      },
-    ],
+    resourceType: 'menuitems',
+    categoryId: selectedCategory._id,
+    items: articles.map((e, index) => {
+      return {
+        id: e._id,
+        sortOrder: index,
+      }
+    }),
+  }
+
+  if (subcategory) {
+    data.subcategoryId = selectedSubCategory._id
   }
   await updateSortOrder(data)
 }
