@@ -71,6 +71,8 @@
             v-model="formData.orderType"
             :rules="[validators.required]"
             required-mark
+            multiple
+            track-by="value"
             label="Order Type"
             :options="['takeaway', 'delivery', 'dine-in']"
           />
@@ -156,7 +158,7 @@ const formData = ref({
     endTime: '',
   },
   weeklyOffer: [],
-  orderType: '',
+  orderType: [],
   selections: [],
   isActive: true,
 })
@@ -189,7 +191,7 @@ watch(
           endTime: data.timeOffer?.endTime || '',
         },
         weeklyOffer: (data.weeklyOffer || []).map((d: string) => d.charAt(0).toUpperCase() + d.slice(1)),
-        orderType: data.orderType || '',
+        orderType: Array.isArray(data.orderType) ? data.orderType : [],
         selections: data.selections || [],
         isActive: data.isActive ?? true,
       }

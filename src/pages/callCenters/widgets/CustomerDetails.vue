@@ -83,18 +83,24 @@
           </div>
         </div>
 
-        <div v-if="selectedTab && !selectedUser" class="flex items-center justify-between text-sm gap-2">
-          <div class="datetime-display" onclick="toggleDateTime()">Fri - 30/05/2025 - 19:30</div>
+        <!-- <div v-if="selectedTab && !selectedUser" class="flex items-center justify-between text-sm gap-2"> -->
+        <div v-if="selectedTab" class="flex items-center justify-between text-sm gap-2">
+          <div v-if="!showDateTimeInput" class="datetime-display" @click="showDateTimeInput = true">
+            {{ formattedDateTime }}
+          </div>
+          <input
+            v-else
+            v-model="datetimeLocalValue"
+            type="datetime-local"
+            class="text-sm border rounded px-2 py-1"
+            @blur="showDateTimeInput = false"
+          />
           <button
             class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
             @click="openCustomerModal"
           >
             + Add New
           </button>
-        </div>
-        <div v-if="selectedTab && selectedUser" class="flex items-center justify-between text-sm gap-2">
-          <div class="datetime-display" onclick="toggleDateTime()">Fri - 30/05/2025 - 19:30</div>
-          <VaButton class="rounded" color="#B3D943" size="small" icon="mso-edit" @click="openCustomerModal" />
         </div>
 
         <!-- Address -->
@@ -209,9 +215,26 @@ const showDeliveryDropdown = ref(false)
 onClickOutside(target, (event) => (userResults.value = []), { ignore: [deliveryTarget] })
 onClickOutside(deliveryTarget, (event) => (showDeliveryDropdown.value = false), { ignore: [target] })
 
-// Set current date & time by default
 const selectedDate = ref(new Date())
-const selectedTime = ref(new Date().toTimeString().slice(0, 5)) // 'HH:mm'
+const selectedTime = ref(new Date().toTimeString().slice(0, 5))
+const showDateTimeInput = ref(false)
+
+const datetimeLocalValue = computed({
+  get: () => selectedDate.value.toISOString().slice(0, 16),
+  set: (value) => {
+    const newDate = new Date(value)
+    if (!isNaN(newDate)) selectedDate.value = newDate
+  },
+})
+
+const formattedDateTime = computed(() => {
+  const date = selectedDate.value
+  const day = date.toLocaleDateString('en-GB', { weekday: 'short' })
+  const datePart = date.toLocaleDateString('en-GB')
+  const time = date.toTimeString().slice(0, 5)
+
+  return `${day} - ${datePart} - ${time}`
+})
 
 function openCustomerModal() {
   showCustomerModal.value = true

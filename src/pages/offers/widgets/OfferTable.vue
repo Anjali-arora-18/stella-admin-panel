@@ -348,6 +348,11 @@ function formatReadableDate(dateStr: string): string {
           }}
         </div>
       </template>
+      <template #cell(orderType)="{ rowData }">
+        <div>
+          {{ (rowData.orderType || []).map((type) => type.charAt(0).toUpperCase() + type.slice(1)).join(', ') }}
+        </div>
+      </template>
       <template #cell(selections)="{ row, rowData, isExpanded }">
         <div class="ellipsis">
           <VaButton
