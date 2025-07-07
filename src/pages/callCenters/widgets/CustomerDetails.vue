@@ -83,8 +83,7 @@
           </div>
         </div>
 
-        <!-- <div v-if="selectedTab && !selectedUser" class="flex items-center justify-between text-sm gap-2"> -->
-        <div v-if="selectedTab" class="flex items-center justify-between text-sm gap-2">
+        <div v-if="selectedTab && !selectedUser" class="flex items-center justify-between text-sm gap-2">
           <div v-if="!showDateTimeInput" class="datetime-display" @click="showDateTimeInput = true">
             {{ formattedDateTime }}
           </div>
@@ -102,11 +101,24 @@
             + Add New
           </button>
         </div>
+        <div v-if="selectedTab && selectedUser" class="flex items-center justify-between text-sm gap-2">
+          <div v-if="!showDateTimeInput" class="datetime-display" @click="showDateTimeInput = true">
+            {{ formattedDateTime }}
+          </div>
+          <input
+            v-else
+            v-model="datetimeLocalValue"
+            type="datetime-local"
+            class="text-sm border rounded px-2 py-1"
+            @blur="showDateTimeInput = false"
+          />
+          <VaButton class="rounded" color="#B3D943" size="small" icon="mso-edit" @click="openCustomerModal" />
+        </div>
 
         <!-- Address -->
         <div v-if="selectedTab && selectedUser">
           <label class="text-sm text-gray-600 font-medium block mb-1">
-            {{ selectedTab === 'takeaway' ? 'Delivery Zone' : 'Address' }}
+            {{ selectedTab === 'takeaway' ? 'Location' : 'Address' }}
           </label>
 
           <div class="flex items-center gap-2 relative">
@@ -175,15 +187,15 @@
         </div>
       </div>
     </Transition>
+    <CustomerModal
+      v-if="showCustomerModal"
+      :selected-user="selectedUser"
+      :user-name="name"
+      :user-number="phoneNumber"
+      @setUser="setNewUser"
+      @cancel="closeCustomerModal"
+    />
   </div>
-  <CustomerModal
-    v-if="showCustomerModal"
-    :selected-user="selectedUser"
-    :user-name="name"
-    :user-number="phoneNumber"
-    @setUser="setNewUser"
-    @cancel="closeCustomerModal"
-  />
 </template>
 
 <script setup>
@@ -332,7 +344,9 @@ async function handleDeliveryZoneFetch() {
       `${import.meta.env.VITE_API_BASE_URL}/deliveryZones/${servicesStore.selectedRest}?postalCode=${payloadPostCode}`,
     )
 
-    deliveryZoneOptions.value = response.data.data
+    deliveryZoneOptions.value = response.data.data.sort((a, b) => {
+      return Number(a.serviceZoneId) - Number(b.serviceZoneId)
+    })
 
     if (!response.data.data.length) {
       selectedZone.value = ''

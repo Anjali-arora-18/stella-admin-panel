@@ -1,9 +1,10 @@
 <template>
   <div class="menu-item" @click="getMenuOptions">
-    <div class="item-content">
+    <div class="item-content" :class="{ 'no-price': !parseFloat(item.price) }">
       <div class="item-name">{{ item.name }}</div>
-      <div class="item-price">€{{ parseFloat(item.price).toFixed(2) }}</div>
+      <div v-if="parseFloat(item.price)" class="item-price">€{{ parseFloat(item.price).toFixed(2) }}</div>
     </div>
+
     <div v-if="item.imageUrl" class="item-image">
       <img :src="item.imageUrl" alt="icon" class="w-full h-full" />
     </div>
@@ -55,13 +56,11 @@ const getMenuOptions = async () => {
 
     const articlesOptionsGroups = response.data.articlesOptionsGroups
 
-    // Assign item with groups only if data is returned
     itemWithArticlesOptionsGroups.value = {
       ...props.item,
       articlesOptionsGroups: articlesOptionsGroups || [],
     }
 
-    // Open modal if there are any groups
     if (articlesOptionsGroups && articlesOptionsGroups.length) {
       openMenuModal()
     } else {
@@ -97,8 +96,9 @@ function closeMenuModal() {
   transition: all 0.2s ease;
   cursor: pointer;
   width: 200px;
+  height: 100px;
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
 }
 
 .menu-item:hover {
@@ -110,7 +110,11 @@ function closeMenuModal() {
   flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   height: 100%;
+}
+.no-price {
+  justify-content: center;
 }
 
 .item-image {
@@ -126,10 +130,8 @@ function closeMenuModal() {
 
 .item-name {
   font-size: 12px;
-  flex: 1;
   font-weight: 600;
   color: #1e293b;
-  margin-bottom: 6px;
   line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;

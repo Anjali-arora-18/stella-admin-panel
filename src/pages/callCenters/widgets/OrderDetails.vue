@@ -160,16 +160,21 @@ const items = computed(() =>
     const modifierType = []
     const articleType = []
 
+    const formattedLabel = (sel) => {
+      const totalPrice = sel.price * sel.quantity
+      return totalPrice > 0 ? `${sel.name} (+€${totalPrice.toFixed(2)})` : sel.name
+    }
+
     item.selectedOptions.forEach((group) => {
       group.selected.forEach((sel) => {
-        if (sel.type == 'hold') {
-          removals.push(`${sel.name} (+€${sel.price.toFixed(2) * sel.quantity})`)
-        } else if (sel.type == 'extra') {
-          additions.push(`${sel.name} (+€${sel.price.toFixed(2) * sel.quantity})`)
-        } else if (sel.type == 'modifier') {
-          modifierType.push(`${sel.name} (+€${sel.price.toFixed(2) * sel.quantity})`)
-        } else if (sel.type == 'article') {
-          articleType.push(`${sel.name} (+€${sel.price.toFixed(2) * sel.quantity})`)
+        if (sel.type === 'hold') {
+          removals.push(formattedLabel(sel))
+        } else if (sel.type === 'extra') {
+          additions.push(formattedLabel(sel))
+        } else if (sel.type === 'modifier') {
+          modifierType.push(formattedLabel(sel))
+        } else if (sel.type === 'article') {
+          articleType.push(formattedLabel(sel))
         }
       })
     })
