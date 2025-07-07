@@ -131,8 +131,42 @@
                 />
               </label>
 
+              <!-- Multiple Choice styled like single -->
+              <label
+                v-for="option in group.options"
+                v-if="group.multipleChoice"
+                :key="option._id"
+                class="w-[200px] h-[80px] relative flex items-center border p-2 rounded-lg cursor-pointer transition-all"
+                :class="{
+                  'border-gray-700 bg-[#f8f9fa] border-2': isChecked(group, option._id),
+                  'border-gray-200 hover:border-gray-700 hover:border-2': !isChecked(group, option._id),
+                }"
+                @click.prevent="toggleMultipleChoice(group, option)"
+              >
+                <div v-if="option.imageUrl" class="item-image">
+                  <img
+                    :src="option.imageUrl"
+                    alt="Option"
+                    :class="isChecked(group, option._id) ? 'bg-white' : 'bg-[#f8f9fa]'"
+                    class="rounded w-full h-full"
+                  />
+                </div>
+                <div class="flex-1">
+                  <div class="text-sm font-semibold text-gray-800">{{ option.name }}</div>
+                  <div v-if="option.price" class="text-gray-800 font-semibold text-sm mt-1">
+                    €{{ parseFloat(option.price).toFixed(2) }}
+                  </div>
+                </div>
+
+                <div
+                  class="absolute bottom-2 right-2 w-3.5 h-3.5 border border-gray-500 rounded-full flex items-center justify-center"
+                >
+                  <div v-if="isChecked(group, option._id)" class="w-2 h-2 bg-gray-700 rounded-full"></div>
+                </div>
+              </label>
+
               <!-- Multiple Choice -->
-              <div
+              <!-- <div
                 v-for="option in group.options"
                 v-if="group.multipleChoice"
                 :key="option._id"
@@ -143,7 +177,6 @@
                     : 'border-gray-200 hover:border-gray-700 hover:border-2'
                 "
               >
-                <!-- Top content -->
                 <div class="flex items-center gap-1">
                   <div v-if="option.imageUrl" class="item-image">
                     <img
@@ -158,7 +191,6 @@
                   </div>
                 </div>
 
-                <!-- Bottom-right quantity control -->
                 <div class="absolute bottom-2 right-2 flex items-center bottom-1 gap-1">
                   <p v-if="option.price" class="text-sm text-gray-600 font-medium mr-2">
                     €{{ parseFloat(option.price).toFixed(2) }}
@@ -181,7 +213,7 @@
                     +
                   </button>
                 </div>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
@@ -357,6 +389,44 @@ function updateSingleChoice(group: any, option: any) {
     selectedOptions.value[index] = newEntry
   } else {
     selectedOptions.value.push(newEntry)
+  }
+}
+
+function toggleMultipleChoice(group, option) {
+  const groupEntry = selectedOptions.value.find((g) => g.groupId === group._id)
+  const maxAllowed = group.maximumChoices || 99
+
+  if (!groupEntry) {
+    selectedOptions.value.push({
+      groupId: group._id,
+      groupName: group.name,
+      selected: [
+        {
+          optionId: option._id,
+          name: option.name,
+          type: option.type,
+          price: option.price,
+          quantity: 1,
+        },
+      ],
+    })
+    return
+  }
+
+  const optIndex = groupEntry.selected.findIndex((o) => o.optionId === option._id)
+
+  if (optIndex !== -1) {
+    groupEntry.selected.splice(optIndex, 1)
+  } else {
+    // Check if adding would exceed maximum
+    if (groupEntry.selected.length >= maxAllowed) return
+    groupEntry.selected.push({
+      optionId: option._id,
+      name: option.name,
+      type: option.type,
+      price: option.price,
+      quantity: 1,
+    })
   }
 }
 

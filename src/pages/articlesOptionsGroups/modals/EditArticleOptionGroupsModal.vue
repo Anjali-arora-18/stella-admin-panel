@@ -52,14 +52,20 @@
           <VaCheckbox
             v-model="formData.singleChoice"
             name="choice"
-            :disabled="formData.multipleChoice"
+            :disabled="formData.multipleChoice || formData.multipleChoiceNoQty"
             label="Single Choice"
           />
           <VaCheckbox
             v-model="formData.multipleChoice"
             name="choice"
-            :disabled="formData.singleChoice"
+            :disabled="formData.singleChoice || formData.multipleChoiceNoQty"
             label="Multiple Choice"
+          />
+          <VaCheckbox
+            v-model="formData.multipleChoiceNoQty"
+            name="choice"
+            :disabled="formData.singleChoice || formData.multipleChoice"
+            label="Multiple Choice (No Qty)"
           />
           <VaCheckbox v-model="formData.mandatory" label="Mandatory" />
         </div>
@@ -100,6 +106,7 @@ const formData = ref({
   description: '',
   singleChoice: false,
   multipleChoice: false,
+  multipleChoiceNoQty: false,
   mandatory: false,
   minimumChoices: 0,
   maximumChoices: 0,
@@ -124,6 +131,7 @@ if (props.selectedOptionGroups && props.selectedOptionGroups._id) {
     description: props.selectedOptionGroups.description || '',
     singleChoice: props.selectedOptionGroups.singleChoice || false,
     multipleChoice: props.selectedOptionGroups.multipleChoice || false,
+    multipleChoiceNoQty: props.selectedOptionGroups.multipleChoiceNoQty || false,
     mandatory: props.selectedOptionGroups.mandatory || false,
     minimumChoices: props.selectedOptionGroups.minimumChoices || 0,
     maximumChoices: props.selectedOptionGroups.maximumChoices || 0,

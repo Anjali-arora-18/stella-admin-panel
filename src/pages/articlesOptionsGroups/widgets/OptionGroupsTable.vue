@@ -40,6 +40,7 @@ const columns = defineVaDataTableColumns([
   { label: 'Description', key: 'description', sortable: false },
   { label: 'Single Choice', key: 'singleChoice', sortable: false },
   { label: 'Multiple Choice', key: 'multipleChoice', sortable: false },
+  { label: 'Multiple Choice (No Qty)', key: 'multipleChoiceNoQty', sortable: false },
   { label: 'Mandatory', key: 'mandatory', sortable: false },
   { label: 'Min Choices', key: 'minimumChoices', sortable: true, sortingOptions: ['desc', 'asc'] },
   { label: 'Max Choices', key: 'maximumChoices', sortable: true, sortingOptions: ['desc', 'asc'] },
@@ -64,6 +65,7 @@ async function updateData(rowData) {
     description: rowData.description,
     singleChoice: rowData.singleChoice,
     multipleChoice: rowData.multipleChoice,
+    multipleChoiceNoQty: rowData.multipleChoiceNoQty,
     mandatory: rowData.mandatory,
     minimumChoices: rowData.minimumChoices,
     maximumChoices: rowData.maximumChoices,
@@ -201,12 +203,29 @@ watch(searchQuery, (search) => {
 
       <template #cell(singleChoice)="{ rowData }">
         <div class="table-cell-content">
-          <VaCheckbox v-model="rowData.singleChoice" size="small" @click="updateData(rowData)" />
+          <VaCheckbox
+            v-model="rowData.singleChoice"
+            size="small"
+            @click="updateData({ ...rowData, multipleChoice: false, multipleChoiceNoQty: false })"
+          />
         </div>
       </template>
       <template #cell(multipleChoice)="{ rowData }">
         <div class="table-cell-content">
-          <VaCheckbox v-model="rowData.multipleChoice" size="small" @click="updateData(rowData)" />
+          <VaCheckbox
+            v-model="rowData.multipleChoice"
+            size="small"
+            @click="updateData({ ...rowData, singleChoice: false, multipleChoiceNoQty: false })"
+          />
+        </div>
+      </template>
+      <template #cell(multipleChoiceNoQty)="{ rowData }">
+        <div class="table-cell-content">
+          <VaCheckbox
+            v-model="rowData.multipleChoiceNoQty"
+            size="small"
+            @click="updateData({ ...rowData, singleChoice: false, multipleChoice: false })"
+          />
         </div>
       </template>
       <template #cell(mandatory)="{ rowData }">

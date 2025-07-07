@@ -221,10 +221,23 @@ async function checkPaymentStatus(requestId) {
       color: 'success',
       message: 'Payment Success',
     })
-    setTimeout(() => {
-      orderStore.cartItems = []
-      window.location.reload()
-    }, 800)
+    const syncResponse = await orderStore.sendOrderToWinmax(requestId)
+    if (!syncResponse.data.error) {
+      init({
+        color: 'success',
+        message: 'Order sent to Winmax',
+      })
+      setTimeout(() => {
+        orderStore.cartItems = []
+        window.location.reload()
+      }, 800)
+    } else {
+      init({
+        color: 'danger',
+        message: syncResponse.data.error,
+      })
+      orderStore.setPaymentLink('')
+    }
   } else {
     init({
       color: 'danger',
@@ -265,7 +278,11 @@ async function createOrder() {
     if (orderId.value) {
       response = await orderStore.retryPayment(orderId.value)
     } else {
-      response = await orderStore.createOrder(payload)
+      const orderResponse = await orderStore.createOrder(payload)
+      response = await orderStore.createPayment({
+        orderId: orderResponse.data.data._id,
+        paymentMode: payload.paymentMode,
+      })
     }
 
     if (response.status === 201 || response.status === 200) {
@@ -278,10 +295,23 @@ async function createOrder() {
         orderId.value = response.data.data.requestId
         setInter()
       } else {
-        setTimeout(() => {
-          orderStore.cartItems = []
-          window.location.reload()
-        }, 800)
+        const syncResponse = await orderStore.sendOrderToWinmax(response.data.data.requestId)
+        if (!syncResponse.data.error) {
+          init({
+            color: 'success',
+            message: 'Order sent to Winmax',
+          })
+          setTimeout(() => {
+            orderStore.cartItems = []
+            window.location.reload()
+          }, 800)
+        } else {
+          init({
+            color: 'danger',
+            message: syncResponse.data.error,
+          })
+          orderStore.setPaymentLink('')
+        }
       }
     } else {
       throw new Error(response.data?.message || 'Something went wrong')
