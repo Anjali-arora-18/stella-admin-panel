@@ -33,7 +33,7 @@
   </VaLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { onBeforeRouteUpdate } from 'vue-router'
@@ -55,9 +55,9 @@ const sidebarMinimizedWidth = ref(undefined)
 const isMobile = ref(false)
 const isTablet = ref(false)
 const { isSidebarMinimized } = storeToRefs(GlobalStore)
+const fullScreenElement = document.querySelector('body')
 
 const onResize = () => {
-  isSidebarMinimized.value = breakpoints.mdDown
   isMobile.value = breakpoints.smDown
   isTablet.value = breakpoints.mdDown
   sidebarMinimizedWidth.value = isMobile.value ? '0' : '4.5rem'
@@ -67,17 +67,13 @@ const onResize = () => {
 onMounted(() => {
   window.addEventListener('resize', onResize)
   onResize()
+  if (sessionStorage.getItem('isSidebarMinimized')) {
+    isSidebarMinimized.value = sessionStorage.getItem('isSidebarMinimized') === 'true' ? true : false
+  }
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onResize)
-})
-
-onBeforeRouteUpdate(() => {
-  if (breakpoints.mdDown) {
-    // Collapse sidebar after route change for Mobile
-    isSidebarMinimized.value = true
-  }
 })
 
 const isFullScreenSidebar = computed(() => isTablet.value && !isSidebarMinimized.value)
@@ -88,7 +84,6 @@ const onCloseSidebarButtonClick = () => {
 </script>
 
 <style lang="scss" scoped>
-// Prevent icon jump on animation
 .va-sidebar {
   width: unset !important;
   min-width: unset !important;

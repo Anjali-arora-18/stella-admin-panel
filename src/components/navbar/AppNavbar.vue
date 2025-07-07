@@ -7,7 +7,7 @@
             class="cursor-pointer"
             :class="{ 'x-flip': !isSidebarMinimized }"
             :color="collapseIconColor"
-            @click="isSidebarMinimized = !isSidebarMinimized"
+            @click="GlobalStore.toggleSidebar()"
           />
         </Transition>
         <RouterLink to="/" aria-label="Visit home page">

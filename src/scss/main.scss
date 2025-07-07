@@ -90,3 +90,12 @@ table,  {
     }
   }
 }
+
+
+main, .va-layout__area--content, body {
+  background-color: var(--va-background-primary)
+}
+
+.va-layout {
+  height: 100vh;
+}
