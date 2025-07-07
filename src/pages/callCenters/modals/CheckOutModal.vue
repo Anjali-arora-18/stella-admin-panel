@@ -238,6 +238,8 @@ async function checkPaymentStatus(requestId) {
         message: err.response.data.error,
       })
       orderStore.setPaymentLink('')
+      orderResponse.value = ''
+      orderId.value = ''
     }
   } else {
     init({
@@ -312,6 +314,8 @@ async function createOrder() {
             message: err.response.data.error,
           })
           orderStore.setPaymentLink('')
+          orderResponse.value = ''
+          orderId.value = ''
         }
       }
     } else {
