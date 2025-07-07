@@ -1,5 +1,13 @@
 <template>
-  <VaModal v-model="showCheckoutModal" no-dismiss class="big-xl-modal" size="large" hide-default-actions>
+  <VaModal
+    v-model="showCheckoutModal"
+    no-dismiss
+    class="big-xl-modal"
+    size="large"
+    :mobile-fullscreen="false"
+    hide-default-actions
+    :close-button="!redirectUrl"
+  >
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50 min-h-screen">
       <!-- Order Summary -->
       <div class="md:col-span-1">
