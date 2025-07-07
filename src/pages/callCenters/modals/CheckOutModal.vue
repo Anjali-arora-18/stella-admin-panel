@@ -174,6 +174,7 @@ const orderStore = useOrderStore()
 const serviceStore = useServiceStore()
 
 const orderId: any = ref('')
+const orderResponse: any = ref('')
 const redirectUrl = computed(() => orderStore.redirectUrl)
 const checkInterval: any = ref('')
 watch(showCheckoutModal, (val) => {
@@ -221,8 +222,8 @@ async function checkPaymentStatus(requestId) {
       color: 'success',
       message: 'Payment Success',
     })
-    const syncResponse = await orderStore.sendOrderToWinmax(requestId)
-    if (!syncResponse.data.error) {
+    try {
+      await orderStore.sendOrderToWinmax(requestId)
       init({
         color: 'success',
         message: 'Order sent to Winmax',
@@ -231,10 +232,10 @@ async function checkPaymentStatus(requestId) {
         orderStore.cartItems = []
         window.location.reload()
       }, 800)
-    } else {
+    } catch (err) {
       init({
         color: 'danger',
-        message: syncResponse.data.error,
+        message: err.response.data.error,
       })
       orderStore.setPaymentLink('')
     }
@@ -278,9 +279,9 @@ async function createOrder() {
     if (orderId.value) {
       response = await orderStore.retryPayment(orderId.value)
     } else {
-      const orderResponse = await orderStore.createOrder(payload)
+      orderResponse.value = await orderStore.createOrder(payload)
       response = await orderStore.createPayment({
-        orderId: orderResponse.data.data._id,
+        orderId: orderResponse.value.data.data._id,
         paymentMode: payload.paymentMode,
       })
     }
@@ -295,8 +296,8 @@ async function createOrder() {
         orderId.value = response.data.data.requestId
         setInter()
       } else {
-        const syncResponse = await orderStore.sendOrderToWinmax(response.data.data.requestId)
-        if (!syncResponse.data.error) {
+        try {
+          await orderStore.sendOrderToWinmax(orderResponse.value.data.data._id)
           init({
             color: 'success',
             message: 'Order sent to Winmax',
@@ -305,10 +306,10 @@ async function createOrder() {
             orderStore.cartItems = []
             window.location.reload()
           }, 800)
-        } else {
+        } catch (err) {
           init({
             color: 'danger',
-            message: syncResponse.data.error,
+            message: err.response.data.error,
           })
           orderStore.setPaymentLink('')
         }
