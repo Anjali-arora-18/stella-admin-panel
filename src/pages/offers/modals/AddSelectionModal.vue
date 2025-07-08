@@ -328,7 +328,7 @@ const submit = async () => {
             .filter((group) => group.selected)
             .map((group) => {
               return {
-                optionGroupId: group._id,
+                optionGroupId: group.id,
                 selectedOptions: group.articlesOptions
                   .filter((option) => option.selected)
                   .map((option) => {
