@@ -23,6 +23,7 @@ export const useOrderStore = defineStore('order', {
       totalPrice: number
       selectionTotalPrice: number
     }[],
+    offerItems: [],
     paymentId: '',
     redirectUrl: '',
     deliveryZone: '',
@@ -41,11 +42,17 @@ export const useOrderStore = defineStore('order', {
     addItemToCart(item: any) {
       this.cartItems.push(item)
     },
+    offersAdded(item: any) {
+      this.offerItems.push(item)
+    },
     updateItem(index: number, newItem: any) {
       this.cartItems[index] = newItem
     },
     removeItem(index: number) {
       this.cartItems.splice(index, 1)
+    },
+    removeOffersAdded(index: number) {
+      this.offerItems.splice(index, 1)
     },
     calculateItemTotal(itemIndex: number) {
       const item = this.cartItems[itemIndex]

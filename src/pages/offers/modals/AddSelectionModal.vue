@@ -283,7 +283,7 @@ const getArticles = async () => {
       articlesOptionsGroup: e.articlesOptionsGroup.map((e) => {
         let groupSelected = false
         if (selected) {
-          groupSelected = selected.optionGroups.find((group) => group.optionGroupId === e._id)
+          groupSelected = selected.optionGroups.find((group) => group.optionGroupId === e.id)
         }
         return {
           ...e,

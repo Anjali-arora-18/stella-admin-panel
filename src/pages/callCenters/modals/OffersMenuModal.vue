@@ -109,9 +109,10 @@
                 </div>
                 <div class="flex-1">
                   <div class="text-sm font-semibold text-gray-800">{{ option.name }}</div>
-                  <div v-if="option.price" class="text-gray-800 font-semibold text-sm mt-1">
+                  <div v-if="option.price && !option.isFree" class="text-gray-800 font-semibold text-sm mt-1">
                     €{{ parseFloat(option.price).toFixed(2) }}
                   </div>
+                  <!-- <p v-if="option.isFree" class="text-sm text-gray-600 font-medium mr-2">Free</p> -->
                 </div>
 
                 <input
@@ -146,9 +147,10 @@
                 </div>
                 <div class="flex-1">
                   <div class="text-sm font-semibold text-gray-800">{{ option.name }}</div>
-                  <div v-if="option.price" class="text-gray-800 font-semibold text-sm mt-1">
+                  <div v-if="option.price && !option.isFree" class="text-gray-800 font-semibold text-sm mt-1">
                     €{{ parseFloat(option.price).toFixed(2) }}
                   </div>
+                  <!-- <p v-if="option.isFree" class="text-sm text-gray-600 font-medium mr-2">Free</p> -->
                 </div>
 
                 <div

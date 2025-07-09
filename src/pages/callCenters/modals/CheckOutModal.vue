@@ -26,6 +26,28 @@
 
               <div v-if="item.selectedOptions.length" class="item-extras">
                 <div v-for="group in item.selectedOptions" :key="group.groupId">
+                  <span v-for="extra in group.selected" :key="extra.optionId">
+                    <div class="extra-item">
+                      <span class="extra-name">+ {{ extra.name }}</span>
+                      <span class="extra-price">+€{{ (extra.price * extra.quantity).toFixed(2) }}</span>
+                    </div>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div v-for="(item, index) in orderStore.offerItems" :key="item.itemId" class="order-item">
+              <div class="item-main">
+                <div class="item-details">
+                  <div class="item-qty-name">{{ item.name }}</div>
+                  <div class="item-base-price">
+                    Base price: €{{ item.price.toFixed(2) }} + €{{ item.selectionTotalPrice.toFixed(2) }} for addons
+                  </div>
+                </div>
+                <div class="item-total-price">€{{ item.totalPrice.toFixed(2) }}</div>
+              </div>
+
+              <!-- <div v-if="item.selectedOptions.length" class="item-extras">
+                <div v-for="group in item.selectedOptions" :key="group.groupId">
                   <template v-for="extra in group.selected" :key="extra.optionId">
                     <div class="extra-item">
                       <span class="extra-name">+ {{ extra.name }}</span>
@@ -33,7 +55,7 @@
                     </div>
                   </template>
                 </div>
-              </div>
+              </div> -->
             </div>
           </div>
 
@@ -85,50 +107,6 @@
                   <div class="payment-desc">Secure payment with Visa/Mastercard</div>
                 </div>
               </div>
-
-              <!-- Credit Card Form -->
-              <div v-if="selectedPayment == 'visa'" id="cardForm" class="card-form">
-                <div class="form-row flex flex-col md:flex-row">
-                  <div class="form-group card-number">
-                    <label class="form-label">Card Number</label>
-                    <input
-                      id="cardNumber"
-                      type="text"
-                      class="form-input"
-                      placeholder="1234 5678 9012 3456"
-                      maxlength="19"
-                    />
-                  </div>
-                  <div class="form-group quarter">
-                    <label class="form-label">Expiry Date</label>
-                    <input id="expiry" type="text" class="form-input" placeholder="MM/YY" maxlength="5" />
-                  </div>
-                  <div class="form-group quarter">
-                    <label class="form-label">CVV</label>
-                    <input id="cvv" type="text" class="form-input" placeholder="123" maxlength="4" />
-                  </div>
-                  <div class="form-group half">
-                    <label class="form-label">Cardholder Name</label>
-                    <input id="cardName" type="text" class="form-input" placeholder="John Doe" />
-                  </div>
-                </div>
-
-                <div class="form-row">
-                  <div class="form-group">
-                    <div class="checkbox-group">
-                      <div id="sameAddressCheckbox" class="checkbox checked">✓</div>
-                      <label class="checkbox-label">Use same as delivery address</label>
-                    </div>
-                    <label class="form-label">Billing Address</label>
-                    <input id="billingAddress" type="text" class="form-input" value="123 Main Street, Limassol" />
-                  </div>
-                </div>
-
-                <div class="security-note">
-                  <span>🔒</span>
-                  <div><strong>Secure Payment:</strong> Your payment information is encrypted and secure.</div>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -140,7 +118,7 @@
               @click="createOrder"
             >
               <span v-if="!apiLoading" id="btnText">
-                {{ orderId && selectedPayment === 'Card' ? 'Retry Payment' : 'Complete Payment' }}</span
+                {{ orderId && selectedPayment === 'Card' ? 'Retry Payment' : '   Payment' }}</span
               >
               <div v-if="apiLoading" id="loadingSpinner" class="loading-spinner animate-spin"></div>
             </button>
@@ -160,6 +138,7 @@ import { useToast } from 'vuestic-ui'
 import { useOrderStore } from '@/stores/order-store'
 import { useServiceStore } from '@/stores/services'
 import { storeToRefs } from 'pinia'
+import { elements } from 'chart.js'
 const showCheckoutModal = ref(true)
 const selectedPayment = ref('')
 const apiLoading = ref(false)
@@ -204,7 +183,10 @@ function resetInter() {
 }
 // Computed total values
 const subtotal = computed(() => {
-  return orderStore.cartItems.reduce((acc, item) => acc + item.totalPrice, 0)
+  return (
+    orderStore.cartItems.reduce((acc, item) => acc + item.totalPrice, 0) +
+    orderStore.offerItems.reduce((acc, item) => acc + item.price + item.selectionTotalPrice, 0)
+  )
 })
 
 const totalAmount = computed(() => {
@@ -252,24 +234,44 @@ async function checkPaymentStatus(requestId) {
 
 async function createOrder() {
   apiLoading.value = true
+  let menuItems = []
+  menuItems = orderStore.cartItems.map((e) => {
+    return {
+      menuItem: e.itemId,
+      quantity: e.quantity,
+      options: e.selectedOptions.flatMap((group) =>
+        group.selected.map((option) => ({
+          option: option.optionId,
+          quantity: option.quantity,
+        })),
+      ),
+    }
+  })
+
+  orderStore.offerItems.forEach(({ ...element }) => {
+    console.log(element)
+    element.selections.forEach((selectedItems) => {
+      selectedItems.addedItems.forEach((addedItems) => {
+        menuItems.push({
+          menuItem: addedItems.itemId,
+          quantity: 1,
+          options: addedItems.selectedOptions.flatMap((group) =>
+            group.selected.map((option) => ({
+              option: option.optionId,
+              quantity: option.quantity,
+            })),
+          ),
+        })
+      })
+    })
+  })
   try {
     const payload = {
       customerDetailId: props.customerDetailsId,
       orderType: props.orderType === 'takeaway' ? 'Takeaway' : 'Delivery',
       deliveryZoneId: orderStore.deliveryZone,
       address: orderStore.address,
-      menuItems: orderStore.cartItems.map((e) => {
-        return {
-          menuItem: e.itemId,
-          quantity: e.quantity,
-          options: e.selectedOptions.flatMap((group) =>
-            group.selected.map((option) => ({
-              option: option.optionId,
-              quantity: option.quantity,
-            })),
-          ),
-        }
-      }),
+      menuItems: menuItems,
       orderNotes: '',
       deliveryFee: props.deliveryFee,
       outletId: serviceStore.selectedRest,

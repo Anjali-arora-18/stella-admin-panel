@@ -34,7 +34,7 @@
                 €{{ parseFloat(addOnPrice).toFixed(2) }} <span class="text-xs ml-2">(Add-ons)</span>
               </div>
             </div>
-            <button class="add-to-basket" :disabled="totalSelected < totalRequired">
+            <button class="add-to-basket" :disabled="totalSelected < totalRequired" @click="addToBasket">
               {{
                 totalSelected >= totalRequired
                   ? 'Add Bundle to Basket'
@@ -66,6 +66,7 @@ import { useOrderStore } from '@/stores/order-store'
 import SelectionGroup from './SelectionGroup.vue'
 import axios from 'axios'
 import { useMenuStore } from '@/stores/getMenu'
+import { isTemplateExpression } from 'typescript'
 const orderStore = useOrderStore()
 
 const showOfferModal = ref(true)
@@ -121,6 +122,16 @@ const totalSelected = computed(() => {
 })
 
 const { addOnPrice } = storeToRefs(menuStore)
+
+function addToBasket() {
+  orderStore.offersAdded({
+    ...offer.value,
+    selectionTotalPrice: addOnPrice.value,
+    quantity: 1,
+    totalPrice: offer.value.price + addOnPrice.value,
+  })
+  emits('cancel')
+}
 </script>
 <style>
 .offer-modal {

@@ -143,6 +143,19 @@
                 searchable
                 highlight-matched-text
               />
+              <!-- Meeting Points under address dropdown -->
+              <div
+                v-if="selectedTab === 'delivery' && selectedZoneDetails?.meetingPointAddress?.length"
+                class="mt-2 border border-blue-100 rounded bg-blue-50 px-3 py-2 text-sm text-blue-900"
+              >
+                <div class="font-semibold mb-1">🧭 Meeting Points</div>
+                <ul class="list-disc list-inside space-y-1">
+                  <li v-for="(point, idx) in selectedZoneDetails.meetingPointAddress" :key="idx">
+                    {{ point }}
+                  </li>
+                </ul>
+              </div>
+
               <button
                 :disable="!selectedAddress"
                 class="bg-blue-500 text-white px-2 py-1 rounded"
@@ -224,6 +237,8 @@ const userResults = ref([])
 const selectedUser = ref('')
 const selectedZone = ref('')
 const showDeliveryDropdown = ref(false)
+const selectedZoneDetails = ref(null)
+
 onClickOutside(target, (event) => (userResults.value = []), { ignore: [deliveryTarget] })
 onClickOutside(deliveryTarget, (event) => (showDeliveryDropdown.value = false), { ignore: [target] })
 
@@ -314,6 +329,7 @@ function selectDeliveryZone(zone) {
   orderStore.setDeliveryZone(zone._id)
   selectedZone.value = zone.name
   serviceZoneId.value = zone.serviceZoneId
+  selectedZoneDetails.value = zone
   showDeliveryDropdown.value = false
 }
 
