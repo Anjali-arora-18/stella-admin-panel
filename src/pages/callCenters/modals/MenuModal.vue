@@ -130,18 +130,16 @@
                   class="absolute bottom-2 right-2 accent-gray-700 pointer-events-none"
                 />
               </label>
-
-              <!-- Multiple Choice styled like single -->
               <label
                 v-for="option in group.options"
-                v-if="group.multipleChoice"
+                v-if="group.multipleChoiceNoQty"
                 :key="option._id"
                 class="w-[200px] h-[80px] relative flex items-center border p-2 rounded-lg cursor-pointer transition-all"
                 :class="{
                   'border-gray-700 bg-[#f8f9fa] border-2': isChecked(group, option._id),
                   'border-gray-200 hover:border-gray-700 hover:border-2': !isChecked(group, option._id),
                 }"
-                @click.prevent="toggleMultipleChoice(group, option)"
+                @click.prevent="toggleMultipleChoiceNoQty(group, option)"
               >
                 <div v-if="option.imageUrl" class="item-image">
                   <img
@@ -166,7 +164,7 @@
               </label>
 
               <!-- Multiple Choice -->
-              <!-- <div
+              <div
                 v-for="option in group.options"
                 v-if="group.multipleChoice"
                 :key="option._id"
@@ -213,7 +211,7 @@
                     +
                   </button>
                 </div>
-              </div> -->
+              </div>
             </div>
           </div>
         </div>
@@ -369,30 +367,7 @@ function addToBasket(item: any) {
   emits('cancel')
 }
 
-function updateSingleChoice(group: any, option: any) {
-  const index = selectedOptions.value.findIndex((sel) => sel.groupId === group._id)
-  const newEntry = {
-    groupId: group._id,
-    groupName: group.name,
-    selected: [
-      {
-        optionId: option._id,
-        name: option.name,
-        type: option.type,
-        price: option.price,
-        quantity: 1,
-      },
-    ],
-  }
-
-  if (index !== -1) {
-    selectedOptions.value[index] = newEntry
-  } else {
-    selectedOptions.value.push(newEntry)
-  }
-}
-
-function toggleMultipleChoice(group, option) {
+function toggleMultipleChoiceNoQty(group, option) {
   const groupEntry = selectedOptions.value.find((g) => g.groupId === group._id)
   const maxAllowed = group.maximumChoices || 99
 
@@ -427,6 +402,29 @@ function toggleMultipleChoice(group, option) {
       price: option.price,
       quantity: 1,
     })
+  }
+}
+
+function updateSingleChoice(group: any, option: any) {
+  const index = selectedOptions.value.findIndex((sel) => sel.groupId === group._id)
+  const newEntry = {
+    groupId: group._id,
+    groupName: group.name,
+    selected: [
+      {
+        optionId: option._id,
+        name: option.name,
+        type: option.type,
+        price: option.price,
+        quantity: 1,
+      },
+    ],
+  }
+
+  if (index !== -1) {
+    selectedOptions.value[index] = newEntry
+  } else {
+    selectedOptions.value.push(newEntry)
   }
 }
 
