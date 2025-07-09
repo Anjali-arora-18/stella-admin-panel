@@ -144,7 +144,7 @@
                 highlight-matched-text
               />
               <!-- Meeting Points under address dropdown -->
-              <div
+              <!-- <div
                 v-if="selectedTab === 'delivery' && selectedZoneDetails?.meetingPointAddress?.length"
                 class="mt-2 border border-blue-100 rounded bg-blue-50 px-3 py-2 text-sm text-blue-900"
               >
@@ -154,7 +154,7 @@
                     {{ point }}
                   </li>
                 </ul>
-              </div>
+              </div> -->
 
               <button
                 :disable="!selectedAddress"
