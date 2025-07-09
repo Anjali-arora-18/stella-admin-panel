@@ -69,7 +69,7 @@ const columns = defineVaDataTableColumns([
   { label: 'Price', key: 'price', sortable: true, sortingOptions: ['desc', 'asc'] },
   { label: 'Category', key: 'category', sortable: false },
   { label: 'Sub-Category', key: 'sub_category', sortable: false },
-  { label: 'Options', key: 'options', sortable: false },
+  { label: 'Options', key: 'articlesOptionsGroup', sortable: false },
   { label: 'Image', key: 'image', sortable: false },
   { label: 'Allergens', key: 'allergenIds', sortable: false },
   { label: 'Active', key: 'isActive', sortable: false },
@@ -269,34 +269,30 @@ function openFileModal(data) {
           </template>
         </div>
       </template>
-      <template #cell(options)="{ rowData }">
-        <div>
-          <div v-if="rowData.options" className="flex flex-col gap-1">
-            <template v-for="(value, key) in rowData.options" :key="value">
-              <div v-if="value.length" class="text-sm">
-                <span class="options">
-                  {{ key }}:
-                  <template v-if="value.length <= 2">
-                    <VaBadge v-for="sub in value" :key="sub" :text="sub" color="secondary" class="px-1" />
-                  </template>
-                  <template v-else>
-                    <VaBadge
-                      v-for="(subValue, subKey) in value.slice(0, 2)"
-                      :key="subKey"
-                      :text="subValue"
-                      color="secondary"
-                      class="px-1"
-                    />
-                    <VaBadge :text="`+${value.length - 2} more`" color="secondary" class="px-1" />
-                  </template>
-                  <div class="ml-2">{{ subValue }}</div>
-                </span>
-              </div>
-            </template>
-          </div>
-          <span v-else>No options</span>
+      <template #cell(articlesOptionsGroup)="{ rowData }">
+        <div class="flex flex-col flex-wrap gap-1">
+          <template v-if="rowData.articlesOptionsGroup?.length <= 2">
+            <VaBadge
+              v-for="group in rowData.articlesOptionsGroup"
+              :key="group.id"
+              :text="group.name"
+              color="success"
+              class="px-1"
+            />
+          </template>
+          <template v-else>
+            <VaBadge
+              v-for="group in rowData.articlesOptionsGroup.slice(0, 2)"
+              :key="group.id"
+              :text="group.name"
+              color="success"
+              class="px-1"
+            />
+            <VaBadge :text="`+${rowData.articlesOptionsGroup.length - 2} more`" color="success" class="px-1" />
+          </template>
         </div>
       </template>
+
       <template #cell(image)="{ rowData }">
         <div class="relative group w-10 h-10 overflow-hidden rounded">
           <!-- Image Display -->
@@ -358,7 +354,7 @@ function openFileModal(data) {
                 v-for="e in rowData.allergenIds"
                 :key="e"
                 class="px-1"
-                color="primary"
+                color="#db2777"
                 :text="`${getAllergenNames(e)}`"
               />
             </template>
@@ -367,10 +363,10 @@ function openFileModal(data) {
                 v-for="e in rowData.allergenIds.slice(0, 2)"
                 :key="e"
                 class="px-1"
-                color="primary"
+                color="#db2777"
                 :text="`${getAllergenNames(e)}`"
               />
-              <VaBadge :text="`+${rowData.allergenIds.length - 2} more`" color="primary" class="px-1" />
+              <VaBadge :text="`+${rowData.allergenIds.length - 2} more`" color="#db2777" class="px-1" />
             </template>
           </div>
         </div>

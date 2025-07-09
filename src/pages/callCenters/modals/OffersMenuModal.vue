@@ -71,10 +71,6 @@
             <!-- Group Title -->
             <div class="flex items-center gap-2">
               <span class="text-green-900 font-bold uppercase text-sm">{{ group.name }}</span>
-              <!-- <span v-if="group.mandatory" class="text-[10px] bg-red-500 text-white font-semibold px-2 rounded-full">
-                Required
-              </span> -->
-
               <span
                 v-if="group.minimumChoices"
                 class="text-[10px] bg-blue-100 text-blue-700 font-semibold px-2 rounded-full"
@@ -83,7 +79,6 @@
               </span>
 
               <!-- Max Choices -->
-
               <span
                 v-if="group.maximumChoices"
                 class="text-[10px] bg-blue-100 text-blue-700 font-semibold px-2 rounded-full"
@@ -127,6 +122,40 @@
                   :value="option.optionId"
                   class="absolute bottom-2 right-2 accent-gray-700 pointer-events-none"
                 />
+              </label>
+
+              <!-- Multiple Choice (No Qty)-->
+              <label
+                v-for="option in group.selectedOptions"
+                v-if="group.multipleChoiceNoQty"
+                :key="option.optionId"
+                class="w-[200px] h-[80px] relative flex items-center border p-2 rounded-lg cursor-pointer transition-all"
+                :class="{
+                  'border-gray-700 bg-[#f8f9fa] border-2': isChecked(group, option._id),
+                  'border-gray-200 hover:border-gray-700 hover:border-2': !isChecked(group, option._id),
+                }"
+                @click.prevent="toggleMultipleChoiceNoQty(group, option)"
+              >
+                <div v-if="option.imageUrl" class="item-image">
+                  <img
+                    :src="option.imageUrl"
+                    alt="Option"
+                    :class="isChecked(group, option._id) ? 'bg-white' : 'bg-[#f8f9fa]'"
+                    class="rounded w-full h-full"
+                  />
+                </div>
+                <div class="flex-1">
+                  <div class="text-sm font-semibold text-gray-800">{{ option.name }}</div>
+                  <div v-if="option.price" class="text-gray-800 font-semibold text-sm mt-1">
+                    €{{ parseFloat(option.price).toFixed(2) }}
+                  </div>
+                </div>
+
+                <div
+                  class="absolute bottom-2 right-2 w-3 h-3 border border-gray-500 rounded-full flex items-center justify-center"
+                >
+                  <div v-if="isChecked(group, option.optionId)" class="w-1.5 h-1.5 bg-gray-700 rounded-full"></div>
+                </div>
               </label>
 
               <!-- Multiple Choice -->
@@ -347,6 +376,38 @@ function addToBasket(item: any) {
   emits('items-added')
 }
 
+function toggleMultipleChoiceNoQty(group, option, quantity) {
+  const min = option.minimumChoices || 0
+  const max = option.maximumChoices || group.maximumChoices || 99
+
+  let groupEntry = selectedOptions.value.find((sel) => sel.groupId === group.optionGroupId)
+
+  if (!groupEntry) {
+    groupEntry = {
+      groupId: group.optionGroupId,
+      groupName: group.name,
+      selected: [],
+    }
+    selectedOptions.value.push(groupEntry)
+  }
+
+  const optionIndex = groupEntry.selected.findIndex((o) => o.optionId === option.optionId)
+  if (optionIndex !== -1) {
+    groupEntry.selected.splice(optionIndex, 1)
+    return
+  } else {
+    const newOption = {
+      optionId: option.optionId,
+      name: option.name,
+      type: option.type,
+      price: option.isFree ? 0 : option.price,
+      quantity: 1,
+    }
+
+    groupEntry.selected.push(newOption)
+  }
+}
+
 function updateSingleChoice(group: any, option: any) {
   const index = selectedOptions.value.findIndex((sel) => sel.groupId === group.optionGroupId)
   const newEntry = {
@@ -504,10 +565,4 @@ function decrement(item) {
   font-size: 40px;
   flex-shrink: 0;
 }
-/* :root {
-  --va-modal-padding-top: 0rem;
-  --va-modal-padding-right: 0rem;
-  --va-modal-padding-bottom: 0rem;
-  --va-modal-padding-left: 0rem;
-} */
 </style>

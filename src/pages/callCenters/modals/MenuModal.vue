@@ -31,7 +31,6 @@
           </p>
 
           <!-- Tags -->
-
           <div
             v-if="item.allergenIds && item.allergenIds.length"
             class="flex flex-wrap justify-center gap-1 mt-3 text-xs"
@@ -74,7 +73,6 @@
                 Required
               </span>
               <!-- Min Choices -->
-
               <span
                 v-if="group.minimumChoices"
                 class="text-[10px] bg-blue-100 text-blue-700 font-semibold px-2 rounded-full"
@@ -83,7 +81,6 @@
               </span>
 
               <!-- Max Choices -->
-
               <span
                 v-if="group.maximumChoices"
                 class="text-[10px] bg-blue-100 text-blue-700 font-semibold px-2 rounded-full"
@@ -130,6 +127,8 @@
                   class="absolute bottom-2 right-2 accent-gray-700 pointer-events-none"
                 />
               </label>
+
+              <!-- Multiple Choice (No Qty)-->
               <label
                 v-for="option in group.options"
                 v-if="group.multipleChoiceNoQty"
@@ -157,9 +156,13 @@
                 </div>
 
                 <div
-                  class="absolute bottom-2 right-2 w-3.5 h-3.5 border border-gray-500 rounded-full flex items-center justify-center"
+                  class="absolute bottom-2 right-2 w-3 h-3 border border-gray-500 rounded-full flex items-center justify-center p-0 m-0"
                 >
-                  <div v-if="isChecked(group, option._id)" class="w-2 h-2 bg-gray-700 rounded-full"></div>
+                  <div
+                    v-if="isChecked(group, option._id)"
+                    class="w-1.5 h-1.5 bg-gray-700 rounded-full"
+                    style="margin: 0; padding: 0"
+                  ></div>
                 </div>
               </label>
 
@@ -393,7 +396,6 @@ function toggleMultipleChoiceNoQty(group, option) {
   if (optIndex !== -1) {
     groupEntry.selected.splice(optIndex, 1)
   } else {
-    // Check if adding would exceed maximum
     if (groupEntry.selected.length >= maxAllowed) return
     groupEntry.selected.push({
       optionId: option._id,
@@ -566,10 +568,4 @@ function decrement(item) {
   font-size: 40px;
   flex-shrink: 0;
 }
-/* :root {
-  --va-modal-padding-top: 0rem;
-  --va-modal-padding-right: 0rem;
-  --va-modal-padding-bottom: 0rem;
-  --va-modal-padding-left: 0rem;
-} */
 </style>

@@ -12,9 +12,13 @@
 
       <div class="modal-body">
         <div class="pizzas-grid">
-          <div v-for="item in menuItems" :key="item._id" class="pizza-card"
+          <div
+            v-for="item in menuItems"
+            :key="item._id"
+            class="pizza-card"
             :class="{ selected: selectedArticle && selectedArticle.id === item.id }"
-            @click.prevent="selectArticle(item)">
+            @click.prevent="selectArticle(item)"
+          >
             <div class="pizza-image"><img :src="item.imageUrl" class="object-fit" /></div>
             <div class="pizza-content">
               <div class="pizza-name">{{ item.name }}</div>
@@ -25,8 +29,14 @@
         </div>
       </div>
     </div>
-    <OffersMenuModal v-if="showOptionsGroup" :item="selectedArticle" :offerGroup="group"
-      :show-menu-modal="showOptionsGroup" @items-added="closeModal()" @cancel="showOptionsGroup = false" />
+    <OffersMenuModal
+      v-if="showOptionsGroup"
+      :item="selectedArticle"
+      :offer-group="group"
+      :show-menu-modal="showOptionsGroup"
+      @itemsAdded="closeModal()"
+      @cancel="showOptionsGroup = false"
+    />
   </div>
 </template>
 
