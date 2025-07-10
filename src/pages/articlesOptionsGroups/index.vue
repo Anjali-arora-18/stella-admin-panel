@@ -9,7 +9,6 @@ const servicesStore = useServiceStore()
 const items = ref([])
 const { init } = useToast()
 const isLoading = ref(false)
-
 const searchValue = ref('')
 const sortBy = ref('name')
 const sortOrder = ref('asc')
@@ -79,6 +78,8 @@ function updateSortOrder(payload) {
       <OptionGroupsTable
         :items="items"
         :loading="isLoading"
+        :search-query="searchValue"
+        @update:searchValue="(val) => (searchValue = val)"
         @sortBy="updateSortBy"
         @sortingOrder="updateSortOrder"
         @getOptionGroups="getOptionGroupsForSearch"

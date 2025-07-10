@@ -18,6 +18,7 @@ const originalItems = ref([])
 const count = ref(0)
 const pageNumber = ref(1)
 const searchQuery = ref('')
+const currentPage = ref(1)
 const sortBy = ref('name')
 const sortOrder = ref('asc')
 const selectedArticle = ref('')
@@ -177,10 +178,14 @@ const isImportArticleModalOpen = ref(false)
       <ArticlesTable
         :items="items"
         :loading="isLoading"
+        :search-query="searchQuery"
+        :current-page="currentPage"
         :categories="categories"
         :count="count"
         :sort-by="sortBy"
         :sort-order="sortOrder"
+        @update:searchQuery="(val) => (searchQuery = val)"
+        @update:currentPage="(val) => (currentPage = val)"
         @sortBy="updateSortBy"
         @sortingOrder="updateSortOrder"
         @updateArticleModal="updateArticleModal"

@@ -80,6 +80,8 @@ function updateSortOrder(payload) {
       <OptionsTable
         :items="items"
         :loading="isLoading"
+        :search-query="searchValue"
+        @update:searchValue="(val) => (searchValue = val)"
         @sortBy="updateSortBy"
         @sortingOrder="updateSortOrder"
         @getOptions="getOptionsForSearch"

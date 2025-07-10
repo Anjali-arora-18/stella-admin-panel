@@ -300,33 +300,37 @@ watch(searchQuery, (search) => {
         </div>
       </template>
     </VaDataTable>
-  </div>
-  <EditArticleOptionGroupsModal
-    v-if="isEditArticleOptionGroupsModal"
-    :selected-option-groups="selectedOptionGroups"
-    @cancel="(isEditArticleOptionGroupsModal = false), (selectedOptionGroups = ''), emits('getOptionGroups')"
-  />
 
-  <EditArticleOptionGroupsOptionsModal
-    v-if="isEditArticleOptionsModal"
-    :selected-options="selectedOptions"
-    @cancel="
-      (isEditArticleOptionsModal = false),
-        (isEditArticleOptionsModal = ''),
-        (selectedOptions = ''),
-        emits('getOptionGroups')
-    "
-  />
-  <EditArticleOptionGroupsItemsModal
-    v-if="isEditArticleOptionGroupsItemsModal"
-    :selected-option-group="selectedItems"
-    @cancel="(isEditArticleOptionGroupsItemsModal = false), (selectedItems = ''), emits('getOptionGroups')"
-  />
-  <EditOptionGroupArticlesModal
-    v-if="isEditOptionGroupArticlesModal"
-    :selected-items="selectedItems"
-    @cancel="(isEditOptionGroupArticlesModal = false), (selectedItems = ''), emits('getOptionGroups')"
-  />
+    <EditArticleOptionGroupsModal
+      v-if="isEditArticleOptionGroupsModal"
+      :selected-option-groups="selectedOptionGroups"
+      @cancel="
+        (isEditArticleOptionGroupsModal = false), (selectedOptionGroups = ''), emits('getOptionGroups', searchQuery)
+      "
+    />
+    <EditArticleOptionGroupsOptionsModal
+      v-if="isEditArticleOptionsModal"
+      :selected-options="selectedOptions"
+      @cancel="
+        (isEditArticleOptionsModal = false),
+          (isEditArticleOptionsModal = ''),
+          (selectedOptions = ''),
+          emits('getOptionGroups', searchQuery)
+      "
+    />
+    <EditArticleOptionGroupsItemsModal
+      v-if="isEditArticleOptionGroupsItemsModal"
+      :selected-option-group="selectedItems"
+      @cancel="
+        (isEditArticleOptionGroupsItemsModal = false), (selectedItems = ''), emits('getOptionGroups', searchQuery)
+      "
+    />
+    <EditOptionGroupArticlesModal
+      v-if="isEditOptionGroupArticlesModal"
+      :selected-items="selectedItems"
+      @cancel="(isEditOptionGroupArticlesModal = false), (selectedItems = ''), emits('getOptionGroups', searchQuery)"
+    />
+  </div>
 </template>
 
 <style lang="scss" scoped>

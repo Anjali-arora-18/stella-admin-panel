@@ -326,12 +326,19 @@ const onButtonOptionImageDelete = async (payload) => {
         </div>
       </template>
     </VaDataTable>
+
+    <EditArticleOptionModal
+      v-if="isEditArticleOptionModal"
+      :selected-option="selectedOptions"
+      @cancel="
+        () => {
+          isEditArticleOptionModal = false
+          selectedOptions = ''
+          emits('getOptions', searchQuery)
+        }
+      "
+    />
   </div>
-  <EditArticleOptionModal
-    v-if="isEditArticleOptionModal"
-    :selected-option="selectedOptions"
-    @cancel="(isEditArticleOptionModal = false), (selectedOptions = ''), emits('getOptions')"
-  />
 </template>
 
 <style lang="scss" scoped>
