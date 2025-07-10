@@ -426,12 +426,14 @@ const filteredAddresses = computed(() => {
         value: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
       }
     })
-    selectedZoneDetails.value.meetingPointAddress.forEach((meetingPoint) => {
-      addresses.push({
-        text: `Meeting Point - ${meetingPoint}`,
-        value: meetingPoint,
+    selectedZoneDetails.value.meetingPointAddress
+      .filter((a) => a !== '')
+      .forEach((meetingPoint) => {
+        addresses.push({
+          text: `Meeting Point - ${meetingPoint}`,
+          value: meetingPoint,
+        })
       })
-    })
     return addresses
   } else {
     return []
