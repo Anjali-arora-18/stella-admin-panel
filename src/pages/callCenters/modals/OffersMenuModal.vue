@@ -31,21 +31,6 @@
             {{ item.description }}
           </p>
 
-          <!-- Tags -->
-          <!-- 
-          <div
-            v-if="item.allergenIds && item.allergenIds.length"
-            class="flex flex-wrap justify-center gap-1 mt-3 text-xs"
-          >
-            <img
-              v-for="allergenId in item.allergenIds"
-              :key="allergenId"
-              :src="allergenIcons[allergenId] || '/missing-image.png'"
-              :alt="`Allergen ${allergenId}`"
-              class="w-8 h-8 object-contain bg-pink-100 text-pink-600 px-2 py-1 rounded-full flex items-center gap-1"
-            />
-          </div> -->
-
           <!-- Price -->
           <div class="text-green-900 font-bold text-2xl mt-4">€{{ parseFloat(totalPrice).toFixed(2) }}</div>
 
@@ -71,6 +56,13 @@
             <!-- Group Title -->
             <div class="flex items-center gap-2">
               <span class="text-green-900 font-bold uppercase text-sm">{{ group.name }}</span>
+
+              <!-- Required Badge -->
+              <span v-if="group.mandatory" class="text-[10px] bg-red-500 text-white font-semibold px-2 rounded-full">
+                Required
+              </span>
+
+              <!-- Min Choices -->
               <span
                 v-if="group.minimumChoices"
                 class="text-[10px] bg-blue-100 text-blue-700 font-semibold px-2 rounded-full"
