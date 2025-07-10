@@ -143,18 +143,6 @@
                 searchable
                 highlight-matched-text
               />
-              <!-- Meeting Points under address dropdown -->
-              <!-- <div
-                v-if="selectedTab === 'delivery' && selectedZoneDetails?.meetingPointAddress?.length"
-                class="mt-2 border border-blue-100 rounded bg-blue-50 px-3 py-2 text-sm text-blue-900"
-              >
-                <div class="font-semibold mb-1">🧭 Meeting Points</div>
-                <ul class="list-disc list-inside space-y-1">
-                  <li v-for="(point, idx) in selectedZoneDetails.meetingPointAddress" :key="idx">
-                    {{ point }}
-                  </li>
-                </ul>
-              </div> -->
 
               <button
                 :disable="!selectedAddress"
@@ -176,10 +164,9 @@
                   :key="index"
                   class="px-3 py-2 hover:bg-gray-100 cursor-pointer border border-b-1"
                   :class="{
-                    'bg-gray-100 !cursor-not-allowed': selectedTab === 'delivery',
                     'text-primary font-bold': selectedZone === zone.name,
                   }"
-                  @click="selectedTab === 'takeaway' ? selectDeliveryZone(zone) : ''"
+                  @click="selectDeliveryZone(zone)"
                 >
                   {{ zone.serviceZoneId }} - {{ zone.name }}
                 </li>
@@ -351,14 +338,12 @@ async function handleDeliveryZoneFetch() {
     })
     return
   }
-  let payloadPostCode = postalCode
-  if (selectedTab.value === 'takeaway') {
-    payloadPostCode = ''
-  }
+  // let payloadPostCode = postalCode
+  // if (selectedTab.value === 'takeaway') {
+  //   payloadPostCode = ''
+  // }
   try {
-    const response = await axios.get(
-      `${import.meta.env.VITE_API_BASE_URL}/deliveryZones/${servicesStore.selectedRest}?postalCode=${payloadPostCode}`,
-    )
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/deliveryZones/${servicesStore.selectedRest}`)
 
     deliveryZoneOptions.value = response.data.data.sort((a, b) => {
       return Number(a.serviceZoneId) - Number(b.serviceZoneId)
@@ -386,6 +371,7 @@ async function handleDeliveryZoneFetch() {
       }
     }
   } catch (err) {
+    console.log(err)
     selectedZone.value = ''
     if (selectedTab.value === 'delivery') {
       serviceZoneId.value = ''
@@ -427,17 +413,39 @@ function getParsedAddress(payload) {
 }
 
 const filteredAddresses = computed(() => {
-  if (selectedUser.value) {
-    return selectedUser.value['OtherAddresses'].map((e, index) => {
+  if (selectedZoneDetails.value) {
+    const OtherAddresses = selectedUser.value['OtherAddresses'].filter((address) => {
+      const adrs = address.Address.split(',')
+      const postalCode = adrs[adrs.length - 1].trim().toString()
+
+      return selectedZoneDetails.value.postalCodes.includes(postalCode)
+    })
+    const addresses = OtherAddresses.map((e) => {
       return {
         text: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
-        value: index,
+        value: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
       }
     })
+    selectedZoneDetails.value.meetingPointAddress.forEach((meetingPoint) => {
+      addresses.push({
+        text: `Meeting Point - ${meetingPoint}`,
+        value: meetingPoint,
+      })
+    })
+    return addresses
   } else {
     return []
   }
 })
+
+watch(
+  () => selectedZoneDetails.value,
+  (newVal, oldVal) => {
+    if (newVal && oldVal) {
+      selectedAddress.value = filteredAddresses.value.length ? filteredAddresses.value[0] : ''
+    }
+  },
+)
 
 watch(
   () => selectedUser.value,
@@ -449,10 +457,15 @@ watch(
         text: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}${getParsedAddress(
           firstAddress.Address,
         )}`,
-        value: 0,
+        value: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}${getParsedAddress(
+          firstAddress.Address,
+        )}`,
       }
     }
     emits('setOrderType', selectedTab.value)
+    if (selectedUser.value) {
+      handleDeliveryZoneFetch()
+    }
     emits('setCustomerDetailsId', selectedUser.value._id)
     userResults.value = []
   },
@@ -476,11 +489,9 @@ watch(
   () => selectedAddress.value,
   () => {
     emits('setDeliveryFee', 0)
-    emits('setDeliveryZone', false)
+    emits('setDeliveryZone', true)
     selectedZone.value = ''
-    if (selectedUser.value) {
-      handleDeliveryZoneFetch()
-    }
+
     orderStore.setAddress(selectedAddress.value.text)
   },
 )

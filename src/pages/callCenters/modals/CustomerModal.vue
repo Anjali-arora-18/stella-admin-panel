@@ -72,7 +72,7 @@
             <h3 class="font-semibold text-gray-700 border-b border-green-800 pb-1 mb-4">Address Information</h3>
 
             <p class="mb-2 text-sm font-medium text-gray-500">Search Postcode or Street Name</p>
-            <div class="relative">
+            <div ref="dropdownContainer" class="relative">
               <div class="flex flex-col sm:flex-row gap-4 mb-4">
                 <VaInput v-model="searchAdd.postalCode" placeholder="Postcode" class="w-full sm:w-1/3" />
                 <VaInput v-model="searchAdd.street" placeholder="Street Name" class="w-full sm:w-1/2" />
@@ -84,7 +84,7 @@
                   🔍
                 </VaButton>
               </div>
-              <div v-if="streetList.length" id="userResults" class="customer-results">
+              <div v-if="streetList.length" id="userResults" ref="dropdownRef" class="customer-results">
                 <ul class="divide divide-y-2">
                   <li
                     v-for="street in streetList"
@@ -201,7 +201,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, reactive, computed, nextTick } from 'vue'
+import { ref, watch, reactive, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useToast } from 'vuestic-ui'
 import axios from 'axios'
 import { useServiceStore } from '@/stores/services.ts'
@@ -217,6 +217,8 @@ const props = defineProps<{
 }>()
 const addressListRef = ref(null)
 const addressItems = ref([])
+const dropdownRef = ref(null)
+const dropdownContainer = ref(null)
 
 const showCustomerModal = ref(true)
 const searchAdd = reactive({
@@ -284,6 +286,17 @@ if (props.selectedUser) {
 const isEdit = computed(() => {
   return props.selectedUser
 })
+
+function handleClickOutside(event: MouseEvent) {
+  if (
+    dropdownRef.value &&
+    !dropdownRef.value.contains(event.target as Node) &&
+    dropdownContainer.value &&
+    !dropdownContainer.value.contains(event.target as Node)
+  ) {
+    streetList.value = []
+  }
+}
 
 function setAddress(address) {
   streetAddress.value = address['Street Name']
@@ -421,20 +434,26 @@ async function handleSubmit() {
     isSubmitting.value = false
   }
 }
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
 <style>
 .customer-results {
-  max-height: 200px;
-  width: 100%;
   position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: calc(100vh - 400px);
   overflow-y: auto;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  margin-top: 0px;
-  top: 80%;
-  margin-bottom: 16px;
   background: white;
-  z-index: 10;
+  z-index: 50;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 .custom-scroll::-webkit-scrollbar {
