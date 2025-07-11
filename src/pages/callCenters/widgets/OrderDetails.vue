@@ -260,7 +260,7 @@ const items = computed(() =>
     const unitTotal = item.totalPrice / item.quantity
 
     return {
-      id: item._id || index, // fallback to index if no ID
+      id: item.itemId || index, // fallback to index if no ID
       name: item.itemName,
       quantity: item.quantity,
       basePrice: item.basePrice,
@@ -338,6 +338,7 @@ const total = computed(() => {
 })
 
 const increaseQty = (item) => {
+  console.log(item, cartItems.value)
   const index = cartItems.value.findIndex((i) => i.itemId === item.id)
   if (index !== -1) {
     orderStore.cartItems[index].quantity++
