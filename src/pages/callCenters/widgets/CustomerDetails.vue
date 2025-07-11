@@ -393,11 +393,11 @@ function getParsedAddress(payload) {
   if (add[1]) {
     address += add[1] + (add[2] ? ',' : '')
   }
-  if (add[2]) {
-    address += add[2] + (!add[3] && add[4] ? ',' : ' ')
-  }
   if (add[3]) {
-    address += add[3] + (add[4] ? ',' : ' ')
+    address += add[3] + (!add[2] && add[4] ? ',' : ' ')
+  }
+  if (add[2]) {
+    address += add[2] + (add[4] ? ',' : ' ')
   }
   if (add[4]) {
     address += add[4] + (add[5] ? ',' : '')

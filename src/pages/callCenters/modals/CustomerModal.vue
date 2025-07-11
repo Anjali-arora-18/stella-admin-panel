@@ -164,6 +164,8 @@
       <div class="flex flex-wrap sm:justify-end items-center gap-4">
         <VaButtonToggle
           v-model="isTick"
+          toggle-color="textSecondary"
+          color="#65667c"
           :options="[
             {
               label: 'Save Data',
