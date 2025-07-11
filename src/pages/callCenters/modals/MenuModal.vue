@@ -341,7 +341,12 @@ function addToBasket(item: any) {
     basePrice: props.isEdit ? item.basePrice : parseFloat(item.price),
     imageUrl: item.imageUrl,
     quantity: props.isEdit ? item.quantity : 1,
-    selectedOptions: selectedOptions.value,
+    selectedOptions: props.item.articlesOptionsGroups
+      .map((group) => {
+        const entry = selectedOptions.value.find((sel) => sel.groupId === group._id)
+        return entry ? { ...entry } : ''
+      })
+      .filter((a) => a),
     totalPrice: 0,
     selectionTotalPrice: 0,
   }

@@ -41,32 +41,24 @@
               <!-- Options -->
               <div class="flex flex-wrap gap-1 mt-1 text-xs">
                 <span
-                  v-for="option in item.additions"
-                  :key="option"
-                  class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full"
-                >
-                  {{ option }}
-                </span>
-                <span
-                  v-for="removal in item.removals"
-                  :key="removal"
-                  class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full"
-                >
-                  -{{ removal }}
-                </span>
-                <span
-                  v-for="modifier in item.modifierType"
-                  :key="modifier"
-                  class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full"
-                >
-                  *{{ modifier }}
-                </span>
-                <span
                   v-for="article in item.articleType"
                   :key="article"
                   class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full"
                 >
                   {{ article }}
+                </span>
+                <span
+                  v-for="option in item.subItems"
+                  :key="option"
+                  class="px-2 py-0.5 rounded-full"
+                  :class="{
+                    'bg-green-100 text-green-700': option.type === 'extra',
+                    'bg-blue-100 text-blue-700': option.type === 'article',
+                    'bg-red-100 text-red-700': option.type === 'hold',
+                    'bg-amber-100 text-amber-700': option.type === 'modifier',
+                  }"
+                >
+                  {{ option.text }}
                 </span>
               </div>
 
@@ -238,22 +230,10 @@ const formattedLabel = (sel) => {
 
 const items = computed(() =>
   cartItems.value.map((item, index) => {
-    const additions = []
-    const removals = []
-    const modifierType = []
-    const articleType = []
-
+    const subItems = []
     item.selectedOptions.forEach((group) => {
       group.selected.forEach((sel) => {
-        if (sel.type === 'hold') {
-          removals.push(formattedLabel(sel))
-        } else if (sel.type === 'extra') {
-          additions.push(formattedLabel(sel))
-        } else if (sel.type === 'modifier') {
-          modifierType.push(formattedLabel(sel))
-        } else if (sel.type === 'article') {
-          articleType.push(formattedLabel(sel))
-        }
+        subItems.push({ text: formattedLabel(sel), type: sel.type })
       })
     })
 
@@ -265,10 +245,7 @@ const items = computed(() =>
       quantity: item.quantity,
       basePrice: item.basePrice,
       selectionTotalPrice: item.selectionTotalPrice,
-      additions,
-      removals,
-      modifierType,
-      articleType,
+      subItems,
       unitTotal,
       total: item.totalPrice,
       fullItem: item,
