@@ -191,7 +191,7 @@
 
         <VaButton
           type="submit"
-          :disabled="!address.length || isSubmitting || isTick === null"
+          :disabled="isSubmitting || isTick === null"
           class="bg-green-800 text-white hover:bg-green-900 text-sm font-semibold"
           @click="handleSubmit"
         >
@@ -425,7 +425,7 @@ async function addOrUpdateCustomerDetails() {
 }
 
 async function handleSubmit() {
-  if (!address.value.length || isSubmitting.value) return
+  if (isSubmitting.value) return
 
   isSubmitting.value = true
 
@@ -450,7 +450,7 @@ onBeforeUnmount(() => {
   top: 100%;
   left: 0;
   right: 0;
-  max-height: calc(100vh - 400px);
+  max-height: 440px;
   overflow-y: auto;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -458,6 +458,7 @@ onBeforeUnmount(() => {
   z-index: 50;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
+
 .custom-scroll::-webkit-scrollbar {
   width: 6px;
 }

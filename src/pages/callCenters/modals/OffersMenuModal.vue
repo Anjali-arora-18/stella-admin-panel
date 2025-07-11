@@ -118,14 +118,15 @@
               </label>
 
               <!-- Multiple Choice (No Qty)-->
+              <!-- Multiple Choice (No Qty) -->
               <label
                 v-for="option in group.selectedOptions"
                 v-if="group.multipleChoiceNoQty"
                 :key="option.optionId"
                 class="w-[200px] h-[80px] relative flex items-center border p-2 rounded-lg cursor-pointer transition-all"
                 :class="{
-                  'border-gray-700 bg-[#f8f9fa] border-2': isChecked(group, option._id),
-                  'border-gray-200 hover:border-gray-700 hover:border-2': !isChecked(group, option._id),
+                  'border-gray-700 bg-[#f8f9fa] border-2': isChecked(group, option.optionId),
+                  'border-gray-200 hover:border-gray-700 hover:border-2': !isChecked(group, option.optionId),
                 }"
                 @click.prevent="toggleMultipleChoiceNoQty(group, option)"
               >
@@ -133,16 +134,17 @@
                   <img
                     :src="option.imageUrl"
                     alt="Option"
-                    :class="isChecked(group, option._id) ? 'bg-white' : 'bg-[#f8f9fa]'"
+                    :class="isChecked(group, option.optionId) ? 'bg-white' : 'bg-[#f8f9fa]'"
                     class="rounded w-full h-full"
                   />
                 </div>
+
                 <div class="flex-1">
                   <div class="text-sm font-semibold text-gray-800">{{ option.name }}</div>
                   <div v-if="option.price && !option.isFree" class="text-gray-800 font-semibold text-sm mt-1">
                     €{{ parseFloat(option.price).toFixed(2) }}
                   </div>
-                  <!-- <p v-if="option.isFree" class="text-sm text-gray-600 font-medium mr-2">Free</p> -->
+                  <p v-if="option.isFree" class="text-sm text-gray-600 font-medium mt-1">Free</p>
                 </div>
 
                 <div
