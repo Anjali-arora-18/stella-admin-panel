@@ -70,7 +70,7 @@
             </div>
             <div class="total-row total-final">
               <span>Total Amount:</span>
-              <span>€{{ totalAmount.toFixed(2) }}</span>
+              <span>€{{ (totalAmount + deliveryFee).toFixed(2) }}</span>
             </div>
           </div>
         </div>
@@ -190,11 +190,7 @@ const subtotal = computed(() => {
 })
 
 const totalAmount = computed(() => {
-  if (props.orderType === 'delivery') {
-    return subtotal.value + props.deliveryFee
-  } else {
-    return subtotal.value
-  }
+  return subtotal.value
 })
 
 async function checkPaymentStatus(requestId) {

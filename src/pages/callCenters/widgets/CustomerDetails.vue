@@ -311,7 +311,7 @@ function selectUser(user) {
 const deliveryZoneOptions = ref([])
 
 function selectDeliveryZone(zone) {
-  emits('setDeliveryFee', zone.deliveryCharge)
+  emits('setDeliveryFee', selectedTab.value === 'takeaway' ? 0 : zone.deliveryCharge)
   emits('setDeliveryZone', true)
   orderStore.setDeliveryZone(zone._id)
   selectedZone.value = zone.name
@@ -477,8 +477,6 @@ watch(
   () => selectedTab.value,
   () => {
     emits('setOrderType', selectedTab.value)
-    emits('setDeliveryFee', 0)
-    emits('setDeliveryZone', false)
     selectedZone.value = ''
     if (selectedUser.value) {
       handleDeliveryZoneFetch()
@@ -490,7 +488,7 @@ watch(
 watch(
   () => selectedAddress.value,
   () => {
-    emits('setDeliveryFee', 0)
+    selectDeliveryZone(selectedZoneDetails.value)
     emits('setDeliveryZone', true)
     selectedZone.value = ''
 
