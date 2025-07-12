@@ -18,7 +18,14 @@ const isSubmitting = ref(false)
 
 const searchQuery = ref('')
 const filteredItems = computed(() =>
-  items.value.filter((item) => item.name.toLowerCase().includes(searchQuery.value.toLowerCase())),
+  items.value.filter((item) => {
+    const query = searchQuery.value.toLowerCase()
+    return (
+      item.name?.toLowerCase().includes(query) ||
+      item.code?.toLowerCase().includes(query) ||
+      item.posName?.toLowerCase().includes(query)
+    )
+  }),
 )
 
 const defaultOptions = ref([])
