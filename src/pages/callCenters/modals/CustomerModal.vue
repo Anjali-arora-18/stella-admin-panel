@@ -266,19 +266,21 @@ if (props.selectedUser) {
     isTick.value = true
   }
 
-  props.selectedUser['OtherAddresses'].map((e: any) => {
-    const add = e.Address.split(',')
-    address.value.push({
-      designation: e.Designation,
-      floor: add[1] || '',
-      aptNo: add[0] || '',
-      streetName: add[3] || '',
-      streetNo: add[2] || '',
-      district: add[4] || '',
-      city: add[5] || '',
-      postCode: add[6] || '',
+  if (props.selectedUser['OtherAddresses']) {
+    props.selectedUser['OtherAddresses'].map((e: any) => {
+      const add = e.Address.split(',')
+      address.value.push({
+        designation: e.Designation,
+        floor: add[1] || '',
+        aptNo: add[0] || '',
+        streetName: add[3] || '',
+        streetNo: add[2] || '',
+        district: add[4] || '',
+        city: add[5] || '',
+        postCode: add[6] || '',
+      })
     })
-  })
+  }
 } else {
   name.value = props.userName
   phoneNumber.value = props.userNumber
