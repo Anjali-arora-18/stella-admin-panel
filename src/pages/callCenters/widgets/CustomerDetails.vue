@@ -207,7 +207,7 @@ import CustomerModal from '../modals/CustomerModal.vue'
 import { useOrderStore } from '@/stores/order-store'
 import { onClickOutside } from '@vueuse/core'
 const props = defineProps(['forceRemount'])
-const emits = defineEmits(['setOpen', 'setOrderType', 'setCustomerDetailsId', 'setDeliveryFee', 'setDeliveryZone'])
+const emits = defineEmits(['setTab', 'setOpen', 'setOrderType', 'setCustomerDetailsId', 'setDeliveryFee', 'setDeliveryZone'])
 const target = ref('userList')
 const deliveryTarget = ref('deliveryList')
 const isOpen = ref(true)
@@ -477,6 +477,7 @@ watch(
   () => selectedTab.value,
   () => {
     emits('setOrderType', selectedTab.value)
+    emits('setTab', selectedTab.value)
     selectedZone.value = ''
     if (selectedUser.value) {
       handleDeliveryZoneFetch()

@@ -1,30 +1,23 @@
 <template>
   <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
     <!-- LEFT SECTION -->
-    <div class="md:col-span-5 bg-slate-100 py-4">
+    <div class="md:col-span-5 bg-slate-100 py-4" :class="{
+      'opacity-50 pointer-events-none': !isCustomerTabActivated
+    }">
       <VaCard>
         <VaCardContent class="menu-section">
           <div class="top-bar flex items-start border-b pb-4 sm:flex-row sm:justify-between gap-4">
             <div class="flex flex-wrap gap-2">
-              <a
-                v-if="offers.length"
+              <a v-if="offers.length"
                 :class="['text-white px-4 py-2 rounded-2xl', selectedItem === 'offers' ? 'bg-blue-500' : 'bg-gray-300']"
-                href="#offers"
-                @click="selectedItem = 'offers'"
-              >
+                href="#offers" @click="selectedItem = 'offers'">
                 Offers
               </a>
-              <a
-                v-for="item in filteredCategories"
-                :key="item._id"
-                :href="`#${item._id}`"
-                class="text-white px-4 py-2 rounded-2xl"
-                :class="{
+              <a v-for="item in filteredCategories" :key="item._id" :href="`#${item._id}`"
+                class="text-white px-4 py-2 rounded-2xl" :class="{
                   'bg-blue-500': selectedItem === item._id,
                   'bg-gray-300': selectedItem !== item._id,
-                }"
-                @click="selectedItem = item._id"
-              >
+                }" @click="selectedItem = item._id">
                 {{ toTitleCase(item.name) }}
               </a>
             </div>
@@ -36,13 +29,8 @@
           </div>
           <div class="menu-scroll">
             <MenuSection v-if="offers.length" id="offers" title="OFFERS" :items="offers" />
-            <MenuSection
-              v-for="cat in filteredCategories"
-              :id="cat._id"
-              :key="cat.name"
-              :title="cat.name"
-              :items="cat.menuItems"
-            />
+            <MenuSection v-for="cat in filteredCategories" :id="cat._id" :key="cat.name" :title="cat.name"
+              :items="cat.menuItems" />
           </div>
         </VaCardContent>
       </VaCard>
@@ -53,23 +41,14 @@
       <div class="flex flex-col gap-2">
         <VaCard>
           <VaCardContent>
-            <CustomerDetails
-              :force-remount="forceRemount"
-              @setDeliveryFee="(val) => (deliveryFee = val)"
-              @setCustomerDetailsId="(val) => (customerDetailsId = val)"
-              @setDeliveryZone="(val) => (isDeliveryZoneSelected = val)"
-              @setOrderType="(val) => (orderType = val)"
-              @setOpen="(val) => (accordian[0] = val)"
-            />
+            <CustomerDetails :force-remount="forceRemount" @setTab="() => isCustomerTabActivated = true"
+              @setDeliveryFee="(val) => (deliveryFee = val)" @setCustomerDetailsId="(val) => (customerDetailsId = val)"
+              @setDeliveryZone="(val) => (isDeliveryZoneSelected = val)" @setOrderType="(val) => (orderType = val)"
+              @setOpen="(val) => (accordian[0] = val)" />
           </VaCardContent>
         </VaCard>
-        <OrderDetails
-          :delivery-fee="deliveryFee"
-          :is-delivery-zone-selected="isDeliveryZoneSelected"
-          :customer-details-id="customerDetailsId"
-          :order-type="orderType"
-          :is-customer-open="accordian[0]"
-        />
+        <OrderDetails :delivery-fee="deliveryFee" :is-delivery-zone-selected="isDeliveryZoneSelected"
+          :customer-details-id="customerDetailsId" :order-type="orderType" :is-customer-open="accordian[0]" />
       </div>
     </div>
   </div>
@@ -83,6 +62,7 @@ import { useOrderStore } from '@/stores/order-store'
 import { useRoute } from 'vue-router'
 import { useToast } from 'vuestic-ui'
 import axios from 'axios'
+
 const { init } = useToast()
 const route = useRoute()
 const serviceStore = useServiceStore()
@@ -97,6 +77,7 @@ const props = defineProps({
 })
 
 const customerDetailsId = ref('')
+const isCustomerTabActivated = ref(false)
 const orderType = ref('')
 const isDeliveryZoneSelected = ref('')
 const categories = computed(() => menuStore.categories)
@@ -126,6 +107,7 @@ const getOffers = async () => {
   const response = await axios.get(url + '/offers/?outletId=' + serviceStore.selectedRest)
   offers.value = response.data.data
 }
+
 
 const menuItems = computed(() => {
   return (props.categories || []).map((category) => ({
