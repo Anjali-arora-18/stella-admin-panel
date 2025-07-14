@@ -199,7 +199,7 @@
 </template>
 
 <script setup>
-import { ref, watch, defineEmits, computed } from 'vue'
+import { ref, watch, defineEmits, computed, defineExpose } from 'vue'
 import { useToast } from 'vuestic-ui'
 import axios from 'axios'
 import { useServiceStore } from '@/stores/services.ts'
@@ -521,6 +521,10 @@ watch(name, (newVal) => {
   if (!newVal.trim()) {
     userResults.value = []
   }
+})
+
+defineExpose({
+  isOpen
 })
 </script>
 

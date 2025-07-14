@@ -41,8 +41,9 @@
       <div class="flex flex-col gap-2">
         <VaCard>
           <VaCardContent>
-            <CustomerDetails :force-remount="forceRemount" @setTab="() => isCustomerTabActivated = true"
-              @setDeliveryFee="(val) => (deliveryFee = val)" @setCustomerDetailsId="(val) => (customerDetailsId = val)"
+            <CustomerDetails ref="customerRef" :force-remount="forceRemount"
+              @setTab="() => isCustomerTabActivated = true" @setDeliveryFee="(val) => (deliveryFee = val)"
+              @setCustomerDetailsId="(val) => (customerDetailsId = val)"
               @setDeliveryZone="(val) => (isDeliveryZoneSelected = val)" @setOrderType="(val) => (orderType = val)"
               @setOpen="(val) => (accordian[0] = val)" />
           </VaCardContent>
@@ -55,7 +56,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted, useTemplateRef } from 'vue'
 import { useMenuStore } from '@/stores/getMenu.js'
 import { useServiceStore } from '@/stores/services.ts'
 import { useOrderStore } from '@/stores/order-store'
@@ -66,10 +67,11 @@ import axios from 'axios'
 const { init } = useToast()
 const route = useRoute()
 const serviceStore = useServiceStore()
-
+const customerRef = useTemplateRef('customerRef')
 import MenuSection from '@/pages/callCenters/widgets/MenuSections.vue'
 import CustomerDetails from '@/pages/callCenters/widgets/CustomerDetails.vue'
 import OrderDetails from '@/pages/callCenters/widgets/OrderDetails.vue'
+import { storeToRefs } from 'pinia'
 
 const props = defineProps({
   categories: Array,
@@ -171,15 +173,20 @@ const filteredCategories = computed(() => {
   return [...validCategories]
 })
 
-// watch(
-//   filteredCategories,
-//   (newVal) => {
-//     if (newVal.length && !selectedItem.value) {
-//       selectedItem.value = newVal[0]._id
-//     }
-//   },
-//   { immediate: true },
-// )
+
+watch(() => orderStore.cartItems, () => {
+  if (orderStore.cartItems.length) {
+    customerRef.value.isOpen = false
+    accordian.value[0] = false
+  }
+}, { deep: true })
+
+watch(() => orderStore.offerItems, () => {
+  if (orderStore.offerItems.length) {
+    customerRef.value.isOpen = false
+    accordian.value[0] = false
+  }
+}, { deep: true })
 
 // Watch route hash and scroll to section if present
 watch(
