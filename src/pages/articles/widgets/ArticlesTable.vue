@@ -167,7 +167,10 @@ function openFileModal(data) {
             v-model="rowData.code"
             class="w-full p-1 border rounded"
             autofocus
-            @blur="emits('updateArticle', rowData), (rowData.editing = '')"
+            @blur="
+              emits('updateArticle', { ...rowData, searchQuery: searchQuery, page: currentPage }),
+                (rowData.editing = '')
+            "
           />
           <span v-else>{{ rowData.code }}</span>
         </div>
@@ -179,7 +182,10 @@ function openFileModal(data) {
             v-model="rowData.name"
             class="editable-input"
             autofocus
-            @blur="$emit('updateArticle', rowData), (rowData.editing = '')"
+            @blur="
+              emits('updateArticle', { ...rowData, searchQuery: searchQuery, page: currentPage }),
+                (rowData.editing = '')
+            "
           />
           <span v-else class="editable-text">{{ rowData.name }}</span>
         </div>
@@ -191,7 +197,10 @@ function openFileModal(data) {
             v-model="rowData.description"
             class="editable-input"
             autofocus
-            @blur="$emit('updateArticle', rowData), (rowData.editing = '')"
+            @blur="
+              emits('updateArticle', { ...rowData, searchQuery: searchQuery, page: currentPage }),
+                (rowData.editing = '')
+            "
           />
           <span v-else class="editable-text">{{ rowData.description }}</span>
         </div>
@@ -203,7 +212,10 @@ function openFileModal(data) {
             v-model="rowData.price"
             class="w-full p-1 border rounded"
             autofocus
-            @blur="$emit('updateArticle', rowData), (rowData.editing = '')"
+            @blur="
+              emits('updateArticle', { ...rowData, searchQuery: searchQuery, page: currentPage }),
+                (rowData.editing = '')
+            "
           />
           <span v-else-if="parseFloat(rowData.price)">€{{ parseFloat(rowData.price).toFixed(2) }}</span>
           <span v-else></span>
@@ -218,7 +230,14 @@ function openFileModal(data) {
               class="px-1"
               color="primary"
               :text="`${e.wCode} -  ${e.name} `"
-              @click="emits('updateArticleModal', { ...rowData, updating: 'category' })"
+              @click="
+                emits('updateArticleModal', {
+                  ...rowData,
+                  updating: 'category',
+                  searchQuery: searchQuery.value,
+                  page: currentPage.value,
+                })
+              "
             />
           </template>
           <template v-else>
@@ -228,13 +247,27 @@ function openFileModal(data) {
               class="px-1"
               color="primary"
               :text="`${e.wCode} -  ${e.name} `"
-              @click="emits('updateArticleModal', { ...rowData, updating: 'category' })"
+              @click="
+                emits('updateArticleModal', {
+                  ...rowData,
+                  updating: 'category',
+                  searchQuery: searchQuery.value,
+                  page: currentPage.value,
+                })
+              "
             />
             <VaBadge
               :text="`+${rowData.categories.length - 2} more`"
               color="primary"
               class="px-1"
-              @click="emits('updateArticleModal', { ...rowData, updating: 'category' })"
+              @click="
+                emits('updateArticleModal', {
+                  ...rowData,
+                  updating: 'category',
+                  searchQuery: searchQuery.value,
+                  page: currentPage.value,
+                })
+              "
             />
           </template>
         </div>
@@ -248,7 +281,14 @@ function openFileModal(data) {
               :text="` ${sub.wCode} - ${sub.name}`"
               color="#B3D943"
               class="px-1"
-              @click="emits('updateArticleModal', { ...rowData, updating: 'subCategory' })"
+              @click="
+                emits('updateArticleModal', {
+                  ...rowData,
+                  updating: 'subCategory',
+                  searchQuery: searchQuery.value,
+                  page: currentPage.value,
+                })
+              "
             />
           </template>
           <template v-else>
@@ -258,13 +298,27 @@ function openFileModal(data) {
               :text="` ${sub.wCode} - ${sub.name}`"
               color="#B3D943"
               class="px-1"
-              @click="emits('updateArticleModal', { ...rowData, updating: 'subCategory' })"
+              @click="
+                emits('updateArticleModal', {
+                  ...rowData,
+                  updating: 'subCategory',
+                  searchQuery: searchQuery.value,
+                  page: currentPage.value,
+                })
+              "
             />
             <VaBadge
               :text="`+${rowData.subCategories.length - 2} more`"
               color="#B3D943"
               class="px-1"
-              @click="emits('updateArticleModal', { ...rowData, updating: 'subCategory' })"
+              @click="
+                emits('updateArticleModal', {
+                  ...rowData,
+                  updating: 'subCategory',
+                  searchQuery: searchQuery.value,
+                  page: currentPage.value,
+                })
+              "
             />
           </template>
         </div>
@@ -328,7 +382,7 @@ function openFileModal(data) {
               (data) => {
                 rowData.imageUrl = data.url
                 rowData.assetId = data._id
-                $emit('updateArticle', rowData)
+                $emit('updateArticle', { ...rowData, searchQuery: searchQuery.value, page: currentPage.value })
                 rowData.editing = ''
               }
             "
@@ -346,7 +400,10 @@ function openFileModal(data) {
             :multiple="true"
             value-by="id"
             :options="allergenOptions"
-            @update:modelValue="$emit('updateArticle', rowData), (rowData.editing = '')"
+            @update:modelValue="
+              emits('updateArticle', { ...rowData, searchQuery: searchQuery.value, page: currentPage.value }),
+                (rowData.editing = '')
+            "
           />
           <div v-else class="flex flex-col flex-wrap gap-1">
             <template v-if="rowData.allergenIds.length <= 2">
@@ -373,12 +430,20 @@ function openFileModal(data) {
       </template>
       <template #cell(isActive)="{ rowData }">
         <div class="table-cell-content">
-          <VaCheckbox v-model="rowData.isActive" size="small" @click="emits('updateArticle', rowData)" />
+          <VaCheckbox
+            v-model="rowData.isActive"
+            size="small"
+            @click="emits('updateArticle', { ...rowData, searchQuery: searchQuery.value, page: currentPage.value })"
+          />
         </div>
       </template>
       <template #cell(stock)="{ rowData }">
         <div class="table-cell-content">
-          <VaCheckbox v-model="rowData.inStock" size="small" @click="emits('updateArticle', rowData)" />
+          <VaCheckbox
+            v-model="rowData.inStock"
+            size="small"
+            @click="emits('updateArticle', { ...rowData, searchQuery: searchQuery.value, page: currentPage.value })"
+          />
         </div>
       </template>
       <template #cell(actions)="{ rowData }">

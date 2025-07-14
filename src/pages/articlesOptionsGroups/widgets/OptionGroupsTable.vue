@@ -78,7 +78,7 @@ async function updateData(rowData) {
     .patch(`${url}/articles-options-groups/${rowData._id}`, data)
     .then(() => {
       init({ message: "You've successfully updated a OptionGroups", color: 'success' })
-      emits('getOptionGroups')
+      emits('getOptionGroups', searchQuery.value)
     })
     .catch((err) => {
       init({ message: err.response.data.message, color: 'danger' })
