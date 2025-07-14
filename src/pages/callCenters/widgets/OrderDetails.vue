@@ -155,7 +155,7 @@
         </div>
       </div>
       <!-- Summary -->
-      <div class="text-sm mt-4 space-y-1 p-2 bg-slate-50">
+      <div class="text-sm mt-4 space-y-1 p-2 bg-slate-50 mb-4">
         <div class="flex justify-between">
           <span class="text-gray-600">Subtotal:</span>
           <span>€{{ subtotal.toFixed(2) }}</span>

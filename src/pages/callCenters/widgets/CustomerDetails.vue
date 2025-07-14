@@ -207,7 +207,14 @@ import CustomerModal from '../modals/CustomerModal.vue'
 import { useOrderStore } from '@/stores/order-store'
 import { onClickOutside } from '@vueuse/core'
 const props = defineProps(['forceRemount'])
-const emits = defineEmits(['setTab', 'setOpen', 'setOrderType', 'setCustomerDetailsId', 'setDeliveryFee', 'setDeliveryZone'])
+const emits = defineEmits([
+  'setTab',
+  'setOpen',
+  'setOrderType',
+  'setCustomerDetailsId',
+  'setDeliveryFee',
+  'setDeliveryZone',
+])
 const target = ref('userList')
 const deliveryTarget = ref('deliveryList')
 const isOpen = ref(true)
@@ -322,22 +329,8 @@ function selectDeliveryZone(zone) {
 
 async function handleDeliveryZoneFetch() {
   deliveryZoneOptions.value = []
-  const addressArray = selectedAddress.value?.text
-  if (!selectedAddress.value) return
-
-  const addressSplit = addressArray.split(',')
   let postalCode = ''
   const servicesStore = useServiceStore()
-
-  if (addressSplit.length) {
-    postalCode = addressSplit[addressSplit.length - 1].trim()
-  } else {
-    init({
-      color: 'danger',
-      message: 'No zipcode to find postal code',
-    })
-    return
-  }
   // let payloadPostCode = postalCode
   // if (selectedTab.value === 'takeaway') {
   //   payloadPostCode = ''
@@ -359,15 +352,22 @@ async function handleDeliveryZoneFetch() {
         message: 'No delivery zones found for selected address.',
       })
     } else {
-      const firstZone = response.data.data.find((a) => a.postalCodes.includes(postalCode))
-      serviceZoneId.value = firstZone.serviceZoneId
-      if (firstZone) {
-        selectDeliveryZone(firstZone)
-      } else {
-        init({
-          color: 'danger',
-          message: 'No delivery zones mapped with this postal code.',
-        })
+      if (selectedAddress.value && !selectedAddress.value.text.includes('Meeting Point')) {
+        const addressArray = selectedAddress.value?.text
+        const addressSplit = addressArray.split(',')
+        if (addressSplit.length) {
+          postalCode = addressSplit[addressSplit.length - 1].trim()
+          const firstZone = response.data.data.find((a) => a.postalCodes.includes(postalCode))
+          serviceZoneId.value = firstZone.serviceZoneId
+          if (firstZone) {
+            selectDeliveryZone(firstZone)
+          } else {
+            init({
+              color: 'danger',
+              message: 'No delivery zones mapped with this postal code.',
+            })
+          }
+        }
       }
     }
   } catch (err) {
@@ -413,19 +413,23 @@ function getParsedAddress(payload) {
 }
 
 const filteredAddresses = computed(() => {
+  let OtherAddresses = []
+  let addresses = []
   if (selectedZoneDetails.value) {
-    const OtherAddresses = selectedUser.value['OtherAddresses'].filter((address) => {
-      const adrs = address.Address.split(',')
-      const postalCode = adrs[adrs.length - 1].trim().toString()
+    if (selectedUser.value['OtherAddresses'] && selectedUser.value['OtherAddresses'].length) {
+      OtherAddresses = selectedUser.value['OtherAddresses'].filter((address) => {
+        const adrs = address.Address.split(',')
+        const postalCode = adrs[adrs.length - 1].trim().toString()
 
-      return selectedZoneDetails.value.postalCodes.includes(postalCode)
-    })
-    const addresses = OtherAddresses.map((e) => {
-      return {
-        text: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
-        value: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
-      }
-    })
+        return selectedZoneDetails.value.postalCodes.includes(postalCode)
+      })
+      addresses = OtherAddresses.map((e) => {
+        return {
+          text: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
+          value: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
+        }
+      })
+    }
     selectedZoneDetails.value.meetingPointAddress
       .filter((a) => a !== '')
       .forEach((meetingPoint) => {
@@ -453,23 +457,26 @@ watch(
   () => selectedUser.value,
   () => {
     if (selectedUser.value) {
-      const firstAddress = selectedUser.value['OtherAddresses'][0]
-
-      selectedAddress.value = {
-        text: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}${getParsedAddress(
-          firstAddress.Address,
-        )}`,
-        value: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}${getParsedAddress(
-          firstAddress.Address,
-        )}`,
+      const otherAddresses = selectedUser.value['OtherAddresses']
+      if (Array.isArray(otherAddresses) && otherAddresses.length > 0) {
+        const firstAddress = otherAddresses[0]
+        selectedAddress.value = {
+          text: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}${getParsedAddress(
+            firstAddress.Address,
+          )}`,
+          value: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}${getParsedAddress(
+            firstAddress.Address,
+          )}`,
+        }
+      } else {
+        selectedAddress.value = ''
       }
-    }
-    emits('setOrderType', selectedTab.value)
-    if (selectedUser.value) {
+
+      emits('setOrderType', selectedTab.value)
       handleDeliveryZoneFetch()
+      emits('setCustomerDetailsId', selectedUser.value._id)
+      userResults.value = []
     }
-    emits('setCustomerDetailsId', selectedUser.value._id)
-    userResults.value = []
   },
 )
 
@@ -479,6 +486,7 @@ watch(
     emits('setOrderType', selectedTab.value)
     emits('setTab', selectedTab.value)
     selectedZone.value = ''
+    selectedAddress.value = ''
     if (selectedUser.value) {
       handleDeliveryZoneFetch()
     }
@@ -524,7 +532,7 @@ watch(name, (newVal) => {
 })
 
 defineExpose({
-  isOpen
+  isOpen,
 })
 </script>
 
