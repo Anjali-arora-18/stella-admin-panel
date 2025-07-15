@@ -22,25 +22,12 @@
           :options="paymentGateway"
         />
         <div v-if="formData.paymentGateway" class="grid md:grid-cols-1 gap-4">
-          <VaInput
-            v-if="formData.paymentGateway !== 'JCC'"
-            v-model="formData.paymentGatewayConfig.url"
-            label="Payment Gateway URL"
-            placeholder="Enter URL"
-            type="url"
-          />
-          <VaInput
-            v-model="formData.paymentGatewayConfig.username"
-            label="Payment Gateway Username"
-            placeholder="Enter Username"
-            type="text"
-          />
-          <VaInput
-            v-model="formData.paymentGatewayConfig.password"
-            label="Payment Gateway Password"
-            placeholder="Enter Password"
-            type="password"
-          />
+          <div
+            v-for="e in paymentOptions.find((a) => a.paymentMethodName === formData.paymentGateway).inputConfig"
+            :key="e.label"
+          >
+            <VaInput v-model="e.value" :label="e.label" :type="e.type" />
+          </div>
         </div>
         <VaInput v-model="formData.paymentTypeId" label="Payment Type ID" placeholder="Payment Type ID" type="text" />
         <div class="grid md:grid-cols-4 gap-4">
@@ -79,11 +66,6 @@ const formData = ref({
   _id: '',
   name: '',
   paymentGateway: '',
-  paymentGatewayConfig: {
-    username: '',
-    password: '',
-    url: '',
-  },
   paymentTypeId: '',
   dineIn: false,
   delivery: false,
@@ -93,26 +75,56 @@ const formData = ref({
 
 const isUpdating = computed(() => !!Object.keys(props.selectedPayment).length)
 
-const paymentGateway = [
-  { text: 'JCC', value: 'JCC' },
-  { text: 'GAP', value: 'GAP' },
-  { text: 'VivaWallet', value: 'VivaWallet' },
-]
+const paymentGateway = ref([])
+const paymentOptions = ref([])
 
-if (props.selectedPayment) {
-  axios
-    .get(`${import.meta.env.VITE_API_BASE_URL}/payments/${props.selectedPayment._id}`)
-    .then((response) => {
-      formData.value = response.data.data
+const getPaymentconfig = () => {
+  const url: any = import.meta.env.VITE_API_BASE_URL
+  axios.get(`${url}/payments-config`).then((response) => {
+    paymentGateway.value = response.data.data.types.map((e) => {
+      return { text: e, value: e }
     })
-    .catch((error) => {
-      init({ message: error.response.data.message, color: 'danger' })
+    paymentOptions.value = response.data.data.config.map((e) => {
+      return {
+        ...e,
+        inputConfig: e.inputConfig.map((config) => {
+          return {
+            ...config,
+            value: '',
+          }
+        }),
+      }
     })
+    if (props.selectedPayment) {
+      axios
+        .get(`${import.meta.env.VITE_API_BASE_URL}/payments/${props.selectedPayment._id}`)
+        .then((response) => {
+          formData.value = response.data.data
+          paymentOptions.value
+            .find((a) => a.paymentMethodName === formData.value.paymentGateway)
+            .inputConfig.map((e) => {
+              e.value = response.data.data.paymentGatewayConfig[e.name] || ''
+            })
+        })
+        .catch((error) => {
+          init({ message: error.response.data.message, color: 'danger' })
+        })
+    }
+  })
 }
 
 const submit = async () => {
+  const selectedPaymentGatewayInputKeys = paymentOptions.value.find(
+    (a) => a.paymentMethodName === formData.value.paymentGateway,
+  ).inputConfig
   if (validate()) {
-    const data = JSON.parse(JSON.stringify(formData.value))
+    let data = JSON.parse(JSON.stringify(formData.value))
+    data = {
+      ...data,
+      paymentGatewayConfig: {
+        ...Object.fromEntries(selectedPaymentGatewayInputKeys.map((input) => [input.name, input.value])),
+      },
+    }
 
     data.outletId = servicesStore.selectedRest
 
@@ -120,7 +132,6 @@ const submit = async () => {
     delete data.updatedAt
     delete data.__v
     delete data.updating
-
     const url: any = import.meta.env.VITE_API_BASE_URL
 
     try {
@@ -140,4 +151,5 @@ const submit = async () => {
     }
   }
 }
+getPaymentconfig()
 </script>

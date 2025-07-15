@@ -88,23 +88,17 @@
                 class="payment-options flex flex-col sm:flex-row sm:justify-center min-[640px]:grid min-[640px]:grid-cols-2"
               >
                 <div
+                  v-for="payment in paymentTypes.filter((a) => userDetails.paymentType.includes(a.paymentTypeId))"
+                  :key="payment.paymentTypeId"
                   class="payment-option"
-                  :class="selectedPayment == 'Cash' ? 'selected' : ''"
-                  @click="selectedPayment = 'Cash'"
+                  :class="selectedPayment == payment ? 'selected' : ''"
+                  @click="selectedPayment = payment"
                 >
-                  <div class="payment-icon">💵</div>
-                  <div class="payment-label">Cash Payment</div>
-                  <div class="payment-desc">Pay with cash on delivery or pickup</div>
-                </div>
-
-                <div
-                  class="payment-option"
-                  :class="selectedPayment == 'Card' ? 'selected' : ''"
-                  @click="selectedPayment = 'Card'"
-                >
-                  <div class="payment-icon">💳</div>
-                  <div class="payment-label">Credit Card</div>
-                  <div class="payment-desc">Secure payment with Visa/Mastercard</div>
+                  <div v-if="payment.name === 'Cash'" class="payment-icon">💵</div>
+                  <div v-else class="payment-icon">💳</div>
+                  <div class="payment-label">{{ payment.name }}</div>
+                  <div v-if="payment.name === 'Cash'" class="payment-desc">Pay with cash on delivery or pickup</div>
+                  <div v-else class="payment-desc">Secure payment with Visa/Mastercard</div>
                 </div>
               </div>
             </div>
@@ -136,11 +130,13 @@
 import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { useToast } from 'vuestic-ui'
 import { useOrderStore } from '@/stores/order-store'
+import { useUsersStore } from '@/stores/users'
 import { useServiceStore } from '@/stores/services'
 import { storeToRefs } from 'pinia'
 import { elements } from 'chart.js'
+import axios from 'axios'
 const showCheckoutModal = ref(true)
-const selectedPayment = ref('')
+const selectedPayment: any = ref(null)
 const apiLoading = ref(false)
 const emits = defineEmits(['cancel'])
 const { init } = useToast()
@@ -151,15 +147,36 @@ const props = defineProps<{
 }>()
 const orderStore = useOrderStore()
 const serviceStore = useServiceStore()
-
+const userStore = useUsersStore()
 const orderId: any = ref('')
 const orderResponse: any = ref('')
 const redirectUrl = computed(() => orderStore.redirectUrl)
+const userDetails = computed(() => userStore.userDetails)
 const checkInterval: any = ref('')
-watch(showCheckoutModal, (val) => {
-  if (!val) emits('cancel')
-})
+const paymentTypes: any = ref([])
 
+const getPaymentOptions = () => {
+  const url = import.meta.env.VITE_API_BASE_URL
+  axios.get(`${url}/payments?outletId=${serviceStore.selectedRest}`).then((response) => {
+    paymentTypes.value = response.data.data
+  })
+}
+
+watch(
+  () => showCheckoutModal.value,
+  (val) => {
+    if (!val) emits('cancel')
+  },
+  { immediate: true },
+)
+
+watch(
+  () => serviceStore.selectedRest,
+  (val) => {
+    getPaymentOptions()
+  },
+  { immediate: true },
+)
 function setInter() {
   checkInterval.value = setInterval(() => {
     const iframe = document.querySelector('iframe')
@@ -280,9 +297,11 @@ async function createOrder() {
       response = await orderStore.retryPayment(orderId.value)
     } else {
       orderResponse.value = await orderStore.createOrder(payload)
+      console.log(selectedPayment.value)
       response = await orderStore.createPayment({
         orderId: orderResponse.value.data.data._id,
-        paymentMode: payload.paymentMode,
+        paymentMode: selectedPayment.value?.name,
+        paymentTypeId: selectedPayment.value?.paymentTypeId,
       })
     }
 

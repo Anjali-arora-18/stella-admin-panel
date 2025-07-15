@@ -72,6 +72,17 @@
             </template>
           </VaInput>
         </VaValue>
+        <VaSelect
+          v-model="formData.paymentType"
+          :disabled="!formData.outlets.length"
+          :rules="[validators.required]"
+          required-mark
+          label="Payment Type"
+          :options="paymentTypes"
+          :multiple="true"
+          text-by="name"
+          value-by="paymentTypeId"
+        />
       </div>
     </VaForm>
 
@@ -85,7 +96,7 @@
   </VaModal>
 </template>
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import axios from 'axios'
 import { validators } from '@/services/utils'
 import { useServiceStore } from '@/stores/services'
@@ -96,12 +107,16 @@ const props = defineProps({
     type: Object || String,
     default: () => '',
   },
+  paymentTypes: {
+    type: Array,
+    default: () => [],
+  },
 })
 const { validate } = useForm('form')
 const { init } = useToast()
 
 const servicesStore = useServiceStore()
-
+const paymentTypes = ref([])
 const formData = ref({
   firstName: '',
   username: '',
@@ -111,6 +126,7 @@ const formData = ref({
   role: '',
   updating: '',
   outlets: [],
+  paymentType: [],
 })
 
 const outlets = ref([])
@@ -128,6 +144,20 @@ const getOutlets = () => {
     })
   })
 }
+
+const getPaymentOptions = (outletId) => {
+  const url = import.meta.env.VITE_API_BASE_URL
+  axios.get(`${url}/payments?outletId=${outletId}`).then((response) => {
+    paymentTypes.value = response.data.data
+  })
+}
+
+watch(
+  () => formData.value.outlets,
+  () => {
+    if (formData.value.outlets.length) getPaymentOptions(formData.value.outlets[0])
+  },
+)
 
 if (props.selectedUser) {
   formData.value = props.selectedUser
