@@ -43,10 +43,11 @@
           />
         </div>
         <VaInput v-model="formData.paymentTypeId" label="Payment Type ID" placeholder="Payment Type ID" type="text" />
-        <div class="grid md:grid-cols-3 gap-4">
+        <div class="grid md:grid-cols-4 gap-4">
           <VaCheckbox v-model="formData.dineIn" label="Dine-in" />
           <VaCheckbox v-model="formData.delivery" label="Delivery" />
           <VaCheckbox v-model="formData.takeaway" label="Takeaway" />
+          <VaCheckbox v-model="formData.callCenter" label="Call Center" />
         </div>
       </div>
 
@@ -87,6 +88,7 @@ const formData = ref({
   dineIn: false,
   delivery: false,
   takeaway: false,
+  callCenter: false,
 })
 
 const isUpdating = computed(() => !!Object.keys(props.selectedPayment).length)

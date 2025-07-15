@@ -25,6 +25,7 @@ const columns = defineVaDataTableColumns([
   { label: 'Dine-in', key: 'dineIn', sortable: false },
   { label: 'Delivery', key: 'delivery', sortable: false },
   { label: 'Takeaway', key: 'takeaway', sortable: false },
+  { label: 'Call Center', key: 'callCenter', sortable: false },
   { label: 'Actions', key: 'actions', sortable: false },
 ])
 
@@ -40,6 +41,7 @@ async function updateData(rowData) {
     dineIn: rowData.dineIn,
     delivery: rowData.delivery,
     takeaway: rowData.takeaway,
+    callCenter: rowData.callCenter,
     isDeleted: rowData.isDeleted,
   }
   await axios
@@ -124,6 +126,11 @@ const items = toRef(props, 'items')
       <template #cell(takeaway)="{ rowData }">
         <div class="table-cell-content">
           <VaCheckbox v-model="rowData.takeaway" size="small" @click="updateData(rowData)" />
+        </div>
+      </template>
+      <template #cell(callCenter)="{ rowData }">
+        <div class="table-cell-content">
+          <VaCheckbox v-model="rowData.callCenter" size="small" @click="updateData(rowData)" />
         </div>
       </template>
       <template #cell(actions)="{ rowData }">
