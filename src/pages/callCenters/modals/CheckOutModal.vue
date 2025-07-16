@@ -158,7 +158,7 @@ const paymentTypes: any = ref([])
 const getPaymentOptions = () => {
   const url = import.meta.env.VITE_API_BASE_URL
   axios.get(`${url}/payments?outletId=${serviceStore.selectedRest}`).then((response) => {
-    paymentTypes.value = response.data.data
+    paymentTypes.value = response.data.data.filter((a) => a.callCenter)
   })
 }
 
@@ -173,7 +173,9 @@ watch(
 watch(
   () => serviceStore.selectedRest,
   (val) => {
-    getPaymentOptions()
+    if (val) {
+      getPaymentOptions()
+    }
   },
   { immediate: true },
 )
@@ -300,7 +302,6 @@ async function createOrder() {
       console.log(selectedPayment.value)
       response = await orderStore.createPayment({
         orderId: orderResponse.value.data.data._id,
-        paymentMode: selectedPayment.value?.name,
         paymentTypeId: selectedPayment.value?.paymentTypeId,
       })
     }
@@ -310,7 +311,7 @@ async function createOrder() {
         init({ color: 'success', message: 'Order created.' })
       }
 
-      if (selectedPayment.value === 'Card') {
+      if (selectedPayment.value.paymentGateway) {
         orderStore.setPaymentLink(response.data.data.redirectUrl)
         orderId.value = response.data.data.requestId
         setInter()

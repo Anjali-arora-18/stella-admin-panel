@@ -62,9 +62,9 @@ export const useOrderStore = defineStore('order', {
       const url = import.meta.env.VITE_API_BASE_URL
       return await axios.put(`${url}/payments/verify/${orderId}`)
     },
-    async createPayment({ orderId: orderId, paymentMode: paymentMode, paymentTypeId: paymentTypeId }) {
+    async createPayment({ orderId: orderId, paymentTypeId: paymentTypeId }) {
       const url = import.meta.env.VITE_API_BASE_URL
-      return await axios.post(`${url}/payments/${orderId}?paymentMode=${paymentMode}&paymentTypeId=${paymentTypeId}`)
+      return await axios.post(`${url}/payments/${orderId}?paymentTypeId=${paymentTypeId}`)
     },
     async sendOrderToWinmax(orderId) {
       const url = import.meta.env.VITE_API_BASE_URL
