@@ -259,7 +259,7 @@ const isAddressValid = computed(() => {
 
 if (props.selectedUser) {
   name.value = props.selectedUser['Name']
-  phoneNumber.value = props.selectedUser['MobilePhone']
+  phoneNumber.value = props.selectedUser['MobilePhone'] || props.selectedUser['Phone']
   if (typeof props.selectedUser['isTick'] !== 'undefined') {
     isTick.value = props.selectedUser['isTick']
   } else {
