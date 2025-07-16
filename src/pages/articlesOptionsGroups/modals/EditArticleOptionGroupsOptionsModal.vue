@@ -30,8 +30,6 @@ const filteredItems = computed(() =>
 
 const defaultOptions = ref([])
 
-console.log(props.selectedOptions)
-
 defaultOptions.value = props.selectedOptions.defaultOptions
 
 const selectAll = ref(false)
@@ -60,13 +58,15 @@ const getOptions = async () => {
   try {
     const response = await axios.get(url + '/articles-options?limit=500&outletId=' + servicesStore.selectedRest)
 
-    items.value = response.data.result.map((e) => {
-      return {
-        ...e,
-        isChecked: props.selectedOptions.options?.includes(e._id) || false,
-        isOriginalChecked: props.selectedOptions.options.includes(e._id),
-      }
-    })
+    items.value = response.data.result
+      .map((e) => {
+        return {
+          isChecked: props.selectedOptions.options?.includes(e._id) || false,
+          ...e,
+          isOriginalChecked: props.selectedOptions.options.includes(e._id),
+        }
+      })
+      .sort((a, b) => (a.isOriginalChecked === b.isOriginalChecked ? 0 : a.isOriginalChecked ? -1 : 1))
   } catch (error) {
     init({ message: 'Failed to load Options', color: 'danger' })
   } finally {
