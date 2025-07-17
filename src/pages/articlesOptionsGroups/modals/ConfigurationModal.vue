@@ -32,6 +32,17 @@ const articlesGroup: any = ref([])
 const articlesGroupOptions: any = ref([])
 const fetchConfigurations: any = ref([])
 const selectedItems: any = ref({})
+const searchArticle = ref('')
+
+const filteredArticleOptions = computed(() => {
+  return articlesGroup.value
+    .filter((group) => group.selected)
+    .flatMap((group) => group.options)
+    .filter((option) => {
+      const search = searchArticle.value.toLowerCase()
+      return option.name.toLowerCase().includes(search) || option.posName.toLowerCase().includes(search)
+    })
+})
 
 const getCategories = () => {
   items.value = []
@@ -318,12 +329,20 @@ getArticlesConfiguration()
       </div>
       <div class="row align-items-center mb-2">
         <div class="border rounded shadow-sm p-2">
-          <h3 class="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-2">Articles Options</h3>
+          <h3 class="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-2">Article Options</h3>
+          <VaInput
+            v-model="searchArticle"
+            placeholder="Search Articles by name..."
+            class="mb-2"
+            size="small"
+            clearable
+          />
+
           <div class="max-h-[400px] overflow-y-auto custom-scroll">
             <table class="w-full border-collapse border border-gray-200 text-sm">
               <tbody>
                 <tr
-                  v-for="(option, i) in articlesGroup.filter((a) => a.selected).flatMap((group) => group.options)"
+                  v-for="(option, i) in filteredArticleOptions"
                   :key="'option-' + i"
                   class="border-b hover:bg-gray-50"
                 >
