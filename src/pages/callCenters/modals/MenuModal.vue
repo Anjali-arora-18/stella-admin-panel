@@ -65,7 +65,7 @@
       <!-- RIGHT SECTION -->
       <div class="w-[75%] bg-white p-4 overflow-y-auto max-h-[85vh]">
         <div class="space-y-6">
-          <div v-for="group in item.articlesOptionsGroups" :key="group._id" class="space-y-4">
+          <div v-for="group in articlesOptionsGroups" :key="group._id" class="space-y-4">
             <!-- Group Title -->
             <div class="flex items-center gap-2">
               <span class="text-green-900 font-semibold uppercase text-sm">{{ group.name }}</span>
@@ -226,13 +226,15 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { useOrderStore } from '@/stores/order-store'
-
+import axios from 'axios'
 const orderStore = useOrderStore()
 
 const showMenuModal = ref(true)
 const emits = defineEmits(['cancel', 'cancel-edit'])
 
 const props = defineProps({
+  categoryId: String,
+  menuItemId: String,
   item: {
     type: Object,
     required: true,
@@ -241,14 +243,55 @@ const props = defineProps({
     type: Boolean,
     required: false,
   },
+  fetchConfigurations: {
+    type: Array,
+    required: true,
+  },
 })
 
 const selectedOptions = ref([])
-
+const fetchConfigurations = ref([])
 const formSubmitted = ref(false)
 
+const articles = computed(() => {
+  return props.item.articlesOptionsGroups
+    ? props.item.articlesOptionsGroups
+      .map((e) => {
+        return {
+          ...e,
+          options: e.options.filter((a) => a.type.toLowerCase() === 'article'),
+          }
+      })
+      .filter((a) => a.options.length)
+    : []
+})
+
+const articlesOptionsGroups = computed(() => {
+  let group = []
+  if (!articles.value.length) {
+    return props.item.articlesOptionsGroups
+  } else {
+    if (!fetchConfigurations.value.length && articles.value.length) {
+      return articles.value
+    }
+    const fetchItems = fetchConfigurations.value.flatMap((a) => a.conditionalSelection)
+    group = props.item.articlesOptionsGroups
+      .filter((a) => fetchItems.find((e) => e.optionsGroupId === a._id))
+      .map((e) => {
+        const fetchedGroup = fetchItems.find((a) => a.optionsGroupId === e._id)
+        return {
+          ...e,
+          options: e.options.filter(
+            (a) => a.type.toLowerCase() === 'article' || fetchedGroup.optionsIds.find((opt) => opt === a._id),
+          ),
+        }
+      })
+    return [...articles.value, ...group]
+  }
+})
+
 const isFormValid = computed(() => {
-  const requiredGroups = props.item.articlesOptionsGroups.filter((g) => g.mandatory)
+  const requiredGroups = articlesOptionsGroups.value.filter((g) => g.mandatory)
 
   for (const group of requiredGroups) {
     const selectedGroup = selectedOptions.value.find((sel) => sel.groupId === group._id)
@@ -287,8 +330,8 @@ watch(
     if (
       !item ||
       typeof item !== 'object' ||
-      !Array.isArray(item.articlesOptionsGroups) ||
-      !item.articlesOptionsGroups.length
+      !Array.isArray(articlesOptionsGroups.value) ||
+      !articlesOptionsGroups.value.length
     )
       return
 
@@ -298,7 +341,7 @@ watch(
       // Fresh selection
       selectedOptions.value = []
 
-      item.articlesOptionsGroups.forEach((group) => {
+      articlesOptionsGroups.value.forEach((group) => {
         const defaults = Array.isArray(group.defaultOptions) ? group.defaultOptions : []
         const selected = []
 
@@ -341,7 +384,7 @@ function addToBasket(item: any) {
     basePrice: props.isEdit ? item.basePrice : parseFloat(item.price),
     imageUrl: item.imageUrl,
     quantity: props.isEdit ? item.quantity : 1,
-    selectedOptions: props.item.articlesOptionsGroups
+    selectedOptions: articlesOptionsGroups.value
       .map((group) => {
         const entry = selectedOptions.value.find((sel) => sel.groupId === group._id)
         return entry ? { ...entry } : ''
@@ -413,6 +456,10 @@ function toggleMultipleChoiceNoQty(group, option) {
 }
 
 function updateSingleChoice(group: any, option: any) {
+  if (option.type.toLowerCase() === 'article') {
+    getArticlesConfiguration(group, option)
+    selectedOptions.value = selectedOptions.value.filter((a) => a.selected.flatMap((a) => a.type).includes('article'))
+  }
   const index = selectedOptions.value.findIndex((sel) => sel.groupId === group._id)
   const newEntry = {
     groupId: group._id,
@@ -536,6 +583,17 @@ const allergenIcons = {
   22: '/allergens/sulphur_dioxide.png',
   23: '/allergens/lupin.png',
   24: '/allergens/molluscs.png',
+}
+
+const getArticlesConfiguration = (group, option) => {
+  const url = import.meta.env.VITE_API_BASE_URL
+  axios
+    .get(
+      `${url}/articles-options-conditions?menuCategoryId=${props.categoryId}&optionsGroupId=${group._id}&menuItemId=${props.menuItemId}&optionId=${option._id}`,
+    )
+    .then((response) => {
+      fetchConfigurations.value = response.data.data
+    })
 }
 
 function increment(item) {
