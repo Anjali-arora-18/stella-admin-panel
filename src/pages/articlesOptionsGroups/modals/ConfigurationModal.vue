@@ -329,7 +329,7 @@ getArticlesConfiguration()
                 >
                   <td class="p-2 cursor-pointer">
                     <div>
-                      <VaCheckbox v-model="option.selected" :label="option.name" />
+                      <VaCheckbox v-model="option.selected" :label="`${option.name} - ${option.posName}`" />
                     </div>
                   </td>
                 </tr>
