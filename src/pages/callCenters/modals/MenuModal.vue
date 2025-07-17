@@ -337,6 +337,12 @@ watch(
 
     if (isEdit && item?.selectedOptions) {
       selectedOptions.value = JSON.parse(JSON.stringify(item.selectedOptions))
+      const selectedGroupAndOption = item.selectedOptions.find((group) =>
+        group.selected.flatMap((a) => a.type.toLowerCase()).includes('article'),
+      )
+      if (selectedGroupAndOption) {
+        getArticlesConfiguration(selectedGroupAndOption.groupId, selectedGroupAndOption.selected[0].optionId)
+      }
     } else {
       // Fresh selection
       selectedOptions.value = []
@@ -457,13 +463,15 @@ function toggleMultipleChoiceNoQty(group, option) {
 
 function updateSingleChoice(group: any, option: any) {
   if (option.type.toLowerCase() === 'article') {
-    getArticlesConfiguration(group, option)
+    getArticlesConfiguration(group._id, option._id)
     selectedOptions.value = selectedOptions.value.filter((a) => a.selected.flatMap((a) => a.type).includes('article'))
   }
   const index = selectedOptions.value.findIndex((sel) => sel.groupId === group._id)
   const newEntry = {
     groupId: group._id,
     groupName: group.name,
+    categoryId: props.categoryId,
+    menuItemId: props.menuItemId,
     selected: [
       {
         optionId: option._id,
@@ -504,6 +512,8 @@ function updateMultipleChoice(group, option, quantity) {
 
   if (!groupEntry) {
     groupEntry = {
+      categoryId: props.categoryId,
+      menuItemId: props.menuItemId,
       groupId: group._id,
       groupName: group.name,
       selected: [],
@@ -589,7 +599,7 @@ const getArticlesConfiguration = (group, option) => {
   const url = import.meta.env.VITE_API_BASE_URL
   axios
     .get(
-      `${url}/articles-options-conditions?menuCategoryId=${props.categoryId}&optionsGroupId=${group._id}&menuItemId=${props.menuItemId}&optionId=${option._id}`,
+      `${url}/articles-options-conditions?menuCategoryId=${props.categoryId}&optionsGroupId=${group}&menuItemId=${props.menuItemId}&optionId=${option}`,
     )
     .then((response) => {
       fetchConfigurations.value = response.data.data
