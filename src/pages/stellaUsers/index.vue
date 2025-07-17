@@ -17,6 +17,7 @@ const sortBy = ref('name')
 const sortOrder = ref('asc')
 const { init } = useToast()
 const isLoading = ref(true)
+const paymentTypes = ref([])
 const selectedStellaUser = ref('')
 
 const getStellaUsers = (outletId) => {
@@ -110,6 +111,7 @@ async function deleteUser(payload) {
         :items="items"
         :loading="isLoading"
         :count="count"
+        :payment-types="paymentTypes"
         @sortBy="updateSortBy"
         @sortingOrder="updateSortOrder"
         @editUser="editUser"
@@ -121,6 +123,7 @@ async function deleteUser(payload) {
 
   <EditStellaUserModal
     v-if="isEditStellaUserModalOpen"
+    :payment-types="paymentTypes"
     :selected-user="selectedStellaUser"
     @cancel="(isEditStellaUserModalOpen = false), (selectedStellaUser = ''), getStellaUsers(serviceStore.selectedRest)"
   />

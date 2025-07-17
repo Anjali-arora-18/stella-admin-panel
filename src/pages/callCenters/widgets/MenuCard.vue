@@ -9,7 +9,13 @@
       <img :src="item.imageUrl" alt="icon" class="w-full h-full" />
     </div>
 
-    <MenuModal v-model="showMenuModal" :item="itemWithArticlesOptionsGroups" @cancel="closeMenuModal" />
+    <MenuModal
+      v-model="showMenuModal"
+      :item="itemWithArticlesOptionsGroups"
+      :menu-item-id="item._id"
+      :category-id="categoryId"
+      @cancel="closeMenuModal"
+    />
   </div>
 </template>
 
@@ -22,6 +28,7 @@ import { useOrderStore } from '@/stores/order-store'
 
 const props = defineProps({
   item: Object,
+  categoryId: String,
 })
 
 const showMenuModal = ref(false)
@@ -72,6 +79,7 @@ const getMenuOptions = async () => {
     isLoading.value = false
   }
 }
+
 function openMenuModal() {
   showMenuModal.value = true
 }

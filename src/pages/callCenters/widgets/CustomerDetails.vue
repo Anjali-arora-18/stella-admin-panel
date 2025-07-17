@@ -40,7 +40,7 @@
         <div v-if="selectedTab" class="flex items-center gap-2 relative">
           <input
             v-model="phoneNumber"
-            :disable="selectedUser"
+            :disabled="selectedUser !== ''"
             type="number"
             placeholder="Mobile Number"
             class="border rounded w-1/2 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -49,7 +49,7 @@
           <input
             v-model="name"
             type="text"
-            :disable="selectedUser"
+            :disabled="selectedUser !== ''"
             placeholder="Customer Name"
             class="border rounded w-1/2 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             @keyup.enter="fetchCustomerDetails(false)"
@@ -310,7 +310,7 @@ function setNewUser(payload) {
 function selectUser(user) {
   selectedUser.value = user
   name.value = user['Name']
-  phoneNumber.value = user['MobilePhone']
+  phoneNumber.value = user['MobilePhone'] || user['Phone']
 
   userResults.value = []
 }
@@ -318,13 +318,16 @@ function selectUser(user) {
 const deliveryZoneOptions = ref([])
 
 function selectDeliveryZone(zone) {
-  emits('setDeliveryFee', selectedTab.value === 'takeaway' ? 0 : zone.deliveryCharge)
-  emits('setDeliveryZone', true)
-  orderStore.setDeliveryZone(zone._id)
-  selectedZone.value = zone.name
-  serviceZoneId.value = zone.serviceZoneId
-  selectedZoneDetails.value = zone
-  showDeliveryDropdown.value = false
+  console.log(zone)
+  if (zone) {
+    emits('setDeliveryFee', selectedTab.value === 'takeaway' ? 0 : zone.deliveryCharge)
+    emits('setDeliveryZone', true)
+    orderStore.setDeliveryZone(zone._id)
+    selectedZone.value = zone.name
+    serviceZoneId.value = zone.serviceZoneId
+    selectedZoneDetails.value = zone
+    showDeliveryDropdown.value = false
+  }
 }
 
 async function handleDeliveryZoneFetch() {
@@ -485,8 +488,7 @@ watch(
   () => {
     emits('setOrderType', selectedTab.value)
     emits('setTab', selectedTab.value)
-    selectedZone.value = ''
-    selectedAddress.value = ''
+
     if (selectedUser.value) {
       handleDeliveryZoneFetch()
     }
@@ -499,8 +501,6 @@ watch(
   () => {
     selectDeliveryZone(selectedZoneDetails.value)
     emits('setDeliveryZone', true)
-    selectedZone.value = ''
-
     orderStore.setAddress(selectedAddress.value.text)
   },
 )

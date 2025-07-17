@@ -12,7 +12,7 @@
       >
         <OfferCard v-for="item in items" v-if="id === 'offers'" :key="item.id" :item="item" />
 
-        <MenuCard v-for="item in items" v-else :key="item.id" :item="item" />
+        <MenuCard v-for="item in items" v-else :key="item.id" :item="item" :category-id="id" />
       </div>
     </div>
   </section>

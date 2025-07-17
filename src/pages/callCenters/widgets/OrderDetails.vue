@@ -184,21 +184,23 @@
     <template v-else>
       <div class="mt-4 w-full">No Orders Selected</div>
     </template>
+    <MenuModal
+      v-model="showMenuModal"
+      :item="selectedItemWithArticlesOptionsGroups"
+      :category-id="selectedItemWithArticlesOptionsGroups.categoryId"
+      :menu-item-id="selectedItemWithArticlesOptionsGroups.menuItemId"
+      :is-edit="isEdit"
+      @cancel="closeMenuModal"
+      @cancelEdit="isEdit = false"
+    />
+    <CheckOutModal
+      v-model="showCheckoutModal"
+      :delivery-fee="deliveryFee"
+      :customer-details-id="customerDetailsId"
+      :order-type="orderType"
+      @cancel="closeCheckoutModal"
+    />
   </div>
-  <MenuModal
-    v-model="showMenuModal"
-    :item="selectedItemWithArticlesOptionsGroups"
-    :is-edit="isEdit"
-    @cancel="closeMenuModal"
-    @cancelEdit="isEdit = false"
-  />
-  <CheckOutModal
-    v-model="showCheckoutModal"
-    :delivery-fee="deliveryFee"
-    :customer-details-id="customerDetailsId"
-    :order-type="orderType"
-    @cancel="closeCheckoutModal"
-  />
 </template>
 
 <script setup>
@@ -231,7 +233,11 @@ const formattedLabel = (sel) => {
 const items = computed(() =>
   cartItems.value.map((item, index) => {
     const subItems = []
+    let categoryId = ''
+    let menuItemId = ''
     item.selectedOptions.forEach((group) => {
+      menuItemId = group.menuItemId
+      categoryId = group.categoryId
       group.selected.forEach((sel) => {
         subItems.push({ text: formattedLabel(sel), type: sel.type })
       })
@@ -248,7 +254,7 @@ const items = computed(() =>
       subItems,
       unitTotal,
       total: item.totalPrice,
-      fullItem: item,
+      fullItem: { ...item, menuItemId, categoryId },
     }
   }),
 )
@@ -365,7 +371,6 @@ const getMenuOptions = async (selectedItem) => {
   isLoading.value = true
   isEdit.value = true
   try {
-    console.log('edit response', selectedItem)
     const response = await axios.get(`${url}/menuItemvoById/${selectedItem.itemId}`)
 
     const articlesOptionsGroups = response.data.articlesOptionsGroups
@@ -375,8 +380,6 @@ const getMenuOptions = async (selectedItem) => {
       ...selectedItem,
       articlesOptionsGroups: articlesOptionsGroups || [],
     }
-
-    console.log('selectedItemWithArticlesOptionsGroups', selectedItemWithArticlesOptionsGroups.value)
 
     // Open modal if there are any groups
     if (articlesOptionsGroups && articlesOptionsGroups.length) {
