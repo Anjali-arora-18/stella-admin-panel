@@ -58,9 +58,9 @@ export const useOrderStore = defineStore('order', {
       const url = import.meta.env.VITE_API_BASE_URL
       return await axios.post(`${url}/orders`, payload)
     },
-    async checkPaymentStatus(orderId) {
+    async checkPaymentStatus(orderId, paymentTypeId) {
       const url = import.meta.env.VITE_API_BASE_URL
-      return await axios.put(`${url}/payments/verify/${orderId}`)
+      return await axios.put(`${url}/payments/verify/${orderId}?paymentTypeId=${paymentTypeId}`)
     },
     async createPayment({ orderId: orderId, paymentTypeId: paymentTypeId }) {
       const url = import.meta.env.VITE_API_BASE_URL

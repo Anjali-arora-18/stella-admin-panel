@@ -186,7 +186,7 @@ function setInter() {
       try {
         const currentUrl = iframe.contentWindow.location.href
         if (currentUrl.includes('loader')) {
-          checkPaymentStatus(orderId.value)
+          checkPaymentStatus(orderId.value, selectedPayment.value.paymentTypeId)
           resetInter()
           apiLoading.value = false
         }
@@ -212,8 +212,8 @@ const totalAmount = computed(() => {
   return subtotal.value
 })
 
-async function checkPaymentStatus(requestId) {
-  const response = await orderStore.checkPaymentStatus(requestId)
+async function checkPaymentStatus(requestId, paymentId) {
+  const response = await orderStore.checkPaymentStatus(requestId, paymentId)
   if (response.data.data.status === 'Completed') {
     init({
       color: 'success',
