@@ -50,6 +50,7 @@ import OffersMenuItemsSelectionModal from './OffersMenuItemsSelectionModal.vue'
 import { useMenuStore } from '@/stores/getMenu'
 const props = defineProps({
   group: Object,
+  isEdit: Boolean,
 })
 const emit = defineEmits(['update:selectedItems'])
 const pizzaModal = ref(null)

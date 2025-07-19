@@ -43,9 +43,9 @@
             {{ isEdit ? 'UPDATE OFFER' : 'ADD TO OFFER' }}
           </button>
 
-          <!-- <p v-if="formSubmitted && !isFormValid" class="text-red-500 text-xs mt-2 text-center">
+          <p v-if="formSubmitted && !isFormValid" class="text-red-500 text-xs mt-2 text-center">
             Please select all required options.
-          </p> -->
+          </p>
         </div>
       </div>
 
@@ -251,25 +251,24 @@ const menuStore = useMenuStore()
 const formSubmitted = ref(false)
 const fetchConfigurations = ref([])
 
-// const isFormValid = computed(() => {
-//   const requiredGroups = props.item.articlesOptionsGroups.filter((g) => g.mandatory)
+const isFormValid = computed(() => {
+  const requiredGroups = articlesOptionsGroups.value.filter((g) => g.mandatory)
 
-//   for (const group of requiredGroups) {
-//     const selectedGroup = selectedOptions.value.find((sel) => sel.groupId === group.optionGroupId)
+  for (const group of requiredGroups) {
+    const selectedGroup = selectedOptions.value.find((sel) => sel.groupId === group.optionGroupId)
 
-//     if (!selectedGroup || !selectedGroup.selected.length) {
-//       return false
-//     }
+    if (!selectedGroup || !selectedGroup.selected.length) {
+      return false
+    }
 
-//     if (group.multipleChoice && group.minimumChoices) {
-//       const totalQty = selectedGroup.selected.reduce((sum, opt) => sum + (opt.quantity || 0), 0)
+    if (group.multipleChoice && group.minimumChoices) {
+      const totalQty = selectedGroup.selected.reduce((sum, opt) => sum + (opt.quantity || 0), 0)
+      if (totalQty < group.minimumChoices) return false
+    }
+  }
 
-//       if (totalQty < group.minimumChoices) return false
-//     }
-//   }
-
-//   return true
-// })
+  return true
+})
 
 const totalPrice = computed(() => {
   let total = parseFloat(props.item.price) || props.item.basePrice || 0
@@ -335,9 +334,9 @@ watch(
 function addToBasket(item: any) {
   formSubmitted.value = true
 
-  // if (!isFormValid.value) {
-  //   return
-  // }
+  if (!isFormValid.value) {
+    return
+  }
 
   const productEntry = {
     itemId: props.isEdit ? item.itemId : item.id,
