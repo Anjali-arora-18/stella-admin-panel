@@ -90,7 +90,7 @@
                         <VaCheckbox
                           v-model="group.selected"
                           :true-value="group._id"
-                          :label="group.name"
+                          :label="group.internalName ? `${group.name} - ${group.internalName}` : group.name"
                           class="w-full"
                         />
                       </td>
@@ -123,7 +123,11 @@
                       >
                         <td class="p-2">
                           <div class="flex items-center justify-between">
-                            <VaCheckbox v-model="option.selected" :true-value="option.id" :label="option.name" />
+                            <VaCheckbox
+                              v-model="option.selected"
+                              :true-value="option.id"
+                              :label="option.posName ? `${option.name} - ${option.posName}` : option.name"
+                            />
                             <span
                               class="ml-2 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
                               :class="{
@@ -214,35 +218,39 @@ const filteredItems = computed(() =>
 const groupSearchQuery = ref('')
 const optionSearchQuery = ref('')
 
-const filteredGroups = computed(() =>
-  items.value
+const filteredGroups = computed(() => {
+  const query = groupSearchQuery.value.toLowerCase()
+  return items.value
     .filter((a) => a.selected)
     .map((a) => ({
       ...a,
-      articlesOptionsGroup: a.articlesOptionsGroup.filter((g) =>
-        g.name.toLowerCase().includes(groupSearchQuery.value.toLowerCase()),
-      ),
+      articlesOptionsGroup: a.articlesOptionsGroup.filter((g) => {
+        const nameMatch = g.name?.toLowerCase().includes(query)
+        const internalNameMatch = g.internalName?.toLowerCase().includes(query)
+        return nameMatch || internalNameMatch
+      }),
     }))
-    .filter((a) => a.articlesOptionsGroup.length),
-)
+    .filter((a) => a.articlesOptionsGroup.length)
+})
 
-const filteredOptions = computed(() =>
-  items.value
-    .filter((a) => a.selected)
-    .map((a) => ({
-      ...a,
-      articlesOptionsGroup: a.articlesOptionsGroup
-        .filter((g) => g.selected && g.articlesOptions.length)
-        .map((g) => ({
-          ...g,
-          articlesOptions: g.articlesOptions.filter((opt) =>
-            opt.name.toLowerCase().includes(optionSearchQuery.value.toLowerCase()),
-          ),
+const filteredOptions = computed(() => {
+  const query = optionSearchQuery.value.toLowerCase()
+  return filteredGroups.value
+    .map((groupWrapper) => ({
+      ...groupWrapper,
+      articlesOptionsGroup: groupWrapper.articlesOptionsGroup
+        .map((group) => ({
+          ...group,
+          articlesOptions: group.articlesOptions.filter((option) => {
+            const nameMatch = option.name?.toLowerCase().includes(query)
+            const posNameMatch = option.posName?.toLowerCase().includes(query)
+            return nameMatch || posNameMatch
+          }),
         }))
         .filter((g) => g.articlesOptions.length),
     }))
-    .filter((a) => a.articlesOptionsGroup.length),
-)
+    .filter((g) => g.articlesOptionsGroup.length)
+})
 
 const formData = ref({
   name: '',
