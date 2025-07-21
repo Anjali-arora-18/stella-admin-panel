@@ -44,10 +44,10 @@
             <VaInput v-model="searchQuery" placeholder="Search..." size="small" class="w-full mb-2" />
 
             <!-- Scrollable List -->
-            <div class="border rounded shadow-sm bg-white max-h-[36vh] overflow-y-hidden">
+            <div class="border rounded shadow-sm bg-white h-[50vh] overflow-y-hidden">
               <table v-if="!isLoading" class="w-full text-sm">
                 <tbody>
-                  <VaVirtualScroller v-slot="{ item, index }" :items="filteredItems" :wrapper-size="200">
+                  <VaVirtualScroller v-slot="{ item, index }" :items="filteredItems" :wrapper-size="400">
                     <tr class="border-b hover:bg-orange-50">
                       <td class="p-2">
                         <VaCheckbox
@@ -78,13 +78,14 @@
             <VaInput v-model="groupSearchQuery" placeholder="Search..." size="small" class="w-full mb-2" />
 
             <!-- Scrollable List -->
-            <div class="border rounded shadow-sm bg-white max-h-[36vh] overflow-y-hidden">
+            <div class="border rounded shadow-sm bg-white h-[50vh] overflow-y-hidden">
               <table v-if="filteredGroups.length" class="w-full text-sm">
                 <tbody>
                   <VaVirtualScroller
                     v-slot="{ item, index }"
                     :items="filteredGroups.flatMap((item) => item.articlesOptionsGroup)"
-                    :wrapper-size="200"
+                    class="mb-10"
+                    :wrapper-size="400"
                   >
                     <tr class="hover:bg-green-50" style="display: table">
                       <td class="p-2 w-full border-b">
@@ -111,7 +112,7 @@
             <VaInput v-model="optionSearchQuery" placeholder="Search..." size="small" class="w-full mb-2" />
 
             <!-- Scrollable List -->
-            <div class="border rounded shadow-sm bg-white max-h-[36vh] overflow-y-hidden">
+            <div class="border rounded shadow-sm bg-white h-[50vh] overflow-y-hidden">
               <table v-if="filteredOptions.length" class="w-full text-sm">
                 <tbody>
                   <VaVirtualScroller
@@ -119,7 +120,7 @@
                     :items="
                       filteredOptions.flatMap((item) => item.articlesOptionsGroup).flatMap((a) => a.articlesOptions)
                     "
-                    :wrapper-size="200"
+                    :wrapper-size="400"
                   >
                     <tr class="border-b hover:bg-green-50 w-full" style="display: table">
                       <td class="p-2">
@@ -155,7 +156,11 @@
 
     <template #footer>
       <div class="flex justify-end mt-6 w-full">
-        <VaButton type="submit" @click="submit()">
+        <VaButton
+          :disabled="!!groupSearchQuery || !!optionSearchQuery || !!searchQuery"
+          type="submit"
+          @click="submit()"
+        >
           {{ isUpdating ? 'Update' : 'Add' }}
         </VaButton>
       </div>
@@ -306,8 +311,16 @@ watch(
   [filteredGroups, optionSearchQuery],
   () => {
     const callId = ++lastOptionWorkerCall
+    // Only pass groups with selected = true to the option worker
+    const selectedGroups = JSON.parse(JSON.stringify(filteredGroups.value))
+      .map((groupWrapper) => ({
+        ...groupWrapper,
+        articlesOptionsGroup: groupWrapper.articlesOptionsGroup.filter((group) => group.selected),
+      }))
+      .filter((groupWrapper) => groupWrapper.articlesOptionsGroup.length > 0)
+
     optionWorker.postMessage({
-      groups: JSON.parse(JSON.stringify(filteredGroups.value)),
+      groups: selectedGroups,
       query: optionSearchQuery.value,
     })
     optionWorker.onmessage = (e) => {
@@ -394,32 +407,28 @@ const submit = async () => {
     data.min = parseInt(data.min)
     data.max = parseInt(data.max)
     data.isActive = true
-    data.menuItems = items.value
-      .filter((item) => item.selected)
-      .map((item) => {
-        return {
-          menuItemId: item._id,
-          optionGroups: item.articlesOptionsGroup
-            .filter((group) => group.selected)
-            .map((group) => {
-              return {
-                optionGroupId: group.id,
-                selectedOptions: group.articlesOptions
-                  .filter((option) => option.selected)
-                  .map((option) => {
-                    return {
-                      optionId: option.id,
-                      isFree: option.isFree,
-                    }
-                  }),
-              }
-            }),
-        }
-      })
+
+    // Reconstruct menuItems from the current UI state to reflect latest selection/free changes
+    data.menuItems = filteredOptions.value
+      .filter((item: any) => !!item.selected)
+      .map((item: any) => ({
+        menuItemId: item._id,
+        optionGroups: item.articlesOptionsGroup
+          .filter((group: any) => !!group.selected)
+          .map((group: any) => ({
+            optionGroupId: group.id,
+            selectedOptions: group.articlesOptions
+              .filter((option: any) => !!option.selected)
+              .map((option: any) => ({
+                optionId: option.id,
+                isFree: !!option.isFree,
+              })),
+          })),
+      }))
 
     const url = import.meta.env.VITE_API_BASE_URL
     if (props.isEditSelection) {
-      const index = props.offerData.selections.findIndex((e) => e._id === props.offerSelection._id)
+      const index = props.offerData.selections.findIndex((e: any) => e._id === props.offerSelection._id)
       payload.selections[index] = data
     } else {
       payload.selections.push(data)
@@ -429,7 +438,7 @@ const submit = async () => {
       init({ message: 'Offers updated successfully!', color: 'success' })
       emits('cancel')
       emits('getOffers')
-    } catch (err: any) {
+    } catch (err) {
       init({ message: err?.response?.data?.message || 'Error occurred', color: 'danger' })
     }
   }
@@ -447,8 +456,5 @@ tr {
 ::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.1);
   border-radius: 3px;
-}
-.max-h-[36vh] {
-  max-height: 36vh;
 }
 </style>
