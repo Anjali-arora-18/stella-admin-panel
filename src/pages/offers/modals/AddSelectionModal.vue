@@ -86,7 +86,12 @@
                 <tbody>
                   <VaVirtualScroller
                     v-slot="{ item, index }"
-                    :items="items.filter((a) => a.selected).flatMap((a) => a.articlesOptionsGroup)"
+                    :items="
+                      items
+                        .filter((a) => a.selected)
+                        .flatMap((a) => a.articlesOptionsGroup)
+                        .filter((a) => a.display)
+                    "
                     class="mb-10"
                     :wrapper-size="400"
                   >
@@ -134,6 +139,7 @@
                         .flatMap((item) => item.articlesOptionsGroup)
                         .filter((a) => a.selected)
                         .flatMap((a) => a.articlesOptions)
+                        .filter((a) => a.display)
                     "
                     :wrapper-size="400"
                   >
@@ -274,12 +280,12 @@ const groupWorker = new Worker(
   ),
 )
 
-let lastWorkerCall = 0
+const lastWorkerCall = ref(0)
 
 watch(
   [groupSearchQuery, optionSearchQuery, searchQuery],
   () => {
-    const callId = ++lastWorkerCall
+    const callId = ++lastWorkerCall.value
     groupWorker.postMessage({
       items: JSON.parse(JSON.stringify(items.value)),
       groupSearchQuery: groupSearchQuery.value,
@@ -288,7 +294,7 @@ watch(
     })
     groupWorker.onmessage = (e) => {
       // Only update if this is the latest call
-      if (callId === lastWorkerCall) {
+      if (callId === lastWorkerCall.value) {
         items.value = JSON.parse(JSON.stringify(e.data))
       }
     }
