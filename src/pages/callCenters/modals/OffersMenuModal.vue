@@ -24,7 +24,7 @@
           </div>
 
           <!-- Title -->
-          <h2 class="text-green-900 font-semibold text-lg uppercase">{{ isEdit ? item.itemName : item.name }}</h2>
+          <h2 class="text-green-900 font-semibold text-lg uppercase">{{ item.name }}</h2>
 
           <!-- Description -->
           <p class="text-gray-400 text-xs mt-1">
@@ -221,12 +221,17 @@
 import { ref, watch, computed } from 'vue'
 import { useOrderStore } from '@/stores/order-store'
 import { useMenuStore } from '@/stores/getMenu'
+import { storeToRefs } from 'pinia'
 import axios from 'axios'
 const orderStore = useOrderStore()
 
 const emits = defineEmits(['cancel', 'cancel-edit', 'items-added'])
 
 const props = defineProps({
+  selectedMenuItem: {
+    type: Object,
+    required: false,
+  },
   offerGroup: {
     type: Object,
     required: false,
@@ -245,9 +250,11 @@ const props = defineProps({
   },
   menuItemId: String,
 })
-
 const selectedOptions = ref([])
 const menuStore = useMenuStore()
+const { offer } = storeToRefs(menuStore)
+let groupItemIndex = -1
+let addedItemIndex = -1
 const formSubmitted = ref(false)
 const fetchConfigurations = ref([])
 
@@ -284,48 +291,70 @@ const totalPrice = computed(() => {
   return total.toFixed(2)
 })
 
+const getArticlesConfiguration = (group, option) => {
+  const url = import.meta.env.VITE_API_BASE_URL
+  axios
+    .get(`${url}/articles-options-conditions?optionsGroupId=${group}&menuItemId=${props.menuItemId}&optionId=${option}`)
+    .then((response) => {
+      fetchConfigurations.value = response.data.data
+    })
+}
+
 watch(
   () => [props.isEdit, props.item],
   ([isEdit, item]) => {
-    if (
-      !item ||
-      typeof item !== 'object' ||
-      !Array.isArray(item.articlesOptionsGroups) ||
-      !item.articlesOptionsGroups.length
-    )
-      return
+    if (!item.optionGroups.length) return
 
-    if (isEdit && item?.selectedOptions) {
-      selectedOptions.value = JSON.parse(JSON.stringify(item.selectedOptions))
+    if (props.isEdit) {
+      groupItemIndex = offer.value.selections.findIndex((a) => a._id === props.offerGroup._id)
+      if (groupItemIndex !== -1) {
+        const addedItems = offer.value.selections[groupItemIndex].addedItems.find(
+          (offerItem) => offerItem.itemId === props.item.id && props.selectedMenuItem.itemId === offerItem.itemId,
+        )
+          ? offer.value.selections[groupItemIndex].addedItems.find((offerItem) => offerItem.itemId === props.item.id)
+          : null
+        addedItemIndex = offer.value.selections[groupItemIndex].addedItems.findIndex(
+          (offerItem) => offerItem.itemId === props.item.id,
+        )
+        console.log(addedItems)
+        if (addedItems && addedItems.selectedOptions.length) {
+          selectedOptions.value = addedItems.selectedOptions
+          selectedOptions.value.forEach((group) => {
+            if (group.selected.find((a) => a.type === 'article')) {
+              getArticlesConfiguration(group.groupId, group.selected.find((a) => a.type === 'article').optionId)
+            }
+          })
+        }
+      }
     } else {
       // Fresh selection
       selectedOptions.value = []
 
-      item.articlesOptionsGroups.forEach((group) => {
-        const defaults = Array.isArray(group.defaultOptions) ? group.defaultOptions : []
-        const selected = []
+      // item.optionGroups.forEach((group) => {
+      //   const defaults = Array.isArray(group.defaultOptions) ? group.defaultOptions : []
+      //   const selected = []
 
-        defaults.forEach((optionId) => {
-          const option = group.options.find((o) => o.optionId === optionId)
-          if (option) {
-            selected.push({
-              optionId: option.optionId,
-              name: option.name,
-              type: option.type,
-              price: option.price,
-              quantity: group.multipleChoice ? 1 : 1,
-            })
-          }
-        })
+      //   defaults.forEach((optionId) => {
+      //     const option = group.options.find((o) => o.optionId === optionId)
+      //     if (option) {
+      //       selected.push({
+      //         optionId: option.optionId,
+      //         name: option.name,
+      //         type: option.type,
+      //         price: option.price,
+      //         quantity: group.multipleChoice ? 1 : 1,
+      //       })
+      //     }
+      //   })
 
-        if (selected.length) {
-          selectedOptions.value.push({
-            groupId: group.optionGroupId,
-            groupName: group.name,
-            selected: group.singleChoice ? [selected[0]] : selected,
-          })
-        }
-      })
+      //   if (selected.length) {
+      //     selectedOptions.value.push({
+      //       groupId: group.optionGroupId,
+      //       groupName: group.name,
+      //       selected: group.singleChoice ? [selected[0]] : selected,
+      //     })
+      //   }
+      // })
     }
   },
   { immediate: true, deep: true },
@@ -339,51 +368,38 @@ function addToBasket(item: any) {
   }
 
   const productEntry = {
-    itemId: props.isEdit ? item.itemId : item.id,
-    itemName: props.isEdit ? item.itemName : item.name,
+    itemId: item.id,
+    itemName: item.name,
     itemDescription: item.description,
-    basePrice: props.isEdit ? item.basePrice : parseFloat(item.price),
+    basePrice: parseFloat(item.price),
     imageUrl: item.imageUrl,
-    quantity: props.isEdit ? item.quantity : 1,
+    quantity: 1,
     selectedOptions: selectedOptions.value,
     totalPrice: 0,
     selectionTotalPrice: 0,
   }
 
-  // const index = null
-  // if (props.isEdit) {
-  //   const index = orderStore.cartItems.findIndex((i) => i.itemId === item.itemId)
-  //   if (index !== -1) {
-  //     orderStore.cartItems.splice(index, 1)
-  //     orderStore.cartItems.splice(index, 0, JSON.parse(JSON.stringify(productEntry)))
-  //     orderStore.calculateItemTotal(index)
-  //   }
-  // } else {
-  //   orderStore.addItemToCart(productEntry)
-  //   const newIndex = orderStore.cartItems.length - 1
-  //   orderStore.calculateItemTotal(newIndex)
-  // }
+  if (props.isEdit) {
+    menuStore.updateItemToOffer(productEntry, groupItemIndex, addedItemIndex)
+  } else {
+    menuStore.addItemToOffer(props.offerGroup, productEntry)
+  }
 
-  menuStore.addItemToOffer(props.offerGroup, productEntry)
   selectedOptions.value = []
   formSubmitted.value = false
-
-  // if (props.isEdit) {
-  //   emits('cancel-edit')
-  // }
   emits('items-added')
 }
 
 const articles = computed(() => {
   return props.item.optionGroups
     ? props.item.optionGroups
-        .map((e) => {
-          return {
-            ...e,
-            selectedOptions: e.selectedOptions.filter((a) => a.type.toLowerCase() === 'article'),
-          }
-        })
-        .filter((a) => a.selectedOptions.length)
+      .map((e) => {
+        return {
+          ...e,
+          selectedOptions: e.selectedOptions.filter((a) => a.type.toLowerCase() === 'article'),
+        }
+      })
+      .filter((a) => a.selectedOptions.length)
     : []
 })
 
@@ -569,14 +585,6 @@ const allergenIcons = {
   24: '/allergens/molluscs.png',
 }
 
-const getArticlesConfiguration = (group, option) => {
-  const url = import.meta.env.VITE_API_BASE_URL
-  axios
-    .get(`${url}/articles-options-conditions?optionsGroupId=${group}&menuItemId=${props.menuItemId}&optionId=${option}`)
-    .then((response) => {
-      fetchConfigurations.value = response.data.data
-    })
-}
 function increment(item) {
   item.quantity++
 }

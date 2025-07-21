@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isVisible" class="modal-backdrop" @click="closeModal">
+  <div class="modal-backdrop" @click="closeModal">
     <div class="modal" @click.stop>
       <div class="modal-header">
         <div class="header-content">
@@ -32,8 +32,10 @@
     <OffersMenuModal
       v-if="showOptionsGroup"
       :item="selectedArticle"
+      :is-edit="isEdit"
       :menu-item-id="selectedArticle.id"
       :offer-group="group"
+      :selected-menu-item="selectedMenuItem"
       :show-menu-modal="showOptionsGroup"
       @itemsAdded="closeModal()"
       @cancel="showOptionsGroup = false"
@@ -42,35 +44,58 @@
 </template>
 
 <script setup>
-import { ref, defineExpose } from 'vue'
+import { ref, defineExpose, defineEmits, onMounted } from 'vue'
 import OffersMenuModal from './OffersMenuModal.vue'
 import { useMenuStore } from '@/stores/getMenu'
+import { storeToRefs } from 'pinia'
 const props = defineProps({
   group: Object,
+  selectedMenuItem: Object,
+  isEdit: Boolean,
   menuItems: {
     type: Array,
     required: true,
   },
 })
+const emits = defineEmits(['closeModal'])
 const menuStore = useMenuStore()
-const isVisible = ref(false)
 const selectedArticle = ref(null)
 const showOptionsGroup = ref(false)
+let groupItemIndex = -1
+let addedItemIndex = -1
+const { offer } = storeToRefs(menuStore)
 
-function openModal() {
-  isVisible.value = true
-}
+onMounted(() => {
+  if (props.isEdit) {
+    groupItemIndex = offer.value.selections.findIndex((a) => a._id === props.group._id)
+    if (groupItemIndex !== -1) {
+      offer.value.selections[groupItemIndex].addedItems.forEach((offerItem, index) => {
+        if (
+          props.menuItems.find(
+            (menuItem) => menuItem.id === offerItem.itemId && props.selectedMenuItem.itemId === offerItem.itemId,
+          )
+        ) {
+          addedItemIndex = index
+          selectedArticle.value = props.menuItems.find((menuItem) => menuItem.id === offerItem.itemId)
+        }
+      })
+    }
+  }
+})
 
 function closeModal() {
-  isVisible.value = false
+  emits('closeModal')
   selectedArticle.value = null
   showOptionsGroup.value = false
 }
 
 function selectArticle(article) {
-  selectedArticle.value = article
-  if (article.optionGroups.length) {
-    showOptionsGroup.value = true
+  if (selectedArticle.value && selectedArticle.value.id === article.id) {
+    if (article.optionGroups.length) {
+      showOptionsGroup.value = true
+    } else {
+      closeModal()
+    }
   } else {
     const productEntry = {
       itemId: article.id,
@@ -83,12 +108,28 @@ function selectArticle(article) {
       totalPrice: 0,
       selectionTotalPrice: 0,
     }
-    menuStore.addItemToOffer(props.group, productEntry)
-    closeModal()
-  }
-}
 
-defineExpose({ openModal })
+    if (props.isEdit) {
+      selectedArticle.value = article
+      menuStore.updateItemToOffer(productEntry, groupItemIndex, addedItemIndex)
+      if (article.optionGroups.length) {
+        showOptionsGroup.value = true
+      } else {
+        closeModal()
+      }
+    } else {
+      selectedArticle.value = article
+      if (article.optionGroups.length) {
+        showOptionsGroup.value = true
+      } else {
+        menuStore.addItemToOffer(props.group, productEntry)
+        closeModal()
+      }
+    }
+  }
+
+  console.log(addedItemIndex)
+}
 </script>
 
 <style scoped>

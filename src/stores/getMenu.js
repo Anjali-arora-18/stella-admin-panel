@@ -36,14 +36,17 @@ export const useMenuStore = defineStore('menu', {
       this.offer = offer
     },
     addItemToOffer(group, product) {
-      const index = this.offer.selections.findIndex(a => a._id === group._id)
+      const index = this.offer.selections.findIndex((a) => a._id === group._id)
       this.offer.selections[index].addedItems.push(product)
       if (!this.offer) {
         this.offer[group] = []
       }
     },
+    updateItemToOffer(product, groupItemIndex, addedItemIndex) {
+      this.offer.selections[groupItemIndex].addedItems[addedItemIndex] = JSON.parse(JSON.stringify(product))
+    },
     removeItemFromOffer(group, index) {
-      const itemIndex = this.offer.selections.findIndex(a => a._id === group._id)
+      const itemIndex = this.offer.selections.findIndex((a) => a._id === group._id)
       if (itemIndex !== -1) {
         this.offer.selections[itemIndex].addedItems.splice(index, 1)
       }

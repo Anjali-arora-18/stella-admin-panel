@@ -84,6 +84,7 @@ const props = defineProps({
   },
 })
 const menuStore = useMenuStore()
+
 const { offer } = storeToRefs(menuStore)
 
 function getMenu() {
