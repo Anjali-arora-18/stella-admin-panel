@@ -15,7 +15,7 @@
         v-for="(item, index) in group.addedItems"
         :key="item"
         class="selection-item selected"
-        @click="toggleSelection(group, index)"
+        @click="openSelectionItemModal(group, true, item)"
       >
         <div class="item-image"><img :src="item.imageUrl" /></div>
         <div class="item-content">
@@ -29,7 +29,7 @@
         v-for="n in group.max - group.addedItems.length"
         :key="'ph-' + n"
         class="selection-item placeholder"
-        @click="openSelectionItemModal(group.menuItems)"
+        @click="openSelectionItemModal(group)"
       >
         <div class="item-image cursor-pointer" style="color: #2d5016">➕</div>
         <div class="item-content cursor-pointer">
@@ -40,7 +40,14 @@
         <div class="selection-status"></div>
       </div>
     </div>
-    <OffersMenuItemsSelectionModal ref="pizzaModal" :group="group" :menu-items="group.menuItems" />
+    <OffersMenuItemsSelectionModal
+      v-if="isItemSelectionModalVisible"
+      :is-edit="isEdit"
+      :selected-menu-item="selectedMenuItem"
+      :group="group"
+      :menu-items="group.menuItems"
+      @closeModal="isItemSelectionModalVisible = false"
+    />
   </div>
 </template>
 
@@ -50,14 +57,18 @@ import OffersMenuItemsSelectionModal from './OffersMenuItemsSelectionModal.vue'
 import { useMenuStore } from '@/stores/getMenu'
 const props = defineProps({
   group: Object,
-  isEdit: Boolean,
 })
 const emit = defineEmits(['update:selectedItems'])
+const isItemSelectionModalVisible = ref(false)
 const pizzaModal = ref(null)
 const menuItems = ref(null)
-function openSelectionItemModal(payload) {
-  menuItems.value = payload || null
-  pizzaModal.value?.openModal()
+const isEdit = ref(false)
+const selectedMenuItem = ref('')
+function openSelectionItemModal(payload, editing = false, item = null) {
+  isEdit.value = editing
+  selectedMenuItem.value = item
+  menuItems.value = payload.menuItems || null
+  isItemSelectionModalVisible.value = true
 }
 const selectedItems = computed(() => props.group.addedItems.map((item) => item._id))
 const percent = computed(() => (selectedItems.value.length / props.group.max) * 100)

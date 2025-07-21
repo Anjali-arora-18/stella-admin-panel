@@ -44,18 +44,20 @@
             <VaInput v-model="searchQuery" placeholder="Search..." size="small" class="w-full mb-2" />
 
             <!-- Scrollable List -->
-            <div class="border rounded shadow-sm bg-white max-h-[36vh] overflow-y-auto">
+            <div class="border rounded shadow-sm bg-white h-[50vh] overflow-y-hidden">
               <table v-if="!isLoading" class="w-full text-sm">
                 <tbody>
-                  <tr v-for="article in filteredItems" :key="article._id" class="border-b hover:bg-orange-50">
-                    <td class="p-2">
-                      <VaCheckbox
-                        v-model="article.selected"
-                        :true-value="article._id"
-                        :label="article.code + ' - ' + article.name"
-                      />
-                    </td>
-                  </tr>
+                  <VaVirtualScroller v-slot="{ item, index }" :items="filteredItems" :wrapper-size="400">
+                    <tr class="border-b hover:bg-orange-50">
+                      <td class="p-2">
+                        <VaCheckbox
+                          v-model="item.selected"
+                          :true-value="item._id"
+                          :label="item.code + ' - ' + item.name"
+                        />
+                      </td>
+                    </tr>
+                  </VaVirtualScroller>
                 </tbody>
               </table>
               <VaSkeletonGroup v-else animation="wave">
@@ -76,26 +78,26 @@
             <VaInput v-model="groupSearchQuery" placeholder="Search..." size="small" class="w-full mb-2" />
 
             <!-- Scrollable List -->
-            <div class="border rounded shadow-sm bg-white max-h-[36vh] overflow-y-auto">
+            <div class="border rounded shadow-sm bg-white h-[50vh] overflow-y-hidden">
               <table v-if="filteredGroups.length" class="w-full text-sm">
                 <tbody>
-                  <div v-for="item in filteredGroups" :key="item._id">
-                    <tr
-                      v-for="group in item.articlesOptionsGroup"
-                      :key="group._id"
-                      class="hover:bg-green-50"
-                      style="display: table"
-                    >
+                  <VaVirtualScroller
+                    v-slot="{ item, index }"
+                    :items="filteredGroups.flatMap((item) => item.articlesOptionsGroup)"
+                    class="mb-10"
+                    :wrapper-size="400"
+                  >
+                    <tr class="hover:bg-green-50" style="display: table">
                       <td class="p-2 w-full border-b">
                         <VaCheckbox
-                          v-model="group.selected"
-                          :true-value="group._id"
-                          :label="group.internalName ? `${group.name} - ${group.internalName}` : group.name"
+                          v-model="item.selected"
+                          :true-value="item._id"
+                          :label="item.internalName ? `${item.name} - ${item.internalName}` : item.name"
                           class="w-full"
                         />
                       </td>
                     </tr>
-                  </div>
+                  </VaVirtualScroller>
                 </tbody>
               </table>
               <div v-else class="text-gray-500 italic text-center py-2">No groups available</div>
@@ -110,40 +112,39 @@
             <VaInput v-model="optionSearchQuery" placeholder="Search..." size="small" class="w-full mb-2" />
 
             <!-- Scrollable List -->
-            <div class="border rounded shadow-sm bg-white max-h-[36vh] overflow-y-auto">
+            <div class="border rounded shadow-sm bg-white h-[50vh] overflow-y-hidden">
               <table v-if="filteredOptions.length" class="w-full text-sm">
                 <tbody>
-                  <tr v-for="item in filteredOptions" :key="item._id">
-                    <template v-for="group in item.articlesOptionsGroup">
-                      <tr
-                        v-for="option in group.articlesOptions"
-                        :key="option._id"
-                        class="border-b hover:bg-green-50 w-full"
-                        style="display: table"
-                      >
-                        <td class="p-2">
-                          <div class="flex items-center justify-between">
-                            <VaCheckbox
-                              v-model="option.selected"
-                              :true-value="option.id"
-                              :label="option.posName ? `${option.name} - ${option.posName}` : option.name"
-                            />
-                            <span
-                              class="ml-2 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
-                              :class="{
-                                'bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-blue-900 border border-blue-500':
-                                  option.isFree,
-                                'bg-gray-200 text-gray-700 hover:bg-gray-300': !option.isFree,
-                              }"
-                              @click="option.isFree = !option.isFree"
-                            >
-                              Free
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                    </template>
-                  </tr>
+                  <VaVirtualScroller
+                    v-slot="{ item, index }"
+                    :items="
+                      filteredOptions.flatMap((item) => item.articlesOptionsGroup).flatMap((a) => a.articlesOptions)
+                    "
+                    :wrapper-size="400"
+                  >
+                    <tr class="border-b hover:bg-green-50 w-full" style="display: table">
+                      <td class="p-2">
+                        <div class="flex items-center justify-between">
+                          <VaCheckbox
+                            v-model="item.selected"
+                            :true-value="item.id"
+                            :label="item.posName ? `${item.name} - ${item.posName}` : item.name"
+                          />
+                          <span
+                            class="ml-2 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                            :class="{
+                              'bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-blue-900 border border-blue-500':
+                                item.isFree,
+                              'bg-gray-200 text-gray-700 hover:bg-gray-300': !item.isFree,
+                            }"
+                            @click="item.isFree = !item.isFree"
+                          >
+                            Free
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  </VaVirtualScroller>
                 </tbody>
               </table>
               <div v-else class="text-gray-500 italic text-center py-2">No options available</div>
@@ -155,7 +156,11 @@
 
     <template #footer>
       <div class="flex justify-end mt-6 w-full">
-        <VaButton type="submit" @click="submit()">
+        <VaButton
+          :disabled="!!groupSearchQuery || !!optionSearchQuery || !!searchQuery"
+          type="submit"
+          @click="submit()"
+        >
           {{ isUpdating ? 'Update' : 'Add' }}
         </VaButton>
       </div>
@@ -218,39 +223,114 @@ const filteredItems = computed(() =>
 const groupSearchQuery = ref('')
 const optionSearchQuery = ref('')
 
-const filteredGroups = computed(() => {
-  const query = groupSearchQuery.value.toLowerCase()
-  return items.value
-    .filter((a) => a.selected)
-    .map((a) => ({
-      ...a,
-      articlesOptionsGroup: a.articlesOptionsGroup.filter((g) => {
-        const nameMatch = g.name?.toLowerCase().includes(query)
-        const internalNameMatch = g.internalName?.toLowerCase().includes(query)
-        return nameMatch || internalNameMatch
-      }),
-    }))
-    .filter((a) => a.articlesOptionsGroup.length)
-})
+const groupWorker = new Worker(
+  URL.createObjectURL(
+    new Blob(
+      [
+        `
+      self.onmessage = function(e) {
+        const { items, query } = e.data;
+        const lowerQuery = query.toLowerCase();
+        const filtered = items
+          .filter(a => a.selected)
+          .map(a => ({
+            ...a,
+            articlesOptionsGroup: a.articlesOptionsGroup.filter(g => {
+              const nameMatch = g.name?.toLowerCase().includes(lowerQuery);
+              const internalNameMatch = g.internalName?.toLowerCase().includes(lowerQuery);
+              return nameMatch || internalNameMatch;
+            }),
+          }))
+          .filter(a => a.articlesOptionsGroup.length);
+        self.postMessage(filtered);
+      }
+    `,
+      ],
+      { type: 'application/javascript' },
+    ),
+  ),
+)
 
-const filteredOptions = computed(() => {
-  const query = optionSearchQuery.value.toLowerCase()
-  return filteredGroups.value
-    .map((groupWrapper) => ({
-      ...groupWrapper,
-      articlesOptionsGroup: groupWrapper.articlesOptionsGroup
-        .map((group) => ({
-          ...group,
-          articlesOptions: group.articlesOptions.filter((option) => {
-            const nameMatch = option.name?.toLowerCase().includes(query)
-            const posNameMatch = option.posName?.toLowerCase().includes(query)
-            return nameMatch || posNameMatch
-          }),
-        }))
-        .filter((g) => g.articlesOptions.length),
-    }))
-    .filter((g) => g.articlesOptionsGroup.length)
-})
+const filteredGroups = ref([])
+let lastWorkerCall = 0
+
+watch(
+  [items, groupSearchQuery],
+  () => {
+    const callId = ++lastWorkerCall
+    groupWorker.postMessage({
+      items: JSON.parse(JSON.stringify(items.value)),
+      query: groupSearchQuery.value,
+    })
+    groupWorker.onmessage = (e) => {
+      // Only update if this is the latest call
+      if (callId === lastWorkerCall) {
+        filteredGroups.value = e.data
+      }
+    }
+  },
+  { immediate: true, deep: true },
+)
+
+const optionWorker = new Worker(
+  URL.createObjectURL(
+    new Blob(
+      [
+        `
+        self.onmessage = function(e) {
+          const { groups, query } = e.data;
+          const lowerQuery = query.toLowerCase();
+          const filtered = groups
+            .map(groupWrapper => ({
+              ...groupWrapper,
+              articlesOptionsGroup: groupWrapper.articlesOptionsGroup
+                .map(group => ({
+                  ...group,
+                  articlesOptions: group.articlesOptions.filter(option => {
+                    const nameMatch = option.name?.toLowerCase().includes(lowerQuery);
+                    const posNameMatch = option.posName?.toLowerCase().includes(lowerQuery);
+                    return nameMatch || posNameMatch;
+                  }),
+                }))
+                .filter(g => g.articlesOptions.length),
+            }))
+            .filter(g => g.articlesOptionsGroup.length);
+          self.postMessage(filtered);
+        }
+        `,
+      ],
+      { type: 'application/javascript' },
+    ),
+  ),
+)
+
+const filteredOptions = ref([])
+let lastOptionWorkerCall = 0
+
+watch(
+  [filteredGroups, optionSearchQuery],
+  () => {
+    const callId = ++lastOptionWorkerCall
+    // Only pass groups with selected = true to the option worker
+    const selectedGroups = JSON.parse(JSON.stringify(filteredGroups.value))
+      .map((groupWrapper) => ({
+        ...groupWrapper,
+        articlesOptionsGroup: groupWrapper.articlesOptionsGroup.filter((group) => group.selected),
+      }))
+      .filter((groupWrapper) => groupWrapper.articlesOptionsGroup.length > 0)
+
+    optionWorker.postMessage({
+      groups: selectedGroups,
+      query: optionSearchQuery.value,
+    })
+    optionWorker.onmessage = (e) => {
+      if (callId === lastOptionWorkerCall) {
+        filteredOptions.value = e.data
+      }
+    }
+  },
+  { immediate: true, deep: true },
+)
 
 const formData = ref({
   name: '',
@@ -327,32 +407,28 @@ const submit = async () => {
     data.min = parseInt(data.min)
     data.max = parseInt(data.max)
     data.isActive = true
-    data.menuItems = items.value
-      .filter((item) => item.selected)
-      .map((item) => {
-        return {
-          menuItemId: item._id,
-          optionGroups: item.articlesOptionsGroup
-            .filter((group) => group.selected)
-            .map((group) => {
-              return {
-                optionGroupId: group.id,
-                selectedOptions: group.articlesOptions
-                  .filter((option) => option.selected)
-                  .map((option) => {
-                    return {
-                      optionId: option.id,
-                      isFree: option.isFree,
-                    }
-                  }),
-              }
-            }),
-        }
-      })
+
+    // Reconstruct menuItems from the current UI state to reflect latest selection/free changes
+    data.menuItems = filteredOptions.value
+      .filter((item: any) => !!item.selected)
+      .map((item: any) => ({
+        menuItemId: item._id,
+        optionGroups: item.articlesOptionsGroup
+          .filter((group: any) => !!group.selected)
+          .map((group: any) => ({
+            optionGroupId: group.id,
+            selectedOptions: group.articlesOptions
+              .filter((option: any) => !!option.selected)
+              .map((option: any) => ({
+                optionId: option.id,
+                isFree: !!option.isFree,
+              })),
+          })),
+      }))
 
     const url = import.meta.env.VITE_API_BASE_URL
     if (props.isEditSelection) {
-      const index = props.offerData.selections.findIndex((e) => e._id === props.offerSelection._id)
+      const index = props.offerData.selections.findIndex((e: any) => e._id === props.offerSelection._id)
       payload.selections[index] = data
     } else {
       payload.selections.push(data)
@@ -362,7 +438,7 @@ const submit = async () => {
       init({ message: 'Offers updated successfully!', color: 'success' })
       emits('cancel')
       emits('getOffers')
-    } catch (err: any) {
+    } catch (err) {
       init({ message: err?.response?.data?.message || 'Error occurred', color: 'danger' })
     }
   }
@@ -380,8 +456,5 @@ tr {
 ::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.1);
   border-radius: 3px;
-}
-.max-h-[36vh] {
-  max-height: 36vh;
 }
 </style>
