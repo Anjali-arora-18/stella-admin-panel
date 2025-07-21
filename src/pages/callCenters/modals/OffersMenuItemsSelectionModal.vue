@@ -32,6 +32,7 @@
     <OffersMenuModal
       v-if="showOptionsGroup"
       :item="selectedArticle"
+      :menu-item-id="selectedArticle.id"
       :offer-group="group"
       :show-menu-modal="showOptionsGroup"
       @itemsAdded="closeModal()"

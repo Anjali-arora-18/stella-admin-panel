@@ -35,6 +35,7 @@
                 </div>
               </div>
             </div>
+
             <div v-for="(item, index) in orderStore.offerItems" :key="item.itemId" class="order-item">
               <div class="item-main">
                 <div class="item-details">
@@ -46,16 +47,30 @@
                 <div class="item-total-price">€{{ item.totalPrice.toFixed(2) }}</div>
               </div>
 
-              <!-- <div v-if="item.selectedOptions.length" class="item-extras">
-                <div v-for="group in item.selectedOptions" :key="group.groupId">
-                  <template v-for="extra in group.selected" :key="extra.optionId">
-                    <div class="extra-item">
-                      <span class="extra-name">+ {{ extra.name }}</span>
-                      <span class="extra-price">+€{{ (extra.price * extra.quantity).toFixed(2) }}</span>
+              <!-- Show selected items inside each offer -->
+              <div v-if="item.selections?.length" class="item-extras">
+                <div v-for="(selection, sIndex) in item.selections" :key="sIndex" class="selection-group">
+                  <div
+                    v-for="(addedItem, aIndex) in selection.addedItems"
+                    :key="`${addedItem.itemId}-${aIndex}`"
+                    class="extra-item"
+                  >
+                    <div class="extra-name font-medium text-gray-800">+ {{ addedItem.itemName }}</div>
+                    <div v-if="addedItem.selectedOptions?.length" class="pl-4 pt-1 text-sm text-gray-600">
+                      <div v-for="group in addedItem.selectedOptions" :key="group.groupId">
+                        <div
+                          v-for="option in group.selected"
+                          :key="option.optionId"
+                          class="flex justify-between text-sm"
+                        >
+                          <span>↳ {{ option.name }}</span>
+                          <span>+€{{ (option.price * option.quantity).toFixed(2) }}</span>
+                        </div>
+                      </div>
                     </div>
-                  </template>
+                  </div>
                 </div>
-              </div> -->
+              </div>
             </div>
           </div>
 
@@ -186,7 +201,7 @@ function setInter() {
       try {
         const currentUrl = iframe.contentWindow.location.href
         if (currentUrl.includes('loader')) {
-          checkPaymentStatus(orderId.value)
+          checkPaymentStatus(orderId.value, selectedPayment.value.paymentTypeId)
           resetInter()
           apiLoading.value = false
         }
@@ -212,8 +227,8 @@ const totalAmount = computed(() => {
   return subtotal.value
 })
 
-async function checkPaymentStatus(requestId) {
-  const response = await orderStore.checkPaymentStatus(requestId)
+async function checkPaymentStatus(requestId, paymentId) {
+  const response = await orderStore.checkPaymentStatus(requestId, paymentId)
   if (response.data.data.status === 'Completed') {
     init({
       color: 'success',

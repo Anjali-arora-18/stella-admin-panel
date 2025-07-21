@@ -80,16 +80,6 @@
             <!-- Quantity Controls -->
             <div class="flex items-center gap-2">
               <VaButton icon="mso-close" color="danger" size="small" class="rounded" @click="deleteOffer(item)" />
-              <!-- <VaButton
-                icon="remove"
-                :disabled="item.quantity === 1"
-                color="success"
-                size="small"
-                class="rounded"
-                @click="decreaseQty(item)"
-              /> -->
-              <!-- <VaBadge :text="item.quantity" color="secondary" size="large" class="!py-1 !h-[2rem]" /> -->
-              <!-- <VaButton icon="add" color="success" size="small" class="rounded" @click="increaseQty(item)" /> -->
             </div>
 
             <!-- Item Info -->
@@ -100,45 +90,32 @@
                   name="edit"
                   size="small"
                   class="text-yellow-600 cursor-pointer"
-                  @click="getMenuOptions(item.fullItem)"
+                  @click="getOfferItems(item.fullItem)"
                 />
               </div>
 
-              <!-- Options -->
-              <!-- <div v-for="optionItems in item.items" :key="optionItems.name">
-                <span class="font-medium text-gray-800">{{ optionItems.name }}</span>
+              <!-- Offer Options -->
+              <div class="divide-y">
+                <div v-for="selectedArticle in item.items" :key="selectedArticle.itemName" class="mt-2 text-xs">
+                  <p class="font-semibold text-gray-700 mb-1 mt-2">{{ selectedArticle.itemName }}</p>
 
-                <div class="flex flex-wrap gap-1 mt-1 text-xs">
-                  <span
-                    v-for="option in optionItems.additions"
-                    :key="option"
-                    class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full"
-                  >
-                    {{ option }}
-                  </span>
-                  <span
-                    v-for="removal in optionItems.removals"
-                    :key="removal"
-                    class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full"
-                  >
-                    -{{ removal }}
-                  </span>
-                  <span
-                    v-for="modifier in optionItems.modifierType"
-                    :key="modifier"
-                    class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full"
-                  >
-                    *{{ modifier }}
-                  </span>
-                  <span
-                    v-for="article in optionItems.articleType"
-                    :key="article"
-                    class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full"
-                  >
-                    {{ article }}
-                  </span>
+                  <div class="flex flex-wrap gap-2">
+                    <span
+                      v-for="option in selectedArticle.selectedOptions.flatMap((a) => a.selected)"
+                      :key="option.name + option.type"
+                      class="px-2 py-0.5 rounded-full text-[0.75rem]"
+                      :class="{
+                        'bg-green-100 text-green-700': option.type.toLowerCase() === 'extra',
+                        'bg-blue-100 text-blue-700': option.type.toLowerCase() === 'article',
+                        'bg-red-100 text-red-700': option.type.toLowerCase() === 'hold',
+                        'bg-amber-100 text-amber-700': option.type.toLowerCase() === 'modifier',
+                      }"
+                    >
+                      {{ formattedLabel(option) }}
+                    </span>
+                  </div>
                 </div>
-              </div> -->
+              </div>
 
               <!-- Base Info -->
               <p class="text-[11px] text-gray-500 mt-1 italic">
@@ -193,6 +170,13 @@
       @cancel="closeMenuModal"
       @cancelEdit="isEdit = false"
     />
+    <OfferModal
+      v-if="showOfferModal"
+      :item="selectedItemWithArticlesOptionsGroups"
+      :is-edit="isEdit"
+      @cancel="closeOfferModal"
+      @cancelEdit="isEdit = false"
+    />
     <CheckOutModal
       v-model="showCheckoutModal"
       :delivery-fee="deliveryFee"
@@ -206,9 +190,10 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useOrderStore } from '@/stores/order-store' // adjust path as needed
+import { useOrderStore } from '@/stores/order-store'
 import MenuModal from '../modals/MenuModal.vue'
 import CheckOutModal from '../modals/CheckOutModal.vue'
+import OfferModal from '../modals/OfferModal.vue'
 import axios from 'axios'
 import { useToast } from 'vuestic-ui'
 
@@ -221,7 +206,7 @@ const props = defineProps({
 })
 
 const promoCode = ref('')
-
+const showOfferModal = ref(false)
 const orderStore = useOrderStore()
 const { cartItems, offerItems } = storeToRefs(orderStore)
 
@@ -261,34 +246,17 @@ const items = computed(() =>
 
 const offersItems = computed(() =>
   offerItems.value.map((item, index) => {
-    const additions = []
-    const removals = []
-    const modifierType = []
-    const articleType = []
     const items = []
+    const subItems = []
     item.selections.map((selection) => {
       selection.addedItems.map((addedItems) => {
         addedItems.selectedOptions.forEach((group) => {
           group.selected.forEach((sel) => {
-            if (sel.type === 'hold') {
-              removals.push(formattedLabel(sel))
-            } else if (sel.type === 'extra') {
-              additions.push(formattedLabel(sel))
-            } else if (sel.type === 'modifier') {
-              modifierType.push(formattedLabel(sel))
-            } else if (sel.type === 'article') {
-              articleType.push(formattedLabel(sel))
-            }
+            subItems.push({ text: formattedLabel(sel), type: sel.type })
           })
         })
       })
-      items.push({
-        name: selection.name,
-        additions,
-        removals,
-        modifierType,
-        articleType,
-      })
+      items.push(...selection.addedItems)
     })
     const totalPrice = item.selectionTotalPrice ? item.price + item.selectionTotalPrice : item.price
 
@@ -391,11 +359,25 @@ const getMenuOptions = async (selectedItem) => {
     isLoading.value = false
   }
 }
+
+const getOfferItems = async (selectedItem) => {
+  selectedItemWithArticlesOptionsGroups.value = selectedItem
+  openOfferModal(selectedItem)
+}
 function openMenuModal() {
   showMenuModal.value = true
+  isEdit.value = true
+}
+function openOfferModal() {
+  isEdit.value = true
+  showOfferModal.value = true
 }
 function closeMenuModal() {
   showMenuModal.value = false
+  isEdit.value = false
+}
+function closeOfferModal() {
+  showOfferModal.value = false
   isEdit.value = false
 }
 </script>

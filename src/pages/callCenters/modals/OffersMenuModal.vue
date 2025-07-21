@@ -43,16 +43,16 @@
             {{ isEdit ? 'UPDATE OFFER' : 'ADD TO OFFER' }}
           </button>
 
-          <!-- <p v-if="formSubmitted && !isFormValid" class="text-red-500 text-xs mt-2 text-center">
+          <p v-if="formSubmitted && !isFormValid" class="text-red-500 text-xs mt-2 text-center">
             Please select all required options.
-          </p> -->
+          </p>
         </div>
       </div>
 
       <!-- RIGHT SECTION -->
       <div class="w-[75%] bg-white p-4 overflow-y-auto max-h-[85vh]">
         <div class="space-y-6">
-          <div v-for="group in item.optionGroups" :key="group.optionGroupId" class="space-y-4">
+          <div v-for="group in articlesOptionsGroups" :key="group.optionGroupId" class="space-y-4">
             <!-- Group Title -->
             <div class="flex items-center gap-2">
               <span class="text-green-900 font-bold uppercase text-sm">{{ group.name }}</span>
@@ -221,6 +221,7 @@
 import { ref, watch, computed } from 'vue'
 import { useOrderStore } from '@/stores/order-store'
 import { useMenuStore } from '@/stores/getMenu'
+import axios from 'axios'
 const orderStore = useOrderStore()
 
 const emits = defineEmits(['cancel', 'cancel-edit', 'items-added'])
@@ -242,31 +243,32 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
+  menuItemId: String,
 })
 
 const selectedOptions = ref([])
 const menuStore = useMenuStore()
 const formSubmitted = ref(false)
+const fetchConfigurations = ref([])
 
-// const isFormValid = computed(() => {
-//   const requiredGroups = props.item.articlesOptionsGroups.filter((g) => g.mandatory)
+const isFormValid = computed(() => {
+  const requiredGroups = articlesOptionsGroups.value.filter((g) => g.mandatory)
 
-//   for (const group of requiredGroups) {
-//     const selectedGroup = selectedOptions.value.find((sel) => sel.groupId === group.optionGroupId)
+  for (const group of requiredGroups) {
+    const selectedGroup = selectedOptions.value.find((sel) => sel.groupId === group.optionGroupId)
 
-//     if (!selectedGroup || !selectedGroup.selected.length) {
-//       return false
-//     }
+    if (!selectedGroup || !selectedGroup.selected.length) {
+      return false
+    }
 
-//     if (group.multipleChoice && group.minimumChoices) {
-//       const totalQty = selectedGroup.selected.reduce((sum, opt) => sum + (opt.quantity || 0), 0)
+    if (group.multipleChoice && group.minimumChoices) {
+      const totalQty = selectedGroup.selected.reduce((sum, opt) => sum + (opt.quantity || 0), 0)
+      if (totalQty < group.minimumChoices) return false
+    }
+  }
 
-//       if (totalQty < group.minimumChoices) return false
-//     }
-//   }
-
-//   return true
-// })
+  return true
+})
 
 const totalPrice = computed(() => {
   let total = parseFloat(props.item.price) || props.item.basePrice || 0
@@ -332,9 +334,9 @@ watch(
 function addToBasket(item: any) {
   formSubmitted.value = true
 
-  // if (!isFormValid.value) {
-  //   return
-  // }
+  if (!isFormValid.value) {
+    return
+  }
 
   const productEntry = {
     itemId: props.isEdit ? item.itemId : item.id,
@@ -372,6 +374,43 @@ function addToBasket(item: any) {
   emits('items-added')
 }
 
+const articles = computed(() => {
+  return props.item.optionGroups
+    ? props.item.optionGroups
+        .map((e) => {
+          return {
+            ...e,
+            selectedOptions: e.selectedOptions.filter((a) => a.type.toLowerCase() === 'article'),
+          }
+        })
+        .filter((a) => a.selectedOptions.length)
+    : []
+})
+
+const articlesOptionsGroups = computed(() => {
+  let group = []
+  if (!articles.value.length) {
+    return props.item.optionGroups
+  } else {
+    if (!fetchConfigurations.value.length && articles.value.length) {
+      return articles.value
+    }
+    const fetchItems = fetchConfigurations.value.flatMap((a) => a.conditionalSelection)
+    group = props.item.optionGroups
+      .filter((a) => fetchItems.find((e) => e.optionsGroupId === a.optionGroupId))
+      .map((e) => {
+        const fetchedGroup = fetchItems.find((a) => a.optionsGroupId === e.optionGroupId)
+        return {
+          ...e,
+          selectedOptions: e.selectedOptions.filter(
+            (a) => a.type.toLowerCase() === 'article' || fetchedGroup.optionsIds.find((opt) => opt === a.optionId),
+          ),
+        }
+      })
+    return [...articles.value, ...group]
+  }
+})
+
 function toggleMultipleChoiceNoQty(group, option, quantity) {
   const min = option.minimumChoices || 0
   const max = option.maximumChoices || group.maximumChoices || 99
@@ -405,6 +444,10 @@ function toggleMultipleChoiceNoQty(group, option, quantity) {
 }
 
 function updateSingleChoice(group: any, option: any) {
+  if (option.type.toLowerCase() === 'article') {
+    getArticlesConfiguration(group.optionGroupId, option.optionId)
+    selectedOptions.value = selectedOptions.value.filter((a) => a.selected.flatMap((a) => a.type).includes('article'))
+  }
   const index = selectedOptions.value.findIndex((sel) => sel.groupId === group.optionGroupId)
   const newEntry = {
     groupId: group.optionGroupId,
@@ -526,6 +569,14 @@ const allergenIcons = {
   24: '/allergens/molluscs.png',
 }
 
+const getArticlesConfiguration = (group, option) => {
+  const url = import.meta.env.VITE_API_BASE_URL
+  axios
+    .get(`${url}/articles-options-conditions?optionsGroupId=${group}&menuItemId=${props.menuItemId}&optionId=${option}`)
+    .then((response) => {
+      fetchConfigurations.value = response.data.data
+    })
+}
 function increment(item) {
   item.quantity++
 }

@@ -36,14 +36,14 @@ defaultOptions.value = props.selectedOptions.defaultOptions
 
 const selectAll = ref(false)
 const toggleAll = () => {
-  items.value.forEach((item) => {
+  filteredItems.value.forEach((item) => {
     item.isChecked = selectAll.value
   })
 }
 watch(
   items,
   () => {
-    const allChecked = items.value.length > 0 && items.value.every((p) => p.isChecked)
+    const allChecked = filteredItems.value.length > 0 && filteredItems.value.every((p) => p.isChecked)
     if (selectAll.value !== allChecked) {
       selectAll.value = allChecked
     }
@@ -51,7 +51,7 @@ watch(
   { deep: true },
 )
 const updateSelectAll = () => {
-  const allChecked = items.value.length > 0 && items.value.every((p) => p.isChecked)
+  const allChecked = filteredItems.value.length > 0 && filteredItems.value.every((p) => p.isChecked)
   selectAll.value = allChecked
 }
 const getOptions = async () => {
@@ -209,7 +209,9 @@ function checkDefaultOptions(id: any) {
                     </div>
 
                     <!-- RIGHT SIDE: Configure button -->
+
                     <span
+                      v-if="item.type.toLowerCase() === 'article'"
                       class="cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
                       :class="{
                         'bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-blue-900 border border-blue-500': true,

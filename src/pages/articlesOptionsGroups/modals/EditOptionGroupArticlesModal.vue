@@ -95,12 +95,14 @@ const getArticles = (outletId) => {
       `${url}/menuItems?outletId=${outletId}&limit=50&page=${currentPage.value}&search=${searchQuery.value}&sortKey=${sortBy.value}&sortValue=${sortOrder.value}`,
     )
     .then((response) => {
-      items.value = response.data.map((item) => {
-        return {
+      items.value = response.data
+        .map((item) => ({
           ...item,
           selected: menuItems.value.includes(item._id),
-        }
-      })
+        }))
+        .sort((a, b) => {
+          return b.selected - a.selected
+        })
       isLoading.value = false
     })
 }

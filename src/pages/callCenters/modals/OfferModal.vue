@@ -37,7 +37,9 @@
             <button class="add-to-basket" :disabled="totalSelected < totalRequired" @click="addToBasket">
               {{
                 totalSelected >= totalRequired
-                  ? 'Add Bundle to Basket'
+                  ? isEdit
+                    ? 'Update Bundle'
+                    : 'Add Bundle to Basket'
                   : `Complete Your Selection (${totalSelected}/${totalRequired})`
               }}
             </button>
@@ -45,13 +47,13 @@
         </div>
 
         <!-- RIGHT: Selection Area -->
-        {{}}
+
         <div class="selection-area">
           <div v-if="!offer" class="text-center p-4 flex items-center justify-center h-full">
             <p class="text-center text-gray-500">Loading offer details...</p>
           </div>
           <div v-else>
-            <SelectionGroup v-for="group in offer.selections" :key="group.title" :group="group" />
+            <SelectionGroup v-for="group in offer.selections" :key="group.title" :is-edit="isEdit" :group="group" />
           </div>
         </div>
       </div>
@@ -60,13 +62,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useOrderStore } from '@/stores/order-store'
 import SelectionGroup from './SelectionGroup.vue'
 import axios from 'axios'
 import { useMenuStore } from '@/stores/getMenu'
-import { isTemplateExpression } from 'typescript'
 const orderStore = useOrderStore()
 
 const showOfferModal = ref(true)
@@ -92,10 +93,13 @@ function getMenu() {
     .then((response) => {
       const resp = {
         ...response.data.data,
-        selections: response.data.data.selections.map((group) => ({
-          ...group,
-          addedItems: [],
-        })),
+        selections: response.data.data.selections.map((group) => {
+          const hasSelection = props.isEdit ? props.item.selections.find((a) => a._id === group._id) : null
+          return {
+            ...group,
+            addedItems: props.isEdit && hasSelection ? hasSelection.addedItems : [],
+          }
+        }),
       }
 
       menuStore.setOffer(resp)
@@ -110,6 +114,10 @@ watch(showOfferModal, (val) => {
     emits('cancel')
     menuStore.setOffer(null)
   }
+})
+
+onBeforeUnmount(() => {
+  menuStore.setOffer(null)
 })
 const totalRequired = computed(() => {
   if (!offer.value) return 0

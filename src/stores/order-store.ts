@@ -23,7 +23,12 @@ export const useOrderStore = defineStore('order', {
       this.cartItems.push(item)
     },
     offersAdded(item: any) {
-      this.offerItems.push(item)
+      const itemIndex = this.offerItems.findIndex((a) => a._id === item._id)
+      if (itemIndex !== -1) {
+        this.offerItems[itemIndex] = item
+      } else {
+        this.offerItems.push(item)
+      }
     },
     updateItem(index: number, newItem: any) {
       this.cartItems[index] = newItem
@@ -58,9 +63,9 @@ export const useOrderStore = defineStore('order', {
       const url = import.meta.env.VITE_API_BASE_URL
       return await axios.post(`${url}/orders`, payload)
     },
-    async checkPaymentStatus(orderId) {
+    async checkPaymentStatus(orderId, paymentTypeId) {
       const url = import.meta.env.VITE_API_BASE_URL
-      return await axios.put(`${url}/payments/verify/${orderId}`)
+      return await axios.put(`${url}/payments/verify/${orderId}?paymentTypeId=${paymentTypeId}`)
     },
     async createPayment({ orderId: orderId, paymentTypeId: paymentTypeId }) {
       const url = import.meta.env.VITE_API_BASE_URL
