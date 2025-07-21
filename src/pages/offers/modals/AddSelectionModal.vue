@@ -173,11 +173,7 @@
 
     <template #footer>
       <div class="flex justify-end mt-6 w-full">
-        <VaButton
-          :disabled="!!groupSearchQuery || !!optionSearchQuery || !!searchQuery"
-          type="submit"
-          @click="submit()"
-        >
+        <VaButton type="submit" @click="submit()">
           {{ isUpdating ? 'Update' : 'Add' }}
         </VaButton>
       </div>
