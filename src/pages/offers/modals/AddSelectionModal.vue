@@ -47,8 +47,8 @@
             <div class="border rounded shadow-sm bg-white h-[50vh] overflow-y-hidden">
               <table v-if="!isLoading" class="w-full text-sm">
                 <tbody>
-                  <VaVirtualScroller v-slot="{ item, index }" :items="filteredItems" :wrapper-size="400">
-                    <tr class="border-b hover:bg-orange-50">
+                  <VaVirtualScroller v-slot="{ item, index }" :items="items" :wrapper-size="400">
+                    <tr class="border-b hover:bg-orange-50" :class="{ hidden: !item.display }">
                       <td class="p-2">
                         <VaCheckbox
                           v-model="item.selected"
@@ -79,15 +79,18 @@
 
             <!-- Scrollable List -->
             <div class="border rounded shadow-sm bg-white h-[50vh] overflow-y-hidden">
-              <table v-if="filteredGroups.length" class="w-full text-sm">
+              <table
+                v-if="items.filter((a) => a.selected).flatMap((a) => a.articlesOptionsGroup).length"
+                class="w-full text-sm"
+              >
                 <tbody>
                   <VaVirtualScroller
                     v-slot="{ item, index }"
-                    :items="filteredGroups.flatMap((item) => item.articlesOptionsGroup)"
+                    :items="items.filter((a) => a.selected).flatMap((a) => a.articlesOptionsGroup)"
                     class="mb-10"
                     :wrapper-size="400"
                   >
-                    <tr class="hover:bg-green-50" style="display: table">
+                    <tr class="hover:bg-green-50" :class="{ hidden: !item.display, table: item.display }">
                       <td class="p-2 w-full border-b">
                         <VaCheckbox
                           v-model="item.selected"
@@ -113,16 +116,30 @@
 
             <!-- Scrollable List -->
             <div class="border rounded shadow-sm bg-white h-[50vh] overflow-y-hidden">
-              <table v-if="filteredOptions.length" class="w-full text-sm">
+              <table
+                v-if="
+                  items
+                    .flatMap((item) => item.articlesOptionsGroup)
+                    .filter((a) => a.selected)
+                    .flatMap((a) => a.articlesOptions).length
+                "
+                class="w-full text-sm"
+              >
                 <tbody>
                   <VaVirtualScroller
                     v-slot="{ item, index }"
                     :items="
-                      filteredOptions.flatMap((item) => item.articlesOptionsGroup).flatMap((a) => a.articlesOptions)
+                      items
+                        .flatMap((item) => item.articlesOptionsGroup)
+                        .filter((a) => a.selected)
+                        .flatMap((a) => a.articlesOptions)
                     "
                     :wrapper-size="400"
                   >
-                    <tr class="border-b hover:bg-green-50 w-full" style="display: table">
+                    <tr
+                      class="border-b hover:bg-green-50 w-full"
+                      :class="{ hidden: !item.display, table: item.display }"
+                    >
                       <td class="p-2">
                         <div class="flex items-center justify-between">
                           <VaCheckbox
@@ -212,13 +229,6 @@ const { validate } = useForm('form')
 const { init } = useToast()
 
 const searchQuery = ref('')
-const filteredItems = computed(() =>
-  items.value.filter(
-    (item) =>
-      item.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      item.code.toLowerCase().includes(searchQuery.value.toLowerCase()),
-  ),
-)
 
 const groupSearchQuery = ref('')
 const optionSearchQuery = ref('')
@@ -229,19 +239,35 @@ const groupWorker = new Worker(
       [
         `
       self.onmessage = function(e) {
-        const { items, query } = e.data;
-        const lowerQuery = query.toLowerCase();
+        const { items, groupSearchQuery, optionSearchQuery, searchQuery } = e.data;
+        const groupSearch = groupSearchQuery.toLowerCase();
+        const optionSearch = optionSearchQuery.toLowerCase();
+        const search = searchQuery.toLowerCase();
         const filtered = items
-          .filter(a => a.selected)
-          .map(a => ({
-            ...a,
-            articlesOptionsGroup: a.articlesOptionsGroup.filter(g => {
-              const nameMatch = g.name?.toLowerCase().includes(lowerQuery);
-              const internalNameMatch = g.internalName?.toLowerCase().includes(lowerQuery);
-              return nameMatch || internalNameMatch;
-            }),
-          }))
-          .filter(a => a.articlesOptionsGroup.length);
+          .map(a => {
+            const nameMatch = a.name?.toLowerCase().includes(search);
+              const internalNameMatch = a.code?.toLowerCase().includes(search);
+              return {
+                ...a,
+                display: nameMatch || internalNameMatch || !searchQuery,
+                articlesOptionsGroup: a.articlesOptionsGroup.map(g => {
+                  const nameMatch = g.name?.toLowerCase().includes(groupSearch);
+                  const internalNameMatch = g.internalName?.toLowerCase().includes(groupSearch);
+                  return {
+                    ...g,
+                    display: nameMatch || internalNameMatch || !groupSearch,
+                    articlesOptions: g.articlesOptions.map(opt => {
+                      const optNameMatch = opt.name?.toLowerCase().includes(optionSearch);
+                      const optPosNameMatch = opt.posName?.toLowerCase().includes(optionSearch);
+                      return {
+                        ...opt,
+                        display: optNameMatch || optPosNameMatch || !optionSearch,
+                      };
+                    }),
+                  };
+                })
+              };    
+            })
         self.postMessage(filtered);
       }
     `,
@@ -251,81 +277,22 @@ const groupWorker = new Worker(
   ),
 )
 
-const filteredGroups = ref([])
 let lastWorkerCall = 0
 
 watch(
-  [items, groupSearchQuery],
+  [groupSearchQuery, optionSearchQuery, searchQuery],
   () => {
     const callId = ++lastWorkerCall
     groupWorker.postMessage({
       items: JSON.parse(JSON.stringify(items.value)),
-      query: groupSearchQuery.value,
+      groupSearchQuery: groupSearchQuery.value,
+      optionSearchQuery: optionSearchQuery.value,
+      searchQuery: searchQuery.value,
     })
     groupWorker.onmessage = (e) => {
       // Only update if this is the latest call
       if (callId === lastWorkerCall) {
-        filteredGroups.value = e.data
-      }
-    }
-  },
-  { immediate: true, deep: true },
-)
-
-const optionWorker = new Worker(
-  URL.createObjectURL(
-    new Blob(
-      [
-        `
-        self.onmessage = function(e) {
-          const { groups, query } = e.data;
-          const lowerQuery = query.toLowerCase();
-          const filtered = groups
-            .map(groupWrapper => ({
-              ...groupWrapper,
-              articlesOptionsGroup: groupWrapper.articlesOptionsGroup
-                .map(group => ({
-                  ...group,
-                  articlesOptions: group.articlesOptions.filter(option => {
-                    const nameMatch = option.name?.toLowerCase().includes(lowerQuery);
-                    const posNameMatch = option.posName?.toLowerCase().includes(lowerQuery);
-                    return nameMatch || posNameMatch;
-                  }),
-                }))
-                .filter(g => g.articlesOptions.length),
-            }))
-            .filter(g => g.articlesOptionsGroup.length);
-          self.postMessage(filtered);
-        }
-        `,
-      ],
-      { type: 'application/javascript' },
-    ),
-  ),
-)
-
-const filteredOptions = ref([])
-let lastOptionWorkerCall = 0
-
-watch(
-  [filteredGroups, optionSearchQuery],
-  () => {
-    const callId = ++lastOptionWorkerCall
-    // Only pass groups with selected = true to the option worker
-    const selectedGroups = JSON.parse(JSON.stringify(filteredGroups.value))
-      .map((groupWrapper) => ({
-        ...groupWrapper,
-        articlesOptionsGroup: groupWrapper.articlesOptionsGroup.filter((group) => group.selected),
-      }))
-      .filter((groupWrapper) => groupWrapper.articlesOptionsGroup.length > 0)
-
-    optionWorker.postMessage({
-      groups: selectedGroups,
-      query: optionSearchQuery.value,
-    })
-    optionWorker.onmessage = (e) => {
-      if (callId === lastOptionWorkerCall) {
-        filteredOptions.value = e.data
+        items.value = JSON.parse(JSON.stringify(e.data))
       }
     }
   },
@@ -367,6 +334,7 @@ const getArticles = async () => {
 
     return {
       ...e,
+      display: true,
       selected: selected ? e._id : '',
       articlesOptionsGroup: e.articlesOptionsGroup.map((e) => {
         let groupSelected = false
@@ -375,6 +343,7 @@ const getArticles = async () => {
         }
         return {
           ...e,
+          display: true,
           selected: groupSelected ? e._id : !props.isEditSelection ? e._id : '',
           articlesOptions: e.articlesOptions.map((opt) => {
             let optionSelected = false
@@ -383,6 +352,7 @@ const getArticles = async () => {
             }
             return {
               ...opt,
+              display: true,
               selected: optionSelected ? opt.id : !props.isEditSelection ? opt.id : '',
               isFree: optionSelected?.isFree || false,
             }
@@ -409,7 +379,7 @@ const submit = async () => {
     data.isActive = true
 
     // Reconstruct menuItems from the current UI state to reflect latest selection/free changes
-    data.menuItems = filteredOptions.value
+    data.menuItems = items.value
       .filter((item: any) => !!item.selected)
       .map((item: any) => ({
         menuItemId: item._id,
