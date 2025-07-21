@@ -7,7 +7,7 @@
     <VaForm ref="form" @submit.prevent="submit">
       <div class="grid gap-4">
         <!-- Combined Input Row -->
-        <div class="grid md:grid-cols-3 gap-4">
+        <div class="grid md:grid-cols-4 gap-4">
           <VaInput
             v-model="formData.name"
             label="Name"
@@ -33,6 +33,13 @@
             required-mark
             :rules="[validators.required]"
           />
+          <VaSelect
+            v-model="formData.isRequired"
+            label="Is Required"
+            :options="[true, false]"
+            placeholder="Select if required"
+            required-mark
+          />
         </div>
 
         <div class="grid md:grid-cols-3 gap-4 text-sm leading-tight">
@@ -48,13 +55,32 @@
               <table v-if="!isLoading" class="w-full text-sm">
                 <tbody>
                   <VaVirtualScroller v-slot="{ item, index }" :items="items" :wrapper-size="400">
-                    <tr class="border-b hover:bg-orange-50" :class="{ hidden: !item.display }">
-                      <td class="p-2">
-                        <VaCheckbox
-                          v-model="item.selected"
-                          :true-value="item._id"
-                          :label="item.code + ' - ' + item.name"
-                        />
+                    <tr class="border-b hover:bg-orange-50" :class="{ hidden: !item.display, table: item.display }">
+                      <td class="p-2 w-full">
+                        <div class="flex items-center justify-between">
+                          <VaCheckbox
+                            v-model="item.selected"
+                            :true-value="item._id"
+                            :label="item.code + ' - ' + item.name"
+                          />
+
+                          <div class="flex items-center justify-between">
+                            <div class="w-12">
+                              <VaInput v-model="item.customPrice" type="number" placeholder="Price" class="w-full" />
+                            </div>
+                            <span
+                              class="ml-2 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                              :class="{
+                                'bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-blue-900 border border-blue-500':
+                                  item.isFree,
+                                'bg-gray-200 text-gray-700 hover:bg-gray-300': !item.isFree,
+                              }"
+                              @click="item.isFree = !item.isFree"
+                            >
+                              Free
+                            </span>
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   </VaVirtualScroller>
@@ -97,12 +123,22 @@
                   >
                     <tr class="hover:bg-green-50" :class="{ hidden: !item.display, table: item.display }">
                       <td class="p-2 w-full border-b">
-                        <VaCheckbox
-                          v-model="item.selected"
-                          :true-value="item._id"
-                          :label="item.internalName ? `${item.name} - ${item.internalName}` : item.name"
-                          class="w-full"
-                        />
+                        <div class="flex items-center justify-between">
+                          <VaCheckbox
+                            v-model="item.selected"
+                            :true-value="item._id"
+                            :label="item.internalName ? `${item.name} - ${item.internalName}` : item.name"
+                            class="w-full"
+                          />
+                          <div class="w-12">
+                            <VaInput
+                              v-model="item.customMaxChoices"
+                              type="number"
+                              placeholder="Max Choice"
+                              class="w-full"
+                            />
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   </VaVirtualScroller>
@@ -155,17 +191,22 @@
                             :true-value="item.id"
                             :label="item.posName ? `${item.name} - ${item.posName}` : item.name"
                           />
-                          <span
-                            class="ml-2 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
-                            :class="{
-                              'bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-blue-900 border border-blue-500':
-                                item.isFree,
-                              'bg-gray-200 text-gray-700 hover:bg-gray-300': !item.isFree,
-                            }"
-                            @click="item.isFree = !item.isFree"
-                          >
-                            Free
-                          </span>
+                          <div class="flex items-center justify-between">
+                            <div class="w-12">
+                              <VaInput v-model="item.customPrice" type="number" placeholder="Price" class="w-full" />
+                            </div>
+                            <span
+                              class="ml-2 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                              :class="{
+                                'bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-blue-900 border border-blue-500':
+                                  item.isFree,
+                                'bg-gray-200 text-gray-700 hover:bg-gray-300': !item.isFree,
+                              }"
+                              @click="item.isFree = !item.isFree"
+                            >
+                              Free
+                            </span>
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -307,6 +348,7 @@ const formData = ref({
   name: '',
   min: null,
   max: null,
+  isRequired: false,
 })
 
 if (props.isEditSelection) {
@@ -316,6 +358,7 @@ if (props.isEditSelection) {
     name: props.offerSelection.name,
     min: props.offerSelection.min.toString(),
     max: props.offerSelection.max.toString(),
+    isRequired: props.offerSelection.isRequired || false,
   }
 } else {
   isUpdating.value = false
@@ -339,7 +382,9 @@ const getArticles = async () => {
     return {
       ...e,
       display: true,
+      isFree: selected ? selected.isFree : false,
       selected: selected ? e._id : '',
+      customPrice: selected ? selected.customPrice : 0,
       articlesOptionsGroup: e.articlesOptionsGroup.map((e) => {
         let groupSelected = false
         if (selected) {
@@ -348,6 +393,7 @@ const getArticles = async () => {
         return {
           ...e,
           display: true,
+          customMaxChoices: groupSelected ? groupSelected.customMaxChoices : 0,
           selected: groupSelected ? e._id : !props.isEditSelection ? e._id : '',
           articlesOptions: e.articlesOptions.map((opt) => {
             let optionSelected = false
@@ -359,6 +405,7 @@ const getArticles = async () => {
               display: true,
               selected: optionSelected ? opt.id : !props.isEditSelection ? opt.id : '',
               isFree: optionSelected?.isFree || false,
+              customPrice: optionSelected ? optionSelected?.customPrice : 0,
             }
           }),
         }
@@ -387,15 +434,19 @@ const submit = async () => {
       .filter((item: any) => !!item.selected)
       .map((item: any) => ({
         menuItemId: item._id,
+        isFree: !!item.isFree,
+        customPrice: item.customPrice || 0,
         optionGroups: item.articlesOptionsGroup
           .filter((group: any) => !!group.selected)
           .map((group: any) => ({
             optionGroupId: group.id,
+            customMaxChoices: group.customMaxChoices || 0,
             selectedOptions: group.articlesOptions
               .filter((option: any) => !!option.selected)
               .map((option: any) => ({
                 optionId: option.id,
                 isFree: !!option.isFree,
+                customPrice: option.customPrice || 0,
               })),
           })),
       }))
