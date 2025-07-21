@@ -230,6 +230,7 @@ const submit = async () => {
 
     try {
       if (data._id) {
+        delete data.selections
         await axios.put(`${url}/offers/${data._id}`, data)
         init({ message: 'Offer updated successfully!', color: 'success' })
       } else {
