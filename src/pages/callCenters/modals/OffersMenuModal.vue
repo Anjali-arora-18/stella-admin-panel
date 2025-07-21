@@ -75,7 +75,7 @@
                 v-if="group.maximumChoices"
                 class="text-[10px] bg-blue-100 text-blue-700 font-semibold px-2 rounded-full"
               >
-                Up to {{ group.maximumChoices }} Choices
+                Up to {{ group.customMaxChoices || group.maximumChoices }} Choices
               </span>
             </div>
 
@@ -429,7 +429,7 @@ const articlesOptionsGroups = computed(() => {
 
 function toggleMultipleChoiceNoQty(group, option, quantity) {
   const min = option.minimumChoices || 0
-  const max = option.maximumChoices || group.maximumChoices || 99
+  const max = option.maximumChoices || group.customMaxChoices || group.maximumChoices || 99
 
   let groupEntry = selectedOptions.value.find((sel) => sel.groupId === group.optionGroupId)
 
@@ -519,7 +519,7 @@ function updateMultipleChoice(group, option, quantity) {
   const opt = groupEntry.selected[optionIndex]
 
   const totalQtyInGroup = groupEntry.selected.reduce((sum, o) => sum + (o.quantity || 0), 0)
-  const maxAllowed = group.maximumChoices || 99
+  const maxAllowed = group.customMaxChoices || group.maximumChoices || 99
 
   if (totalQtyInGroup - (opt?.quantity || 0) + quantity > maxAllowed) {
     return
