@@ -119,6 +119,7 @@
               <table
                 v-if="
                   items
+                    .filter((a) => a.selected)
                     .flatMap((item) => item.articlesOptionsGroup)
                     .filter((a) => a.selected)
                     .flatMap((a) => a.articlesOptions).length
