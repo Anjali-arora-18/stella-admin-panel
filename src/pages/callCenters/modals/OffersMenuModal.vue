@@ -101,9 +101,13 @@
                 </div>
                 <div class="flex-1">
                   <div class="text-sm font-semibold text-gray-800">{{ option.name }}</div>
-                  <div v-if="option.price && !option.isFree" class="text-gray-800 font-semibold text-sm mt-1">
-                    €{{ parseFloat(option.price).toFixed(2) }}
+                  <div
+                    v-if="(option.customPrice || option.price) && !option.isFree"
+                    class="text-gray-800 font-semibold text-sm mt-2"
+                  >
+                    €{{ parseFloat(option.customPrice || option.price).toFixed(2) }}
                   </div>
+
                   <!-- <p v-if="option.isFree" class="text-sm text-gray-600 font-medium mr-2">Free</p> -->
                 </div>
 
@@ -141,10 +145,13 @@
 
                 <div class="flex-1">
                   <div class="text-sm font-semibold text-gray-800">{{ option.name }}</div>
-                  <div v-if="option.price && !option.isFree" class="text-gray-800 font-semibold text-sm mt-1">
-                    €{{ parseFloat(option.price).toFixed(2) }}
+                  <div
+                    v-if="(option.customPrice || option.price) && !option.isFree"
+                    class="text-gray-800 font-semibold text-sm mt-2"
+                  >
+                    €{{ parseFloat(option.customPrice || option.price).toFixed(2) }}
                   </div>
-                  <p v-if="option.isFree" class="text-sm text-gray-600 font-medium mt-1">Free</p>
+                  <p v-if="option.isFree" class="text-sm text-gray-600 font-medium mt-2">Free</p>
                 </div>
 
                 <div
@@ -183,11 +190,13 @@
 
                 <!-- Bottom-right quantity control -->
                 <div class="absolute bottom-2 right-2 flex items-center bottom-1 gap-1">
-                  <p v-if="option.price && !option.isFree" class="text-sm text-gray-600 font-medium mr-2">
-                    €{{ parseFloat(option.price).toFixed(2) }}
-                  </p>
+                  <div
+                    v-if="(option.customPrice || option.price) && !option.isFree"
+                    class="text-gray-800 font-semibold text-sm mt-2"
+                  >
+                    €{{ parseFloat(option.customPrice || option.price).toFixed(2) }}
+                  </div>
                   <p v-if="option.isFree" class="text-sm text-gray-600 font-medium mr-2">Free</p>
-
                   <button
                     class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50"
                     :disabled="getQty(group.optionGroupId, option.optionId) === 0"
@@ -278,11 +287,11 @@ const isFormValid = computed(() => {
 })
 
 const totalPrice = computed(() => {
-  let total = parseFloat(props.item.price) || props.item.basePrice || 0
+  let total = parseFloat(props.item.customPrice || props.item.price) || props.item.basePrice || 0
 
   selectedOptions.value.forEach((group) => {
     group.selected.forEach((option) => {
-      const price = parseFloat(option.price) || 0
+      const price = parseFloat(option.customPrice || option.price) || 0
       const quantity = option.quantity || 1
       total += price * quantity
     })
@@ -371,7 +380,7 @@ function addToBasket(item: any) {
     itemId: item.id,
     itemName: item.name,
     itemDescription: item.description,
-    basePrice: parseFloat(item.price),
+    basePrice: parseFloat(item.customPrice || item.price),
     imageUrl: item.imageUrl,
     quantity: 1,
     selectedOptions: selectedOptions.value,
@@ -451,7 +460,7 @@ function toggleMultipleChoiceNoQty(group, option, quantity) {
       optionId: option.optionId,
       name: option.name,
       type: option.type,
-      price: option.isFree ? 0 : option.price,
+      price: option.isFree ? 0 : option.customPrice || option.price,
       quantity: 1,
     }
 
@@ -473,7 +482,7 @@ function updateSingleChoice(group: any, option: any) {
         optionId: option.optionId,
         name: option.name,
         type: option.type,
-        price: option.isFree ? 0 : option.price,
+        price: option.isFree ? 0 : option.customPrice || option.price,
         quantity: 1,
       },
     ],
@@ -532,7 +541,7 @@ function updateMultipleChoice(group, option, quantity) {
       optionId: option.optionId,
       name: option.name,
       type: option.type,
-      price: option.isFree ? 0 : option.price,
+      price: option.isFree ? 0 : option.customPrice || option.price,
       quantity,
     }
 
