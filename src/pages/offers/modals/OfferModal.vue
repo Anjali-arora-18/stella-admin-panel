@@ -12,31 +12,34 @@
     </template>
 
     <VaForm ref="form" @submit.prevent="submit">
-      <div class="grid grid-cols-1 gap-6">
-        <div class="grid md:grid-cols-2 gap-4">
-          <VaInput
-            v-model="formData.name"
-            label="Name"
-            :rules="[validators.required]"
-            required-mark
-            placeholder="Enter offer name"
-          />
-          <VaInput
-            v-model="formData.price"
-            :rules="[validators.required]"
-            required-mark
-            label="Price"
-            placeholder="Enter price"
-            type="number"
-          />
+      <div class="grid grid-cols-1 gap-4">
+        <div class="grid gap-4">
+          <div class="grid md:grid-cols-3 gap-4">
+            <VaInput
+              v-model="formData.name"
+              label="Name"
+              :rules="[validators.required]"
+              required-mark
+              placeholder="Enter offer name"
+            />
+            <VaInput
+              v-model="formData.price"
+              :rules="[validators.required]"
+              required-mark
+              label="Price"
+              placeholder="Enter price"
+              type="number"
+            />
+            <VaInput v-model="formData.code" label="Code" placeholder="Enter code" type="text" />
+          </div>
           <VaTextarea
             v-model="formData.description"
             label="Description"
             :rules="[validators.required]"
             required-mark
             placeholder="Short description"
-            class="md:col-span-2"
             rows="3"
+            class="w-full"
           />
         </div>
 
@@ -148,6 +151,7 @@ const formData = ref({
   name: '',
   description: '',
   price: '',
+  code: '',
   imageUrl: '',
   dateOffer: {
     startDate: '',
@@ -181,6 +185,7 @@ watch(
         name: data.name || '',
         description: data.description || '',
         price: data.price || 0,
+        code: data.code || '',
         imageUrl: data.imageUrl || '',
         dateOffer: {
           startDate: data.dateOffer?.startDate?.slice(0, 10) || '',
