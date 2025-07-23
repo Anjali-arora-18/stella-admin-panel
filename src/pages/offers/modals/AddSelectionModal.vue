@@ -66,16 +66,24 @@
 
                           <div class="flex items-center justify-between">
                             <div class="w-12">
-                              <VaInput v-model="item.customPrice" type="number" placeholder="Price" class="w-full" />
+                              <VaInput
+                                v-model="item.customPrice"
+                                type="number"
+                                placeholder="Price"
+                                class="w-full"
+                                :disabled="item.isFree"
+                                @input="item.customPrice > 0 ? (item.isFree = false) : 0"
+                              />
                             </div>
                             <span
                               class="ml-2 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
-                              :class="{
-                                'bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-blue-900 border border-blue-500':
-                                  item.isFree,
-                                'bg-gray-200 text-gray-700 hover:bg-gray-300': !item.isFree,
-                              }"
-                              @click="item.isFree = !item.isFree"
+                              :class="[
+                                item.isFree
+                                  ? 'bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-blue-900 border border-blue-500'
+                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300',
+                                { 'opacity-50 pointer-events-none': item.customPrice > 0 },
+                              ]"
+                              @click="item.customPrice <= 0 ? (item.isFree = !item.isFree) : false"
                             >
                               Free
                             </span>
@@ -193,7 +201,14 @@
                           />
                           <div class="flex items-center justify-between">
                             <div class="w-12">
-                              <VaInput v-model="item.customPrice" type="number" placeholder="Price" class="w-full" />
+                              <VaInput
+                                v-model="item.customPrice"
+                                type="number"
+                                placeholder="Price"
+                                class="w-full"
+                                :disabled="item.isFree"
+                                @input="item.customPrice > 0 ? (item.isFree = false) : 0"
+                              />
                             </div>
                             <span
                               class="ml-2 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
@@ -201,8 +216,9 @@
                                 'bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-blue-900 border border-blue-500':
                                   item.isFree,
                                 'bg-gray-200 text-gray-700 hover:bg-gray-300': !item.isFree,
+                                'opacity-50 pointer-events-none': item.customPrice > 0,
                               }"
-                              @click="item.isFree = !item.isFree"
+                              @click="item.customPrice <= 0 ? (item.isFree = !item.isFree) : false"
                             >
                               Free
                             </span>

@@ -85,7 +85,15 @@
             <!-- Item Info -->
             <div class="flex-1 px-2">
               <div class="flex justify-between items-center">
-                <span class="font-medium text-gray-800">{{ item.name }}</span>
+                <span class="font-medium text-gray-800"
+                  >{{ item.name }}
+                  <span class="font-semibold text-gray-700 mb-1 mt-2">
+                    <span v-if="Number(item.basePrice) > 0" class="text-sm font-normal text-gray-500">
+                      (€{{ Number(item.basePrice).toFixed(2) }})
+                    </span>
+                  </span>
+                </span>
+
                 <VaIcon
                   name="edit"
                   size="small"
@@ -97,7 +105,12 @@
               <!-- Offer Options -->
               <div class="divide-y">
                 <div v-for="selectedArticle in item.items" :key="selectedArticle.itemName" class="mt-2 text-xs">
-                  <p class="font-semibold text-gray-700 mb-1 mt-2">{{ selectedArticle.itemName }}</p>
+                  <p class="font-semibold text-gray-800 mt-1 flex items-center gap-2">
+                    <span>{{ selectedArticle.itemName }}</span>
+                    <span v-if="Number(selectedArticle.basePrice) > 0" class="text-sm font-normal text-gray-500">
+                      (€{{ Number(selectedArticle.basePrice).toFixed(2) }})
+                    </span>
+                  </p>
 
                   <div class="flex flex-wrap gap-2">
                     <span
@@ -231,7 +244,7 @@ const items = computed(() =>
     const unitTotal = item.totalPrice / item.quantity
 
     return {
-      id: item.itemId || index, // fallback to index if no ID
+      id: item.itemId || index,
       name: item.itemName,
       quantity: item.quantity,
       basePrice: item.basePrice,
