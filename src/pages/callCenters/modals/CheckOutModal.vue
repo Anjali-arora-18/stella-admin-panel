@@ -127,7 +127,7 @@
               @click="createOrder"
             >
               <span v-if="!apiLoading" id="btnText">
-                {{ orderId && selectedPayment === 'Card' ? 'Retry Payment' : '   Payment' }}</span
+                {{ orderId && selectedPayment === 'Card' ? 'Retry Payment' : 'Payment' }}</span
               >
               <div v-if="apiLoading" id="loadingSpinner" class="loading-spinner animate-spin"></div>
             </button>
@@ -295,13 +295,31 @@ async function createOrder() {
       })
     })
   })
+  const offerMenuItems = orderStore.offerItems.map((offer) => ({
+    offerId: offer.offerId,
+    menuItems: offer.selections.flatMap((selection) =>
+      selection.addedItems.map((item) => ({
+        menuItem: item.itemId,
+        quantity: item.quantity || 1,
+        options:
+          item.selectedOptions?.flatMap((group) =>
+            group.selected.map((option) => ({
+              option: option.optionId,
+              quantity: option.quantity,
+            })),
+          ) || [],
+      })),
+    ),
+  }))
+
   try {
     const payload = {
       customerDetailId: props.customerDetailsId,
       orderType: props.orderType === 'takeaway' ? 'Takeaway' : 'Delivery',
       deliveryZoneId: orderStore.deliveryZone,
       address: orderStore.address,
-      menuItems: menuItems,
+      menuItems,
+      offerMenuItems,
       orderNotes: '',
       deliveryFee: props.deliveryFee,
       outletId: serviceStore.selectedRest,
