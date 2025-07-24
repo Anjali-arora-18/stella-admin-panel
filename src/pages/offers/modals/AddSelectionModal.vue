@@ -64,7 +64,7 @@
                             :label="item.code + ' - ' + item.name"
                           />
 
-                          <div class="flex items-center justify-between">
+                          <div class="flex items-center gap-1">
                             <div class="w-12">
                               <VaInput
                                 v-model="item.customPrice"
@@ -76,7 +76,7 @@
                               />
                             </div>
                             <span
-                              class="ml-2 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                              class="ml-1 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
                               :class="[
                                 item.isFree
                                   ? 'bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-blue-900 border border-blue-500'
@@ -86,6 +86,18 @@
                               @click="item.customPrice <= 0 ? (item.isFree = !item.isFree) : false"
                             >
                               Free
+                            </span>
+                            <!-- Default span -->
+                            <span
+                              class="ml-1 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                              :class="{
+                                'bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-green-900 border border-green-500':
+                                  defaultArticles.includes(item._id),
+                                'bg-gray-200 text-gray-700 hover:bg-gray-300': !defaultArticles.includes(item._id),
+                              }"
+                              @click="checkDefaultArticle(item._id)"
+                            >
+                              Default
                             </span>
                           </div>
                         </div>
@@ -199,7 +211,7 @@
                             :true-value="item.id"
                             :label="item.posName ? `${item.name} - ${item.posName}` : item.name"
                           />
-                          <div class="flex items-center justify-between">
+                          <div class="flex items-center gap-1">
                             <div class="w-12">
                               <VaInput
                                 v-model="item.customPrice"
@@ -211,7 +223,7 @@
                               />
                             </div>
                             <span
-                              class="ml-2 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                              class="ml-1 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
                               :class="{
                                 'bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-blue-900 border border-blue-500':
                                   item.isFree,
@@ -221,6 +233,20 @@
                               @click="item.customPrice <= 0 ? (item.isFree = !item.isFree) : false"
                             >
                               Free
+                            </span>
+                            <!-- Default span -->
+                            <span
+                              class="ml-1 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                              :class="{
+                                'bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-green-900 border border-green-500':
+                                  defaultOptions.includes(item.optionGroupId + '-' + item.id),
+                                'bg-gray-200 text-gray-700 hover:bg-gray-300': !defaultOptions.includes(
+                                  item.optionGroupId + '-' + item.id,
+                                ),
+                              }"
+                              @click="checkDefaultOption(item.optionGroupId, item.id)"
+                            >
+                              Default
                             </span>
                           </div>
                         </div>
@@ -293,6 +319,37 @@ const searchQuery = ref('')
 
 const groupSearchQuery = ref('')
 const optionSearchQuery = ref('')
+const defaultOptions = ref([])
+const defaultArticles = ref([])
+
+defaultArticles.value = props.offerSelection?.menuItemDefaultOptions || []
+
+props.offerSelection?.menuItems?.forEach((item) => {
+  item.optionGroups.forEach((group) => {
+    defaultOptions.value = Array.from(
+      new Set([
+        ...defaultOptions.value,
+        ...group.selectedOptionsDefaultOption.map((e) => group.optionGroupId + '-' + e),
+      ]),
+    )
+  })
+})
+
+function checkDefaultArticle(optionId) {
+  if (defaultArticles.value.includes(optionId)) {
+    defaultArticles.value = defaultArticles.value.filter((id) => id !== optionId)
+  } else {
+    defaultArticles.value.push(optionId)
+  }
+}
+
+function checkDefaultOption(groupId, optionId) {
+  if (defaultOptions.value.includes(groupId + '-' + optionId)) {
+    defaultOptions.value = defaultOptions.value.filter((id) => id !== groupId + '-' + optionId)
+  } else {
+    defaultOptions.value.push(groupId + '-' + optionId)
+  }
+}
 
 const groupWorker = new Worker(
   URL.createObjectURL(
@@ -322,6 +379,7 @@ const groupWorker = new Worker(
                       const optPosNameMatch = opt.posName?.toLowerCase().includes(optionSearch);
                       return {
                         ...opt,
+                        optionGroupId: g.id,
                         display: optNameMatch || optPosNameMatch || !optionSearch,
                       };
                     }),
@@ -416,8 +474,10 @@ const getArticles = async () => {
             if (groupSelected) {
               optionSelected = groupSelected?.selectedOptions.find((option) => option.optionId === opt.id)
             }
+
             return {
               ...opt,
+              optionGroupId: e.id,
               display: true,
               selected: optionSelected ? opt.id : !props.isEditSelection ? opt.id : '',
               isFree: optionSelected?.isFree || false,
@@ -444,6 +504,7 @@ const submit = async () => {
     data.min = parseInt(data.min)
     data.max = parseInt(data.max)
     data.isActive = true
+    data.menuItemDefaultOptions = defaultArticles.value
 
     // Reconstruct menuItems from the current UI state to reflect latest selection/free changes
     data.menuItems = items.value
@@ -457,12 +518,16 @@ const submit = async () => {
           .map((group: any) => ({
             optionGroupId: group.id,
             customMaxChoices: group.customMaxChoices || 0,
+            selectedOptionsDefaultOption: defaultOptions.value
+              .filter((opt) => opt.startsWith(group.id + '-'))
+              .map((opt) => opt.split('-')[1]),
             selectedOptions: group.articlesOptions
               .filter((option: any) => !!option.selected)
               .map((option: any) => ({
                 optionId: option.id,
                 isFree: !!option.isFree,
                 customPrice: option.customPrice || 0,
+                isDefault: defaultOptions.value.includes(option.id),
               })),
           })),
       }))
