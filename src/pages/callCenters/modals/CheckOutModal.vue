@@ -278,23 +278,6 @@ async function createOrder() {
     }
   })
 
-  orderStore.offerItems.forEach(({ ...element }) => {
-    console.log(element)
-    element.selections.forEach((selectedItems) => {
-      selectedItems.addedItems.forEach((addedItems) => {
-        menuItems.push({
-          menuItem: addedItems.itemId,
-          quantity: 1,
-          options: addedItems.selectedOptions.flatMap((group) =>
-            group.selected.map((option) => ({
-              option: option.optionId,
-              quantity: option.quantity,
-            })),
-          ),
-        })
-      })
-    })
-  })
   const offerMenuItems = orderStore.offerItems.map((offer) => ({
     offerId: offer.offerId,
     menuItems: offer.selections.flatMap((selection) =>
