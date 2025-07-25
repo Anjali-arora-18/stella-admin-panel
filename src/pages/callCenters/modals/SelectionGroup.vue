@@ -11,12 +11,8 @@
       </div>
     </div>
     <div class="items-grid">
-      <div
-        v-for="(item, index) in group.addedItems"
-        :key="item"
-        class="selection-item selected"
-        @click="openSelectionItemModal(group, true, item)"
-      >
+      <div v-for="(item, index) in group.addedItems" :key="item" class="selection-item selected"
+        @click="openSelectionItemModal(group, true, item)">
         <div class="item-image"><img :src="item.imageUrl" /></div>
         <div class="item-content">
           <div class="item-name">{{ item.itemName }}</div>
@@ -25,12 +21,8 @@
         <div class="selection-status"></div>
       </div>
 
-      <div
-        v-for="n in group.max - group.addedItems.length"
-        :key="'ph-' + n"
-        class="selection-item placeholder"
-        @click="openSelectionItemModal(group)"
-      >
+      <div v-for="n in group.max - group.addedItems.length" :key="'ph-' + n" class="selection-item placeholder"
+        @click="openSelectionItemModal(group)">
         <div class="item-image cursor-pointer" style="color: #2d5016">➕</div>
         <div class="item-content cursor-pointer">
           <div class="item-label">{{ group.name }} {{ n }}</div>
@@ -40,15 +32,9 @@
         <div class="selection-status"></div>
       </div>
     </div>
-    <OffersMenuItemsSelectionModal
-      v-if="isItemSelectionModalVisible"
-      :is-edit="isEdit"
-      :selected-menu-item="selectedMenuItem"
-      :group="group"
-      :menu-items="group.menuItems"
-      :default-selected="group.menuItemDefaultOptions"
-      @closeModal="isItemSelectionModalVisible = false"
-    />
+    <OffersMenuItemsSelectionModal v-if="isItemSelectionModalVisible" :is-edit="isEdit"
+      :selected-menu-item="selectedMenuItem" :group="group" :menu-items="group.menuItems"
+      :default-selected="group.menuItemDefaultOptions" @closeModal="isItemSelectionModalVisible = false" />
   </div>
 </template>
 
@@ -77,6 +63,43 @@ const percent = computed(() => (selectedItems.value.length / props.group.max) * 
 function toggleSelection(group, index) {
   useMenuStore().removeItemFromOffer(group, index)
 }
+
+
+// check if default selection is already made
+
+if (props.group.isDefaultlySelected && props.group.menuItemDefaultOptions.length && props.group.addedItems.length === 0) {
+  const includedMenuItems = props.group.menuItems.map((item) => props.group.menuItemDefaultOptions.includes(item.id))
+
+  includedMenuItems.forEach((menuItem) => {
+    const hasSelectedOptions = menuItem.optionGroups.filter(a => a.selectedOptionsDefaultOption.length)
+    const addedItems = push({
+      itemId: menuItem.id,
+      itemName: menuItem.name,
+      itemDescription: menuItem.description,
+      basePrice: menuItem.isFree ? 0 : parseFloat(menuItem.customPrice || menuItem.price),
+      imageUrl: menuItem.imageUrl,
+      quantity: 1,
+      selectedOptions: hasSelectedOptions.map(optionGroup => ({
+        groupId: optionGroup.optionGroupId,
+        groupName: optionGroup.name,
+        selected: optionGroup.selectedOptions.filter(a => optionGroup.includes(a.optionId)).map(option => (
+          {
+            optionId: option.optionId,
+            name: option.name,
+            type: option.type,
+            price: option.isFree ? 0 : option.customPrice || option.price,
+            quantity: 1,
+          })),
+      })),
+      totalPrice: 0,
+      selectionTotalPrice: 0,
+    }
+    )
+
+  })
+
+   menuStore.addItemToOffer(props.group, addedItems)
+}
 </script>
 
 <style>
@@ -93,6 +116,7 @@ function toggleSelection(group, index) {
   padding-bottom: 10px;
   border-bottom: 2px solid #e9ecef;
 }
+
 .group-title {
   font-size: 18px;
   font-weight: 700;
@@ -189,6 +213,7 @@ function toggleSelection(group, index) {
   font-size: 28px;
   flex-shrink: 0;
 }
+
 .selection-item.selected .item-image {
   background: rgba(45, 80, 22, 0.1);
 }
@@ -199,6 +224,7 @@ function toggleSelection(group, index) {
   flex-direction: column;
   gap: 4px;
 }
+
 .item-label {
   font-size: 12px;
   color: #6c757d;
@@ -213,11 +239,13 @@ function toggleSelection(group, index) {
   font-weight: 600;
   line-height: 1.2;
 }
+
 .item-description {
   font-size: 13px;
   color: #6c757d;
   line-height: 1.3;
 }
+
 .selection-item.placeholder .item-name {
   color: #adb5bd;
   font-style: italic;
