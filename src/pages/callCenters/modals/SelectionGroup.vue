@@ -46,6 +46,7 @@
       :selected-menu-item="selectedMenuItem"
       :group="group"
       :menu-items="group.menuItems"
+      :default-selected="group.menuItemDefaultOptions"
       @closeModal="isItemSelectionModalVisible = false"
     />
   </div>

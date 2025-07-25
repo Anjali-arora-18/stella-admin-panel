@@ -1,12 +1,7 @@
 <template>
   <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
     <!-- LEFT SECTION -->
-    <div
-      class="md:col-span-5 bg-slate-100 py-4"
-      :class="{
-        'opacity-50 pointer-events-none': !isCustomerTabActivated || !customerDetailsId,
-      }"
-    >
+    <div class="md:col-span-5 bg-slate-100 py-4">
       <VaCard>
         <VaCardContent class="menu-section">
           <div class="top-bar flex items-start border-b pb-4 sm:flex-row sm:justify-between gap-4">
@@ -83,7 +78,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted, onUnmounted, useTemplateRef } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted, useTemplateRef, onBeforeUnmount } from 'vue'
 import { useMenuStore } from '@/stores/getMenu.js'
 import { useServiceStore } from '@/stores/services.ts'
 import { useOrderStore } from '@/stores/order-store'
@@ -163,11 +158,36 @@ onMounted(() => {
 
 onUnmounted(() => {
   orderStore.cartItems = []
+  orderStore.offerItems = []
   orderStore.paymentId = ''
   orderStore.redirectUrl = ''
   orderStore.setAddress('')
   orderStore.setDeliveryZone('')
 })
+onBeforeUnmount(() => {
+  resetState()
+})
+watch(
+  () => route.fullPath,
+  () => {
+    resetState()
+  },
+)
+
+function resetState() {
+  selectedItem.value = null
+  offers.value = []
+  orderStore.cartItems = []
+  orderStore.paymentId = ''
+  orderStore.redirectUrl = ''
+  orderStore.setAddress('')
+  orderStore.setDeliveryZone('')
+  customerDetailsId.value = ''
+  isCustomerTabActivated.value = false
+  orderType.value = ''
+  isDeliveryZoneSelected.value = ''
+  menuStore.resetUnFilteredMenuItems()
+}
 
 watch(
   () => serviceStore.selectedRest,

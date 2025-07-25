@@ -325,7 +325,6 @@ watch(
         addedItemIndex = offer.value.selections[groupItemIndex].addedItems.findIndex(
           (offerItem) => offerItem.itemId === props.item.id,
         )
-        console.log(addedItems)
         if (addedItems && addedItems.selectedOptions.length) {
           selectedOptions.value = addedItems.selectedOptions
           selectedOptions.value.forEach((group) => {
@@ -338,32 +337,6 @@ watch(
     } else {
       // Fresh selection
       selectedOptions.value = []
-
-      // item.optionGroups.forEach((group) => {
-      //   const defaults = Array.isArray(group.defaultOptions) ? group.defaultOptions : []
-      //   const selected = []
-
-      //   defaults.forEach((optionId) => {
-      //     const option = group.options.find((o) => o.optionId === optionId)
-      //     if (option) {
-      //       selected.push({
-      //         optionId: option.optionId,
-      //         name: option.name,
-      //         type: option.type,
-      //         price: option.price,
-      //         quantity: group.multipleChoice ? 1 : 1,
-      //       })
-      //     }
-      //   })
-
-      //   if (selected.length) {
-      //     selectedOptions.value.push({
-      //       groupId: group.optionGroupId,
-      //       groupName: group.name,
-      //       selected: group.singleChoice ? [selected[0]] : selected,
-      //     })
-      //   }
-      // })
     }
   },
   { immediate: true, deep: true },
@@ -402,13 +375,13 @@ function addToBasket(item: any) {
 const articles = computed(() => {
   return props.item.optionGroups
     ? props.item.optionGroups
-      .map((e) => {
-        return {
-          ...e,
-          selectedOptions: e.selectedOptions.filter((a) => a.type.toLowerCase() === 'article'),
-        }
-      })
-      .filter((a) => a.selectedOptions.length)
+        .map((e) => {
+          return {
+            ...e,
+            selectedOptions: e.selectedOptions.filter((a) => a.type.toLowerCase() === 'article'),
+          }
+        })
+        .filter((a) => a.selectedOptions.length)
     : []
 })
 
@@ -435,6 +408,36 @@ const articlesOptionsGroups = computed(() => {
     return [...articles.value, ...group]
   }
 })
+
+watch(
+  () => articlesOptionsGroups.value,
+  (newGroups) => {
+    newGroups.forEach((group) => {
+      const defaults = Array.isArray(group.defaultOptions) ? group.defaultOptions : []
+      const selected = []
+      defaults.forEach((optionId) => {
+        const option = group.selectedOptions.find((o) => o.optionId === optionId)
+        if (option) {
+          selected.push({
+            optionId: option.optionId,
+            name: option.name,
+            type: option.type,
+            price: option.price,
+            quantity: group.multipleChoice ? 1 : 1,
+          })
+        }
+      })
+
+      if (selected.length) {
+        selectedOptions.value.push({
+          groupId: group.optionGroupId,
+          groupName: group.name,
+          selected: group.singleChoice ? [selected[0]] : selected,
+        })
+      }
+    })
+  },
+)
 
 function toggleMultipleChoiceNoQty(group, option, quantity) {
   const min = option.minimumChoices || 0
@@ -470,8 +473,8 @@ function toggleMultipleChoiceNoQty(group, option, quantity) {
 
 function updateSingleChoice(group: any, option: any) {
   if (option.type.toLowerCase() === 'article') {
-    getArticlesConfiguration(group.optionGroupId, option.optionId)
     selectedOptions.value = selectedOptions.value.filter((a) => a.selected.flatMap((a) => a.type).includes('article'))
+    getArticlesConfiguration(group.optionGroupId, option.optionId)
   }
   const index = selectedOptions.value.findIndex((sel) => sel.groupId === group.optionGroupId)
   const newEntry = {

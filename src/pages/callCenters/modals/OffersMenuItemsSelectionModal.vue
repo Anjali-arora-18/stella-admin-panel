@@ -57,6 +57,7 @@ import { storeToRefs } from 'pinia'
 const props = defineProps({
   group: Object,
   selectedMenuItem: Object,
+  defaultSelected: Array,
   isEdit: Boolean,
   menuItems: {
     type: Array,
