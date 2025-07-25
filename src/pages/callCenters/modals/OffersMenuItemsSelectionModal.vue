@@ -13,7 +13,7 @@
       <div class="modal-body">
         <div class="pizzas-grid">
           <div
-            v-for="item in menuItems"
+            v-for="item in menuItems.sort((a, b) => (selectedArticle && selectedArticle.id === a.id ? -1 : 1))"
             :key="item._id"
             class="pizza-card"
             :class="{ selected: selectedArticle && selectedArticle.id === item.id }"

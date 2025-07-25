@@ -488,6 +488,7 @@ const getArticles = async () => {
       }),
     }
   })
+  // items.value.sort((a, b) => (a.selected ? -1 : 1))
   isLoading.value = false
 }
 

@@ -10,7 +10,7 @@
     </div>
 
     <MenuModal
-      v-model="showMenuModal"
+      v-if="showMenuModal"
       :item="itemWithArticlesOptionsGroups"
       :menu-item-id="item._id"
       :category-id="categoryId"

@@ -106,13 +106,13 @@
               <div class="divide-y">
                 <div v-for="selectedArticle in item.items" :key="selectedArticle.itemName" class="mt-2 text-xs">
                   <p class="font-semibold text-gray-800 mt-1 flex items-center gap-2">
-                    <span>{{ selectedArticle.itemName }}</span>
+                    <span class="mb-1">{{ selectedArticle.itemName }}</span>
                     <span v-if="Number(selectedArticle.basePrice) > 0" class="text-sm font-normal text-gray-500">
                       (€{{ Number(selectedArticle.basePrice).toFixed(2) }})
                     </span>
                   </p>
 
-                  <div class="flex flex-wrap gap-2">
+                  <div class="flex flex-wrap gap-1">
                     <span
                       v-for="option in selectedArticle.selectedOptions.flatMap((a) => a.selected)"
                       :key="option.name + option.type"
@@ -175,7 +175,7 @@
       <div class="mt-4 w-full">No Orders Selected</div>
     </template>
     <MenuModal
-      v-model="showMenuModal"
+      v-if="showMenuModal"
       :item="selectedItemWithArticlesOptionsGroups"
       :category-id="selectedItemWithArticlesOptionsGroups.categoryId"
       :menu-item-id="selectedItemWithArticlesOptionsGroups.menuItemId"

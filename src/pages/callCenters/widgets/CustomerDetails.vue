@@ -84,16 +84,11 @@
         </div>
 
         <div v-if="selectedTab && !selectedUser" class="flex items-center justify-between text-sm gap-2">
-          <div v-if="!showDateTimeInput" class="datetime-display" @click="showDateTimeInput = true">
+          <!-- <div v-if="!showDateTimeInput" class="datetime-display" @click="showDateTimeInput = true">
             {{ formattedDateTime }}
-          </div>
-          <input
-            v-else
-            v-model="datetimeLocalValue"
-            type="datetime-local"
-            class="text-sm border rounded px-2 py-1"
-            @blur="showDateTimeInput = false"
-          />
+          </div> -->
+          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-full" />
+
           <button
             class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
             @click="openCustomerModal"
@@ -102,16 +97,10 @@
           </button>
         </div>
         <div v-if="selectedTab && selectedUser" class="flex items-center justify-between text-sm gap-2">
-          <div v-if="!showDateTimeInput" class="datetime-display" @click="showDateTimeInput = true">
+          <!-- <div v-if="!showDateTimeInput" class="datetime-display" @click="showDateTimeInput = true">
             {{ formattedDateTime }}
-          </div>
-          <input
-            v-else
-            v-model="datetimeLocalValue"
-            type="datetime-local"
-            class="text-sm border rounded px-2 py-1"
-            @blur="showDateTimeInput = false"
-          />
+          </div> -->
+          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-full" />
           <VaButton class="rounded" color="#B3D943" size="small" icon="mso-edit" @click="openCustomerModal" />
         </div>
 
@@ -237,25 +226,56 @@ onClickOutside(target, (event) => (userResults.value = []), { ignore: [deliveryT
 onClickOutside(deliveryTarget, (event) => (showDeliveryDropdown.value = false), { ignore: [target] })
 
 const selectedDate = ref(new Date())
-const selectedTime = ref(new Date().toTimeString().slice(0, 5))
-const showDateTimeInput = ref(false)
 
-const datetimeLocalValue = computed({
-  get: () => selectedDate.value.toISOString().slice(0, 16),
-  set: (value) => {
-    const newDate = new Date(value)
-    if (!isNaN(newDate)) selectedDate.value = newDate
-  },
+const inputValue = ref(formatDateTimeLocal(selectedDate.value))
+
+// Watch input changes and update Date only when valid
+watch(inputValue, (newVal) => {
+  if (newVal && newVal.length >= 16) {
+    const [datePart, timePart] = newVal.split('T')
+    if (datePart && timePart) {
+      const [year, month, day] = datePart.split('-').map(Number)
+      const [hour, minute] = timePart.split(':').map(Number)
+      selectedDate.value = new Date(year, month - 1, day, hour, minute)
+    }
+  }
 })
 
-const formattedDateTime = computed(() => {
-  const date = selectedDate.value
-  const day = date.toLocaleDateString('en-GB', { weekday: 'short' })
-  const datePart = date.toLocaleDateString('en-GB')
-  const time = date.toTimeString().slice(0, 5)
+// Helper to convert Date → 'YYYY-MM-DDTHH:MM'
+function formatDateTimeLocal(date) {
+  const pad = (n) => String(n).padStart(2, '0')
+  const yyyy = date.getFullYear()
+  const mm = pad(date.getMonth() + 1)
+  const dd = pad(date.getDate())
+  const hh = pad(date.getHours())
+  const min = pad(date.getMinutes())
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}`
+}
 
-  return `${day} - ${datePart} - ${time}`
-})
+// const datetimeLocalValue = computed({
+//   get: () => {
+//     if (!selectedDate.value) return ''
+//     const date = new Date(selectedDate.value)
+//     const pad = (n) => String(n).padStart(2, '0')
+//     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(
+//       date.getMinutes(),
+//     )}`
+//   },
+//   set: (value) => {
+//     if (!value || value.length < 16) return
+//     const parsedDate = new Date(value)
+//     if (!isNaN(parsedDate)) selectedDate.value = parsedDate
+//   },
+// })
+
+// const formattedDateTime = computed(() => {
+//   const date = selectedDate.value
+//   const day = date.toLocaleDateString('en-GB', { weekday: 'short' })
+//   const datePart = date.toLocaleDateString('en-GB')
+//   const time = date.toTimeString().slice(0, 5)
+
+//   return `${day} - ${datePart} - ${time}`
+// })
 
 function openCustomerModal() {
   showCustomerModal.value = true

@@ -31,8 +31,12 @@
             {{ item.description }}
           </p>
 
+          <div v-if="(item.customPrice || item.price) && !item.isFree" class="text-green-900 font-bold text-2xl mt-4">
+            €{{ parseFloat(item.customPrice || item.totalPrice).toFixed(2) }}
+          </div>
+
           <!-- Price -->
-          <div class="text-green-900 font-bold text-2xl mt-4">€{{ parseFloat(totalPrice).toFixed(2) }}</div>
+          <!-- <div class="text-green-900 font-bold text-2xl mt-4">€{{ parseFloat(totalPrice).toFixed(2) }}</div> -->
 
           <!-- Button -->
           <button
@@ -353,7 +357,7 @@ function addToBasket(item: any) {
     itemId: item.id,
     itemName: item.name,
     itemDescription: item.description,
-    basePrice: parseFloat(item.customPrice || item.price),
+    basePrice: item.isFree ? 0 : parseFloat(item.customPrice || item.price),
     imageUrl: item.imageUrl,
     quantity: 1,
     selectedOptions: selectedOptions.value,
@@ -412,8 +416,9 @@ const articlesOptionsGroups = computed(() => {
 watch(
   () => articlesOptionsGroups.value,
   (newGroups) => {
+    if (!newGroups.length || selectedOptions.value.length) return
     newGroups.forEach((group) => {
-      const defaults = Array.isArray(group.defaultOptions) ? group.defaultOptions : []
+      const defaults = Array.isArray(group.selectedOptionsDefaultOption) ? group.selectedOptionsDefaultOption : []
       const selected = []
       defaults.forEach((optionId) => {
         const option = group.selectedOptions.find((o) => o.optionId === optionId)
@@ -428,6 +433,10 @@ watch(
         }
       })
 
+      if (!selectedOptions.value.length && selected.find((a) => a.type === 'article')) {
+        getArticlesConfiguration(group.optionGroupId, selected.find((a) => a.type === 'article').optionId)
+      }
+
       if (selected.length) {
         selectedOptions.value.push({
           groupId: group.optionGroupId,
@@ -437,6 +446,7 @@ watch(
       }
     })
   },
+  { immediate: true },
 )
 
 function toggleMultipleChoiceNoQty(group, option, quantity) {
@@ -473,7 +483,7 @@ function toggleMultipleChoiceNoQty(group, option, quantity) {
 
 function updateSingleChoice(group: any, option: any) {
   if (option.type.toLowerCase() === 'article') {
-    selectedOptions.value = selectedOptions.value.filter((a) => a.selected.flatMap((a) => a.type).includes('article'))
+    selectedOptions.value = []
     getArticlesConfiguration(group.optionGroupId, option.optionId)
   }
   const index = selectedOptions.value.findIndex((sel) => sel.groupId === group.optionGroupId)

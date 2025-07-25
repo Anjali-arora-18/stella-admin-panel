@@ -34,7 +34,7 @@
                 €{{ parseFloat(addOnPrice).toFixed(2) }} <span class="text-xs ml-2">(Add-ons)</span>
               </div>
             </div>
-            <button class="add-to-basket" :disabled="disabledCompleteButton" @click="addToBasket">
+            <button class="add-to-basket" :disabled="!hasAtLeastOneSelection" @click="addToBasket">
               {{
                 totalSelected >= totalRequired
                   ? isEdit
@@ -130,16 +130,9 @@ const totalSelected = computed(() => {
   return offer.value.selections.reduce((sum, group) => sum + group.addedItems.length, 0)
 })
 
-const disabledCompleteButton = computed(() => {
-  let isDisabled = false
-  if (offer.value?.selections) {
-    offer.value.selections.forEach((group) => {
-      if (group.isRequired && group.addedItems.length < group.min) {
-        isDisabled = true
-      }
-    })
-  }
-  return isDisabled
+// Disable if no items selected at all
+const hasAtLeastOneSelection = computed(() => {
+  return offer.value ? offer.value.selections.every((group) => group.addedItems && group.addedItems.length > 0) : false
 })
 
 const { addOnPrice } = storeToRefs(menuStore)

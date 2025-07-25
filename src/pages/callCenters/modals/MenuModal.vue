@@ -256,13 +256,13 @@ const formSubmitted = ref(false)
 const articles = computed(() => {
   return props.item.articlesOptionsGroups
     ? props.item.articlesOptionsGroups
-      .map((e) => {
-        return {
-          ...e,
-          options: e.options.filter((a) => a.type.toLowerCase() === 'article'),
+        .map((e) => {
+          return {
+            ...e,
+            options: e.options.filter((a) => a.type.toLowerCase() === 'article'),
           }
-      })
-      .filter((a) => a.options.length)
+        })
+        .filter((a) => a.options.length)
     : []
 })
 
@@ -289,6 +289,55 @@ const articlesOptionsGroups = computed(() => {
     return [...articles.value, ...group]
   }
 })
+
+const getArticlesConfiguration = (group, option) => {
+  const url = import.meta.env.VITE_API_BASE_URL
+  axios
+    .get(
+      `${url}/articles-options-conditions?menuCategoryId=${props.categoryId}&optionsGroupId=${group}&menuItemId=${props.menuItemId}&optionId=${option}`,
+    )
+    .then((response) => {
+      fetchConfigurations.value = response.data.data
+    })
+}
+
+watch(
+  () => articlesOptionsGroups.value,
+  (newGroups) => {
+    console.log(newGroups)
+    if (!newGroups.length || selectedOptions.value.length) return
+    newGroups.forEach((group) => {
+      const defaults = Array.isArray(group.defaultOptions) ? group.defaultOptions : []
+      const selected = []
+
+      defaults.forEach((optionId) => {
+        const option = group.options.find((o) => o._id === optionId)
+        if (option) {
+          selected.push({
+            optionId: option._id,
+            name: option.name,
+            type: option.type,
+            price: option.price,
+            quantity: group.multipleChoice ? 1 : 1,
+          })
+        }
+      })
+
+      if (!selectedOptions.value.length && selected.find((a) => a.type === 'article')) {
+        getArticlesConfiguration(group._id, selected.find((a) => a.type === 'article').optionId)
+      }
+
+      if (selected.length) {
+        selectedOptions.value.push({
+          groupId: group._id,
+          groupName: group.name,
+          selected: group.singleChoice ? [selected[0]] : selected,
+        })
+      }
+    })
+  },
+  { immediate: true },
+)
 
 const isFormValid = computed(() => {
   const requiredGroups = articlesOptionsGroups.value.filter((g) => g.mandatory)
@@ -344,34 +393,7 @@ watch(
         getArticlesConfiguration(selectedGroupAndOption.groupId, selectedGroupAndOption.selected[0].optionId)
       }
     } else {
-      // Fresh selection
       selectedOptions.value = []
-
-      articlesOptionsGroups.value.forEach((group) => {
-        const defaults = Array.isArray(group.defaultOptions) ? group.defaultOptions : []
-        const selected = []
-
-        defaults.forEach((optionId) => {
-          const option = group.options.find((o) => o._id === optionId)
-          if (option) {
-            selected.push({
-              optionId: option._id,
-              name: option.name,
-              type: option.type,
-              price: option.price,
-              quantity: group.multipleChoice ? 1 : 1,
-            })
-          }
-        })
-
-        if (selected.length) {
-          selectedOptions.value.push({
-            groupId: group._id,
-            groupName: group.name,
-            selected: group.singleChoice ? [selected[0]] : selected,
-          })
-        }
-      })
     }
   },
   { immediate: true, deep: true },
@@ -463,8 +485,9 @@ function toggleMultipleChoiceNoQty(group, option) {
 
 function updateSingleChoice(group: any, option: any) {
   if (option.type.toLowerCase() === 'article') {
+    selectedOptions.value = []
     getArticlesConfiguration(group._id, option._id)
-    selectedOptions.value = selectedOptions.value.filter((a) => a.selected.flatMap((a) => a.type).includes('article'))
+    // selectedOptions.value = selectedOptions.value.filter((a) => a.selected.flatMap((a) => a.type).includes('article'))
   }
   const index = selectedOptions.value.findIndex((sel) => sel.groupId === group._id)
   const newEntry = {
@@ -593,17 +616,6 @@ const allergenIcons = {
   22: '/allergens/sulphur_dioxide.png',
   23: '/allergens/lupin.png',
   24: '/allergens/molluscs.png',
-}
-
-const getArticlesConfiguration = (group, option) => {
-  const url = import.meta.env.VITE_API_BASE_URL
-  axios
-    .get(
-      `${url}/articles-options-conditions?menuCategoryId=${props.categoryId}&optionsGroupId=${group}&menuItemId=${props.menuItemId}&optionId=${option}`,
-    )
-    .then((response) => {
-      fetchConfigurations.value = response.data.data
-    })
 }
 
 function increment(item) {

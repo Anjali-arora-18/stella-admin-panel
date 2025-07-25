@@ -11,8 +11,12 @@
       </div>
     </div>
     <div class="items-grid">
-      <div v-for="(item, index) in group.addedItems" :key="item" class="selection-item selected"
-        @click="openSelectionItemModal(group, true, item)">
+      <div
+        v-for="(item, index) in group.addedItems"
+        :key="item"
+        class="selection-item selected"
+        @click="openSelectionItemModal(group, true, item)"
+      >
         <div class="item-image"><img :src="item.imageUrl" /></div>
         <div class="item-content">
           <div class="item-name">{{ item.itemName }}</div>
@@ -21,8 +25,12 @@
         <div class="selection-status"></div>
       </div>
 
-      <div v-for="n in group.max - group.addedItems.length" :key="'ph-' + n" class="selection-item placeholder"
-        @click="openSelectionItemModal(group)">
+      <div
+        v-for="n in group.max - group.addedItems.length"
+        :key="'ph-' + n"
+        class="selection-item placeholder"
+        @click="openSelectionItemModal(group)"
+      >
         <div class="item-image cursor-pointer" style="color: #2d5016">➕</div>
         <div class="item-content cursor-pointer">
           <div class="item-label">{{ group.name }} {{ n }}</div>
@@ -32,9 +40,15 @@
         <div class="selection-status"></div>
       </div>
     </div>
-    <OffersMenuItemsSelectionModal v-if="isItemSelectionModalVisible" :is-edit="isEdit"
-      :selected-menu-item="selectedMenuItem" :group="group" :menu-items="group.menuItems"
-      :default-selected="group.menuItemDefaultOptions" @closeModal="isItemSelectionModalVisible = false" />
+    <OffersMenuItemsSelectionModal
+      v-if="isItemSelectionModalVisible"
+      :is-edit="isEdit"
+      :selected-menu-item="selectedMenuItem"
+      :group="group"
+      :menu-items="group.menuItems"
+      :default-selected="group.menuItemDefaultOptions"
+      @closeModal="isItemSelectionModalVisible = false"
+    />
   </div>
 </template>
 
@@ -44,8 +58,10 @@ import OffersMenuItemsSelectionModal from './OffersMenuItemsSelectionModal.vue'
 import { useMenuStore } from '@/stores/getMenu'
 const props = defineProps({
   group: Object,
+  isEdit: Boolean,
 })
 const emit = defineEmits(['update:selectedItems'])
+const menuStore = useMenuStore()
 const isItemSelectionModalVisible = ref(false)
 const pizzaModal = ref(null)
 const menuItems = ref(null)
@@ -64,41 +80,42 @@ function toggleSelection(group, index) {
   useMenuStore().removeItemFromOffer(group, index)
 }
 
-
 // check if default selection is already made
 
-if (props.group.isDefaultlySelected && props.group.menuItemDefaultOptions.length && props.group.addedItems.length === 0) {
-  const includedMenuItems = props.group.menuItems.map((item) => props.group.menuItemDefaultOptions.includes(item.id))
+if (!props.isEdit) {
+  const includedMenuItems = props.group.menuItems.filter((item) => props.group.menuItemDefaultOptions.includes(item.id))
 
+  let addedItems = {}
   includedMenuItems.forEach((menuItem) => {
-    const hasSelectedOptions = menuItem.optionGroups.filter(a => a.selectedOptionsDefaultOption.length)
-    const addedItems = push({
+    const hasSelectedOptions = (menuItem.optionGroups || []).filter((a) => a.selectedOptionsDefaultOption?.length)
+    addedItems = {
       itemId: menuItem.id,
       itemName: menuItem.name,
       itemDescription: menuItem.description,
       basePrice: menuItem.isFree ? 0 : parseFloat(menuItem.customPrice || menuItem.price),
       imageUrl: menuItem.imageUrl,
       quantity: 1,
-      selectedOptions: hasSelectedOptions.map(optionGroup => ({
-        groupId: optionGroup.optionGroupId,
-        groupName: optionGroup.name,
-        selected: optionGroup.selectedOptions.filter(a => optionGroup.includes(a.optionId)).map(option => (
-          {
-            optionId: option.optionId,
-            name: option.name,
-            type: option.type,
-            price: option.isFree ? 0 : option.customPrice || option.price,
-            quantity: 1,
-          })),
-      })),
+      selectedOptions: hasSelectedOptions
+        ? hasSelectedOptions.map((optionGroup) => ({
+          groupId: optionGroup.optionGroupId,
+          groupName: optionGroup.name,
+          selected: (optionGroup.selectedOptions || [])
+              .filter((a) => optionGroup.selectedOptionsDefaultOption.includes(a.optionId))
+            .map((option) => ({
+              optionId: option.optionId,
+              name: option.name,
+                type: option.type,
+              price: option.isFree ? 0 : option.customPrice || option.price,
+              quantity: 1,
+              })),
+        }))
+        : [],
       totalPrice: 0,
       selectionTotalPrice: 0,
     }
-    )
 
+    menuStore.addItemToOffer(props.group, addedItems)
   })
-
-   menuStore.addItemToOffer(props.group, addedItems)
 }
 </script>
 

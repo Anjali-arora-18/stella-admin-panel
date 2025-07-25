@@ -1,7 +1,12 @@
 <template>
   <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
     <!-- LEFT SECTION -->
-    <div class="md:col-span-5 bg-slate-100 py-4">
+    <div
+      class="md:col-span-5 bg-slate-100 py-4"
+      :class="{
+        'opacity-50 pointer-events-none': !isCustomerTabActivated || !customerDetailsId,
+      }"
+    >
       <VaCard>
         <VaCardContent class="menu-section">
           <div class="top-bar flex items-start border-b pb-4 sm:flex-row sm:justify-between gap-4">
