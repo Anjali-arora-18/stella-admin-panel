@@ -427,7 +427,7 @@ watch(
             optionId: option.optionId,
             name: option.name,
             type: option.type,
-            price: option.price,
+            price: option.isFree ? 0 : option.customPrice || option.price,
             quantity: group.multipleChoice ? 1 : 1,
           })
         }
