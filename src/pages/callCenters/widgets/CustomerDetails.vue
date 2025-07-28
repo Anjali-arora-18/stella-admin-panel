@@ -87,7 +87,7 @@
           <!-- <div v-if="!showDateTimeInput" class="datetime-display" @click="showDateTimeInput = true">
             {{ formattedDateTime }}
           </div> -->
-          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-full" />
+          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-[320px]" />
 
           <button
             class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
@@ -100,7 +100,7 @@
           <!-- <div v-if="!showDateTimeInput" class="datetime-display" @click="showDateTimeInput = true">
             {{ formattedDateTime }}
           </div> -->
-          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-full" />
+          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-[320px]" />
           <VaButton class="rounded" color="#B3D943" size="small" icon="mso-edit" @click="openCustomerModal" />
         </div>
 
