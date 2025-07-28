@@ -64,12 +64,7 @@
         </div>
 
         <div class="grid md:grid-cols-2 gap-4">
-          <VaSelect
-            v-model="formData.weeklyOffer"
-            label="Available Days"
-            multiple
-            :options="['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'All Days']"
-          />
+          <VaSelect v-model="formData.weeklyOffer" label="Available Days" multiple :options="dayOptions" />
           <VaSelect
             v-model="formData.orderType"
             :rules="[validators.required]"
@@ -120,7 +115,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, toRef } from 'vue'
+import { ref, watch, computed, toRef, nextTick } from 'vue'
 import axios from 'axios'
 import { useForm, useToast } from 'vuestic-ui'
 import { validators } from '@/services/utils'
@@ -166,6 +161,31 @@ const formData = ref({
   selections: [],
   isActive: true,
 })
+
+const allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+const dayOptions = ['All Days', ...allDays]
+
+let isAutoSelecting = false
+
+watch(
+  () => formData.value.weeklyOffer,
+  (newVal) => {
+    if (isAutoSelecting) return
+
+    if (newVal.includes('All Days')) {
+      isAutoSelecting = true
+      formData.value.weeklyOffer = [...allDays]
+      nextTick(() => (isAutoSelecting = false))
+    } else {
+      const isPartial = allDays.some((day) => !newVal.includes(day))
+
+      if (!isPartial && newVal.length === allDays.length + 1) {
+        formData.value.weeklyOffer = newVal.filter((d) => d !== 'All Days')
+      }
+    }
+  },
+  { deep: true },
+)
 
 const isUpdating = computed(() => props.selectedOption && Object.keys(props.selectedOption).length)
 
