@@ -475,6 +475,7 @@
                 placeholder="#000"
                 class="w-28"
               />
+              <VaColorInput v-model="restaurantData.textColor" label="Text Color" placeholder="#000" class="w-28" />
               <VaColorInput v-model="restaurantData.headerColor" label="Header Color" placeholder="#000" class="w-28" />
               <VaColorInput v-model="restaurantData.footerColor" label="Footer Color" placeholder="#000" class="w-28" />
               <VaSwitch
@@ -787,6 +788,7 @@ export default {
         primaryColor: '',
         secondaryColor: '',
         backgroundColor: '',
+        textColor: '',
         headerColor: '',
         footerColor: '',
         fontFamily: '',
@@ -1259,13 +1261,14 @@ export default {
         primaryColor: this.restaurantData.primaryColor,
         secondaryColor: this.restaurantData.secondaryColor,
         backgroundColor: this.restaurantData.backgroundColor,
+        textColor: this.restaurantData.textColor,
         headerColor: this.restaurantData.headerColor,
         footerColor: this.restaurantData.footerColor,
         headerUrl: this.restaurantData.headerUrl,
         logoUrl: this.restaurantData.logoUrl,
         closingSoonMinutes: this.restaurantData.closingSoonMinutes || null,
-        fontFamily: this.restaurantData.fontFamily || false,
-        fontUrl: this.restaurantData.fontUrl || false,
+        fontFamily: this.restaurantData.fontFamily || '',
+        fontUrl: this.restaurantData.fontUrl || '',
         hideHeader: this.restaurantData.hideHeader || false,
         hideLogo: this.restaurantData.hideLogo || false,
         hideDetails: this.restaurantData.hideDetails || false,

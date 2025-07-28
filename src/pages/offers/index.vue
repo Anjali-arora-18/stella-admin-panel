@@ -32,6 +32,7 @@ const getOffers = async () => {
         editName: false,
         editDescription: false,
         editPrice: false,
+        editCode: false,
         editImage: false,
         editDate: false,
         editWeekDays: false,

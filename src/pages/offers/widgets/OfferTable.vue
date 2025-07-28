@@ -26,6 +26,7 @@ const router = useRouter()
 const servicesStore = useServiceStore()
 const columns = defineVaDataTableColumns([
   { label: 'Name', key: 'name' },
+  { label: 'Code', key: 'code' },
   { label: 'Description', key: 'description', width: '150px' },
   { label: 'Price', key: 'price' },
   { label: 'Image', key: 'imageUrl' },
@@ -78,6 +79,7 @@ async function updateData(rowData) {
     name: rowData.name,
     description: rowData.description,
     price: rowData.price,
+    code: rowData.code,
     imageUrl: rowData.imageUrl,
     dateOffer: {
       startDate: isValidDateString(startDate) ? new Date(startDate).toISOString() : '',
@@ -245,6 +247,23 @@ function formatReadableDate(dateStr: string): string {
               () => {
                 updateData(rowData)
                 rowData.editName = false
+              }
+            "
+          />
+        </div>
+      </template>
+      <template #cell(code)="{ rowData }">
+        <div class="table-cell-content">
+          <div v-if="!rowData.editCode" @click="rowData.editCode = true">{{ rowData.code }}</div>
+          <input
+            v-else
+            v-model="rowData.code"
+            class="w-1/2 p-1 border rounded"
+            type="text"
+            @change="
+              () => {
+                updateData(rowData)
+                rowData.editCode = false
               }
             "
           />

@@ -13,7 +13,7 @@
       <div class="modal-body">
         <div class="pizzas-grid">
           <div
-            v-for="item in menuItems"
+            v-for="item in menuItems.sort((a, b) => (selectedArticle && selectedArticle.id === a.id ? -1 : 1))"
             :key="item._id"
             class="pizza-card"
             :class="{ selected: selectedArticle && selectedArticle.id === item.id }"
@@ -23,6 +23,12 @@
             <div class="pizza-content">
               <div class="pizza-name">{{ item.name }}</div>
               <div class="pizza-description">{{ item.description }}</div>
+              <div class="text-sm font-semibold text-gray-800 mt-1">
+                <span v-if="item.isFree" class="text-green-700 font-medium">Free</span>
+                <span v-else-if="item.customPrice || item.price"
+                  >€{{ parseFloat(item.customPrice || item.price).toFixed(2) }}</span
+                >
+              </div>
             </div>
             <div class="selection-status"></div>
           </div>
@@ -51,6 +57,7 @@ import { storeToRefs } from 'pinia'
 const props = defineProps({
   group: Object,
   selectedMenuItem: Object,
+  defaultSelected: Array,
   isEdit: Boolean,
   menuItems: {
     type: Array,
@@ -101,7 +108,7 @@ function selectArticle(article) {
       itemId: article.id,
       itemName: article.name,
       itemDescription: article.description,
-      basePrice: parseFloat(article.price),
+      basePrice: article.isFree ? 0 : parseFloat(article.customPrice || article.price),
       imageUrl: article.imageUrl,
       quantity: 1,
       selectedOptions: [],
@@ -127,8 +134,6 @@ function selectArticle(article) {
       }
     }
   }
-
-  console.log(addedItemIndex)
 }
 </script>
 

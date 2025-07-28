@@ -31,8 +31,12 @@
             {{ item.description }}
           </p>
 
+          <div v-if="(item.customPrice || item.price) && !item.isFree" class="text-green-900 font-bold text-2xl mt-4">
+            €{{ parseFloat(item.customPrice || item.totalPrice).toFixed(2) }}
+          </div>
+
           <!-- Price -->
-          <div class="text-green-900 font-bold text-2xl mt-4">€{{ parseFloat(totalPrice).toFixed(2) }}</div>
+          <!-- <div class="text-green-900 font-bold text-2xl mt-4">€{{ parseFloat(totalPrice).toFixed(2) }}</div> -->
 
           <!-- Button -->
           <button
@@ -101,9 +105,13 @@
                 </div>
                 <div class="flex-1">
                   <div class="text-sm font-semibold text-gray-800">{{ option.name }}</div>
-                  <div v-if="option.price && !option.isFree" class="text-gray-800 font-semibold text-sm mt-1">
-                    €{{ parseFloat(option.price).toFixed(2) }}
+                  <div
+                    v-if="(option.customPrice || option.price) && !option.isFree"
+                    class="text-gray-800 font-semibold text-sm mt-2"
+                  >
+                    €{{ parseFloat(option.customPrice || option.price).toFixed(2) }}
                   </div>
+
                   <!-- <p v-if="option.isFree" class="text-sm text-gray-600 font-medium mr-2">Free</p> -->
                 </div>
 
@@ -141,10 +149,13 @@
 
                 <div class="flex-1">
                   <div class="text-sm font-semibold text-gray-800">{{ option.name }}</div>
-                  <div v-if="option.price && !option.isFree" class="text-gray-800 font-semibold text-sm mt-1">
-                    €{{ parseFloat(option.price).toFixed(2) }}
+                  <div
+                    v-if="(option.customPrice || option.price) && !option.isFree"
+                    class="text-gray-800 font-semibold text-sm mt-2"
+                  >
+                    €{{ parseFloat(option.customPrice || option.price).toFixed(2) }}
                   </div>
-                  <p v-if="option.isFree" class="text-sm text-gray-600 font-medium mt-1">Free</p>
+                  <p v-if="option.isFree" class="text-sm text-gray-600 font-medium mt-2">Free</p>
                 </div>
 
                 <div
@@ -183,11 +194,13 @@
 
                 <!-- Bottom-right quantity control -->
                 <div class="absolute bottom-2 right-2 flex items-center bottom-1 gap-1">
-                  <p v-if="option.price && !option.isFree" class="text-sm text-gray-600 font-medium mr-2">
-                    €{{ parseFloat(option.price).toFixed(2) }}
-                  </p>
+                  <div
+                    v-if="(option.customPrice || option.price) && !option.isFree"
+                    class="text-gray-800 font-semibold text-sm mt-2"
+                  >
+                    €{{ parseFloat(option.customPrice || option.price).toFixed(2) }}
+                  </div>
                   <p v-if="option.isFree" class="text-sm text-gray-600 font-medium mr-2">Free</p>
-
                   <button
                     class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50"
                     :disabled="getQty(group.optionGroupId, option.optionId) === 0"
@@ -278,11 +291,11 @@ const isFormValid = computed(() => {
 })
 
 const totalPrice = computed(() => {
-  let total = parseFloat(props.item.price) || props.item.basePrice || 0
+  let total = parseFloat(props.item.customPrice || props.item.price) || props.item.basePrice || 0
 
   selectedOptions.value.forEach((group) => {
     group.selected.forEach((option) => {
-      const price = parseFloat(option.price) || 0
+      const price = parseFloat(option.customPrice || option.price) || 0
       const quantity = option.quantity || 1
       total += price * quantity
     })
@@ -316,7 +329,6 @@ watch(
         addedItemIndex = offer.value.selections[groupItemIndex].addedItems.findIndex(
           (offerItem) => offerItem.itemId === props.item.id,
         )
-        console.log(addedItems)
         if (addedItems && addedItems.selectedOptions.length) {
           selectedOptions.value = addedItems.selectedOptions
           selectedOptions.value.forEach((group) => {
@@ -329,32 +341,6 @@ watch(
     } else {
       // Fresh selection
       selectedOptions.value = []
-
-      // item.optionGroups.forEach((group) => {
-      //   const defaults = Array.isArray(group.defaultOptions) ? group.defaultOptions : []
-      //   const selected = []
-
-      //   defaults.forEach((optionId) => {
-      //     const option = group.options.find((o) => o.optionId === optionId)
-      //     if (option) {
-      //       selected.push({
-      //         optionId: option.optionId,
-      //         name: option.name,
-      //         type: option.type,
-      //         price: option.price,
-      //         quantity: group.multipleChoice ? 1 : 1,
-      //       })
-      //     }
-      //   })
-
-      //   if (selected.length) {
-      //     selectedOptions.value.push({
-      //       groupId: group.optionGroupId,
-      //       groupName: group.name,
-      //       selected: group.singleChoice ? [selected[0]] : selected,
-      //     })
-      //   }
-      // })
     }
   },
   { immediate: true, deep: true },
@@ -371,7 +357,7 @@ function addToBasket(item: any) {
     itemId: item.id,
     itemName: item.name,
     itemDescription: item.description,
-    basePrice: parseFloat(item.price),
+    basePrice: item.isFree ? 0 : parseFloat(item.customPrice || item.price),
     imageUrl: item.imageUrl,
     quantity: 1,
     selectedOptions: selectedOptions.value,
@@ -393,13 +379,13 @@ function addToBasket(item: any) {
 const articles = computed(() => {
   return props.item.optionGroups
     ? props.item.optionGroups
-      .map((e) => {
-        return {
-          ...e,
-          selectedOptions: e.selectedOptions.filter((a) => a.type.toLowerCase() === 'article'),
-        }
-      })
-      .filter((a) => a.selectedOptions.length)
+        .map((e) => {
+          return {
+            ...e,
+            selectedOptions: e.selectedOptions.filter((a) => a.type.toLowerCase() === 'article'),
+          }
+        })
+        .filter((a) => a.selectedOptions.length)
     : []
 })
 
@@ -427,6 +413,42 @@ const articlesOptionsGroups = computed(() => {
   }
 })
 
+watch(
+  () => [articlesOptionsGroups.value, fetchConfigurations.value],
+  () => {
+    if (!articlesOptionsGroups.value.length || selectedOptions.value.length > 1) return
+    articlesOptionsGroups.value.forEach((group) => {
+      const defaults = Array.isArray(group.selectedOptionsDefaultOption) ? group.selectedOptionsDefaultOption : []
+      const selected = []
+      defaults.forEach((optionId) => {
+        const option = group.selectedOptions.find((o) => o.optionId === optionId)
+        if (option && (!selectedOptions.value.length || option.type.toLowerCase() !== 'article')) {
+          selected.push({
+            optionId: option.optionId,
+            name: option.name,
+            type: option.type,
+            price: option.isFree ? 0 : option.customPrice || option.price,
+            quantity: group.multipleChoice ? 1 : 1,
+          })
+        }
+      })
+
+      if (!selectedOptions.value.length && selected.find((a) => a.type === 'article')) {
+        getArticlesConfiguration(group.optionGroupId, selected.find((a) => a.type === 'article').optionId)
+      }
+
+      if (selected.length) {
+        selectedOptions.value.push({
+          groupId: group.optionGroupId,
+          groupName: group.name,
+          selected: group.singleChoice ? [selected[0]] : selected,
+        })
+      }
+    })
+  },
+  { immediate: true },
+)
+
 function toggleMultipleChoiceNoQty(group, option, quantity) {
   const min = option.minimumChoices || 0
   const max = option.maximumChoices || group.customMaxChoices || group.maximumChoices || 99
@@ -451,7 +473,7 @@ function toggleMultipleChoiceNoQty(group, option, quantity) {
       optionId: option.optionId,
       name: option.name,
       type: option.type,
-      price: option.isFree ? 0 : option.price,
+      price: option.isFree ? 0 : option.customPrice || option.price,
       quantity: 1,
     }
 
@@ -461,8 +483,8 @@ function toggleMultipleChoiceNoQty(group, option, quantity) {
 
 function updateSingleChoice(group: any, option: any) {
   if (option.type.toLowerCase() === 'article') {
+    selectedOptions.value = []
     getArticlesConfiguration(group.optionGroupId, option.optionId)
-    selectedOptions.value = selectedOptions.value.filter((a) => a.selected.flatMap((a) => a.type).includes('article'))
   }
   const index = selectedOptions.value.findIndex((sel) => sel.groupId === group.optionGroupId)
   const newEntry = {
@@ -473,7 +495,7 @@ function updateSingleChoice(group: any, option: any) {
         optionId: option.optionId,
         name: option.name,
         type: option.type,
-        price: option.isFree ? 0 : option.price,
+        price: option.isFree ? 0 : option.customPrice || option.price,
         quantity: 1,
       },
     ],
@@ -532,7 +554,7 @@ function updateMultipleChoice(group, option, quantity) {
       optionId: option.optionId,
       name: option.name,
       type: option.type,
-      price: option.isFree ? 0 : option.price,
+      price: option.isFree ? 0 : option.customPrice || option.price,
       quantity,
     }
 

@@ -12,31 +12,34 @@
     </template>
 
     <VaForm ref="form" @submit.prevent="submit">
-      <div class="grid grid-cols-1 gap-6">
-        <div class="grid md:grid-cols-2 gap-4">
-          <VaInput
-            v-model="formData.name"
-            label="Name"
-            :rules="[validators.required]"
-            required-mark
-            placeholder="Enter offer name"
-          />
-          <VaInput
-            v-model="formData.price"
-            :rules="[validators.required]"
-            required-mark
-            label="Price"
-            placeholder="Enter price"
-            type="number"
-          />
+      <div class="grid grid-cols-1 gap-4">
+        <div class="grid gap-4">
+          <div class="grid md:grid-cols-3 gap-4">
+            <VaInput
+              v-model="formData.name"
+              label="Name"
+              :rules="[validators.required]"
+              required-mark
+              placeholder="Enter offer name"
+            />
+            <VaInput
+              v-model="formData.price"
+              :rules="[validators.required]"
+              required-mark
+              label="Price"
+              placeholder="Enter price"
+              type="number"
+            />
+            <VaInput v-model="formData.code" label="Code" placeholder="Enter code" type="text" />
+          </div>
           <VaTextarea
             v-model="formData.description"
             label="Description"
             :rules="[validators.required]"
             required-mark
             placeholder="Short description"
-            class="md:col-span-2"
             rows="3"
+            class="w-full"
           />
         </div>
 
@@ -61,12 +64,7 @@
         </div>
 
         <div class="grid md:grid-cols-2 gap-4">
-          <VaSelect
-            v-model="formData.weeklyOffer"
-            label="Available Days"
-            multiple
-            :options="['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'All Days']"
-          />
+          <VaSelect v-model="formData.weeklyOffer" label="Available Days" multiple :options="dayOptions" />
           <VaSelect
             v-model="formData.orderType"
             :rules="[validators.required]"
@@ -117,7 +115,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, toRef } from 'vue'
+import { ref, watch, computed, toRef, nextTick } from 'vue'
 import axios from 'axios'
 import { useForm, useToast } from 'vuestic-ui'
 import { validators } from '@/services/utils'
@@ -148,6 +146,7 @@ const formData = ref({
   name: '',
   description: '',
   price: '',
+  code: '',
   imageUrl: '',
   dateOffer: {
     startDate: '',
@@ -162,6 +161,31 @@ const formData = ref({
   selections: [],
   isActive: true,
 })
+
+const allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+const dayOptions = ['All Days', ...allDays]
+
+let isAutoSelecting = false
+
+watch(
+  () => formData.value.weeklyOffer,
+  (newVal) => {
+    if (isAutoSelecting) return
+
+    if (newVal.includes('All Days')) {
+      isAutoSelecting = true
+      formData.value.weeklyOffer = [...allDays]
+      nextTick(() => (isAutoSelecting = false))
+    } else {
+      const isPartial = allDays.some((day) => !newVal.includes(day))
+
+      if (!isPartial && newVal.length === allDays.length + 1) {
+        formData.value.weeklyOffer = newVal.filter((d) => d !== 'All Days')
+      }
+    }
+  },
+  { deep: true },
+)
 
 const isUpdating = computed(() => props.selectedOption && Object.keys(props.selectedOption).length)
 
@@ -181,6 +205,7 @@ watch(
         name: data.name || '',
         description: data.description || '',
         price: data.price || 0,
+        code: data.code || '',
         imageUrl: data.imageUrl || '',
         dateOffer: {
           startDate: data.dateOffer?.startDate?.slice(0, 10) || '',

@@ -20,6 +20,7 @@ export const useMenuStore = defineStore('menu', {
       }
       state.offer.selections.forEach((item) => {
         item.addedItems.forEach((addedItem) => {
+          selectionTotal += addedItem.basePrice * addedItem.quantity
           addedItem.selectedOptions.forEach((group) => {
             group.selected.forEach((selection) => {
               selectionTotal += selection.price * selection.quantity
