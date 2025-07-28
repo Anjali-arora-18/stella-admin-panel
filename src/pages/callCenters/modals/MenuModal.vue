@@ -297,22 +297,22 @@ const getArticlesConfiguration = (group, option) => {
       `${url}/articles-options-conditions?menuCategoryId=${props.categoryId}&optionsGroupId=${group}&menuItemId=${props.menuItemId}&optionId=${option}`,
     )
     .then((response) => {
+      fetchConfigurations.value = []
       fetchConfigurations.value = response.data.data
     })
 }
 
 watch(
-  () => articlesOptionsGroups.value,
-  (newGroups) => {
-    console.log(newGroups)
-    if (!newGroups.length || selectedOptions.value.length) return
-    newGroups.forEach((group) => {
+  () => [articlesOptionsGroups.value, fetchConfigurations.value],
+  () => {
+    if (!articlesOptionsGroups.value.length || selectedOptions.value.length > 1) return
+    articlesOptionsGroups.value.forEach((group) => {
       const defaults = Array.isArray(group.defaultOptions) ? group.defaultOptions : []
       const selected = []
 
       defaults.forEach((optionId) => {
         const option = group.options.find((o) => o._id === optionId)
-        if (option) {
+        if (option && (!selectedOptions.value.length || option.type.toLowerCase() !== 'article')) {
           selected.push({
             optionId: option._id,
             name: option.name,
@@ -336,7 +336,7 @@ watch(
       }
     })
   },
-  { immediate: true },
+  { immediate: true, deep: true },
 )
 
 const isFormValid = computed(() => {
@@ -487,7 +487,6 @@ function updateSingleChoice(group: any, option: any) {
   if (option.type.toLowerCase() === 'article') {
     selectedOptions.value = []
     getArticlesConfiguration(group._id, option._id)
-    // selectedOptions.value = selectedOptions.value.filter((a) => a.selected.flatMap((a) => a.type).includes('article'))
   }
   const index = selectedOptions.value.findIndex((sel) => sel.groupId === group._id)
   const newEntry = {

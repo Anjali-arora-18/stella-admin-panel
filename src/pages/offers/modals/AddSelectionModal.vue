@@ -422,7 +422,7 @@ const formData = ref({
   name: '',
   min: null,
   max: null,
-  isRequired: false,
+  isRequired: true,
 })
 
 if (props.isEditSelection) {

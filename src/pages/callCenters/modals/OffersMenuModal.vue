@@ -414,15 +414,15 @@ const articlesOptionsGroups = computed(() => {
 })
 
 watch(
-  () => articlesOptionsGroups.value,
-  (newGroups) => {
-    if (!newGroups.length || selectedOptions.value.length) return
-    newGroups.forEach((group) => {
+  () => [articlesOptionsGroups.value, fetchConfigurations.value],
+  () => {
+    if (!articlesOptionsGroups.value.length || selectedOptions.value.length > 1) return
+    articlesOptionsGroups.value.forEach((group) => {
       const defaults = Array.isArray(group.selectedOptionsDefaultOption) ? group.selectedOptionsDefaultOption : []
       const selected = []
       defaults.forEach((optionId) => {
         const option = group.selectedOptions.find((o) => o.optionId === optionId)
-        if (option) {
+        if (option && (!selectedOptions.value.length || option.type.toLowerCase() !== 'article')) {
           selected.push({
             optionId: option.optionId,
             name: option.name,
