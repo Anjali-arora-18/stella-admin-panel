@@ -488,7 +488,11 @@ const getArticles = async () => {
       }),
     }
   })
-  // items.value.sort((a, b) => (a.selected ? -1 : 1))
+  items.value.sort((a: any, b: any) => {
+    if (!!a.selected && !b.selected) return -1
+    if (!a.selected && !!b.selected) return 1
+    return a.name.localeCompare(b.name)
+  })
   isLoading.value = false
 }
 
