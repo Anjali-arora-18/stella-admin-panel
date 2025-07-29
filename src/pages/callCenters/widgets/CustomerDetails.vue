@@ -93,8 +93,8 @@
           </button>
         </div>
         <div v-if="selectedTab && selectedUser" class="flex items-center w-full gap-2">
-          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-[90%]" />
-          <VaButton class="rounded" color="#B3D943" size="small" icon="mso-edit" @click="openCustomerModal" />
+          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-[95%]" />
+          <VaButton class="rounded w-[5%]" color="#B3D943" size="small" icon="mso-edit" @click="openCustomerModal" />
         </div>
 
         <!-- Address -->
