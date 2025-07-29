@@ -172,6 +172,10 @@
 
     <div class="bg-[#f8f9fa] px-3 py-4 w-full">
       <div class="flex flex-wrap sm:justify-end items-center gap-4">
+        <div class="flex items-center gap-2">
+          <VaCheckbox v-model="notifications" label="Receive Notifications" />
+        </div>
+
         <VaButtonToggle
           v-model="isTick"
           toggle-color="textSecondary"
@@ -239,6 +243,7 @@ const searchAdd = reactive({
 })
 const name = ref('')
 const phoneNumber = ref('')
+const notifications: any = ref(false)
 const postCode = ref('')
 const streetAddress = ref('')
 const floor = ref('')
@@ -270,6 +275,7 @@ const isAddressValid = computed(() => {
 if (props.selectedUser) {
   name.value = props.selectedUser['Name']
   phoneNumber.value = props.selectedUser['MobilePhone'] || props.selectedUser['Phone']
+  notifications.value = props.selectedUser['notifications']
   if (typeof props.selectedUser['isTick'] !== 'undefined') {
     isTick.value = props.selectedUser['isTick']
   } else {
@@ -407,6 +413,7 @@ async function addOrUpdateCustomerDetails() {
     phone: phoneNumber.value,
     address: address.value,
     isTick: isTick.value,
+    notifications: notifications.value,
     customerNote: '',
     addressNote: '',
   }

@@ -8,13 +8,13 @@
     hide-default-actions
     :close-button="!redirectUrl"
   >
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50 min-h-screen">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50">
       <!-- Order Summary -->
       <div class="md:col-span-1">
-        <div class="p-6">
-          <h3 class="summary-title">Order Summary</h3>
+        <div class="p-6 h-full flex flex-col">
+          <h3 class="summary-title flex-shrink-0">Order Summary</h3>
 
-          <div class="order-items">
+          <div class="order-items order-items-wrapper overflow-y-auto flex-grow">
             <div v-for="(item, index) in orderStore.cartItems" :key="item.itemId" class="order-item">
               <div class="item-main">
                 <div class="item-details">
@@ -74,7 +74,7 @@
             </div>
           </div>
 
-          <div class="summary-totals">
+          <div class="summary-totals flex-shrink-0">
             <div class="total-row">
               <span>Subtotal:</span>
               <span>€{{ subtotal.toFixed(2) }}</span>
@@ -91,47 +91,41 @@
         </div>
       </div>
       <!-- Payment Section -->
-      <div v-if="!redirectUrl" class="md:col-span-2">
-        <div class="bg-white shadow-md">
-          <div class="header-container">
-            <h3 class="payment-header">Complete Order</h3>
-          </div>
+      <div v-if="!redirectUrl" class="md:col-span-2 flex flex-col bg-white shadow-md">
+        <div class="header-container">
+          <h3 class="payment-header">Complete Order</h3>
+        </div>
 
-          <div class="payment-content">
-            <div class="payment-section">
-              <div
-                class="payment-options flex flex-col sm:flex-row sm:justify-center min-[640px]:grid min-[640px]:grid-cols-2"
-              >
-                <div
-                  v-for="payment in paymentTypes.filter((a) => userDetails.paymentType.includes(a.paymentTypeId))"
-                  :key="payment.paymentTypeId"
-                  class="payment-option"
-                  :class="selectedPayment == payment ? 'selected' : ''"
-                  @click="selectedPayment = payment"
-                >
-                  <div v-if="payment.name === 'Cash'" class="payment-icon">💵</div>
-                  <div v-else class="payment-icon">💳</div>
-                  <div class="payment-label">{{ payment.name }}</div>
-                  <div v-if="payment.name === 'Cash'" class="payment-desc">Pay with cash on delivery or pickup</div>
-                  <div v-else class="payment-desc">Secure payment with Visa/Mastercard</div>
-                </div>
+        <div class="payment-content flex-grow">
+          <div class="payment-options grid sm:grid-cols-2 gap-4">
+            <div
+              v-for="payment in paymentTypes.filter((a) => userDetails.paymentType.includes(a.paymentTypeId))"
+              :key="payment.paymentTypeId"
+              class="payment-option"
+              :class="selectedPayment == payment ? 'selected' : ''"
+              @click="selectedPayment = payment"
+            >
+              <div class="payment-icon">{{ payment.name === 'Cash' ? '💵' : '💳' }}</div>
+              <div class="payment-label">{{ payment.name }}</div>
+              <div class="payment-desc">
+                {{ payment.name === 'Cash' ? 'Pay with cash on delivery or pickup' : 'Secure payment with Visa/Card' }}
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="action-container">
-            <button
-              id="confirmBtn"
-              :disabled="apiLoading || !selectedPayment"
-              class="btn btn-primary"
-              @click="createOrder"
+        <div class="action-container mt-6">
+          <button
+            id="confirmBtn"
+            :disabled="apiLoading || !selectedPayment"
+            class="btn btn-primary"
+            @click="createOrder"
+          >
+            <span v-if="!apiLoading" id="btnText">
+              {{ orderId && selectedPayment === 'Card' ? 'Retry Payment' : 'Payment' }}</span
             >
-              <span v-if="!apiLoading" id="btnText">
-                {{ orderId && selectedPayment === 'Card' ? 'Retry Payment' : 'Payment' }}</span
-              >
-              <div v-if="apiLoading" id="loadingSpinner" class="loading-spinner animate-spin"></div>
-            </button>
-          </div>
+            <div v-if="apiLoading" id="loadingSpinner" class="loading-spinner animate-spin"></div>
+          </button>
         </div>
       </div>
       <div v-else class="col-span-2 px-5 flex items-center px-10 py-10 bg-white">
@@ -385,8 +379,19 @@ async function createOrder() {
 }
 
 .order-item {
-  padding: 16px 0;
+  padding: 12px 0;
   border-bottom: 1px solid #f3f4f6;
+}
+.order-items-wrapper {
+  max-height: calc(100vh - 350px);
+  overflow-y: auto;
+}
+.order-items::-webkit-scrollbar {
+  width: 6px;
+}
+.order-items::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
 }
 
 .item-main {
@@ -483,7 +488,7 @@ async function createOrder() {
   font-weight: 600;
   color: #2d5d2a;
   margin-bottom: 24px;
-  text-align: left;
+  text-align: left !important;
   /* margin-left: 396px; */
 }
 
@@ -492,7 +497,7 @@ async function createOrder() {
   border-bottom: 2px solid #e5e7eb;
   padding: 24px 32px;
   display: flex;
-  justify-content: center;
+  justify-content: left;
   align-items: center;
   flex-shrink: 0;
 }
@@ -673,15 +678,6 @@ async function createOrder() {
   transform: translateY(-2px);
 }
 
-/* .action-container {
-    background: #f9fafb;
-    padding: 24px 32px;
-    border-top: 2px solid #e5e7eb;
-    display: flex;
-    justify-content: center;
-    flex-shrink: 0;
-} */
-
 .btn {
   padding: 16px 32px;
   border: none;
@@ -727,15 +723,13 @@ async function createOrder() {
 }
 
 .action-container {
-  position: sticky;
-  bottom: 0;
   background: #f9fafb;
   padding: 24px 32px;
   border-top: 2px solid #e5e7eb;
   display: flex;
   justify-content: center;
   flex-shrink: 0;
-  z-index: 10;
+  /* z-index: 10; */
 }
 
 /* .form-input {
