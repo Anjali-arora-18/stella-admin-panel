@@ -2,7 +2,7 @@
   <VaModal
     class="big-form"
     :mobile-fullscreen="false"
-    size="small"
+    size="large"
     hide-default-actions
     :model-value="true"
     close-button
@@ -13,7 +13,7 @@
     </template>
 
     <VaForm ref="form" @submit.prevent="submit">
-      <div v-if="formData.updating === '' || formData.updating === 'all'" class="grid grid-cols-1 md:grid-cols-1 gap-4">
+      <div v-if="formData.updating === '' || formData.updating === 'all'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <VaInput
           v-model="formData.firstName"
           :rules="[validators.required]"
@@ -30,6 +30,16 @@
           placeholder="Last Name"
           type="text"
         />
+        <VaInput v-model="formData.username" label="Username" placeholder="User Name" type="text" />
+
+        <VaInput
+          v-model="formData.email"
+          :rules="[validators.required]"
+          label="Email"
+          required-mark
+          placeholder="hello@abc.com"
+          type="email"
+        />
         <VaSelect v-model="formData.role" value-by="value" required-mark label="Type" :options="types" />
 
         <VaSelect
@@ -41,16 +51,25 @@
           :multiple="true"
           value-by="value"
         />
-        <VaInput v-model="formData.username" label="Username" placeholder="User Name" type="text" />
-
-        <VaInput
-          v-model="formData.email"
-          :rules="[validators.required]"
-          label="Email"
-          required-mark
-          placeholder="hello@abc.com"
-          type="email"
-        />
+        <VaInput v-model="formData.posCreds.posId" label="POS Username" placeholder="POS ID" type="text" />
+        <VaValue v-if="true" v-slot="isPosPasswordVisible" :default-value="false">
+          <VaInput
+            v-model="formData.posCreds.posPassword"
+            :type="isPosPasswordVisible.value ? 'text' : 'password'"
+            label="POS Password"
+            placeholder="*******"
+            @clickAppendInner="isPosPasswordVisible.value = !isPosPasswordVisible.value"
+          >
+            <template #appendInner>
+              <VaIcon
+                class="cursor-pointer"
+                :name="isPosPasswordVisible.value ? 'visibility_off' : 'visibility'"
+                size="small"
+                color="primary"
+              />
+            </template>
+          </VaInput>
+        </VaValue>
 
         <VaValue v-if="!props.selectedUser" v-slot="isPasswordVisible" :default-value="false">
           <VaInput
@@ -123,6 +142,10 @@ const formData = ref({
   lastName: '',
   email: '',
   password: '',
+  posCreds: {
+    posId: '',
+    posPassword: '',
+  },
   role: '',
   updating: '',
   outlets: [],
