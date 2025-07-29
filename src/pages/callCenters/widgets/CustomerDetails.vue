@@ -83,17 +83,17 @@
           </div>
         </div>
 
-        <div v-if="selectedTab && !selectedUser" class="flex items-center justify-between text-sm gap-2">
-          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-[320px]" />
+        <div v-if="selectedTab && !selectedUser" class="flex items-center w-full gap-2">
+          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-[75%]" />
           <button
-            class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
+            class="bg-green-500 text-white px-2 py-2 rounded text-xs hover:bg-green-600 w-[25%] whitespace-nowrap"
             @click="openCustomerModal"
           >
             + Add New
           </button>
         </div>
-        <div v-if="selectedTab && selectedUser" class="flex items-center justify-between text-sm gap-2">
-          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-[320px]" />
+        <div v-if="selectedTab && selectedUser" class="flex items-center w-full gap-2">
+          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-[90%]" />
           <VaButton class="rounded" color="#B3D943" size="small" icon="mso-edit" @click="openCustomerModal" />
         </div>
 
