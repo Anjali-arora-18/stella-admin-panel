@@ -135,13 +135,19 @@ async function deletePromotion(payload) {
     })
 }
 
-const items = toRef(props, 'items')
+const localItems = ref([]) // independent local state
+
 watch(
   () => props.items,
   (newItems) => {
-    items.value = newItems.map((item) => ({ ...item }))
-  }
+    // Create a shallow copy to avoid mutating props directly
+    localItems.value = Array.isArray(newItems)
+      ? newItems.map((item) => ({ ...item }))
+      : []
+  },
+  { immediate: true } // so it runs initially
 )
+
 
 function formatReadableDate(dateStr) {
   if (!dateStr) return ''
