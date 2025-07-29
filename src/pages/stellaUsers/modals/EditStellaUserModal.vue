@@ -182,18 +182,27 @@ watch(
   },
 )
 
+// if (props.selectedUser) {
+//   formData.value = props.selectedUser
+//   formData.value.outlets = props.selectedUser.outlets.map((e) => e._id)
+// }
+
 if (props.selectedUser) {
-  formData.value = props.selectedUser
-  formData.value.outlets = props.selectedUser.outlets.map((e) => e._id)
+  const user = JSON.parse(JSON.stringify(props.selectedUser)) 
+  user.outlets = user.outlets?.map((e) => e._id) || []
+  user.posCreds = user.posCreds || { posId: '', posPassword: '' }
+  formData.value = {
+    ...formData.value, 
+    ...user,
 }
 
 const submit = () => {
   if (validate()) {
     const data = JSON.parse(JSON.stringify(formData.value))
     delete data.updating
-    delete data.createdAt // delete createdAt key for unnecessary used
-    delete data.updatedAt // delete updatedAt key for unnecessary used
-    delete data.__v // delete __v key for unnecessary used
+    delete data.createdAt 
+    delete data.updatedAt 
+    delete data.__v 
 
     const url: any = import.meta.env.VITE_API_BASE_URL
     if (props.selectedUser) {
