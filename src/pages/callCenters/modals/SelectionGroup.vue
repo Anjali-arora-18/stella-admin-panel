@@ -15,7 +15,7 @@
         v-for="(item, index) in group.addedItems"
         :key="item"
         class="selection-item selected"
-        @click="toggleSelection(group, index)"
+        @click="openSelectionItemModal(group, true, item)"
       >
         <div class="item-image"><img :src="item.imageUrl" /></div>
         <div class="item-content">
@@ -29,7 +29,7 @@
         v-for="n in group.max - group.addedItems.length"
         :key="'ph-' + n"
         class="selection-item placeholder"
-        @click="openSelectionItemModal(group.menuItems)"
+        @click="openSelectionItemModal(group)"
       >
         <div class="item-image cursor-pointer" style="color: #2d5016">➕</div>
         <div class="item-content cursor-pointer">
@@ -40,29 +40,155 @@
         <div class="selection-status"></div>
       </div>
     </div>
-    <OffersMenuItemsSelectionModal ref="pizzaModal" :group="group" :menu-items="group.menuItems" />
+    <OffersMenuItemsSelectionModal
+      v-if="isItemSelectionModalVisible"
+      :is-edit="isEdit"
+      :selected-menu-item="selectedMenuItem"
+      :group="group"
+      :menu-items="group.menuItems"
+      :default-selected="group.menuItemDefaultOptions"
+      @closeModal="isItemSelectionModalVisible = false"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import OffersMenuItemsSelectionModal from './OffersMenuItemsSelectionModal.vue'
+import axios from 'axios'
 import { useMenuStore } from '@/stores/getMenu'
 const props = defineProps({
   group: Object,
+  isEdit: Boolean,
 })
 const emit = defineEmits(['update:selectedItems'])
+const menuStore = useMenuStore()
+const isItemSelectionModalVisible = ref(false)
 const pizzaModal = ref(null)
 const menuItems = ref(null)
-function openSelectionItemModal(payload) {
-  menuItems.value = payload || null
-  pizzaModal.value?.openModal()
+const isEdit = ref(false)
+const selectedMenuItem = ref('')
+function openSelectionItemModal(payload, editing = false, item = null) {
+  isEdit.value = editing
+  selectedMenuItem.value = item
+  menuItems.value = payload.menuItems || null
+  isItemSelectionModalVisible.value = true
 }
 const selectedItems = computed(() => props.group.addedItems.map((item) => item._id))
 const percent = computed(() => (selectedItems.value.length / props.group.max) * 100)
+const fetchConfigurations = ref([])
 
 function toggleSelection(group, index) {
   useMenuStore().removeItemFromOffer(group, index)
+}
+
+const getArticlesConfiguration = async (menuItem, group, option, hasSelectedOptions) => {
+  const url = import.meta.env.VITE_API_BASE_URL
+  await axios
+    .get(`${url}/articles-options-conditions?optionsGroupId=${group._id}&menuItemId=${menuItem.id}&optionId=${option}`)
+    .then((response) => {
+      let addedItems = {}
+      fetchConfigurations.value = response.data.data.flatMap((a) => a.conditionalSelection)
+      const hasFilteredOptions = hasSelectedOptions.filter((a) =>
+        fetchConfigurations.value.find((e) => e.optionsGroupId === a._id),
+      )
+      addedItems = {
+        itemId: menuItem.id,
+        itemName: menuItem.name,
+        itemDescription: menuItem.description,
+        basePrice: menuItem.isFree ? 0 : parseFloat(menuItem.customPrice || menuItem.price),
+        imageUrl: menuItem.imageUrl,
+        quantity: 1,
+        selectedOptions: hasFilteredOptions
+          ? [
+              {
+                groupId: group._id,
+                groupName: group.name,
+                selected: group.selectedOptions
+                  .filter((a) => group.selectedOptionsDefaultOption.includes(a.optionId))
+                  .map((option) => ({
+                    optionId: option.optionId,
+                    name: option.name,
+                    type: option.type,
+                    price: option.isFree ? 0 : option.customPrice || option.price,
+                    quantity: 1,
+                  })),
+              },
+              ...hasFilteredOptions.map((optionGroup) => {
+                const fetchOptions = fetchConfigurations.value.find((a) => a.optionsGroupId === optionGroup._id)
+
+                return {
+                  groupId: optionGroup._id,
+                  groupName: optionGroup.name,
+                  selected: optionGroup.selectedOptions
+                    .filter(
+                      (a) =>
+                        optionGroup.selectedOptionsDefaultOption.includes(a.optionId) &&
+                        fetchOptions.optionsIds.includes(a.optionId),
+                    )
+                    .map((option) => ({
+                      optionId: option.optionId,
+                      name: option.name,
+                      type: option.type,
+                      price: option.isFree ? 0 : option.customPrice || option.price,
+                      quantity: 1,
+                    })),
+                }
+              }),
+            ]
+          : [],
+        totalPrice: 0,
+        selectionTotalPrice: 0,
+      }
+
+      menuStore.addItemToOffer(props.group, addedItems)
+    })
+}
+
+// check if default selection is already made
+
+if (!props.isEdit) {
+  const includedMenuItems = props.group.menuItems.filter((item) => props.group.menuItemDefaultOptions.includes(item.id))
+
+  includedMenuItems.forEach((menuItem) => {
+    const hasSelectedOptions = (menuItem.optionGroups || []).filter((a) => a.selectedOptionsDefaultOption?.length)
+
+    const optionGroupArticle = hasSelectedOptions
+      .flatMap((a) => a.selectedOptions)
+      .find((a) => a.type.toLowerCase() === 'article')
+    if (optionGroupArticle) {
+      getArticlesConfiguration(menuItem, menuItem.optionGroups[0], optionGroupArticle.optionId, hasSelectedOptions)
+    } else {
+      let addedItems = {}
+      addedItems = {
+        itemId: menuItem.id,
+        itemName: menuItem.name,
+        itemDescription: menuItem.description,
+        basePrice: menuItem.isFree ? 0 : parseFloat(menuItem.customPrice || menuItem.price),
+        imageUrl: menuItem.imageUrl,
+        quantity: 1,
+        selectedOptions: hasSelectedOptions
+          ? hasSelectedOptions.map((optionGroup) => ({
+              groupId: optionGroup.optionGroupId,
+              groupName: optionGroup.name,
+              selected: (optionGroup.selectedOptions || [])
+                .filter((a) => optionGroup.selectedOptionsDefaultOption.includes(a.optionId))
+                .map((option) => ({
+                  optionId: option.optionId,
+                  name: option.name,
+                  type: option.type,
+                  price: option.isFree ? 0 : option.customPrice || option.price,
+                  quantity: 1,
+                })),
+            }))
+          : [],
+        totalPrice: 0,
+        selectionTotalPrice: 0,
+      }
+
+      menuStore.addItemToOffer(props.group, addedItems)
+    }
+  })
 }
 </script>
 
@@ -80,6 +206,7 @@ function toggleSelection(group, index) {
   padding-bottom: 10px;
   border-bottom: 2px solid #e9ecef;
 }
+
 .group-title {
   font-size: 18px;
   font-weight: 700;
@@ -176,6 +303,7 @@ function toggleSelection(group, index) {
   font-size: 28px;
   flex-shrink: 0;
 }
+
 .selection-item.selected .item-image {
   background: rgba(45, 80, 22, 0.1);
 }
@@ -186,6 +314,7 @@ function toggleSelection(group, index) {
   flex-direction: column;
   gap: 4px;
 }
+
 .item-label {
   font-size: 12px;
   color: #6c757d;
@@ -200,11 +329,13 @@ function toggleSelection(group, index) {
   font-weight: 600;
   line-height: 1.2;
 }
+
 .item-description {
   font-size: 13px;
   color: #6c757d;
   line-height: 1.3;
 }
+
 .selection-item.placeholder .item-name {
   color: #adb5bd;
   font-style: italic;

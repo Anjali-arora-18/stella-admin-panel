@@ -23,7 +23,12 @@ export const useOrderStore = defineStore('order', {
       this.cartItems.push(item)
     },
     offersAdded(item: any) {
-      this.offerItems.push(item)
+      const itemIndex = this.offerItems.findIndex((a) => a._id === item._id)
+      if (itemIndex !== -1) {
+        this.offerItems[itemIndex] = item
+      } else {
+        this.offerItems.push(item)
+      }
     },
     updateItem(index: number, newItem: any) {
       this.cartItems[index] = newItem

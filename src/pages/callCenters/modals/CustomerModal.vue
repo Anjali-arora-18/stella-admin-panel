@@ -74,8 +74,18 @@
             <p class="mb-2 text-sm font-medium text-gray-500">Search Postcode or Street Name</p>
             <div ref="dropdownContainer" class="relative">
               <div class="flex flex-col sm:flex-row gap-4 mb-4">
-                <VaInput v-model="searchAdd.postalCode" placeholder="Postcode" class="w-full sm:w-1/3" />
-                <VaInput v-model="searchAdd.street" placeholder="Street Name" class="w-full sm:w-1/2" />
+                <VaInput
+                  v-model="searchAdd.postalCode"
+                  placeholder="Postcode"
+                  class="w-full sm:w-1/3"
+                  @keyup.enter="handleSearch"
+                />
+                <VaInput
+                  v-model="searchAdd.street"
+                  placeholder="Street Name"
+                  class="w-full sm:w-1/2"
+                  @keyup.enter="handleSearch"
+                />
                 <VaButton
                   :disabled="!searchAdd.postalCode && !searchAdd.street"
                   class="w-full sm:w-auto bg-green-800 hover:bg-green-900 text-white"
@@ -300,6 +310,11 @@ function handleClickOutside(event: MouseEvent) {
   ) {
     streetList.value = []
   }
+}
+
+function handleSearch() {
+  if (!searchAdd.postalCode && !searchAdd.street) return
+  fetchStreetName()
 }
 
 function setAddress(address) {

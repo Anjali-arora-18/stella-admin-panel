@@ -22,6 +22,7 @@ const columns = defineVaDataTableColumns([
   { label: 'Delivery Zone', key: 'name', sortable: false },
   { label: 'Postcode', key: 'postalCodes', sortable: false },
   { label: 'Delivery Charges', key: 'deliveryCharge', sortable: false },
+  { label: 'Future Order Time', key: 'futureOrderPromiseTime', sortable: false },
   { label: 'Terminal Number', key: 'terminalNumber' },
   { label: 'CC From - To', key: 'ccFromTable' },
   { label: 'Web From - To', key: 'webFromTable' },
@@ -48,6 +49,7 @@ async function updateData(rowData) {
     isDeleted: rowData.isDeleted,
     deliveryCharge: rowData.deliveryCharge,
     terminalNumber: rowData.terminalNumber,
+    futureOrderPromiseTime: rowData.futureOrderPromiseTime,
     ccFromTable: rowData.ccFromTable,
     ccToTable: rowData.ccToTable,
     webFromTable: rowData.webFromTable,
@@ -225,6 +227,21 @@ const items = toRef(props, 'items')
           />
           <span v-else-if="parseFloat(rowData.deliveryCharge)">
             €{{ parseFloat(rowData.deliveryCharge).toFixed(2) }}
+          </span>
+          <span v-else>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+        </div>
+      </template>
+      <template #cell(futureOrderPromiseTime)="{ rowData }">
+        <div class="max-w-[120px] ellipsis" @click="rowData.editFutureOrderPromiseTime = true">
+          <input
+            v-if="rowData.editFutureOrderPromiseTime"
+            v-model="rowData.futureOrderPromiseTime"
+            class="w-full p-1 border rounded"
+            type="number"
+            @change="updateData(rowData), (rowData.editFutureOrderPromiseTime = false)"
+          />
+          <span v-else-if="rowData.futureOrderPromiseTime">
+            {{ rowData.futureOrderPromiseTime }}
           </span>
           <span v-else>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
         </div>

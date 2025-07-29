@@ -83,7 +83,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted, onUnmounted, useTemplateRef } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted, useTemplateRef, onBeforeUnmount } from 'vue'
 import { useMenuStore } from '@/stores/getMenu.js'
 import { useServiceStore } from '@/stores/services.ts'
 import { useOrderStore } from '@/stores/order-store'
@@ -163,11 +163,36 @@ onMounted(() => {
 
 onUnmounted(() => {
   orderStore.cartItems = []
+  orderStore.offerItems = []
   orderStore.paymentId = ''
   orderStore.redirectUrl = ''
   orderStore.setAddress('')
   orderStore.setDeliveryZone('')
 })
+onBeforeUnmount(() => {
+  resetState()
+})
+watch(
+  () => route.fullPath,
+  () => {
+    resetState()
+  },
+)
+
+function resetState() {
+  selectedItem.value = null
+  offers.value = []
+  orderStore.cartItems = []
+  orderStore.paymentId = ''
+  orderStore.redirectUrl = ''
+  orderStore.setAddress('')
+  orderStore.setDeliveryZone('')
+  customerDetailsId.value = ''
+  isCustomerTabActivated.value = false
+  orderType.value = ''
+  isDeliveryZoneSelected.value = ''
+  menuStore.resetUnFilteredMenuItems()
+}
 
 watch(
   () => serviceStore.selectedRest,

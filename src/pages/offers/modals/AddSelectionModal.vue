@@ -7,7 +7,7 @@
     <VaForm ref="form" @submit.prevent="submit">
       <div class="grid gap-4">
         <!-- Combined Input Row -->
-        <div class="grid md:grid-cols-3 gap-4">
+        <div class="grid md:grid-cols-4 gap-4">
           <VaInput
             v-model="formData.name"
             label="Name"
@@ -33,6 +33,13 @@
             required-mark
             :rules="[validators.required]"
           />
+          <VaSelect
+            v-model="formData.isRequired"
+            label="Is Required"
+            :options="[true, false]"
+            placeholder="Select if required"
+            required-mark
+          />
         </div>
 
         <div class="grid md:grid-cols-3 gap-4 text-sm leading-tight">
@@ -44,18 +51,59 @@
             <VaInput v-model="searchQuery" placeholder="Search..." size="small" class="w-full mb-2" />
 
             <!-- Scrollable List -->
-            <div class="border rounded shadow-sm bg-white max-h-[36vh] overflow-y-auto">
+            <div class="border rounded shadow-sm bg-white h-[50vh] overflow-y-hidden">
               <table v-if="!isLoading" class="w-full text-sm">
                 <tbody>
-                  <tr v-for="article in filteredItems" :key="article._id" class="border-b hover:bg-orange-50">
-                    <td class="p-2">
-                      <VaCheckbox
-                        v-model="article.selected"
-                        :true-value="article._id"
-                        :label="article.code + ' - ' + article.name"
-                      />
-                    </td>
-                  </tr>
+                  <VaVirtualScroller v-slot="{ item, index }" :items="items" :wrapper-size="400">
+                    <tr class="border-b hover:bg-orange-50" :class="{ hidden: !item.display, table: item.display }">
+                      <td class="p-2 w-full">
+                        <div class="flex items-center justify-between">
+                          <VaCheckbox
+                            v-model="item.selected"
+                            :true-value="item._id"
+                            :label="item.code + ' - ' + item.name"
+                          />
+
+                          <div class="flex items-center gap-1">
+                            <div class="w-12">
+                              <VaInput
+                                v-model="item.customPrice"
+                                type="number"
+                                placeholder="Price"
+                                class="w-full"
+                                :disabled="item.isFree"
+                                @input="item.customPrice > 0 ? (item.isFree = false) : 0"
+                              />
+                            </div>
+                            <span
+                              class="ml-1 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                              :class="[
+                                item.isFree
+                                  ? 'bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-blue-900 border border-blue-500'
+                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300',
+                                { 'opacity-50 pointer-events-none': item.customPrice > 0 },
+                              ]"
+                              @click="item.customPrice <= 0 ? (item.isFree = !item.isFree) : false"
+                            >
+                              Free
+                            </span>
+                            <!-- Default span -->
+                            <span
+                              class="ml-1 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                              :class="{
+                                'bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-green-900 border border-green-500':
+                                  defaultArticles.includes(item._id),
+                                'bg-gray-200 text-gray-700 hover:bg-gray-300': !defaultArticles.includes(item._id),
+                              }"
+                              @click="checkDefaultArticle(item._id)"
+                            >
+                              Default
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </VaVirtualScroller>
                 </tbody>
               </table>
               <VaSkeletonGroup v-else animation="wave">
@@ -76,26 +124,44 @@
             <VaInput v-model="groupSearchQuery" placeholder="Search..." size="small" class="w-full mb-2" />
 
             <!-- Scrollable List -->
-            <div class="border rounded shadow-sm bg-white max-h-[36vh] overflow-y-auto">
-              <table v-if="filteredGroups.length" class="w-full text-sm">
+            <div class="border rounded shadow-sm bg-white h-[50vh] overflow-y-hidden">
+              <table
+                v-if="items.filter((a) => a.selected).flatMap((a) => a.articlesOptionsGroup).length"
+                class="w-full text-sm"
+              >
                 <tbody>
-                  <div v-for="item in filteredGroups" :key="item._id">
-                    <tr
-                      v-for="group in item.articlesOptionsGroup"
-                      :key="group._id"
-                      class="hover:bg-green-50"
-                      style="display: table"
-                    >
+                  <VaVirtualScroller
+                    v-slot="{ item, index }"
+                    :items="
+                      items
+                        .filter((a) => a.selected)
+                        .flatMap((a) => a.articlesOptionsGroup)
+                        .filter((a) => a.display)
+                    "
+                    class="mb-10"
+                    :wrapper-size="400"
+                  >
+                    <tr class="hover:bg-green-50" :class="{ hidden: !item.display, table: item.display }">
                       <td class="p-2 w-full border-b">
-                        <VaCheckbox
-                          v-model="group.selected"
-                          :true-value="group._id"
-                          :label="group.name"
-                          class="w-full"
-                        />
+                        <div class="flex items-center justify-between">
+                          <VaCheckbox
+                            v-model="item.selected"
+                            :true-value="item._id"
+                            :label="item.internalName ? `${item.name} - ${item.internalName}` : item.name"
+                            class="w-full"
+                          />
+                          <div class="w-12">
+                            <VaInput
+                              v-model="item.customMaxChoices"
+                              type="number"
+                              placeholder="Max Choice"
+                              class="w-full"
+                            />
+                          </div>
+                        </div>
                       </td>
                     </tr>
-                  </div>
+                  </VaVirtualScroller>
                 </tbody>
               </table>
               <div v-else class="text-gray-500 italic text-center py-2">No groups available</div>
@@ -110,36 +176,83 @@
             <VaInput v-model="optionSearchQuery" placeholder="Search..." size="small" class="w-full mb-2" />
 
             <!-- Scrollable List -->
-            <div class="border rounded shadow-sm bg-white max-h-[36vh] overflow-y-auto">
-              <table v-if="filteredOptions.length" class="w-full text-sm">
+            <div class="border rounded shadow-sm bg-white h-[50vh] overflow-y-hidden">
+              <table
+                v-if="
+                  items
+                    .filter((a) => a.selected)
+                    .flatMap((item) => item.articlesOptionsGroup)
+                    .filter((a) => a.selected)
+                    .flatMap((a) => a.articlesOptions).length
+                "
+                class="w-full text-sm"
+              >
                 <tbody>
-                  <tr v-for="item in filteredOptions" :key="item._id">
-                    <template v-for="group in item.articlesOptionsGroup">
-                      <tr
-                        v-for="option in group.articlesOptions"
-                        :key="option._id"
-                        class="border-b hover:bg-green-50 w-full"
-                        style="display: table"
-                      >
-                        <td class="p-2">
-                          <div class="flex items-center justify-between">
-                            <VaCheckbox v-model="option.selected" :true-value="option.id" :label="option.name" />
+                  <VaVirtualScroller
+                    v-slot="{ item, index }"
+                    :items="
+                      items
+                        .filter((a) => a.selected)
+                        .flatMap((item) => item.articlesOptionsGroup)
+                        .filter((a) => a.selected)
+                        .flatMap((a) => a.articlesOptions)
+                        .filter((a) => a.display)
+                    "
+                    :wrapper-size="400"
+                  >
+                    <tr
+                      class="border-b hover:bg-green-50 w-full"
+                      :class="{ hidden: !item.display, table: item.display }"
+                    >
+                      <td class="p-2">
+                        <div class="flex items-center justify-between">
+                          <VaCheckbox
+                            v-model="item.selected"
+                            :true-value="item.id"
+                            :label="item.posName ? `${item.name} - ${item.posName}` : item.name"
+                          />
+                          <div class="flex items-center gap-1">
+                            <div class="w-12">
+                              <VaInput
+                                v-model="item.customPrice"
+                                type="number"
+                                placeholder="Price"
+                                class="w-full"
+                                :disabled="item.isFree"
+                                @input="item.customPrice > 0 ? (item.isFree = false) : 0"
+                              />
+                            </div>
                             <span
-                              class="ml-2 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                              class="ml-1 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
                               :class="{
                                 'bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-blue-900 border border-blue-500':
-                                  option.isFree,
-                                'bg-gray-200 text-gray-700 hover:bg-gray-300': !option.isFree,
+                                  item.isFree,
+                                'bg-gray-200 text-gray-700 hover:bg-gray-300': !item.isFree,
+                                'opacity-50 pointer-events-none': item.customPrice > 0,
                               }"
-                              @click="option.isFree = !option.isFree"
+                              @click="item.customPrice <= 0 ? (item.isFree = !item.isFree) : false"
                             >
                               Free
                             </span>
+                            <!-- Default span -->
+                            <span
+                              class="ml-1 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                              :class="{
+                                'bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-green-900 border border-green-500':
+                                  defaultOptions.includes(item.optionGroupId + '-' + item.id),
+                                'bg-gray-200 text-gray-700 hover:bg-gray-300': !defaultOptions.includes(
+                                  item.optionGroupId + '-' + item.id,
+                                ),
+                              }"
+                              @click="checkDefaultOption(item.optionGroupId, item.id)"
+                            >
+                              Default
+                            </span>
                           </div>
-                        </td>
-                      </tr>
-                    </template>
-                  </tr>
+                        </div>
+                      </td>
+                    </tr>
+                  </VaVirtualScroller>
                 </tbody>
               </table>
               <div v-else class="text-gray-500 italic text-center py-2">No options available</div>
@@ -203,51 +316,113 @@ const { validate } = useForm('form')
 const { init } = useToast()
 
 const searchQuery = ref('')
-const filteredItems = computed(() =>
-  items.value.filter(
-    (item) =>
-      item.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      item.code.toLowerCase().includes(searchQuery.value.toLowerCase()),
-  ),
-)
 
 const groupSearchQuery = ref('')
 const optionSearchQuery = ref('')
+const defaultOptions = ref([])
+const defaultArticles = ref([])
 
-const filteredGroups = computed(() =>
-  items.value
-    .filter((a) => a.selected)
-    .map((a) => ({
-      ...a,
-      articlesOptionsGroup: a.articlesOptionsGroup.filter((g) =>
-        g.name.toLowerCase().includes(groupSearchQuery.value.toLowerCase()),
-      ),
-    }))
-    .filter((a) => a.articlesOptionsGroup.length),
+defaultArticles.value = props.offerSelection?.menuItemDefaultOptions || []
+
+props.offerSelection?.menuItems?.forEach((item) => {
+  item.optionGroups.forEach((group) => {
+    defaultOptions.value = Array.from(
+      new Set([
+        ...defaultOptions.value,
+        ...group.selectedOptionsDefaultOption.map((e) => group.optionGroupId + '-' + e),
+      ]),
+    )
+  })
+})
+
+function checkDefaultArticle(optionId) {
+  if (defaultArticles.value.includes(optionId)) {
+    defaultArticles.value = defaultArticles.value.filter((id) => id !== optionId)
+  } else {
+    defaultArticles.value.push(optionId)
+  }
+}
+
+function checkDefaultOption(groupId, optionId) {
+  if (defaultOptions.value.includes(groupId + '-' + optionId)) {
+    defaultOptions.value = defaultOptions.value.filter((id) => id !== groupId + '-' + optionId)
+  } else {
+    defaultOptions.value.push(groupId + '-' + optionId)
+  }
+}
+
+const groupWorker = new Worker(
+  URL.createObjectURL(
+    new Blob(
+      [
+        `
+      self.onmessage = function(e) {
+        const { items, groupSearchQuery, optionSearchQuery, searchQuery } = e.data;
+        const groupSearch = groupSearchQuery.toLowerCase();
+        const optionSearch = optionSearchQuery.toLowerCase();
+        const search = searchQuery.toLowerCase();
+        const filtered = items
+          .map(a => {
+            const nameMatch = a.name?.toLowerCase().includes(search);
+              const internalNameMatch = a.code?.toLowerCase().includes(search);
+              return {
+                ...a,
+                display: nameMatch || internalNameMatch || !searchQuery,
+                articlesOptionsGroup: a.articlesOptionsGroup.map(g => {
+                  const nameMatch = g.name?.toLowerCase().includes(groupSearch);
+                  const internalNameMatch = g.internalName?.toLowerCase().includes(groupSearch);
+                  return {
+                    ...g,
+                    display: nameMatch || internalNameMatch || !groupSearch,
+                    articlesOptions: g.articlesOptions.map(opt => {
+                      const optNameMatch = opt.name?.toLowerCase().includes(optionSearch);
+                      const optPosNameMatch = opt.posName?.toLowerCase().includes(optionSearch);
+                      return {
+                        ...opt,
+                        optionGroupId: g.id,
+                        display: optNameMatch || optPosNameMatch || !optionSearch,
+                      };
+                    }),
+                  };
+                })
+              };    
+            })
+        self.postMessage(filtered);
+      }
+    `,
+      ],
+      { type: 'application/javascript' },
+    ),
+  ),
 )
 
-const filteredOptions = computed(() =>
-  items.value
-    .filter((a) => a.selected)
-    .map((a) => ({
-      ...a,
-      articlesOptionsGroup: a.articlesOptionsGroup
-        .filter((g) => g.selected && g.articlesOptions.length)
-        .map((g) => ({
-          ...g,
-          articlesOptions: g.articlesOptions.filter((opt) =>
-            opt.name.toLowerCase().includes(optionSearchQuery.value.toLowerCase()),
-          ),
-        }))
-        .filter((g) => g.articlesOptions.length),
-    }))
-    .filter((a) => a.articlesOptionsGroup.length),
+const lastWorkerCall = ref(0)
+
+watch(
+  [groupSearchQuery, optionSearchQuery, searchQuery],
+  () => {
+    const callId = ++lastWorkerCall.value
+    groupWorker.postMessage({
+      items: JSON.parse(JSON.stringify(items.value)),
+      groupSearchQuery: groupSearchQuery.value,
+      optionSearchQuery: optionSearchQuery.value,
+      searchQuery: searchQuery.value,
+    })
+    groupWorker.onmessage = (e) => {
+      // Only update if this is the latest call
+      if (callId === lastWorkerCall.value) {
+        items.value = JSON.parse(JSON.stringify(e.data))
+      }
+    }
+  },
+  { immediate: true, deep: true },
 )
 
 const formData = ref({
   name: '',
   min: null,
   max: null,
+  isRequired: true,
 })
 
 if (props.isEditSelection) {
@@ -257,6 +432,7 @@ if (props.isEditSelection) {
     name: props.offerSelection.name,
     min: props.offerSelection.min.toString(),
     max: props.offerSelection.max.toString(),
+    isRequired: props.offerSelection.isRequired || false,
   }
 } else {
   isUpdating.value = false
@@ -279,7 +455,10 @@ const getArticles = async () => {
 
     return {
       ...e,
+      display: true,
+      isFree: selected ? selected.isFree : false,
       selected: selected ? e._id : '',
+      customPrice: selected ? selected.customPrice : 0,
       articlesOptionsGroup: e.articlesOptionsGroup.map((e) => {
         let groupSelected = false
         if (selected) {
@@ -287,21 +466,32 @@ const getArticles = async () => {
         }
         return {
           ...e,
+          display: true,
+          customMaxChoices: groupSelected ? groupSelected.customMaxChoices : 0,
           selected: groupSelected ? e._id : !props.isEditSelection ? e._id : '',
           articlesOptions: e.articlesOptions.map((opt) => {
             let optionSelected = false
             if (groupSelected) {
               optionSelected = groupSelected?.selectedOptions.find((option) => option.optionId === opt.id)
             }
+
             return {
               ...opt,
+              optionGroupId: e.id,
+              display: true,
               selected: optionSelected ? opt.id : !props.isEditSelection ? opt.id : '',
               isFree: optionSelected?.isFree || false,
+              customPrice: optionSelected ? optionSelected?.customPrice : 0,
             }
           }),
         }
       }),
     }
+  })
+  items.value.sort((a: any, b: any) => {
+    if (!!a.selected && !b.selected) return -1
+    if (!a.selected && !!b.selected) return 1
+    return a.name.localeCompare(b.name)
   })
   isLoading.value = false
 }
@@ -319,32 +509,37 @@ const submit = async () => {
     data.min = parseInt(data.min)
     data.max = parseInt(data.max)
     data.isActive = true
+    data.menuItemDefaultOptions = defaultArticles.value
+
+    // Reconstruct menuItems from the current UI state to reflect latest selection/free changes
     data.menuItems = items.value
-      .filter((item) => item.selected)
-      .map((item) => {
-        return {
-          menuItemId: item._id,
-          optionGroups: item.articlesOptionsGroup
-            .filter((group) => group.selected)
-            .map((group) => {
-              return {
-                optionGroupId: group.id,
-                selectedOptions: group.articlesOptions
-                  .filter((option) => option.selected)
-                  .map((option) => {
-                    return {
-                      optionId: option.id,
-                      isFree: option.isFree,
-                    }
-                  }),
-              }
-            }),
-        }
-      })
+      .filter((item: any) => !!item.selected)
+      .map((item: any) => ({
+        menuItemId: item._id,
+        isFree: !!item.isFree,
+        customPrice: item.customPrice || 0,
+        optionGroups: item.articlesOptionsGroup
+          .filter((group: any) => !!group.selected)
+          .map((group: any) => ({
+            optionGroupId: group.id,
+            customMaxChoices: group.customMaxChoices || 0,
+            selectedOptionsDefaultOption: defaultOptions.value
+              .filter((opt) => opt.startsWith(group.id + '-'))
+              .map((opt) => opt.split('-')[1]),
+            selectedOptions: group.articlesOptions
+              .filter((option: any) => !!option.selected)
+              .map((option: any) => ({
+                optionId: option.id,
+                isFree: !!option.isFree,
+                customPrice: option.customPrice || 0,
+                isDefault: defaultOptions.value.includes(option.id),
+              })),
+          })),
+      }))
 
     const url = import.meta.env.VITE_API_BASE_URL
     if (props.isEditSelection) {
-      const index = props.offerData.selections.findIndex((e) => e._id === props.offerSelection._id)
+      const index = props.offerData.selections.findIndex((e: any) => e._id === props.offerSelection._id)
       payload.selections[index] = data
     } else {
       payload.selections.push(data)
@@ -354,7 +549,7 @@ const submit = async () => {
       init({ message: 'Offers updated successfully!', color: 'success' })
       emits('cancel')
       emits('getOffers')
-    } catch (err: any) {
+    } catch (err) {
       init({ message: err?.response?.data?.message || 'Error occurred', color: 'danger' })
     }
   }
@@ -372,8 +567,5 @@ tr {
 ::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.1);
   border-radius: 3px;
-}
-.max-h-[36vh] {
-  max-height: 36vh;
 }
 </style>

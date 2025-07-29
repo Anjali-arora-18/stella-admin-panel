@@ -101,7 +101,7 @@ const getArticles = (outletId) => {
           selected: menuItems.value.includes(item._id),
         }))
         .sort((a, b) => {
-          return b.selected - a.selected // true (1) comes before false (0)
+          return b.selected - a.selected
         })
       isLoading.value = false
     })
