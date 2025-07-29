@@ -729,15 +729,15 @@ const submit = async () => {
       console.log('[SUBMIT] Update successful')
     } else {
       console.log('[SUBMIT] Calling createPromotion...')
-      const created = await createPromotion(data)
+      const created = await createPromotion(data) // returns promotion object directly
       init({ message: 'Promotion created successfully!', color: 'success' })
-      console.log('[SUBMIT] Creation successful, new ID:', created.data._id)
+      console.log('[SUBMIT] Creation successful, new ID:', created._id)
 
-      // Apply pending selections
+      // Apply pending selections if any
       if (props.pendingSelections.value.length) {
         console.log('[SUBMIT] Pending selections found:', props.pendingSelections.value)
         try {
-          await updatePromotion(created.data._id, {
+          await updatePromotion(created._id, {
             menuItem: props.pendingSelections.value
           })
           init({ message: 'Pending selections applied!', color: 'success' })
@@ -745,15 +745,18 @@ const submit = async () => {
           console.log('[SUBMIT] Pending selections applied successfully')
         } catch (err) {
           console.error('[SUBMIT] Failed to apply pending selections:', err)
-          init({ message: 'Failed to apply pending selections', color: 'danger' })
+          init({ message: err.message || 'Failed to apply pending selections', color: 'danger' })
         }
       }
     }
   } catch (err) {
-    console.error('[SUBMIT] Error during API call:', err?.response?.data || err)
-    init({ message: err?.response?.data?.message || 'Error occurred', color: 'danger' })
+    console.error('[SUBMIT] Error during API call:', err)
+    init({
+      message: err.message || 'Error occurred while saving promotion',
+      color: 'danger'
+    })
   }
-}
+  }
 
 const selectedRest = toRef(servicesStore.selectedRest)
 

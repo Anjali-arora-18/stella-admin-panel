@@ -55,11 +55,17 @@ watch(
 async function loadMenuItems(outletId) {
   try {
     const res = await getMenuItemsByOutlet(outletId)
-    menuItems.value = res.data || []
+
+    // Guard in case res is not an array
+    menuItems.value = Array.isArray(res) ? res : (res?.data || [])
+
+    console.log('[loadMenuItems] Loaded menu items:', menuItems.value.length)
   } catch (err) {
-    console.error('Failed to fetch menu items', err)
+    console.error('[loadMenuItems] Failed to fetch menu items:', err)
+    menuItems.value = [] // fallback to empty array
   }
 }
+
 
 function isValidDateString(dateStr) {
   return !!dateStr && !isNaN(new Date(dateStr).getTime())

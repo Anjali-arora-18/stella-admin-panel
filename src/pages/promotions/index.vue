@@ -110,17 +110,24 @@ const getPromotions = async () => {
   console.log('[getPromotions] Fetching promotions for outlet:', servicesStore.selectedRest)
   const outletId = servicesStore.selectedRest
   isLoading.value = true
+
   try {
+    // Updated: safeRequest already returns the raw data
     const response = await getPromotionsByOutlet(outletId)
-    const item = response.data.data
+
+    // Guard in case response is not an array
+    const item = Array.isArray(response.data) ? response.data : response
+
     items.value = item.map((e) => {
       const dayShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
       const weeklyPromotion = (e.validDays || []).map((n) => dayShort[n])
+
       const startDate = e.dateRange?.startDate || ''
       const endDate = e.dateRange?.endDate || ''
       const startTime = e.timeRange?.startTime || ''
       const endTime = e.timeRange?.endTime || ''
       const timeRange = startTime && endTime ? `${startTime} - ${endTime}` : ''
+
       const price = e.discountValue ?? e.fixedPrice ?? ''
       const orderType = (e.orderTypes || []).join(', ')
 
@@ -137,14 +144,16 @@ const getPromotions = async () => {
         selections: e.selections || [],
       }
     })
+
     console.log('[getPromotions] Promotions loaded:', items.value)
   } catch (error) {
     console.error('[getPromotions] Failed:', error)
-    init({ message: 'Failed to load promotions', color: 'danger' })
+    init({ message: error.message || 'Failed to load promotions', color: 'danger' })
   } finally {
     isLoading.value = false
   }
 }
+
 
 /* ---------- Watchers ---------- */
 watch(() => servicesStore.selectedRest, () => {
