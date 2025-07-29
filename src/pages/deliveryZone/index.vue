@@ -27,6 +27,7 @@ const getDeliveryZones = async () => {
         editName: false,
         editDeliveryCharge: false,
         editTerminalNumber: false,
+        editFutureOrderPromiseTime: false,
         editccFromTable: false,
         editccToTable: false,
         editwebFromTable: false,
