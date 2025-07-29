@@ -42,6 +42,9 @@
           <VaIcon name="local_offer" class="mr-2"></VaIcon>
           Offers
         </RouterLink>
+        <RouterLink to="/promotions" :class="$route.name === 'promotions' ? 'text-primary font-bold' : 'text-secondary'">
+          Promotions
+        </RouterLink>
         <RouterLink
           to="/deletedArticles"
           :class="$route.name === 'deletedArticles' ? 'text-primary font-bold' : 'text-secondary'"
