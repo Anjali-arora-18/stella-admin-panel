@@ -133,7 +133,7 @@ const offers = ref([])
 const getOffers = async () => {
   const url = import.meta.env.VITE_API_BASE_URL
 
-  const response = await axios.get(url + '/offers/?outletId=' + serviceStore.selectedRest)
+  const response = await axios.get(url + '/offers?outletId=' + serviceStore.selectedRest)
   offers.value = response.data.data
 }
 
