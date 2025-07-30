@@ -300,7 +300,7 @@ async function createOrder() {
       orderNotes: '',
       deliveryFee: props.deliveryFee,
       outletId: serviceStore.selectedRest,
-      orderDateTime: new Date(Date.now() + 2 * 60 * 1000).toLocaleString('en-US', { timeZone: 'UTC' }),
+      orderDateTime: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
       paymentMode: selectedPayment.value,
     }
 
@@ -403,7 +403,7 @@ async function createOrder() {
 
 .item-extras {
   border-top: 1px solid #f3f4f6;
-  padding-top: 12px;
+  padding-top: 6px;
 }
 
 .item-details {
@@ -433,7 +433,7 @@ async function createOrder() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
+  padding: 3px 0;
   font-size: 14px;
 }
 
