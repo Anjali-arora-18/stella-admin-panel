@@ -181,7 +181,7 @@
 </template>
 
 <script setup>
-import { ref, watch, defineEmits, computed, defineExpose } from 'vue'
+import { ref, watch, defineEmits, computed, defineExpose, onMounted, onUnmounted } from 'vue'
 import { useToast } from 'vuestic-ui'
 import axios from 'axios'
 import { useServiceStore } from '@/stores/services.ts'
@@ -240,6 +240,31 @@ function formatDateTimeLocal(date) {
   const hh = pad(date.getHours())
   const min = pad(date.getMinutes())
   return `${yyyy}-${mm}-${dd}T${hh}:${min}`
+}
+onMounted(() => {
+  updateTimeOnly()
+  timeInterval = setInterval(updateTimeOnly, 30000)
+})
+
+onUnmounted(() => {
+  clearInterval(timeInterval)
+})
+
+let timeInterval
+
+function updateTimeOnly() {
+  const current = new Date()
+  const existingDate = new Date(localDateTime.value)
+
+  const updatedDate = new Date(
+    existingDate.getFullYear(),
+    existingDate.getMonth(),
+    existingDate.getDate(),
+    current.getHours(),
+    current.getMinutes(),
+  )
+
+  localDateTime.value = formatDateTimeLocal(updatedDate)
 }
 
 function openCustomerModal() {
