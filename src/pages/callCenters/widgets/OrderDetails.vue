@@ -52,10 +52,10 @@
                   :key="option"
                   class="px-2 py-0.5 rounded-full"
                   :class="{
-                    'bg-green-100 text-green-700': option.type === 'extra',
-                    'bg-blue-100 text-blue-700': option.type === 'article',
-                    'bg-red-100 text-red-700': option.type === 'hold',
-                    'bg-amber-100 text-amber-700': option.type === 'modifier',
+                    'bg-green-100 text-green-700': option.type.toLowerCase() === 'extra',
+                    'bg-blue-100 text-blue-700': option.type.toLowerCase() === 'article',
+                    'bg-red-100 text-red-700': option.type.toLowerCase() === 'hold',
+                    'bg-amber-100 text-amber-700': option.type.toLowerCase() === 'modifier',
                   }"
                 >
                   {{ option.text }}

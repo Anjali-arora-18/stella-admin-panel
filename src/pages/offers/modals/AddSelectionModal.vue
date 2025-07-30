@@ -45,7 +45,7 @@
         <div class="grid md:grid-cols-3 gap-4 text-sm leading-tight">
           <!-- Menu Items -->
           <div>
-            <div class="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-2">Menu Items</div>
+            <div class="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-2">Articles</div>
 
             <!-- Static Search Bar -->
             <VaInput v-model="searchQuery" placeholder="Search..." size="small" class="w-full mb-2" />
@@ -62,6 +62,7 @@
                             v-model="item.selected"
                             :true-value="item._id"
                             :label="item.code + ' - ' + item.name"
+                            class="check"
                           />
 
                           <div class="flex items-center gap-1">
@@ -567,5 +568,10 @@ tr {
 ::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.1);
   border-radius: 3px;
+}
+::v-deep(.check .va-checkbox__input:focus-visible + .va-checkbox__square) {
+  outline: 0 !important;
+  box-shadow: none;
+  border: none;
 }
 </style>

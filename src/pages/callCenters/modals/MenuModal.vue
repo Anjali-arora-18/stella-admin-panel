@@ -309,10 +309,10 @@ watch(
     articlesOptionsGroups.value.forEach((group) => {
       const defaults = Array.isArray(group.defaultOptions) ? group.defaultOptions : []
       const selected = []
-
       defaults.forEach((optionId) => {
         const option = group.options.find((o) => o._id === optionId)
         if (option && (!selectedOptions.value.length || option.type.toLowerCase() !== 'article')) {
+          console.log('inside', option)
           selected.push({
             optionId: option._id,
             name: option.name,
@@ -323,8 +323,8 @@ watch(
         }
       })
 
-      if (!selectedOptions.value.length && selected.find((a) => a.type === 'article')) {
-        getArticlesConfiguration(group._id, selected.find((a) => a.type === 'article').optionId)
+      if (!selectedOptions.value.length && selected.find((a) => a.type.toLowerCase() === 'article')) {
+        getArticlesConfiguration(group._id, selected.find((a) => a.type.toLowerCase() === 'article').optionId)
       }
 
       if (selected.length) {
@@ -335,6 +335,7 @@ watch(
         })
       }
     })
+    console.log('Selected Options:', selectedOptions.value)
   },
   { immediate: true, deep: true },
 )
@@ -396,7 +397,7 @@ watch(
       selectedOptions.value = []
     }
   },
-  { immediate: true, deep: true },
+  { deep: true },
 )
 
 function addToBasket(item: any) {
