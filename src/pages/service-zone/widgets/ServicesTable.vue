@@ -195,7 +195,7 @@ function downloadQrCode(rowData) {
     :close-on-click-outside="true"
   >
     <template #header>
-      <h1 class="p-3 va-h6">Webhook Details</h1>
+      <h3 class="va-h4 ml-3">Webhook Details</h3>
     </template>
     <div class="p-3 space-y-4">
       <VaInput
