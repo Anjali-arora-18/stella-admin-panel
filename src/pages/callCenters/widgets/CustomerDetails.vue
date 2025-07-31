@@ -221,16 +221,21 @@ onClickOutside(deliveryTarget, (event) => (showDeliveryDropdown.value = false), 
 const localDateTime = ref(formatDateTimeLocal(new Date()))
 const selectedDate = ref(new Date())
 
-watch(localDateTime, (newVal) => {
-  if (newVal && newVal.length >= 16) {
-    const [datePart, timePart] = newVal.split('T')
-    if (datePart && timePart) {
-      const [year, month, day] = datePart.split('-').map(Number)
-      const [hour, minute] = timePart.split(':').map(Number)
-      selectedDate.value = new Date(year, month - 1, day, hour, minute)
+watch(
+  localDateTime,
+  (newVal) => {
+    if (newVal && newVal.length >= 16) {
+      const [datePart, timePart] = newVal.split('T')
+      if (datePart && timePart) {
+        const [year, month, day] = datePart.split('-').map(Number)
+        const [hour, minute] = timePart.split(':').map(Number)
+        selectedDate.value = new Date(year, month - 1, day, hour, minute)
+        emits('setDateSelected', selectedDate.value)
+      }
     }
-  }
-})
+  },
+  { immediate: true },
+)
 
 function formatDateTimeLocal(date) {
   const pad = (n) => String(n).padStart(2, '0')

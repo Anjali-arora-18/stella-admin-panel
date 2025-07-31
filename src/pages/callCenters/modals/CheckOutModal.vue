@@ -153,6 +153,7 @@ const props = defineProps<{
   deliveryFee: number
   customerDetailsId: string
   orderType: string
+  dateSelected: string
 }>()
 const orderStore = useOrderStore()
 const serviceStore = useServiceStore()
@@ -300,7 +301,7 @@ async function createOrder() {
       orderNotes: '',
       deliveryFee: props.deliveryFee,
       outletId: serviceStore.selectedRest,
-      orderDateTime: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+      orderDateTime: new Date(props.dateSelected).toISOString(),
       paymentMode: selectedPayment.value,
     }
 
@@ -339,7 +340,7 @@ async function createOrder() {
         } catch (err) {
           init({
             color: 'danger',
-            message: err.response.data.error,
+            message: err.response.data.message,
           })
           orderStore.setPaymentLink('')
           orderResponse.value = ''
@@ -353,7 +354,7 @@ async function createOrder() {
     // Handle error — show toast
     init({
       color: 'danger',
-      message: err?.message || 'Order failed, please try again.',
+      message: err.response.data.message || 'Order failed, please try again.',
     })
 
     // If backend returns partial data like requestId, save it for retry

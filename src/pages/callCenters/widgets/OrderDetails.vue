@@ -192,6 +192,7 @@
     />
     <CheckOutModal
       v-model="showCheckoutModal"
+      :date-selected="dateSelected"
       :delivery-fee="deliveryFee"
       :customer-details-id="customerDetailsId"
       :order-type="orderType"
@@ -216,6 +217,7 @@ const props = defineProps({
   orderType: String,
   deliveryFee: Number,
   isDeliveryZoneSelected: Boolean,
+  dateSelected: String,
 })
 
 const promoCode = ref('')
