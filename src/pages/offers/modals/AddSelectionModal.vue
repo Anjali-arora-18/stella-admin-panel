@@ -54,7 +54,11 @@
             <div class="border rounded shadow-sm bg-white h-[50vh] overflow-y-hidden">
               <table v-if="!isLoading" class="w-full text-sm">
                 <tbody>
-                  <VaVirtualScroller v-slot="{ item, index }" :items="items" :wrapper-size="400">
+                  <VaVirtualScroller
+                    v-slot="{ item, index }"
+                    :items="items.filter((a) => a.display)"
+                    :wrapper-size="400"
+                  >
                     <tr class="border-b hover:bg-orange-50" :class="{ hidden: !item.display, table: item.display }">
                       <td class="p-2 w-full">
                         <div class="flex items-center justify-between">

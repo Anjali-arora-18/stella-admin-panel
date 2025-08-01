@@ -22,7 +22,9 @@ const columns = defineVaDataTableColumns([
   { label: 'Delivery Zone', key: 'name', sortable: false },
   { label: 'Postcode', key: 'postalCodes', sortable: false },
   { label: 'Delivery Charges', key: 'deliveryCharge', sortable: false },
-  { label: 'Future Order Time', key: 'futureOrderPromiseTime', sortable: false },
+  { label: 'Future Order Time', key: 'futureOrderPromiseTime' },
+  { label: 'Delivery Promise Time', key: 'deliveryPromiseTime' },
+  { label: 'Takeaway Promise Time', key: 'takeawayPromiseTime' },
   { label: 'Terminal Number', key: 'terminalNumber' },
   { label: 'CC From - To', key: 'ccFromTable' },
   { label: 'Web From - To', key: 'webFromTable' },
@@ -50,6 +52,8 @@ async function updateData(rowData) {
     deliveryCharge: rowData.deliveryCharge,
     terminalNumber: rowData.terminalNumber,
     futureOrderPromiseTime: rowData.futureOrderPromiseTime,
+    deliveryPromiseTime: rowData.deliveryPromiseTime,
+    takeawayPromiseTime: rowData.takeawayPromiseTime,
     ccFromTable: rowData.ccFromTable,
     ccToTable: rowData.ccToTable,
     webFromTable: rowData.webFromTable,
@@ -242,6 +246,36 @@ const items = toRef(props, 'items')
           />
           <span v-else-if="rowData.futureOrderPromiseTime">
             {{ rowData.futureOrderPromiseTime }}
+          </span>
+          <span v-else>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+        </div>
+      </template>
+      <template #cell(deliveryPromiseTime)="{ rowData }">
+        <div class="max-w-[120px] ellipsis" @click="rowData.editDeliveryPromiseTime = true">
+          <input
+            v-if="rowData.editDeliveryPromiseTime"
+            v-model="rowData.deliveryPromiseTime"
+            class="w-full p-1 border rounded"
+            type="number"
+            @change="updateData(rowData), (rowData.editDeliveryPromiseTime = false)"
+          />
+          <span v-else-if="rowData.deliveryPromiseTime">
+            {{ rowData.deliveryPromiseTime }}
+          </span>
+          <span v-else>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+        </div>
+      </template>
+      <template #cell(takeawayPromiseTime)="{ rowData }">
+        <div class="max-w-[120px] ellipsis" @click="rowData.editTakeawayPromiseTime = true">
+          <input
+            v-if="rowData.editTakeawayPromiseTime"
+            v-model="rowData.takeawayPromiseTime"
+            class="w-full p-1 border rounded"
+            type="number"
+            @change="updateData(rowData), (rowData.editTakeawayPromiseTime = false)"
+          />
+          <span v-else-if="rowData.takeawayPromiseTime">
+            {{ rowData.takeawayPromiseTime }}
           </span>
           <span v-else>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
         </div>

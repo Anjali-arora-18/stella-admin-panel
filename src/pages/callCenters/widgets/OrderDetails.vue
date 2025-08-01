@@ -1,11 +1,26 @@
 <template>
   <div class="w-full mx-auto order-details bg-white p-4">
-    <!-- Title -->
     <h2 class="font-semibold text-lg text-gray-800 border-b pb-2">Order Details</h2>
-
     <template v-if="items.length || offersItems.length">
-      <!-- Promo Code -->
-      <VaInput v-model="promoCode" class="my-4" placeholder="Promotion Code" size="small" input-class="text-sm" />
+      <!-- Promo Code with Button -->
+      <VaInput
+        v-model="promoCode"
+        placeholder="Promotion Code"
+        size="small"
+        input-class="text-sm pr-20 cursor-not-allowed text-gray-500"
+        class="relative my-4"
+        readonly
+      >
+        <template #append>
+          <VaButton
+            size="small"
+            class="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white px-3 py-1 rounded-md text-xs shadow-md"
+            @click="openPromotionModal"
+          >
+            Select
+          </VaButton>
+        </template>
+      </VaInput>
 
       <!-- Order Items -->
       <div :class="isCustomerOpen ? 'order-items-min-height' : 'order-items-height'">
@@ -192,10 +207,17 @@
     />
     <CheckOutModal
       v-model="showCheckoutModal"
+      :date-selected="dateSelected"
       :delivery-fee="deliveryFee"
       :customer-details-id="customerDetailsId"
       :order-type="orderType"
       @cancel="closeCheckoutModal"
+    />
+    <PromotionModal
+      v-if="showPromotionModal"
+      :promotion="promotionData"
+      @cancel="closePromotionModal"
+      @selectCode="onCodeSelected"
     />
   </div>
 </template>
@@ -204,11 +226,13 @@
 import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useOrderStore } from '@/stores/order-store'
+import { useServiceStore } from '@/stores/services.ts'
 import MenuModal from '../modals/MenuModal.vue'
 import CheckOutModal from '../modals/CheckOutModal.vue'
 import OfferModal from '../modals/OfferModal.vue'
 import axios from 'axios'
 import { useToast } from 'vuestic-ui'
+import PromotionModal from '../modals/PromotionModal.vue'
 
 const props = defineProps({
   isCustomerOpen: Boolean,
@@ -216,9 +240,13 @@ const props = defineProps({
   orderType: String,
   deliveryFee: Number,
   isDeliveryZoneSelected: Boolean,
+  dateSelected: String,
 })
+const serviceStore = useServiceStore()
 
 const promoCode = ref('')
+const promotionData = ref(null)
+const showPromotionModal = ref(false)
 const showOfferModal = ref(false)
 const orderStore = useOrderStore()
 const { cartItems, offerItems } = storeToRefs(orderStore)
@@ -347,6 +375,29 @@ const isEdit = ref(false)
 const isLoading = ref(false)
 const { init } = useToast()
 
+async function openPromotionModal() {
+  const url = import.meta.env.VITE_API_BASE_URL
+  try {
+    const { data } = await axios.get(`${url}/promotion?outletId=${serviceStore.selectedRest}`)
+    console.log('Promotion Data:', data)
+
+    const validPromotions = data.data.filter((promo) => promo.availableAtCC)
+
+    if (validPromotions.length > 0) {
+      promotionData.value = validPromotions
+      showPromotionModal.value = true
+    } else {
+      init({ message: 'No valid promotions available at Call Center.', color: 'danger' })
+    }
+  } catch (error) {
+    init({ message: 'Invalid or expired promotion code.', color: 'danger' })
+  }
+}
+function onCodeSelected(code) {
+  promoCode.value = code
+  showPromotionModal.value = false
+}
+
 const getMenuOptions = async (selectedItem) => {
   const url = import.meta.env.VITE_API_BASE_URL
   isLoading.value = true
@@ -385,6 +436,9 @@ function openOfferModal() {
   isEdit.value = true
   showOfferModal.value = true
 }
+// function openPromotionModal() {
+//   showPromotionModal.value = true
+// }
 function closeMenuModal() {
   showMenuModal.value = false
   isEdit.value = false
@@ -392,6 +446,9 @@ function closeMenuModal() {
 function closeOfferModal() {
   showOfferModal.value = false
   isEdit.value = false
+}
+function closePromotionModal() {
+  showPromotionModal.value = false
 }
 </script>
 <style>
