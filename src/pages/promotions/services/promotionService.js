@@ -107,8 +107,28 @@ export async function getMenuItemsByOutlet(outletId) {
         outletId,
         sortKey: 'id',
         sortValue: 'asc',
-        isDeleted: true,
+        isDeleted: false,
       },
     })
   )
+}
+
+export const getArticlesByOutlet = async (outletId) => {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/articles-options`, {
+      params: {
+        outletId,
+        limit: 50,           // or pass dynamic limit if you paginate
+        page: 1,
+        sortKey: 'name',     // valid sort field
+        sortValue: 'asc'
+      }
+    })
+
+    // The API wraps data in `result`, so extract it safely
+    return Array.isArray(response.data.result) ? response.data.result : []
+  } catch (error) {
+    console.error('[getArticlesOptionsByOutlet] Error:', error)
+    throw error
+  }
 }

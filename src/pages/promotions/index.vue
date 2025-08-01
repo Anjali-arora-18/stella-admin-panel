@@ -24,6 +24,7 @@ const isEditSelection = ref(false)
 const pendingSelections = ref<string[]>([]) // passed to PromotionsModal (legacy)
 const servicesStore = useServiceStore()
 const { init } = useToast()
+const selectionModalMode = ref('menuItems')
 
 /* ---------- Handlers for Selection Modal ---------- */
 function handleOpenSelectionModal({ promotion, selection = null, isEdit = false }) {
@@ -31,6 +32,12 @@ function handleOpenSelectionModal({ promotion, selection = null, isEdit = false 
   promotionData.value = promotion
   promotionSelection.value = selection
   isEditSelection.value = isEdit
+    if (type === 'options') {
+    // Set modal mode for options
+    selectionModalMode.value = 'options'
+  } else {
+    selectionModalMode.value = 'menuItems'
+  }
   console.log('[handleOpenSelectionModal] promotionData:', promotionData.value)
   console.log('[handleOpenSelectionModal] promotionSelection:', promotionSelection.value)
   isAddSelectionModalOpen.value = true
@@ -193,17 +200,19 @@ if (servicesStore.selectedRest) {
         />
 
         <!-- Add Selection Modal -->
-          <AddSelectionModal
-            v-if="isAddSelectionModalOpen"
-            :isVisible="isAddSelectionModalOpen"
-            :promotion-id="promotionData?._id"
-            :outlet-id="servicesStore.selectedRest"
-            :pending-selections="promotionData?.selections || []"
-            :is-edit-selection="isEditSelection"
-            :promotion-selection="promotionSelection"
-            @cancel="closeSelectionModal"
-            @promotionUpdated="closeSelectionModal"
-          />
+        <AddSelectionModal
+          v-if="isAddSelectionModalOpen"
+          :isVisible="isAddSelectionModalOpen"
+          :promotion-id="promotionData._id"
+          :outlet-id="servicesStore.selectedRest"
+          :pending-selections="promotionData.menuItem || []"
+          :is-edit-selection="isEditSelection"
+          :promotion-selection="promotionSelection"
+          :type="selectionModalMode"
+          @cancel="closeSelectionModal"
+          @promotionUpdated="closeSelectionModal"
+        />
+
 
 
       </VaCardContent>

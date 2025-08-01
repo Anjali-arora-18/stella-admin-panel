@@ -277,16 +277,31 @@
     </template>
   </VaModal>
 
-  <!-- MENU ITEMS MODAL (Articles) -->
-  <AddSelectionModal
-    v-if="isMenuItemsModalOpen"
-    :isVisible="isMenuItemsModalOpen"
-    :promotion-id="formData._id"
-    :outlet-id="servicesStore.selectedRest"
-    :pending-selections="pendingSelections"
-    @cancel="isMenuItemsModalOpen = false"
-    @promotionUpdated="emits('getPromotions')"
-  />
+<!-- MENU ITEMS MODAL (Articles) -->
+<AddSelectionModal
+  v-if="isMenuItemsModalOpen"
+  :isVisible="isMenuItemsModalOpen"
+  :promotion-id="formData._id"
+  :outlet-id="servicesStore.selectedRest"
+  :pending-selections="pendingSelections"
+  :type="'menuItems'"
+  @cancel="isMenuItemsModalOpen = false"
+  @promotionUpdated="emits('getPromotions')"
+/>
+
+<!-- OPTIONS MODAL -->
+<AddSelectionModal
+  v-if="isOptionsModalOpen"
+  :isVisible="isOptionsModalOpen"
+  :promotion-id="formData._id"
+  :outlet-id="servicesStore.selectedRest"
+  :pending-selections="pendingSelections"
+  :type="'options'"
+  @cancel="isOptionsModalOpen = false"
+  @promotionUpdated="emits('getPromotions')"
+/>
+
+
 </template>
 
 
@@ -336,6 +351,7 @@ const articles = ref([])
 const isArticlesLoading = ref(false)
 const articlesSearchQuery = ref('')
 const showArticlesSection = ref(false)
+const isOptionsModalOpen = ref(false)
 
 // Filter for search
 const filteredArticles = computed(() =>
@@ -495,6 +511,7 @@ const promotionTypes = [
   'Free Delivery',
   'Take X pay Y',
 ]
+
 const usageTypes = ['Single Use', 'Unlimited']
 const affectOptions = ['Entire Order', 'Selected Items']
 const daysOfWeek = [
@@ -502,6 +519,52 @@ const daysOfWeek = [
   'Friday', 'Saturday', 'Sunday', 'All Days'
 ]
 const orderTypes = ['Delivery', 'Takeaway', 'Dine-in']
+
+function populateFormData(promotion) {
+  // Parse timeRange "HH:MM - HH:MM"
+  let startTime = ''
+  let endTime = ''
+  if (promotion.timeRange && typeof promotion.timeRange === 'string') {
+    const [start, end] = promotion.timeRange.split('-').map(t => t.trim())
+    startTime = start || ''
+    endTime = end || ''
+  }
+
+  formData.value = {
+    _id: promotion._id || '',
+    name: promotion.name || '',
+    promotionType: reversePromotionTypeMap[promotion.promotionType] || '',
+    usageType: reverseUsageTypeMap[promotion.usage] || '',
+    discountValue: promotion.discountValue ?? null,
+    discountPercent: promotion.discountPercentage ?? promotion.discountPercent ?? null, // FIX HERE
+    fixedPrice: promotion.fixedPrice ?? null,
+    affect: reverseAffectMap[promotion.affect] || '',
+    automatic: !!promotion.automatic,
+    quantity: promotion.quantity ?? 1,
+    prefix: promotion.prefix || '',
+    startDate: toInputDate(promotion.dateRange?.startDate),
+    endDate: toInputDate(promotion.dateRange?.endDate),
+    startTime,
+    endTime,
+    days: Array.isArray(promotion.validDays)
+      ? promotion.validDays.map(num => numToDay[num])
+      : [],
+    orderType: Array.isArray(promotion.orderTypes)
+      ? promotion.orderTypes.map(type => reverseOrderTypeMap[type])
+      : [],
+    deliveryZones: (Array.isArray(promotion.deliveryZoneId) ? promotion.deliveryZoneId : [])
+      .map(id => props.deliveryZones.find(z => z.value === id))
+      .filter(Boolean),
+    availableAtCC: !!promotion.availableAtCC,
+    affectOffers: !!promotion.availableWithOffers,
+    minimumOrder: promotion.minimumOrder ?? null,
+    take: promotion.takeQuantity ?? promotion.take ?? null,   // handle TAKE_X_PAY_Y
+    pay: promotion.payQuantity ?? promotion.pay ?? null,
+    imageUrl: promotion.imageUrl || '',
+    assetId: promotion.assetId || '',
+    isActive: promotion.isActive ?? true,
+  }
+}
 
 watch(() => props.isVisible, (val) => {
   if (!val) {
@@ -517,10 +580,10 @@ watch(
       promotion: props.promotion,
     })
 
-    if (visible && props.isEdit && props.promotion?._id) {
-      console.log('[watch:isVisible] Loading promotion data for:', props.promotion._id)
-      await loadPromotionData(props.promotion._id)
-    }
+if (visible && props.isEdit && props.promotion) {
+  console.log('[watch:isVisible] Populating formData from props.promotion:', props.promotion)
+  populateFormData(props.promotion)   // new function to map directly
+}
 
     if (!visible) {
       console.log('[watch:isVisible] Modal closed, resetting form.')
@@ -572,6 +635,24 @@ const safeDeliveryZones = computed(() => {
 
 
 const isUpdating = computed(() => !!(props.promotion && Object.keys(props.promotion).length))
+const getDeliveryZones = async () => {
+  try {
+    const url = import.meta.env.VITE_API_BASE_URL
+    const res = await axios.get(`${url}/deliveryZones`, {
+      params: {
+        outletId: servicesStore.selectedRest
+      }
+    })
+
+    return res.data?.data.map((zone: any) => ({
+      label: zone.name,
+      value: zone._id
+    })) || []
+  } catch (e) {
+    console.error('[getDeliveryZones] Failed to fetch zones', e)
+    return []
+  }
+}
 
 const loadPromotionData = async (id: string) => {
   console.log('[loadPromotionData] Called with ID:', id)
@@ -655,51 +736,48 @@ const submit = async () => {
 
   const raw = { ...formData.value }
   console.log('[SUBMIT] Raw formData:', raw)
+const data: any = {
+  name: raw.name,
+  isActive: raw.isActive,
+  discountValue: raw.discountValue,
+  discountPercent: raw.discountPercent,
+  fixedPrice: raw.fixedPrice,
+  automatic: raw.automatic,
+  quantity: raw.quantity,
+  prefix: raw.prefix,
+  availableAtCC: raw.availableAtCC,
+  availableWithOffers: raw.affectOffers,  // FIXED key name
+  minimumOrder: raw.minimumOrder,
+  take: raw.take,
+  pay: raw.pay,
+  imageUrl: raw.imageUrl,
+  promotionType: promotionTypeMap[raw.promotionType],
+  affect: affectMap[raw.affect],
+  usage: usageTypeMap[raw.usageType],
+  orderTypes: (raw.orderType || []).map(t => orderTypeMap[t]),
+  dateRange: {
+    startDate: raw.startDate ? new Date(raw.startDate + 'T00:00:00Z').toISOString() : null,
+    endDate: raw.endDate ? new Date(raw.endDate + 'T00:00:00Z').toISOString() : null,
+  },
+  timeRange: {
+    startTime: raw.startTime,
+    endTime: raw.endTime,
+  },
+  validDays: raw.days.includes('All Days')
+    ? [0, 1, 2, 3, 4, 5, 6]
+    : (raw.days || []).map(d => dayToNum[d]),
+  deliveryZoneId: (raw.deliveryZones || [])
+    .map(z => (typeof z === 'object' ? z.value : z))
+    .filter(id => id && id !== 'string'), // clean placeholder
+  createdBy: servicesStore.currentUser?._id || '65edc27fa8c3e330d7db0a23',
+  outletId: servicesStore.selectedRest,
+  menuItem: articles.value
+    .filter(a => a.selected)
+    .map(a => a._id)
+    .filter(id => id && id !== 'string'), // clean
+  option: [], // Will be managed by AddSelectionModal, default to []
+}
 
-  const data: any = {
-    name: raw.name,
-    isActive: raw.isActive,
-    discountValue: raw.discountValue,
-    discountPercent: raw.discountPercent,
-    fixedPrice: raw.fixedPrice,
-    automatic: raw.automatic,
-    quantity: raw.quantity,
-    prefix: raw.prefix,
-    availableAtCC: raw.availableAtCC,
-    affectOffers: raw.affectOffers,
-    minimumOrder: raw.minimumOrder,
-    take: raw.take,
-    pay: raw.pay,
-    imageUrl: raw.imageUrl,
-    promotionType: promotionTypeMap[raw.promotionType],
-    affect: affectMap[raw.affect],
-    usage: usageTypeMap[raw.usageType],
-    orderTypes: (raw.orderType || []).map(t => orderTypeMap[t]),
-    dateRange: {
-      startDate: raw.startDate ? new Date(raw.startDate + 'T00:00:00Z').toISOString() : null,
-      endDate: raw.endDate ? new Date(raw.endDate + 'T00:00:00Z').toISOString() : null,
-    },
-    timeRange: {
-      startTime: raw.startTime,
-      endTime: raw.endTime,
-    },
-    validDays: raw.days.includes('All Days')
-      ? [0, 1, 2, 3, 4, 5, 6]
-      : (raw.days || []).map(d => dayToNum[d]),
-    deliveryZones: (raw.deliveryZones || [])
-      .map(z => {
-        if (typeof z === 'object' && z !== null && 'value' in z) {
-          return z.value
-        }
-        if (typeof z === 'string') {
-          return z
-        }
-        return null // Skip invalid entries
-      })
-      .filter(Boolean),
-    createdBy: servicesStore.currentUser?._id || '65edc27fa8c3e330d7db0a23',
-    outletId: servicesStore.selectedRest,
-  }
 
   if (raw.assetId) data.assetId = raw.assetId
   if (props.isEdit && raw._id?.trim()) {
@@ -780,8 +858,10 @@ function openArticlesModal() {
 
 
 function openOptionsModal() {
-  emits('open-selection-modal', { type: 'options', promotion: formData.value })
+  isOptionsModalOpen.value = true
 }
+
+
 
 </script>
 

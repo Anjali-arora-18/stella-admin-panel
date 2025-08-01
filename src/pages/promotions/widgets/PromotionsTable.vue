@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineVaDataTableColumns, useModal, useToast } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
-import { ref, toRef, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useServiceStore } from '@/stores/services'
 import AddSelectionModal from '../modals/AddSelectionModal.vue'
 import axios from 'axios'
@@ -23,6 +23,7 @@ const { confirm } = useModal()
 const { init } = useToast()
 const router = useRouter()
 const servicesStore = useServiceStore()
+const isAddSelectionModalOpen = ref(false)
 
 /** Map IDs in menuItem to full menu item objects */
 function getMenuItemDetails(ids) {
@@ -32,14 +33,17 @@ function getMenuItemDetails(ids) {
 
 const columns = defineVaDataTableColumns([
   { label: 'Name', key: 'name' },
-  { label: 'Description', key: 'description', width: '150px' },
-  { label: 'Price', key: 'price' },
-  { label: 'Image', key: 'imageUrl' },
+  { label: 'Type', key: 'promotionType' },
+  { label: 'Value', key: 'price' },
   { label: 'Start-End Date', key: 'startDate' },
-  { label: 'Week Days', key: 'weeklyPromotion', width: '150px' },
   { label: 'Time From-To', key: 'timeRange' },
   { label: 'Order Type', key: 'orderType' },
-  { label: 'Selections', key: 'selections' },
+
+  // NEW columns
+  { label: 'Codes', key: 'codes' },
+  { label: 'Available at CC', key: 'availableAtCC' },
+  { label: 'Status', key: 'status' },
+
   { label: 'Actions', key: 'actions' },
 ])
 
@@ -55,20 +59,12 @@ watch(
 async function loadMenuItems(outletId) {
   try {
     const res = await getMenuItemsByOutlet(outletId)
-
-    // Guard in case res is not an array
     menuItems.value = Array.isArray(res) ? res : (res?.data || [])
-
     console.log('[loadMenuItems] Loaded menu items:', menuItems.value.length)
   } catch (err) {
     console.error('[loadMenuItems] Failed to fetch menu items:', err)
-    menuItems.value = [] // fallback to empty array
+    menuItems.value = []
   }
-}
-
-
-function isValidDateString(dateStr) {
-  return !!dateStr && !isNaN(new Date(dateStr).getTime())
 }
 
 function getChangedFields(original, updated) {
@@ -135,19 +131,17 @@ async function deletePromotion(payload) {
     })
 }
 
-const localItems = ref([]) // independent local state
+const localItems = ref([])
 
 watch(
   () => props.items,
   (newItems) => {
-    // Create a shallow copy to avoid mutating props directly
     localItems.value = Array.isArray(newItems)
       ? newItems.map((item) => ({ ...item }))
       : []
   },
-  { immediate: true } // so it runs initially
+  { immediate: true }
 )
-
 
 function formatReadableDate(dateStr) {
   if (!dateStr) return ''
@@ -175,13 +169,6 @@ function formatReadableDate(dateStr) {
       }"
       sticky-header
     >
-      <!-- Weekdays Display -->
-      <template #cell(weeklyPromotion)="{ rowData }">
-        <div class="weekdays-ellipsis">
-          {{ (rowData.weeklyPromotion || []).join(', ') }}
-        </div>
-      </template>
-
       <!-- Date Range -->
       <template #cell(startDate)="{ rowData }">
         <div>
@@ -193,48 +180,39 @@ function formatReadableDate(dateStr) {
 
       <!-- Time Range -->
       <template #cell(timeRange)="{ rowData }">
-        <div>
-          {{ rowData.timeRange }}
-        </div>
+        <div>{{ rowData.timeRange }}</div>
       </template>
 
-      <!-- Selections (Menu Items) -->
-      <template #cell(selections)="{ rowData }">
-        <div class="flex flex-col gap-1">
-          <div v-if="getMenuItemDetails(rowData.menuItem)?.length">
-            <div
-              v-for="item in getMenuItemDetails(rowData.menuItem)"
-              :key="item._id"
-              class="text-blue-600 cursor-pointer hover:underline truncate"
-              @click="
-                emits('openSelectionModal', {
-                  promotion: rowData,
-                  selection: item,
-                  isEdit: true
-                })
-              "
-            >
-              • {{ item.name }}
-            </div>
-          </div>
-
-          <VaButton
-            v-else
-            size="small"
-            color="primary"
-            icon="mso-add"
-            @click="
-              emits('openSelectionModal', {
-                promotion: rowData,
-                selection: null,
-                isEdit: false
-              })
-            "
-          >
-            Add
-          </VaButton>
-        </div>
+      <!-- Value -->
+      <template #cell(price)="{ rowData }">
+        <span v-if="rowData.promotionType === 'FIXED_PRICE'">€{{ rowData.fixedPrice }}</span>
+        <span v-else-if="rowData.promotionType === 'VALUE_DISCOUNT'">€{{ rowData.discountValue }}</span>
+        <span v-else-if="rowData.promotionType === 'PERCENTAGE_DISCOUNT'">{{ rowData.discountPercentage }}%</span>
+        <span v-else-if="rowData.promotionType === 'FREE_DELIVERY'">Free Delivery</span>
+        <span v-else-if="rowData.promotionType === 'TAKE_X_PAY_Y'">
+          Take {{ rowData.takeQuantity }} Pay {{ rowData.payQuantity }}
+        </span>
       </template>
+
+      <!-- Codes -->
+      <template #cell(codes)="{ rowData }">
+        <span class="px-3 py-1 rounded-full text-white bg-purple-600 text-sm">
+          {{ rowData.codes?.length || 0 }}
+        </span>
+      </template>
+
+      <!-- Available at CC -->
+      <template #cell(availableAtCC)="{ rowData }">
+        <input type="checkbox" disabled :checked="rowData.availableAtCC" />
+      </template>
+
+      <!-- Status -->
+      <template #cell(status)="{ rowData }">
+        <span :class="[rowData.isActive ? 'text-green-500' : 'text-red-500']">
+          {{ rowData.isActive ? 'Active' : 'Inactive' }}
+        </span>
+      </template>
+
 
       <!-- Expandable Row -->
       <template #expandableRow="{ rowData }">
@@ -249,7 +227,12 @@ function formatReadableDate(dateStr) {
                   :key="item._id"
                   class="flex items-center gap-2"
                 >
-                  <img v-if="item.imageUrl" :src="item.imageUrl" class="w-6 h-6 rounded" alt="menu item" />
+                  <img
+                    v-if="item.imageUrl"
+                    :src="item.imageUrl"
+                    class="w-6 h-6 rounded"
+                    alt="menu item"
+                  />
                   <span>{{ item.name }}</span>
                 </li>
               </ul>
@@ -318,33 +301,27 @@ function formatReadableDate(dateStr) {
 <style lang="scss" scoped>
 .notification-dropdown {
   cursor: pointer;
-
   .notification-dropdown__icon {
     position: relative;
     display: flex;
     align-items: center;
   }
-
   .va-dropdown__anchor {
     display: inline-block;
   }
 }
-
 .va-data-table {
   ::v-deep(.va-data-table__table-tr) {
     border-bottom: 1px solid var(--va-background-border);
   }
 }
-
 ::v-deep(.va-data-table__table thead th:last-child) {
   text-align: right !important;
 }
-
 .expandable_table {
   background-color: var(--va-background-element);
   color: var(--va-on-background-element);
 }
-
 .text-blue-600 {
   font-size: 0.85rem;
   line-height: 1.2rem;
