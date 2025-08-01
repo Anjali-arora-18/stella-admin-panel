@@ -7,11 +7,17 @@
         v-model="promoCode"
         placeholder="Promotion Code"
         size="small"
-        input-class="text-sm pr-20 cursor-not-allowed text-gray-500"
+        input-class="text-sm pr-28"
         class="relative my-4"
-        readonly
       >
         <template #append>
+          <VaIcon
+            v-if="promoCode"
+            name="close"
+            color="danger"
+            class="absolute right-24 top-1/2 -translate-y-1/2 cursor-pointer"
+            @click="clearPromoCode"
+          />
           <VaButton
             size="small"
             class="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white px-3 py-1 rounded-md text-xs shadow-md"
@@ -396,6 +402,9 @@ async function openPromotionModal() {
 function onCodeSelected(code) {
   promoCode.value = code
   showPromotionModal.value = false
+}
+function clearPromoCode() {
+  promoCode.value = ''
 }
 
 const getMenuOptions = async (selectedItem) => {
