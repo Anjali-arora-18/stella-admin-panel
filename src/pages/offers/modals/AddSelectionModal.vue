@@ -60,7 +60,7 @@
                     :wrapper-size="400"
                   >
                     <tr
-                      class="border-b hover:bg-orange-50"
+                      class="border-b hover:bg-green-50"
                       :class="[{ hidden: !item.display, table: item.display }, item.isVisible ? 'bg-blue-50' : '']"
                     >
                       <td class="p-2 w-full">
