@@ -81,7 +81,7 @@
                               />
                             </div>
                             <span
-                              class="ml-1 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                              class="ml-1 cursor-pointer text-xs font-semibold px-2 py-0.5 rounded-full transition-all duration-200 shadow-sm"
                               :class="[
                                 item.isFree
                                   ? 'bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-blue-900 border border-blue-500'
@@ -92,9 +92,10 @@
                             >
                               Free
                             </span>
+
                             <!-- Default span -->
                             <span
-                              class="ml-1 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                              class="ml-1 cursor-pointer text-xs font-semibold px-2 py-0.5 rounded-full transition-all duration-200 shadow-sm"
                               :class="{
                                 'bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-green-900 border border-green-500':
                                   defaultArticles.includes(item._id),
@@ -103,6 +104,48 @@
                               @click="checkDefaultArticle(item._id)"
                             >
                               Default
+                            </span>
+                            <span
+                              class="ml-1 cursor-pointer px-1 rounded-xl transition-all duration-200 shadow-sm hover:bg-gray-300"
+                              :class="[
+                                item.isVisible
+                                  ? 'text-blue-600 bg-blue-100 border border-blue-300'
+                                  : 'text-gray-600 bg-gray-200',
+                                { 'opacity-50 pointer-events-none': item.customPrice > 0 },
+                              ]"
+                              :title="item.isVisible ? 'Hide' : 'Show'"
+                              @click="item.isVisible = !item.isVisible"
+                            >
+                              <svg
+                                v-if="item.isVisible"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 16 16"
+                                fill="currentColor"
+                                class="w-4"
+                              >
+                                <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
+                                <path
+                                  fill-rule="evenodd"
+                                  d="M1.38 8.28a.87.87 0 0 1 0-.566 7.003 7.003 0 0 1 13.238.006.87.87 0 0 1 0 .566A7.003 7.003 0 0 1 1.379 8.28ZM11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                                  clip-rule="evenodd"
+                                />
+                              </svg>
+                              <svg
+                                v-else
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 16 16"
+                                fill="currentColor"
+                                class="w-4"
+                              >
+                                <path
+                                  fill-rule="evenodd"
+                                  d="M3.28 2.22a.75.75 0 0 0-1.06 1.06l10.5 10.5a.75.75 0 1 0 1.06-1.06l-1.322-1.323a7.012 7.012 0 0 0 2.16-3.11.87.87 0 0 0 0-.567A7.003 7.003 0 0 0 4.82 3.76l-1.54-1.54Zm3.196 3.195 1.135 1.136A1.502 1.502 0 0 1 9.45 8.389l1.136 1.135a3 3 0 0 0-4.109-4.109Z"
+                                  clip-rule="evenodd"
+                                />
+                                <path
+                                  d="m7.812 10.994 1.816 1.816A7.003 7.003 0 0 1 1.38 8.28a.87.87 0 0 1 0-.566 6.985 6.985 0 0 1 1.113-2.039l2.513 2.513a3 3 0 0 0 2.806 2.806Z"
+                                />
+                              </svg>
                             </span>
                           </div>
                         </div>
@@ -139,7 +182,7 @@
                     v-slot="{ item, index }"
                     :items="
                       items
-                        .filter((a) => a.selected)
+                        .filter((a) => a.selected && a.isVisible)
                         .flatMap((a) => a.articlesOptionsGroup)
                         .filter((a) => a.display)
                     "
@@ -185,7 +228,7 @@
               <table
                 v-if="
                   items
-                    .filter((a) => a.selected)
+                    .filter((a) => a.selected && a.isVisible)
                     .flatMap((item) => item.articlesOptionsGroup)
                     .filter((a) => a.selected)
                     .flatMap((a) => a.articlesOptions).length
@@ -197,7 +240,7 @@
                     v-slot="{ item, index }"
                     :items="
                       items
-                        .filter((a) => a.selected)
+                        .filter((a) => a.selected && a.isVisible)
                         .flatMap((item) => item.articlesOptionsGroup)
                         .filter((a) => a.selected)
                         .flatMap((a) => a.articlesOptions)
