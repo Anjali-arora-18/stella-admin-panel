@@ -223,7 +223,7 @@ function formatReadableDate(dateStr) {
       <!-- Value -->
       <template #cell(promotionType)="{ rowData }">
         <span
-          class="inline-block text-xs font-medium px-2 py-1 rounded-full"
+          class="inline-block text-xs font-medium px-2 py-1 rounded-full font-semibold"
           :class="getPromotionTypeClass(rowData.promotionType)"
         >
           {{ getPrettyPromotionType(rowData.promotionType) }}
