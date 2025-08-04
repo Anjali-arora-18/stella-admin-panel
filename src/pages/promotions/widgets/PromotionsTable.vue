@@ -16,8 +16,8 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
 })
 
-let cachedMenuItems = {}
-let originalRowData = null
+const cachedMenuItems = {}
+const originalRowData = null
 const menuItems = ref([])
 const { confirm } = useModal()
 const { init } = useToast()
@@ -28,7 +28,7 @@ const isAddSelectionModalOpen = ref(false)
 /** Map IDs in menuItem to full menu item objects */
 function getMenuItemDetails(ids) {
   if (!ids || !ids.length) return []
-  return ids.map(id => menuItems.value.find(item => item._id === id)).filter(Boolean)
+  return ids.map((id) => menuItems.value.find((item) => item._id === id)).filter(Boolean)
 }
 
 const columns = defineVaDataTableColumns([
@@ -37,13 +37,9 @@ const columns = defineVaDataTableColumns([
   { label: 'Value', key: 'price' },
   { label: 'Start-End Date', key: 'startDate' },
   { label: 'Time From-To', key: 'timeRange' },
-  { label: 'Order Type', key: 'orderType' },
-
-  // NEW columns
   { label: 'Codes', key: 'codes' },
   { label: 'Available at CC', key: 'availableAtCC' },
   { label: 'Status', key: 'status' },
-
   { label: 'Actions', key: 'actions' },
 ])
 
@@ -53,13 +49,13 @@ watch(
     if (!newOutlet) return
     await loadMenuItems(newOutlet)
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 async function loadMenuItems(outletId) {
   try {
     const res = await getMenuItemsByOutlet(outletId)
-    menuItems.value = Array.isArray(res) ? res : (res?.data || [])
+    menuItems.value = Array.isArray(res) ? res : res?.data || []
     console.log('[loadMenuItems] Loaded menu items:', menuItems.value.length)
   } catch (err) {
     console.error('[loadMenuItems] Failed to fetch menu items:', err)
@@ -82,6 +78,49 @@ function getChangedFields(original, updated) {
     }
   }
   return changed
+}
+
+function getPromotionStatus(startDateStr: string, endDateStr: string) {
+  const now = new Date()
+  const start = new Date(startDateStr)
+  const end = new Date(endDateStr)
+
+  if (now < start) return { text: 'Upcoming', color: '#facc15' }
+  if (now > end) return { text: 'Expired', color: '#dc2626' }
+  return { text: 'Active', color: '#16a34a' }
+}
+
+function getPrettyPromotionType(type: string) {
+  switch (type) {
+    case 'FIXED_PRICE':
+      return 'Fixed Price'
+    case 'VALUE_DISCOUNT':
+      return 'Value Discount'
+    case 'PERCENTAGE_DISCOUNT':
+      return 'Percentage Discount'
+    case 'FREE_DELIVERY':
+      return 'Free Delivery'
+    case 'TAKE_X_PAY_Y':
+      return 'Take X Pay Y'
+    default:
+      return type
+  }
+}
+function getPromotionTypeClass(type: string) {
+  switch (type) {
+    case 'VALUE_DISCOUNT':
+      return 'type-value'
+    case 'PERCENTAGE_DISCOUNT':
+      return 'type-percentage'
+    case 'FIXED_PRICE':
+      return 'type-fixed'
+    case 'FREE_DELIVERY':
+      return 'type-delivery'
+    case 'TAKE_X_PAY_Y':
+      return 'type-takex'
+    default:
+      return ''
+  }
 }
 
 async function updateData(rowData) {
@@ -136,11 +175,9 @@ const localItems = ref([])
 watch(
   () => props.items,
   (newItems) => {
-    localItems.value = Array.isArray(newItems)
-      ? newItems.map((item) => ({ ...item }))
-      : []
+    localItems.value = Array.isArray(newItems) ? newItems.map((item) => ({ ...item })) : []
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 function formatReadableDate(dateStr) {
@@ -184,13 +221,26 @@ function formatReadableDate(dateStr) {
       </template>
 
       <!-- Value -->
+      <template #cell(promotionType)="{ rowData }">
+        <span
+          class="inline-block text-xs font-medium px-2 py-1 rounded-full"
+          :class="getPromotionTypeClass(rowData.promotionType)"
+        >
+          {{ getPrettyPromotionType(rowData.promotionType) }}
+        </span>
+      </template>
+
       <template #cell(price)="{ rowData }">
-        <span v-if="rowData.promotionType === 'FIXED_PRICE'">€{{ rowData.fixedPrice }}</span>
-        <span v-else-if="rowData.promotionType === 'VALUE_DISCOUNT'">€{{ rowData.discountValue }}</span>
-        <span v-else-if="rowData.promotionType === 'PERCENTAGE_DISCOUNT'">{{ rowData.discountPercentage }}%</span>
-        <span v-else-if="rowData.promotionType === 'FREE_DELIVERY'">Free Delivery</span>
-        <span v-else-if="rowData.promotionType === 'TAKE_X_PAY_Y'">
-          Take {{ rowData.takeQuantity }} Pay {{ rowData.payQuantity }}
+        <span>
+          <template v-if="rowData.promotionType === 'FIXED_PRICE'">€{{ rowData.fixedPrice }}</template>
+          <template v-else-if="rowData.promotionType === 'VALUE_DISCOUNT'">€{{ rowData.discountValue }}</template>
+          <template v-else-if="rowData.promotionType === 'PERCENTAGE_DISCOUNT'">
+            {{ rowData.discountPercentage }}%
+          </template>
+          <template v-else-if="rowData.promotionType === 'FREE_DELIVERY'">Free Delivery</template>
+          <template v-else-if="rowData.promotionType === 'TAKE_X_PAY_Y'">
+            Take {{ rowData.takeQuantity }} Pay {{ rowData.payQuantity }}
+          </template>
         </span>
       </template>
 
@@ -208,11 +258,16 @@ function formatReadableDate(dateStr) {
 
       <!-- Status -->
       <template #cell(status)="{ rowData }">
-        <span :class="[rowData.isActive ? 'text-green-500' : 'text-red-500']">
-          {{ rowData.isActive ? 'Active' : 'Inactive' }}
+        <span v-if="rowData.startDate && rowData.endDate" class="flex items-center gap-2 font-semibold">
+          <span
+            class="w-2 h-2 rounded-full"
+            :style="{ backgroundColor: getPromotionStatus(rowData.startDate, rowData.endDate).color }"
+          ></span>
+          <span :style="{ color: getPromotionStatus(rowData.startDate, rowData.endDate).color }">
+            {{ getPromotionStatus(rowData.startDate, rowData.endDate).text }}
+          </span>
         </span>
       </template>
-
 
       <!-- Expandable Row -->
       <template #expandableRow="{ rowData }">
@@ -227,12 +282,7 @@ function formatReadableDate(dateStr) {
                   :key="item._id"
                   class="flex items-center gap-2"
                 >
-                  <img
-                    v-if="item.imageUrl"
-                    :src="item.imageUrl"
-                    class="w-6 h-6 rounded"
-                    alt="menu item"
-                  />
+                  <img v-if="item.imageUrl" :src="item.imageUrl" class="w-6 h-6 rounded" alt="menu item" />
                   <span>{{ item.name }}</span>
                 </li>
               </ul>
@@ -249,7 +299,7 @@ function formatReadableDate(dateStr) {
                 emits('openSelectionModal', {
                   promotion: rowData,
                   selection: null,
-                  isEdit: false
+                  isEdit: false,
                 })
               "
             >
@@ -283,16 +333,20 @@ function formatReadableDate(dateStr) {
       :is-edit-selection="isEditSelection"
       :promotion-selection="promotionSelection"
       @cancel="
-        isAddSelectionModalOpen = false;
-        promotionSelection = '';
-        isEditSelection = false;
-        emits('getPromotions');
+        () => {
+          isAddSelectionModalOpen = false
+          promotionSelection = ''
+          isEditSelection = false
+          emits('getPromotions')
+        }
       "
       @submitted="
-        isAddSelectionModalOpen = false;
-        promotionSelection = '';
-        isEditSelection = false;
-        emits('getPromotions');
+        () => {
+          isAddSelectionModalOpen = false
+          promotionSelection = ''
+          isEditSelection = false
+          emits('getPromotions')
+        }
       "
     />
   </div>
@@ -326,5 +380,25 @@ function formatReadableDate(dateStr) {
   font-size: 0.85rem;
   line-height: 1.2rem;
   display: block;
+}
+.type-value {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.type-percentage {
+  background: #dcfce7;
+  color: #16a34a;
+}
+.type-fixed {
+  background: #fef3c7;
+  color: #d97706;
+}
+.type-delivery {
+  background: #f3e8ff;
+  color: #9333ea;
+}
+.type-takex {
+  background: #fce7f3;
+  color: #ec4899;
 }
 </style>
