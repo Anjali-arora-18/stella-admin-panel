@@ -21,7 +21,6 @@ const isLoadingZones = ref(false)
 const promotionData = ref(null)
 const isEditSelection = ref(false)
 
-const pendingSelections = ref<string[]>([]) // passed to PromotionsModal (legacy)
 const servicesStore = useServiceStore()
 const { init } = useToast()
 const selectionModalMode = ref('menuItems')
@@ -32,7 +31,7 @@ function handleOpenSelectionModal({ promotion, selection = null, isEdit = false 
   promotionData.value = promotion
   promotionSelection.value = selection
   isEditSelection.value = isEdit
-    if (type === 'options') {
+  if (type === 'options') {
     // Set modal mode for options
     selectionModalMode.value = 'options'
   } else {
@@ -43,7 +42,6 @@ function handleOpenSelectionModal({ promotion, selection = null, isEdit = false 
   isAddSelectionModalOpen.value = true
   console.log('[handleOpenSelectionModal] isAddSelectionModalOpen =', isAddSelectionModalOpen.value)
 }
-
 
 function handleSelectionCancel() {
   console.log('[handleSelectionCancel] Closing AddSelectionModal')
@@ -91,8 +89,8 @@ const fetchDeliveryZones = async () => {
     const url = import.meta.env.VITE_API_BASE_URL
     const res = await axios.get(`${url}/deliveryZones/${servicesStore.selectedRest}`)
     deliveryZones.value = (res.data.data || [])
-      .filter(zone => typeof zone.name === 'string' && typeof zone._id === 'string')
-      .map(zone => ({
+      .filter((zone) => typeof zone.name === 'string' && typeof zone._id === 'string')
+      .map((zone) => ({
         label: zone.name.trim(),
         value: zone._id.trim(),
       }))
@@ -161,12 +159,14 @@ const getPromotions = async () => {
   }
 }
 
-
 /* ---------- Watchers ---------- */
-watch(() => servicesStore.selectedRest, () => {
-  console.log('[watch] Outlet changed, fetching promotions')
-  getPromotions()
-})
+watch(
+  () => servicesStore.selectedRest,
+  () => {
+    console.log('[watch] Outlet changed, fetching promotions')
+    getPromotions()
+  },
+)
 watch(isAddSelectionModalOpen, (val) => {
   console.log('[WATCH] isAddSelectionModalOpen changed to:', val)
 })
@@ -183,9 +183,7 @@ if (servicesStore.selectedRest) {
     <div class="flex items-center justify-between">
       <h1 class="page-title font-bold">Promotions</h1>
       <div class="flex gap-2">
-        <VaButton size="small" color="primary" @click="handleAddPromotionClick">
-          Add Promotion
-        </VaButton>
+        <VaButton size="small" color="primary" @click="handleAddPromotionClick"> Add Promotion </VaButton>
       </div>
     </div>
 
@@ -202,7 +200,7 @@ if (servicesStore.selectedRest) {
         <!-- Add Selection Modal -->
         <AddSelectionModal
           v-if="isAddSelectionModalOpen"
-          :isVisible="isAddSelectionModalOpen"
+          :is-visible="isAddSelectionModalOpen"
           :promotion-id="promotionData._id"
           :outlet-id="servicesStore.selectedRest"
           :pending-selections="promotionData.menuItem || []"
@@ -212,23 +210,19 @@ if (servicesStore.selectedRest) {
           @cancel="closeSelectionModal"
           @promotionUpdated="closeSelectionModal"
         />
-
-
-
       </VaCardContent>
     </VaCard>
 
     <!-- Promotion Modal -->
     <PromotionsModal
-      :isVisible="isPromotionModalOpen"
-      :deliveryZones="deliveryZones"
-      :isEdit="!!(selectedPromotion && selectedPromotion._id)"
-      :isLoadingZones="isLoadingZones"
+      :is-visible="isPromotionModalOpen"
+      :delivery-zones="deliveryZones"
+      :is-edit="!!(selectedPromotion && selectedPromotion._id)"
+      :is-loading-zones="isLoadingZones"
       :promotion="selectedPromotion"
-      :pending-selections="pendingSelections"
       @update:isVisible="isPromotionModalOpen = $event"
       @submitted="handlePromotionModalCancel"
-      @open-selection-modal="handleOpenSelectionModal"
+      @openSelectionModal="handleOpenSelectionModal"
     />
   </div>
 </template>

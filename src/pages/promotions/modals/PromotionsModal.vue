@@ -2,7 +2,7 @@
   <div>
     <VaModal
       :model-value="isVisible"
-      class="promotion-modal"
+      class="promotion-modal big-xl-modal !p-0"
       :mobile-fullscreen="false"
       size="large"
       hide-default-actions
@@ -108,7 +108,9 @@
           <!-- Fixed Price -->
           <section v-if="formData.promotionType === 'Fixed Price'">
             <h2 class="text-md font-semibold mb-2">Fixed Price Configuration</h2>
-            <div class="grid md:grid-cols-2 gap-4">
+
+            <div class="grid md:grid-cols-2 gap-4 items-end">
+              <!-- Price Input -->
               <VaInput
                 v-model="formData.fixedPrice"
                 label="Price"
@@ -119,7 +121,9 @@
                 :rules="[validators.required]"
                 placeholder="e.g. 2.50"
               />
-              <div class="flex gap-2 mt-2">
+
+              <!-- Buttons aligned properly -->
+              <div class="flex gap-2">
                 <VaButton @click="openArticlesModal">Articles</VaButton>
                 <VaButton @click="openOptionsModal">Options</VaButton>
               </div>
@@ -162,7 +166,39 @@
           <!-- Code Generation -->
           <section>
             <h2 class="text-md font-semibold mb-2">Code Generation</h2>
-            <div class="grid md:grid-cols-3 gap-4">
+            <VaOptionList
+              v-model="formData.codeType"
+              :options="[
+                { label: 'Single', value: 'single' },
+                { label: 'Multi', value: 'multi' },
+                { label: 'Auto', value: 'auto' },
+              ]"
+              type="radio"
+              text-by="label"
+              value-by="value"
+            />
+            <div v-if="formData.codeType === 'single'" class="grid md:grid-cols-2 gap-4 mt-4">
+              <VaInput
+                v-model="formData.manualCode"
+                label="Code"
+                placeholder="Enter promotion code"
+                required-mark
+                :rules="[validators.required]"
+              />
+            </div>
+            <div v-if="formData.codeType === 'multi'" class="grid md:grid-cols-2 gap-4 mt-4">
+              <VaInput
+                v-model="formData.quantity"
+                label="Quantity"
+                type="number"
+                min="1"
+                max="50000"
+                required-mark
+                placeholder="Number of codes to generate"
+              />
+              <VaInput v-model="formData.prefix" label="Code Prefix (Optional)" placeholder="e.g. LUNCH" />
+            </div>
+            <!-- <div class="grid md:grid-cols-3 gap-4">
               <VaCheckbox v-model="formData.automatic" label="Automatic Promotion" />
               <VaInput
                 v-model="formData.quantity"
@@ -175,7 +211,7 @@
                 placeholder="Number of codes to generate"
               />
               <VaInput v-model="formData.prefix" label="Code Prefix (Optional)" placeholder="e.g. LUNCH" />
-            </div>
+            </div> -->
           </section>
 
           <!-- Validity & Availability -->
@@ -187,14 +223,14 @@
               <VaInput v-model="formData.startTime" label="Time From" type="time" required-mark />
               <VaInput v-model="formData.endTime" label="Time To" type="time" required-mark />
             </div>
-            <div class="grid md:grid-cols-2 gap-3">
+            <div class="grid md:grid-cols-2 gap-2">
               <VaSelect
                 v-model="formData.days"
-                :options="daysOfWeek"
                 label="Available Days"
-                required-mark
-                multiple
                 placeholder="Select days"
+                multiple
+                required-mark
+                :options="daysOfWeek"
               />
             </div>
           </section>
@@ -220,8 +256,10 @@
                 label="Delivery Zones"
                 required-mark
                 multiple
+                max-height="120px"
                 :loading="!safeDeliveryZones.length"
                 placeholder="Select Delivery Zones"
+                :max-visible-options="5"
               />
               <VaInput v-model="formData.minimumOrder" label="Minimum Order (€)" type="number" min="0" step="0.01" />
             </div>
@@ -250,10 +288,11 @@
       :is-visible="isMenuItemsModalOpen"
       :promotion-id="formData._id"
       :outlet-id="servicesStore.selectedRest"
-      :pending-selections="pendingSelections"
+      :pending-selections="promotionsArticles"
       :type="'menuItems'"
       @cancel="isMenuItemsModalOpen = false"
       @promotionUpdated="emits('getPromotions')"
+      @savePendingSelections="handleMenuItemsUpdated"
     />
 
     <!-- OPTIONS MODAL -->
@@ -262,16 +301,17 @@
       :is-visible="isOptionsModalOpen"
       :promotion-id="formData._id"
       :outlet-id="servicesStore.selectedRest"
-      :pending-selections="pendingSelections"
+      :pending-selections="promotionOptions"
       :type="'options'"
       @cancel="isOptionsModalOpen = false"
+      @savePendingSelections="handleMenuItemsOptionsUpdated"
       @promotionUpdated="emits('getPromotions')"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, toRef, onMounted } from 'vue'
+import { ref, watch, computed, toRef, onMounted, nextTick } from 'vue'
 import axios from 'axios'
 import { useForm, useToast } from 'vuestic-ui'
 import { validators } from '@/services/utils'
@@ -313,14 +353,9 @@ const articlesSearchQuery = ref('')
 const showArticlesSection = ref(false)
 const isOptionsModalOpen = ref(false)
 
-// Filter for search
-const filteredArticles = computed(() =>
-  articles.value.filter(
-    (item) =>
-      (item.name?.toLowerCase() || '').includes(articlesSearchQuery.value.toLowerCase()) ||
-      (item.code?.toLowerCase() || '').includes(articlesSearchQuery.value.toLowerCase()),
-  ),
-)
+const promotionOptions = ref([])
+
+const promotionsArticles = ref([])
 
 // Toggle Articles Section
 const fetchArticles = async () => {
@@ -405,7 +440,9 @@ const formData = ref({
   discountPercent: null,
   fixedPrice: null,
   affect: '',
-  automatic: false,
+  // automatic: false,
+  codeType: 'multi', // 'single' | 'multi' | 'auto'
+  manualCode: '', // For Single Code input
   quantity: 1,
   prefix: '',
   startDate: '',
@@ -434,7 +471,9 @@ const resetForm = () => {
     discountPercent: null,
     fixedPrice: null,
     affect: '',
-    automatic: false,
+    // automatic: false,
+    codeType: 'multi', // 'single' | 'multi' | 'auto'
+    manualCode: '', // For Single Code input
     quantity: 1,
     prefix: '',
     startDate: '',
@@ -467,8 +506,42 @@ const promotionTypes = ['Value Discount', 'Percentage Discount', 'Fixed Price', 
 
 const usageTypes = ['Single Use', 'Unlimited']
 const affectOptions = ['Entire Order', 'Selected Items']
-const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'All Days']
+// const daysOfWeek = ['All Days', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 const orderTypes = ['Delivery', 'Takeaway', 'Dine-in']
+
+const allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+const daysOfWeek = ['All Days', ...allDays]
+
+let isAutoSelecting = false
+
+watch(
+  () => formData.value.days,
+  (newVal) => {
+    if (isAutoSelecting) return
+
+    if (newVal.includes('All Days')) {
+      isAutoSelecting = true
+      formData.value.days = [...allDays]
+      nextTick(() => (isAutoSelecting = false))
+    } else {
+      const isPartial = allDays.some((day) => !newVal.includes(day))
+
+      if (!isPartial && newVal.length === allDays.length + 1) {
+        formData.value.days = newVal.filter((d) => d !== 'All Days')
+      }
+    }
+  },
+  { deep: true },
+)
+
+watch(
+  () => formData.value.promotionType,
+  (newVal) => {
+    if (newVal === 'Free Delivery') {
+      formData.value.orderType = ['Delivery']
+    }
+  },
+)
 
 function populateFormData(promotion) {
   // Parse timeRange "HH:MM - HH:MM"
@@ -489,7 +562,9 @@ function populateFormData(promotion) {
     discountPercent: promotion.discountPercentage ?? promotion.discountPercent ?? null, // FIX HERE
     fixedPrice: promotion.fixedPrice ?? null,
     affect: reverseAffectMap[promotion.affect] || '',
-    automatic: !!promotion.automatic,
+    // automatic: !!promotion.automatic,
+    codeType: promotion.automatic ? 'auto' : promotion.quantity > 1 ? 'multi' : 'single',
+    manualCode: promotion.manualCode || '', // if supported
     quantity: promotion.quantity ?? 1,
     prefix: promotion.prefix || '',
     startDate: toInputDate(promotion.dateRange?.startDate),
@@ -540,7 +615,6 @@ watch(
   },
 )
 
-// Additional watcher for promotion changes
 watch(
   () => props.promotion,
   (newVal) => {
@@ -559,27 +633,48 @@ const openMenuItemsModal = () => {
   isMenuItemsModalOpen.value = true
 }
 
-const handleMenuItemsUpdated = () => {
-  isMenuItemsModalOpen.value = false
-  // Optional: Refresh or handle updated menu items if needed
+const handleMenuItemsUpdated = (value) => {
+  promotionsArticles.value = value
+}
+
+const handleMenuItemsOptionsUpdated = (value) => {
+  promotionOptions.value = value
 }
 
 const safeDeliveryZones = computed(() => {
   const raw = props.deliveryZones || []
-  console.log('[MODAL] Raw deliveryZones:', JSON.parse(JSON.stringify(raw)))
-
-  const mapped = raw.map((z: any, i: number) => {
-    const entry = {
-      label: z?.label ?? '',
-      value: z?.value ?? '',
-    }
-    console.log(`[MODAL] Zone ${i}:`, entry)
-    return entry
-  })
-
-  console.log('[MODAL] Final mapped deliveryZones:', mapped)
-  return mapped
+  const mapped = raw.map((z: any) => ({
+    label: z?.label ?? '',
+    value: z?.value ?? '',
+  }))
+  return [{ label: 'All Zones', value: 'ALL' }, ...mapped]
 })
+
+let isAutoSelectingZones = false
+
+watch(
+  () => formData.value.deliveryZones,
+  (newVal) => {
+    if (isAutoSelectingZones) return
+
+    const allZones = safeDeliveryZones.value.filter((z) => z.value !== 'ALL')
+    const allZoneValues = allZones.map((z) => z.value)
+
+    const isAllSelected = newVal.some((zone) => zone === 'ALL')
+
+    if (isAllSelected) {
+      isAutoSelectingZones = true
+      formData.value.deliveryZones = allZoneValues
+      nextTick(() => {
+        isAutoSelectingZones = false
+      })
+    } else if (newVal.length === allZoneValues.length) {
+      // Prevent having ALL + all values selected at once
+      formData.value.deliveryZones = newVal.filter((val) => val !== 'ALL')
+    }
+  },
+  { deep: true },
+)
 
 const isUpdating = computed(() => !!(props.promotion && Object.keys(props.promotion).length))
 const getDeliveryZones = async () => {
@@ -633,7 +728,7 @@ const loadPromotionData = async (id: string) => {
       discountPercent: promotion.discountPercent ?? null,
       fixedPrice: promotion.fixedPrice ?? null,
       affect: reverseAffectMap[promotion.affect] || '',
-      automatic: !!promotion.automatic,
+      // automatic: !!promotion.automatic,
       quantity: promotion.quantity ?? 1,
       prefix: promotion.prefix || '',
       startDate: toInputDate(promotion.dateRange?.startDate),
@@ -685,7 +780,8 @@ const submit = async () => {
     discountValue: raw.discountValue,
     discountPercent: raw.discountPercent,
     fixedPrice: raw.fixedPrice,
-    automatic: raw.automatic,
+    // automatic: raw.automatic,
+    automatic: raw.codeType === 'auto',
     quantity: raw.quantity,
     prefix: raw.prefix,
     availableAtCC: raw.availableAtCC,
@@ -718,6 +814,13 @@ const submit = async () => {
     option: [], // Will be managed by AddSelectionModal, default to []
   }
 
+  if (raw.codeType === 'single') {
+    data.manualCode = raw.manualCode
+  } else if (raw.codeType === 'multi') {
+    data.quantity = raw.quantity
+    data.prefix = raw.prefix
+  }
+
   if (raw.assetId) data.assetId = raw.assetId
   if (props.isEdit && raw._id?.trim()) {
     data._id = raw._id
@@ -738,31 +841,37 @@ const submit = async () => {
 
   try {
     if (data._id) {
+      delete data.menuItem
+      delete data.option
       console.log('[SUBMIT] Calling updatePromotion...')
       await updatePromotion(data._id, data)
       init({ message: 'Promotion updated successfully!', color: 'success' })
       console.log('[SUBMIT] Update successful')
+      emits('submitted')
     } else {
+      data.option = promotionsArticles.value
+      data.menuItem = promotionOptions.value
       console.log('[SUBMIT] Calling createPromotion...')
       const created = await createPromotion(data) // returns promotion object directly
       init({ message: 'Promotion created successfully!', color: 'success' })
       console.log('[SUBMIT] Creation successful, new ID:', created._id)
-
+      emits('submitted')
       // Apply pending selections if any
-      if (props.pendingSelections.value.length) {
-        console.log('[SUBMIT] Pending selections found:', props.pendingSelections.value)
-        try {
-          await updatePromotion(created._id, {
-            menuItem: props.pendingSelections.value,
-          })
-          init({ message: 'Pending selections applied!', color: 'success' })
-          props.pendingSelections.value = []
-          console.log('[SUBMIT] Pending selections applied successfully')
-        } catch (err) {
-          console.error('[SUBMIT] Failed to apply pending selections:', err)
-          init({ message: err.message || 'Failed to apply pending selections', color: 'danger' })
-        }
-      }
+      // if (props.pendingSelections.value.length) {
+      //   console.log('[SUBMIT] Pending selections found:', props.pendingSelections.value)
+      //   try {
+      //     await updatePromotion(created._id, {
+      //       menuItem: props.pendingSelections.value,
+      //     })
+      //     init({ message: 'Pending selections applied!', color: 'success' })
+      //     props.pendingSelections.value = []
+      //     emits('cancel')
+      //     console.log('[SUBMIT] Pending selections applied successfully')
+      //   } catch (err) {
+      //     console.error('[SUBMIT] Failed to apply pending selections:', err)
+      //     init({ message: err.message || 'Failed to apply pending selections', color: 'danger' })
+      //   }
+      // }
     }
   } catch (err) {
     console.error('[SUBMIT] Error during API call:', err)
@@ -790,6 +899,7 @@ function openOptionsModal() {
   color: white;
   border-radius: 8px 8px 0 0;
 }
+
 .promotion-modal {
   border-radius: 16px;
 }

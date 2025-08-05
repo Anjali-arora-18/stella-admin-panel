@@ -118,7 +118,7 @@ export const getArticlesByOutlet = async (outletId) => {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/articles-options`, {
       params: {
         outletId,
-        limit: 50,           // or pass dynamic limit if you paginate
+        limit: 1000000,           // or pass dynamic limit if you paginate
         page: 1,
         sortKey: 'name',     // valid sort field
         sortValue: 'asc'
