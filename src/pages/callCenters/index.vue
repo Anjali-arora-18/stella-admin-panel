@@ -67,11 +67,13 @@
               @setDeliveryZone="(val) => (isDeliveryZoneSelected = val)"
               @setOrderType="(val) => (orderType = val)"
               @setOpen="(val) => (accordian[0] = val)"
+              @setDateSelected="(val) => (dateSelected = val)"
             />
           </VaCardContent>
         </VaCard>
         <OrderDetails
           :delivery-fee="deliveryFee"
+          :date-selected="dateSelected"
           :is-delivery-zone-selected="isDeliveryZoneSelected"
           :customer-details-id="customerDetailsId"
           :order-type="orderType"
@@ -108,6 +110,7 @@ const props = defineProps({
 const customerDetailsId = ref('')
 const isCustomerTabActivated = ref(false)
 const orderType = ref('')
+const dateSelected = ref('')
 const isDeliveryZoneSelected = ref('')
 const categories = computed(() => menuStore.categories)
 const restDetails = computed(() => menuStore.restDetails)
@@ -133,7 +136,7 @@ const offers = ref([])
 const getOffers = async () => {
   const url = import.meta.env.VITE_API_BASE_URL
 
-  const response = await axios.get(url + '/offers/?outletId=' + serviceStore.selectedRest)
+  const response = await axios.get(url + '/offers?outletId=' + serviceStore.selectedRest)
   offers.value = response.data.data
 }
 

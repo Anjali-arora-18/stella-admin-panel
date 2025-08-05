@@ -43,6 +43,13 @@
           Offers
         </RouterLink>
         <RouterLink
+          to="/promotions"
+          :class="$route.name === 'promotions' ? 'text-primary font-bold' : 'text-secondary'"
+        >
+          <VaIcon name="stars" class="mr-2"></VaIcon>
+          Promotions
+        </RouterLink>
+        <RouterLink
           to="/deletedArticles"
           :class="$route.name === 'deletedArticles' ? 'text-primary font-bold' : 'text-secondary'"
         >

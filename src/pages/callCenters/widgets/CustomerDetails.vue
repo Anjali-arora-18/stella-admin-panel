@@ -83,25 +83,18 @@
           </div>
         </div>
 
-        <div v-if="selectedTab && !selectedUser" class="flex items-center justify-between text-sm gap-2">
-          <!-- <div v-if="!showDateTimeInput" class="datetime-display" @click="showDateTimeInput = true">
-            {{ formattedDateTime }}
-          </div> -->
-          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-[320px]" />
-
+        <div v-if="selectedTab && !selectedUser" class="flex items-center w-full gap-2">
+          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-[75%]" />
           <button
-            class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
+            class="bg-green-500 text-white px-2 py-2 rounded text-xs hover:bg-green-600 w-[25%] whitespace-nowrap"
             @click="openCustomerModal"
           >
             + Add New
           </button>
         </div>
-        <div v-if="selectedTab && selectedUser" class="flex items-center justify-between text-sm gap-2">
-          <!-- <div v-if="!showDateTimeInput" class="datetime-display" @click="showDateTimeInput = true">
-            {{ formattedDateTime }}
-          </div> -->
-          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-[320px]" />
-          <VaButton class="rounded" color="#B3D943" size="small" icon="mso-edit" @click="openCustomerModal" />
+        <div v-if="selectedTab && selectedUser" class="flex items-center w-full gap-2">
+          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-[95%]" />
+          <VaButton class="rounded w-[5%]" color="#B3D943" size="small" icon="mso-edit" @click="openCustomerModal" />
         </div>
 
         <!-- Address -->
@@ -188,7 +181,7 @@
 </template>
 
 <script setup>
-import { ref, watch, defineEmits, computed, defineExpose } from 'vue'
+import { ref, watch, defineEmits, computed, defineExpose, onMounted, onUnmounted } from 'vue'
 import { useToast } from 'vuestic-ui'
 import axios from 'axios'
 import { useServiceStore } from '@/stores/services.ts'
@@ -225,23 +218,25 @@ const selectedZoneDetails = ref(null)
 onClickOutside(target, (event) => (userResults.value = []), { ignore: [deliveryTarget] })
 onClickOutside(deliveryTarget, (event) => (showDeliveryDropdown.value = false), { ignore: [target] })
 
+const localDateTime = ref(formatDateTimeLocal(new Date()))
 const selectedDate = ref(new Date())
 
-const inputValue = ref(formatDateTimeLocal(selectedDate.value))
-
-// Watch input changes and update Date only when valid
-watch(inputValue, (newVal) => {
-  if (newVal && newVal.length >= 16) {
-    const [datePart, timePart] = newVal.split('T')
-    if (datePart && timePart) {
-      const [year, month, day] = datePart.split('-').map(Number)
-      const [hour, minute] = timePart.split(':').map(Number)
-      selectedDate.value = new Date(year, month - 1, day, hour, minute)
+watch(
+  localDateTime,
+  (newVal) => {
+    if (newVal && newVal.length >= 16) {
+      const [datePart, timePart] = newVal.split('T')
+      if (datePart && timePart) {
+        const [year, month, day] = datePart.split('-').map(Number)
+        const [hour, minute] = timePart.split(':').map(Number)
+        selectedDate.value = new Date(year, month - 1, day, hour, minute)
+        emits('setDateSelected', selectedDate.value)
+      }
     }
-  }
-})
+  },
+  { immediate: true },
+)
 
-// Helper to convert Date → 'YYYY-MM-DDTHH:MM'
 function formatDateTimeLocal(date) {
   const pad = (n) => String(n).padStart(2, '0')
   const yyyy = date.getFullYear()
@@ -251,31 +246,31 @@ function formatDateTimeLocal(date) {
   const min = pad(date.getMinutes())
   return `${yyyy}-${mm}-${dd}T${hh}:${min}`
 }
+onMounted(() => {
+  updateTimeOnly()
+  timeInterval = setInterval(updateTimeOnly, 30000)
+})
 
-// const datetimeLocalValue = computed({
-//   get: () => {
-//     if (!selectedDate.value) return ''
-//     const date = new Date(selectedDate.value)
-//     const pad = (n) => String(n).padStart(2, '0')
-//     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(
-//       date.getMinutes(),
-//     )}`
-//   },
-//   set: (value) => {
-//     if (!value || value.length < 16) return
-//     const parsedDate = new Date(value)
-//     if (!isNaN(parsedDate)) selectedDate.value = parsedDate
-//   },
-// })
+onUnmounted(() => {
+  clearInterval(timeInterval)
+})
 
-// const formattedDateTime = computed(() => {
-//   const date = selectedDate.value
-//   const day = date.toLocaleDateString('en-GB', { weekday: 'short' })
-//   const datePart = date.toLocaleDateString('en-GB')
-//   const time = date.toTimeString().slice(0, 5)
+let timeInterval
 
-//   return `${day} - ${datePart} - ${time}`
-// })
+function updateTimeOnly() {
+  const current = new Date()
+  const existingDate = new Date(localDateTime.value)
+
+  const updatedDate = new Date(
+    existingDate.getFullYear(),
+    existingDate.getMonth(),
+    existingDate.getDate(),
+    current.getHours(),
+    current.getMinutes(),
+  )
+
+  localDateTime.value = formatDateTimeLocal(updatedDate)
+}
 
 function openCustomerModal() {
   showCustomerModal.value = true
@@ -539,7 +534,6 @@ watch(
     selectedZone.value = ''
     showDeliveryDropdown.value = false
     selectedDate.value = new Date()
-    selectedTime.value = new Date().toTimeString().slice(0, 5)
     showCustomerModal.value = false
     deliveryZoneOptions.value = []
   },

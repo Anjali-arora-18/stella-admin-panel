@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import { defineVaDataTableColumns, useModal, useToast } from 'vuestic-ui'
-import { useRouter, useRoute } from 'vue-router'
-import { toRef } from 'vue'
+import { useRouter } from 'vue-router'
+import { toRef, ref } from 'vue'
 import { useServiceStore } from '../../../stores/services'
 import axios from 'axios'
 const emits = defineEmits(['openTableModal', 'loadData'])
 const { confirm } = useModal()
 const { init } = useToast()
 const activeCheck = toRef(true)
+const showWebhookModal = ref(false)
+const webhookData = ref({
+  signature: '',
+  webhookId: '',
+  url: '',
+})
 const serviceStore = useServiceStore()
 const router = useRouter()
 const columns = defineVaDataTableColumns([
@@ -16,8 +22,8 @@ const columns = defineVaDataTableColumns([
   { label: 'Email', key: 'email', sortable: false },
   { label: 'Address', key: 'address', sortable: false },
   { label: 'Active', key: 'active', sortable: false },
-  // { label: 'Created at', key: 'created_at', sortable: false },
   { label: 'Download QR', key: 'download_qr', sortable: false },
+  { label: 'Webhook', key: 'webhook', sortable: false },
   { label: 'Actions', key: 'actions', sortable: false },
   { label: 'Select', key: 'select', sortable: false },
 ])
@@ -32,6 +38,34 @@ const props = defineProps({
 })
 
 const items = toRef(props, 'items')
+
+async function generateWebhook(rowData) {
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+
+  try {
+    const response = await axios.post(`${apiBaseUrl}/webhooks`, {
+      outletId: rowData._id,
+    })
+
+    const data = response.data
+    webhookData.value.signature = data.signature
+    webhookData.value.webhookId = data.webhookId
+    webhookData.value.url = data.url
+
+    showWebhookModal.value = true
+  } catch (error) {
+    init({
+      message: error?.response?.data?.message || 'Failed to generate webhook',
+      color: 'danger',
+    })
+  }
+}
+function handleCopy(label) {
+  init({
+    message: `${label} copied!`,
+    color: 'success',
+  })
+}
 
 function deleteOutlet(id) {
   serviceStore.deleteOutlet(id).then(() => {
@@ -100,12 +134,6 @@ function downloadQrCode(rowData) {
         {{ rowData.address }}
       </div>
     </template>
-
-    <!-- <template #cell(created_at)="{ rowData }">
-      <div class="ellipsis max-w-[230px]">
-        {{ rowData.createdAt }}
-      </div>
-    </template> -->
     <template #cell(download_qr)="{ rowData }">
       <div class="text-center">
         <VaButton preset="plain" size="small" class="underline text-light text-center" @click="downloadQrCode(rowData)"
@@ -131,7 +159,13 @@ function downloadQrCode(rowData) {
         <VaBadge :color="rowData.active ? 'success' : 'danger'" :text="rowData.active ? 'Yes' : 'No'" />
       </div>
     </template>
-
+    <template #cell(webhook)="{ rowData }">
+      <div>
+        <VaButton color="primary" size="small" class="rounded-full px-2 text-xs" @click="generateWebhook(rowData)">
+          Generate
+        </VaButton>
+      </div>
+    </template>
     <template #cell(actions)="{ rowData }">
       <VaButton
         preset="primary"
@@ -153,6 +187,36 @@ function downloadQrCode(rowData) {
       <VaButton v-else :preset="'primary'" @click.prevent="serviceStore.setRest(rowData._id)"> Select </VaButton>
     </template>
   </VaDataTable>
+  <VaModal
+    v-model="showWebhookModal"
+    size="medium"
+    hide-default-actions
+    :close-on-esc="true"
+    :close-on-click-outside="true"
+  >
+    <template #header>
+      <h3 class="va-h4 ml-3">Webhook Details</h3>
+    </template>
+    <div class="p-3 space-y-4">
+      <VaInput
+        v-model="webhookData.signature"
+        label="Signature"
+        readonly
+        copy
+        class="disabled-look"
+        @copy="handleCopy('Signature')"
+      />
+      <VaInput
+        v-model="webhookData.webhookId"
+        label="Webhook ID"
+        readonly
+        copy
+        class="disabled-look"
+        @copy="handleCopy('Webhook ID')"
+      />
+      <VaInput v-model="webhookData.url" label="URL" readonly copy class="disabled-look" @copy="handleCopy('URL')" />
+    </div>
+  </VaModal>
 </template>
 
 <style lang="scss" scoped>
@@ -173,9 +237,41 @@ function downloadQrCode(rowData) {
     border-bottom: 1px solid var(--va-background-border);
   }
 }
-
 .expandable_table {
   background-color: var(--va-background-element);
   color: var(--va-on-background-element);
+}
+.disabled-look {
+  position: relative;
+
+  ::v-deep(.va-input-wrapper) {
+    background-color: #f3f4f6 !important;
+    border-color: #d1d5db !important;
+    transition: background-color 0.2s;
+  }
+
+  ::v-deep(input[readonly]) {
+    color: #6b7280 !important;
+    cursor: default;
+  }
+
+  ::v-deep(.va-input__append) {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  &:hover {
+    ::v-deep(.va-input__append) {
+      opacity: 1;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+  }
+
+  // Ensures tooltip & copy icon don’t get blocked
+  ::v-deep(.va-input__control) {
+    pointer-events: auto !important;
+  }
 }
 </style>

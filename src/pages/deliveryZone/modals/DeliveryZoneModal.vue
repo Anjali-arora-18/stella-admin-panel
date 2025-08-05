@@ -20,7 +20,29 @@
           placeholder="Delivery Charges"
           type="number"
         />
+      </div>
+      <div class="grid grid-cols-2 gap-4 mt-4">
         <VaInput v-model="formData.terminalNumber" label="Terminal No." placeholder="Terminal No." type="number" />
+        <VaInput
+          v-model="formData.futureOrderPromiseTime"
+          label="Future Order Promise Time"
+          placeholder="Future Order Promise Time"
+          type="number"
+        />
+      </div>
+      <div class="grid grid-cols-2 gap-4 mt-4">
+        <VaInput
+          v-model="formData.deliveryPromiseTime"
+          label="Delivery Promise Time"
+          placeholder="Delivery Promise Time"
+          type="number"
+        />
+        <VaInput
+          v-model="formData.takeawayPromiseTime"
+          label="Takeaway Promise Time"
+          placeholder="Takeaway Promise Time"
+          type="number"
+        />
       </div>
 
       <div class="grid grid-cols-2 gap-4 mt-4">
@@ -82,6 +104,9 @@ const formData = ref({
   name: '',
   deliveryCharge: '',
   terminalNumber: '',
+  futureOrderPromiseTime: '',
+  deliveryPromiseTime: '',
+  takeawayPromiseTime: '',
   ccFromTable: '',
   ccToTable: '',
   webFromTable: '',

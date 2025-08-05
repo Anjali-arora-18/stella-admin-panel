@@ -45,7 +45,7 @@
         <div class="grid md:grid-cols-3 gap-4 text-sm leading-tight">
           <!-- Menu Items -->
           <div>
-            <div class="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-2">Menu Items</div>
+            <div class="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-2">Articles</div>
 
             <!-- Static Search Bar -->
             <VaInput v-model="searchQuery" placeholder="Search..." size="small" class="w-full mb-2" />
@@ -54,14 +54,22 @@
             <div class="border rounded shadow-sm bg-white h-[50vh] overflow-y-hidden">
               <table v-if="!isLoading" class="w-full text-sm">
                 <tbody>
-                  <VaVirtualScroller v-slot="{ item, index }" :items="items" :wrapper-size="400">
-                    <tr class="border-b hover:bg-orange-50" :class="{ hidden: !item.display, table: item.display }">
+                  <VaVirtualScroller
+                    v-slot="{ item, index }"
+                    :items="items.filter((a) => a.display)"
+                    :wrapper-size="400"
+                  >
+                    <tr
+                      class="border-b hover:bg-green-50"
+                      :class="[{ hidden: !item.display, table: item.display }, item.isVisible ? 'bg-blue-50' : '']"
+                    >
                       <td class="p-2 w-full">
                         <div class="flex items-center justify-between">
                           <VaCheckbox
                             v-model="item.selected"
                             :true-value="item._id"
                             :label="item.code + ' - ' + item.name"
+                            class="check"
                           />
 
                           <div class="flex items-center gap-1">
@@ -76,7 +84,7 @@
                               />
                             </div>
                             <span
-                              class="ml-1 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                              class="ml-1 cursor-pointer text-xs font-semibold px-2 py-0.5 rounded-full transition-all duration-200 shadow-sm"
                               :class="[
                                 item.isFree
                                   ? 'bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-blue-900 border border-blue-500'
@@ -87,9 +95,10 @@
                             >
                               Free
                             </span>
+
                             <!-- Default span -->
                             <span
-                              class="ml-1 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                              class="ml-1 cursor-pointer text-xs font-semibold px-2 py-0.5 rounded-full transition-all duration-200 shadow-sm"
                               :class="{
                                 'bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-green-900 border border-green-500':
                                   defaultArticles.includes(item._id),
@@ -98,6 +107,48 @@
                               @click="checkDefaultArticle(item._id)"
                             >
                               Default
+                            </span>
+                            <span
+                              class="ml-1 cursor-pointer px-1 rounded-xl transition-all duration-200 shadow-sm hover:bg-gray-300"
+                              :class="[
+                                item.isVisible
+                                  ? 'text-blue-600 bg-blue-100 border border-blue-300'
+                                  : 'text-gray-600 bg-gray-200',
+                                { 'opacity-50 pointer-events-none': item.customPrice > 0 },
+                              ]"
+                              :title="item.isVisible ? 'Hide' : 'Show'"
+                              @click="viewItems(index)"
+                            >
+                              <svg
+                                v-if="item.isVisible"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 16 16"
+                                fill="currentColor"
+                                class="w-4"
+                              >
+                                <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
+                                <path
+                                  fill-rule="evenodd"
+                                  d="M1.38 8.28a.87.87 0 0 1 0-.566 7.003 7.003 0 0 1 13.238.006.87.87 0 0 1 0 .566A7.003 7.003 0 0 1 1.379 8.28ZM11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                                  clip-rule="evenodd"
+                                />
+                              </svg>
+                              <svg
+                                v-else
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 16 16"
+                                fill="currentColor"
+                                class="w-4"
+                              >
+                                <path
+                                  fill-rule="evenodd"
+                                  d="M3.28 2.22a.75.75 0 0 0-1.06 1.06l10.5 10.5a.75.75 0 1 0 1.06-1.06l-1.322-1.323a7.012 7.012 0 0 0 2.16-3.11.87.87 0 0 0 0-.567A7.003 7.003 0 0 0 4.82 3.76l-1.54-1.54Zm3.196 3.195 1.135 1.136A1.502 1.502 0 0 1 9.45 8.389l1.136 1.135a3 3 0 0 0-4.109-4.109Z"
+                                  clip-rule="evenodd"
+                                />
+                                <path
+                                  d="m7.812 10.994 1.816 1.816A7.003 7.003 0 0 1 1.38 8.28a.87.87 0 0 1 0-.566 6.985 6.985 0 0 1 1.113-2.039l2.513 2.513a3 3 0 0 0 2.806 2.806Z"
+                                />
+                              </svg>
                             </span>
                           </div>
                         </div>
@@ -126,7 +177,49 @@
             <!-- Scrollable List -->
             <div class="border rounded shadow-sm bg-white h-[50vh] overflow-y-hidden">
               <table
-                v-if="items.filter((a) => a.selected).flatMap((a) => a.articlesOptionsGroup).length"
+                v-if="items.filter((a) => a.isVisible).flatMap((a) => a.articlesOptionsGroup).length"
+                class="w-full text-sm"
+              >
+                <tbody>
+                  <VaVirtualScroller
+                    v-slot="{ item, index }"
+                    :items="
+                      items
+                        .filter((a) => a.isVisible)
+                        .flatMap((a) => a.articlesOptionsGroup)
+                        .filter((a) => a.display)
+                    "
+                    class="mb-10"
+                    :wrapper-size="400"
+                  >
+                    <tr class="hover:bg-green-50" :class="{ hidden: !item.display, table: item.display }">
+                      <td class="p-2 w-full border-b">
+                        <div class="flex items-center justify-between">
+                          <VaCheckbox
+                            v-model="item.selected"
+                            :true-value="item._id"
+                            :label="item.internalName ? `${item.name} - ${item.internalName}` : item.name"
+                            class="w-full"
+                          />
+                          <div class="w-12">
+                            <VaInput
+                              v-model="item.customMaxChoices"
+                              type="number"
+                              placeholder="Max Choice"
+                              class="w-full"
+                            />
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </VaVirtualScroller>
+                </tbody>
+              </table>
+              <table
+                v-else-if="
+                  !items.filter((a) => a.isVisible).length &&
+                  items.filter((a) => a.selected).flatMap((a) => a.articlesOptionsGroup).length
+                "
                 class="w-full text-sm"
               >
                 <tbody>
@@ -179,6 +272,85 @@
             <div class="border rounded shadow-sm bg-white h-[50vh] overflow-y-hidden">
               <table
                 v-if="
+                  items
+                    .filter((a) => a.isVisible)
+                    .flatMap((item) => item.articlesOptionsGroup)
+                    .filter((a) => a.selected)
+                    .flatMap((a) => a.articlesOptions).length
+                "
+                class="w-full text-sm"
+              >
+                <tbody>
+                  <VaVirtualScroller
+                    v-slot="{ item, index }"
+                    :items="
+                      items
+                        .filter((a) => a.isVisible)
+                        .flatMap((item) => item.articlesOptionsGroup)
+                        .filter((a) => a.selected)
+                        .flatMap((a) => a.articlesOptions)
+                        .filter((a) => a.display)
+                    "
+                    :wrapper-size="400"
+                  >
+                    <tr
+                      class="border-b hover:bg-green-50 w-full"
+                      :class="{ hidden: !item.display, table: item.display }"
+                    >
+                      <td class="p-2">
+                        <div class="flex items-center justify-between">
+                          <VaCheckbox
+                            v-model="item.selected"
+                            :true-value="item.id"
+                            :label="item.posName ? `${item.name} - ${item.posName}` : item.name"
+                          />
+                          <div class="flex items-center gap-1">
+                            <div class="w-12">
+                              <VaInput
+                                v-model="item.customPrice"
+                                type="number"
+                                placeholder="Price"
+                                class="w-full"
+                                :disabled="item.isFree"
+                                @input="item.customPrice > 0 ? (item.isFree = false) : 0"
+                              />
+                            </div>
+                            <span
+                              class="ml-1 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                              :class="{
+                                'bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-blue-900 border border-blue-500':
+                                  item.isFree,
+                                'bg-gray-200 text-gray-700 hover:bg-gray-300': !item.isFree,
+                                'opacity-50 pointer-events-none': item.customPrice > 0,
+                              }"
+                              @click="item.customPrice <= 0 ? (item.isFree = !item.isFree) : false"
+                            >
+                              Free
+                            </span>
+                            <!-- Default span -->
+                            <span
+                              class="ml-1 cursor-pointer text-xs font-semibold px-3 py-0.5 rounded-full transition-all duration-200 shadow-sm"
+                              :class="{
+                                'bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-green-900 border border-green-500':
+                                  defaultOptions.includes(item.optionGroupId + '-' + item.id),
+                                'bg-gray-200 text-gray-700 hover:bg-gray-300': !defaultOptions.includes(
+                                  item.optionGroupId + '-' + item.id,
+                                ),
+                              }"
+                              @click="checkDefaultOption(item.optionGroupId, item.id)"
+                            >
+                              Default
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </VaVirtualScroller>
+                </tbody>
+              </table>
+              <table
+                v-else-if="
+                  !items.filter((a) => a.isVisible).length &&
                   items
                     .filter((a) => a.selected)
                     .flatMap((item) => item.articlesOptionsGroup)
@@ -367,6 +539,7 @@ const groupWorker = new Worker(
               const internalNameMatch = a.code?.toLowerCase().includes(search);
               return {
                 ...a,
+                isVisible: a.isVisible || false,
                 display: nameMatch || internalNameMatch || !searchQuery,
                 articlesOptionsGroup: a.articlesOptionsGroup.map(g => {
                   const nameMatch = g.name?.toLowerCase().includes(groupSearch);
@@ -455,6 +628,7 @@ const getArticles = async () => {
 
     return {
       ...e,
+      isVisible: false,
       display: true,
       isFree: selected ? selected.isFree : false,
       selected: selected ? e._id : '',
@@ -499,6 +673,21 @@ const getArticles = async () => {
 onMounted(() => {
   getArticles()
 })
+
+const viewItems = function (index) {
+  console.log('viewItems', index, items.value)
+  items.value[index].isVisible = !items.value[index].isVisible
+  groupWorker.postMessage({
+    items: JSON.parse(JSON.stringify(items.value)),
+    groupSearchQuery: groupSearchQuery.value,
+    optionSearchQuery: optionSearchQuery.value,
+    searchQuery: searchQuery.value,
+  })
+  groupWorker.onmessage = (e) => {
+    // Only update if this is the latest call
+    items.value = JSON.parse(JSON.stringify(e.data))
+  }
+}
 
 const submit = async () => {
   if (validate()) {
@@ -567,5 +756,10 @@ tr {
 ::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.1);
   border-radius: 3px;
+}
+::v-deep(.check .va-checkbox__input:focus-visible + .va-checkbox__square) {
+  outline: 0 !important;
+  box-shadow: none;
+  border: none;
 }
 </style>

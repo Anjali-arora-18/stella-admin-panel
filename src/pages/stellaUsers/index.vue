@@ -96,35 +96,39 @@ async function deleteUser(payload) {
 </script>
 
 <template>
-  <div class="flex items-center justify-between">
-    <h1 class="page-title font-bold">Users</h1>
-    <div class="flex gap-2">
-      <VaButton size="small" color="primary" @click="isEditStellaUserModalOpen = true"> Add User </VaButton>
+  <div>
+    <div class="flex items-center justify-between">
+      <h1 class="page-title font-bold">Users</h1>
+      <div class="flex gap-2">
+        <VaButton size="small" color="primary" @click="isEditStellaUserModalOpen = true"> Add User </VaButton>
+      </div>
     </div>
+
+    <VaCard>
+      <VaCardContent>
+        <StellaUsersTable
+          :sort-by="sortBy"
+          :sort-order="sortOrder"
+          :items="items"
+          :loading="isLoading"
+          :count="count"
+          :payment-types="paymentTypes"
+          @sortBy="updateSortBy"
+          @sortingOrder="updateSortOrder"
+          @editUser="editUser"
+          @deleteUser="deleteUser"
+          @getUsersForPagination="getUsersForPagination"
+        />
+      </VaCardContent>
+    </VaCard>
+
+    <EditStellaUserModal
+      v-if="isEditStellaUserModalOpen"
+      :payment-types="paymentTypes"
+      :selected-user="selectedStellaUser"
+      @cancel="
+        (isEditStellaUserModalOpen = false), (selectedStellaUser = ''), getStellaUsers(serviceStore.selectedRest)
+      "
+    />
   </div>
-
-  <VaCard>
-    <VaCardContent>
-      <StellaUsersTable
-        :sort-by="sortBy"
-        :sort-order="sortOrder"
-        :items="items"
-        :loading="isLoading"
-        :count="count"
-        :payment-types="paymentTypes"
-        @sortBy="updateSortBy"
-        @sortingOrder="updateSortOrder"
-        @editUser="editUser"
-        @deleteUser="deleteUser"
-        @getUsersForPagination="getUsersForPagination"
-      />
-    </VaCardContent>
-  </VaCard>
-
-  <EditStellaUserModal
-    v-if="isEditStellaUserModalOpen"
-    :payment-types="paymentTypes"
-    :selected-user="selectedStellaUser"
-    @cancel="(isEditStellaUserModalOpen = false), (selectedStellaUser = ''), getStellaUsers(serviceStore.selectedRest)"
-  />
 </template>

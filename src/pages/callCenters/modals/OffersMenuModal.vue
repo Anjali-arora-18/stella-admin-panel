@@ -332,8 +332,11 @@ watch(
         if (addedItems && addedItems.selectedOptions.length) {
           selectedOptions.value = addedItems.selectedOptions
           selectedOptions.value.forEach((group) => {
-            if (group.selected.find((a) => a.type === 'article')) {
-              getArticlesConfiguration(group.groupId, group.selected.find((a) => a.type === 'article').optionId)
+            if (group.selected.find((a) => a.type.toLowerCase() === 'article')) {
+              getArticlesConfiguration(
+                group.groupId,
+                group.selected.find((a) => a.type.toLowerCase() === 'article').optionId,
+              )
             }
           })
         }
@@ -433,8 +436,8 @@ watch(
         }
       })
 
-      if (!selectedOptions.value.length && selected.find((a) => a.type === 'article')) {
-        getArticlesConfiguration(group.optionGroupId, selected.find((a) => a.type === 'article').optionId)
+      if (!selectedOptions.value.length && selected.find((a) => a.type.toLowerCase() === 'article')) {
+        getArticlesConfiguration(group.optionGroupId, selected.find((a) => a.type.toLowerCase() === 'article').optionId)
       }
 
       if (selected.length) {
