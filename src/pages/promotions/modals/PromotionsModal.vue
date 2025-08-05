@@ -256,7 +256,6 @@
                 label="Delivery Zones"
                 required-mark
                 multiple
-                max-height="120px"
                 :loading="!safeDeliveryZones.length"
                 placeholder="Select Delivery Zones"
                 :max-visible-options="5"
@@ -647,6 +646,7 @@ const safeDeliveryZones = computed(() => {
     label: z?.label ?? '',
     value: z?.value ?? '',
   }))
+  mapped.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }))
   return [{ label: 'All Zones', value: 'ALL' }, ...mapped]
 })
 

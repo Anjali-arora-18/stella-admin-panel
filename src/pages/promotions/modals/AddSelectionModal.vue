@@ -2,19 +2,23 @@
   <VaModal :model-value="isVisible" size="large" close-button hide-default-actions @update:modelValue="$emit('cancel')">
     <!-- HEADER -->
     <template #header>
-      <h1 class="va-h6 mb-3">
-        {{ props.type === 'options' ? 'Update Promotion Options' : 'Update Promotion Menu Items' }}
-      </h1>
+      <div class="flex items-center gap-2">
+        <h1 class="va-h6 mb-3">
+          {{ props.type === 'options' ? 'Update Promotion Options' : 'Update Promotion Articles' }}
+        </h1>
+        <span
+          v-if="selectedIds.length > 0"
+          class="inline-flex items-center justify-center text-xs font-semibold text-white bg-primary rounded-full w-6 h-6"
+        >
+          {{ selectedIds.length }}
+        </span>
+      </div>
     </template>
 
     <!-- FORM -->
     <VaForm ref="form" @submit.prevent="submit">
       <div class="grid gap-4">
         <div>
-          <div class="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-2">
-            {{ props.type === 'options' ? 'Options' : 'Menu Items' }}
-          </div>
-
           <div class="flex flex-col gap-1 mb-2">
             <div>
               <VaInput v-model="searchQuery" placeholder="Search..." size="small" clearable style="width: 50%" />
@@ -178,8 +182,6 @@ watch([promotionData, items, articles], async ([promo]) => {
   if (props.type === 'menuItems') {
     const validIds = items.value.map((i) => String(i._id))
     selectedMenuItems.value = (promo.menuItem || []).map(String).filter((id) => validIds.includes(id))
-
-    console.log('[watch] Valid menuItems after filtering:', selectedMenuItems.value)
   }
 
   if (props.type === 'options') {
