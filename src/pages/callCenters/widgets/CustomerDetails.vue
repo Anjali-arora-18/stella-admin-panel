@@ -23,7 +23,7 @@
             class="flex-1 py-1 transition-colors"
             @click="selectedTab = 'takeaway'"
           >
-            Takeaway
+            Takeaway ({{ selectedZoneDetails?.takeawayPromiseTime ?? 0 }}mins)
           </button>
           <button
             :class="
@@ -32,7 +32,7 @@
             class="flex-1 py-1 transition-colors"
             @click="selectedTab = 'delivery'"
           >
-            Delivery
+            Delivery ({{ selectedZoneDetails?.deliveryPromiseTime ?? 0 }}mins)
           </button>
         </div>
 
