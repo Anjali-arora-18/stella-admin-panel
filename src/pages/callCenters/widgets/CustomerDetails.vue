@@ -248,14 +248,14 @@ function formatDateTimeLocal(date) {
 }
 onMounted(() => {
   updateTimeOnly()
-  timeInterval = setInterval(updateTimeOnly, 30000)
+  // timeInterval = setInterval(updateTimeOnly, 30000)
 })
 
-onUnmounted(() => {
-  clearInterval(timeInterval)
-})
+// onUnmounted(() => {
+//   clearInterval(timeInterval)
+// })
 
-let timeInterval
+// let timeInterval
 
 function updateTimeOnly() {
   const current = new Date()
@@ -337,7 +337,7 @@ function selectDeliveryZone(zone) {
   if (zone) {
     emits('setDeliveryFee', selectedTab.value === 'takeaway' ? 0 : zone.deliveryCharge)
     emits('setDeliveryZone', true)
-    orderStore.setDeliveryZone(zone._id)
+    orderStore.setDeliveryZone(zone)
     selectedZone.value = zone.name
     serviceZoneId.value = zone.serviceZoneId
     selectedZoneDetails.value = zone
@@ -515,6 +515,7 @@ watch(
   () => selectedAddress.value,
   () => {
     selectDeliveryZone(selectedZoneDetails.value)
+    orderStore.setDeliveryZone(zone)
     emits('setDeliveryZone', true)
     orderStore.setAddress(selectedAddress.value.text)
   },

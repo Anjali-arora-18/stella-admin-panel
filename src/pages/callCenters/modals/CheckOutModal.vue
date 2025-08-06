@@ -93,7 +93,7 @@
       <!-- Payment Section -->
       <div v-if="!redirectUrl" class="md:col-span-2 flex flex-col bg-white shadow-md">
         <div class="header-container">
-          <h3 class="payment-header">Complete Order</h3>
+          <h3 class="payment-header">{{ etaTime }}</h3>
         </div>
 
         <div class="payment-content flex-grow">
@@ -144,6 +144,7 @@ import { useServiceStore } from '@/stores/services'
 import { storeToRefs } from 'pinia'
 import { elements } from 'chart.js'
 import axios from 'axios'
+
 const showCheckoutModal = ref(true)
 const selectedPayment: any = ref(null)
 const apiLoading = ref(false)
@@ -164,6 +165,50 @@ const redirectUrl = computed(() => orderStore.redirectUrl)
 const userDetails = computed(() => userStore.userDetails)
 const checkInterval: any = ref('')
 const paymentTypes: any = ref([])
+
+const etaTime = computed(() => {
+  const now = new Date()
+  const selectedDate = new Date(props.dateSelected)
+  const promiseTime =
+    props.orderType === 'delivery'
+      ? orderStore.deliveryZone?.deliveryPromiseTime
+      : orderStore.deliveryZone.takeawayPromiseTime
+
+  // Create a copy of the date for ETA calculation
+  const etaDate = new Date(selectedDate)
+  etaDate.setMinutes(etaDate.getMinutes() + promiseTime)
+
+  // Format the time
+  const timeString = etaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+
+  // Check if it's a future order (more than 30 minutes from now)
+  const isFutureOrder = selectedDate.getTime() > now.getTime() + 30 * 60 * 1000
+
+  if (isFutureOrder) {
+    // Format the date for future orders
+    const dateString = selectedDate.toLocaleDateString([], {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+    const scheduledTimeString = selectedDate.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
+
+    return `${
+      props.orderType === 'delivery' ? 'Delivery' : 'Takeaway'
+    } - Scheduled for ${dateString} at ${scheduledTimeString}`
+  } else {
+    // For current orders
+    return props.orderType === 'delivery' ? `Delivery - ETA ${timeString}` : `Takeaway - Ready at ${timeString}`
+  }
+})
+
+onMounted(() => {
+  getPaymentOptions()
+})
 
 const getPaymentOptions = () => {
   const url = import.meta.env.VITE_API_BASE_URL
@@ -294,7 +339,7 @@ async function createOrder() {
     const payload = {
       customerDetailId: props.customerDetailsId,
       orderType: props.orderType === 'takeaway' ? 'Takeaway' : 'Delivery',
-      deliveryZoneId: orderStore.deliveryZone,
+      deliveryZoneId: orderStore.deliveryZone?._id,
       address: orderStore.address,
       menuItems,
       offerMenuItems,

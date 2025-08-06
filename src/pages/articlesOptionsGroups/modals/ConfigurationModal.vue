@@ -251,7 +251,7 @@ getArticlesConfiguration()
             <table class="w-full border-collapse border border-gray-200 text-sm">
               <tbody v-if="!isArticleLoading">
                 <tr
-                  v-for="article in articles"
+                  v-for="(article, i) in articles"
                   :key="'articles-' + i"
                   class="border-b hover:bg-gray-50"
                   :class="{
@@ -302,13 +302,17 @@ getArticlesConfiguration()
             <table class="w-full border-collapse border border-gray-200 text-sm">
               <tbody v-if="!isArticleGroupLoading">
                 <tr
-                  v-for="articleGroup in articlesGroup"
+                  v-for="(articleGroup, i) in articlesGroup"
                   :key="'articlesGroups-' + i"
                   class="border-b hover:bg-gray-50"
                 >
                   <td class="p-2 cursor-pointer">
                     <div>
-                      <VaCheckbox v-model="articleGroup.selected" :label="articleGroup.name" />
+                      <VaCheckbox
+                        v-model="articleGroup.selected"
+                        class="text-sm"
+                        :label="`${articleGroup.name} - ${articleGroup.internalName}`"
+                      />
                     </div>
                   </td>
                 </tr>
@@ -348,7 +352,11 @@ getArticlesConfiguration()
                 >
                   <td class="p-2 cursor-pointer">
                     <div>
-                      <VaCheckbox v-model="option.selected" :label="`${option.name} - ${option.posName}`" />
+                      <VaCheckbox
+                        v-model="option.selected"
+                        class="text-sm"
+                        :label="`${option.name} - ${option.posName}`"
+                      />
                     </div>
                   </td>
                 </tr>
