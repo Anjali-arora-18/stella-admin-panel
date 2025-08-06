@@ -283,6 +283,7 @@
                 <tbody>
                   <VaVirtualScroller
                     v-slot="{ item, index }"
+                    :key="debouncedSearch"
                     :items="
                       items
                         .filter((a) => a.isVisible)
@@ -362,6 +363,7 @@
                 <tbody>
                   <VaVirtualScroller
                     v-slot="{ item, index }"
+                    :key="debouncedSearch"
                     :items="
                       items
                         .filter((a) => a.selected)
@@ -493,6 +495,25 @@ const groupSearchQuery = ref('')
 const optionSearchQuery = ref('')
 const defaultOptions = ref([])
 const defaultArticles = ref([])
+const debouncedSearch = ref('')
+
+function debounce(fn, delay) {
+  let timeout
+  return (...args) => {
+    clearTimeout(timeout)
+    timeout = setTimeout(() => {
+      fn(...args)
+    }, delay)
+  }
+}
+
+const updateSearch = debounce((value) => {
+  debouncedSearch.value = value
+}, 300)
+
+watch(optionSearchQuery, (newVal) => {
+  updateSearch(newVal)
+})
 
 defaultArticles.value = props.offerSelection?.menuItemDefaultOptions || []
 
@@ -529,9 +550,9 @@ const groupWorker = new Worker(
       [
         `
       self.onmessage = function(e) {
-        const { items, groupSearchQuery, optionSearchQuery, searchQuery } = e.data;
+        const { items, groupSearchQuery, debouncedSearch, searchQuery } = e.data;
         const groupSearch = groupSearchQuery.toLowerCase();
-        const optionSearch = optionSearchQuery.toLowerCase();
+        const optionSearch = debouncedSearch.toLowerCase();
         const search = searchQuery.toLowerCase();
         const filtered = items
           .map(a => {
@@ -572,17 +593,16 @@ const groupWorker = new Worker(
 const lastWorkerCall = ref(0)
 
 watch(
-  [groupSearchQuery, optionSearchQuery, searchQuery],
+  [groupSearchQuery, debouncedSearch, searchQuery],
   () => {
     const callId = ++lastWorkerCall.value
     groupWorker.postMessage({
       items: JSON.parse(JSON.stringify(items.value)),
       groupSearchQuery: groupSearchQuery.value,
-      optionSearchQuery: optionSearchQuery.value,
+      debouncedSearch: debouncedSearch.value,
       searchQuery: searchQuery.value,
     })
     groupWorker.onmessage = (e) => {
-      // Only update if this is the latest call
       if (callId === lastWorkerCall.value) {
         items.value = JSON.parse(JSON.stringify(e.data))
       }
@@ -680,7 +700,7 @@ const viewItems = function (index) {
   groupWorker.postMessage({
     items: JSON.parse(JSON.stringify(items.value)),
     groupSearchQuery: groupSearchQuery.value,
-    optionSearchQuery: optionSearchQuery.value,
+    debouncedSearch: debouncedSearch.value,
     searchQuery: searchQuery.value,
   })
   groupWorker.onmessage = (e) => {
