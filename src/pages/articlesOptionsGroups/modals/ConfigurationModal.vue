@@ -15,6 +15,7 @@ const props = defineProps({
   },
 })
 const emits = defineEmits(['cancel'])
+const optionName = ref('')
 const servicesStore = useServiceStore()
 const categoriesStore = useCategoryStore()
 const items = ref([])
@@ -112,6 +113,11 @@ const getArticlesConfiguration = () => {
       fetchConfigurations.value = response.data.data
       getCategories()
     })
+
+  // Fetch option name to get single option details
+  axios.get(`${url}/articles-options/${props.optionId}`).then((response) => {
+    optionName.value = response.data.data.name
+  })
 }
 
 const setCategory = (cat) => {
@@ -197,7 +203,14 @@ getArticlesConfiguration()
     @update:modelValue="emits('cancel')"
   >
     <template #header>
-      <h1 class="va-h6 mb-4">Configuration</h1>
+      <h1 class="va-h6 mb-4 flex items-center gap-2">
+        Configuration for:
+        <span
+          class="px-3 py-1 rounded-full text-white text-sm font-semibold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-sm"
+        >
+          {{ optionName }}
+        </span>
+      </h1>
     </template>
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 max-h-[70vh] overflow-y-auto px-1">
       <div class="row align-items-center mb-2">
