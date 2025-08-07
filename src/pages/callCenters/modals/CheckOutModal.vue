@@ -1,13 +1,6 @@
 <template>
-  <VaModal
-    v-model="showCheckoutModal"
-    no-dismiss
-    class="big-xl-modal"
-    size="large"
-    :mobile-fullscreen="false"
-    hide-default-actions
-    :close-button="!redirectUrl"
-  >
+  <VaModal v-model="showCheckoutModal" no-dismiss class="big-xl-modal" size="large" :mobile-fullscreen="false"
+    hide-default-actions :close-button="!redirectUrl">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50">
       <!-- Order Summary -->
       <div class="md:col-span-1">
@@ -50,19 +43,13 @@
               <!-- Show selected items inside each offer -->
               <div v-if="item.selections?.length" class="item-extras">
                 <div v-for="(selection, sIndex) in item.selections" :key="sIndex" class="selection-group">
-                  <div
-                    v-for="(addedItem, aIndex) in selection.addedItems"
-                    :key="`${addedItem.itemId}-${aIndex}`"
-                    class="extra-item"
-                  >
+                  <div v-for="(addedItem, aIndex) in selection.addedItems" :key="`${addedItem.itemId}-${aIndex}`"
+                    class="extra-item">
                     <div class="extra-name font-medium text-gray-800">+ {{ addedItem.itemName }}</div>
                     <div v-if="addedItem.selectedOptions?.length" class="pl-4 pt-1 text-sm text-gray-600">
                       <div v-for="group in addedItem.selectedOptions" :key="group.groupId">
-                        <div
-                          v-for="option in group.selected"
-                          :key="option.optionId"
-                          class="flex justify-between text-sm"
-                        >
+                        <div v-for="option in group.selected" :key="option.optionId"
+                          class="flex justify-between text-sm">
                           <span>↳ {{ option.name }}</span>
                           <span>+€{{ (option.price * option.quantity).toFixed(2) }}</span>
                         </div>
@@ -98,13 +85,9 @@
 
         <div class="payment-content flex-grow">
           <div class="payment-options grid sm:grid-cols-2 gap-4">
-            <div
-              v-for="payment in paymentTypes.filter((a) => userDetails.paymentType.includes(a.paymentTypeId))"
-              :key="payment.paymentTypeId"
-              class="payment-option"
-              :class="selectedPayment == payment ? 'selected' : ''"
-              @click="selectedPayment = payment"
-            >
+            <div v-for="payment in paymentTypes.filter((a) => userDetails.paymentType.includes(a.paymentTypeId))"
+              :key="payment.paymentTypeId" class="payment-option" :class="selectedPayment == payment ? 'selected' : ''"
+              @click="selectedPayment = payment">
               <div class="payment-icon">{{ payment.name === 'Cash' ? '💵' : '💳' }}</div>
               <div class="payment-label">{{ payment.name }}</div>
               <div class="payment-desc">
@@ -115,15 +98,10 @@
         </div>
 
         <div class="action-container mt-6">
-          <button
-            id="confirmBtn"
-            :disabled="apiLoading || !selectedPayment"
-            class="btn btn-primary"
-            @click="createOrder"
-          >
+          <button id="confirmBtn" :disabled="apiLoading || !selectedPayment" class="btn btn-primary"
+            @click="createOrder">
             <span v-if="!apiLoading" id="btnText">
-              {{ orderId && selectedPayment === 'Card' ? 'Retry Payment' : 'Payment' }}</span
-            >
+              {{ orderId && selectedPayment === 'Card' ? 'Retry Payment' : 'Payment' }}</span>
             <div v-if="apiLoading" id="loadingSpinner" class="loading-spinner animate-spin"></div>
           </button>
         </div>
@@ -197,9 +175,8 @@ const etaTime = computed(() => {
       hour12: false,
     })
 
-    return `${
-      props.orderType === 'delivery' ? 'Delivery' : 'Takeaway'
-    } - Scheduled for ${dateString} at ${scheduledTimeString}`
+    return `${props.orderType === 'delivery' ? 'Delivery' : 'Takeaway'
+      } - Scheduled for ${dateString} at ${scheduledTimeString}`
   } else {
     // For current orders
     return props.orderType === 'delivery' ? `Delivery - ETA ${timeString}` : `Takeaway - Ready at ${timeString}`
@@ -274,24 +251,26 @@ async function checkPaymentStatus(requestId, paymentId) {
       color: 'success',
       message: 'Payment Success',
     })
-    try {
-      await orderStore.sendOrderToWinmax(requestId)
-      init({
-        color: 'success',
-        message: 'Order sent to Winmax',
-      })
-      setTimeout(() => {
-        orderStore.cartItems = []
-        window.location.reload()
-      }, 800)
-    } catch (err) {
-      init({
-        color: 'danger',
-        message: err.response.data.error,
-      })
-      orderStore.setPaymentLink('')
-      orderResponse.value = ''
-      orderId.value = ''
+    if (orderResponse.value.data.data.orderType.toLowerCase() === 'current') {
+      try {
+        await orderStore.sendOrderToWinmax(requestId)
+        init({
+          color: 'success',
+          message: 'Order sent to Winmax',
+        })
+        setTimeout(() => {
+          orderStore.cartItems = []
+          window.location.reload()
+        }, 800)
+      } catch (err) {
+        init({
+          color: 'danger',
+          message: err.response.data.error,
+        })
+        orderStore.setPaymentLink('')
+        orderResponse.value = ''
+        orderId.value = ''
+      }
     }
   } else {
     init({
@@ -373,11 +352,13 @@ async function createOrder() {
         setInter()
       } else {
         try {
-          await orderStore.sendOrderToWinmax(orderResponse.value.data.data._id)
-          init({
-            color: 'success',
-            message: 'Order sent to Winmax',
-          })
+          if (orderResponse.value.data.data.orderType.toLowerCase() === 'current') {
+            await orderStore.sendOrderToWinmax(orderResponse.value.data.data._id)
+            init({
+              color: 'success',
+              message: 'Order sent to Winmax',
+            })
+          }
           setTimeout(() => {
             orderStore.cartItems = []
             window.location.reload()
@@ -428,13 +409,16 @@ async function createOrder() {
   padding: 12px 0;
   border-bottom: 1px solid #f3f4f6;
 }
+
 .order-items-wrapper {
   max-height: calc(100vh - 350px);
   overflow-y: auto;
 }
+
 .order-items::-webkit-scrollbar {
   width: 6px;
 }
+
 .order-items::-webkit-scrollbar-thumb {
   background: #ccc;
   border-radius: 3px;
