@@ -16,7 +16,15 @@
             :rules="[validators.required]"
           />
 
-          <VaInput v-model="formData.min" label="Min" type="number" min="0" required-mark :rules="[validateMin]" />
+          <VaInput
+            v-model="formData.min"
+            label="Min"
+            type="number"
+            min="0"
+            required-mark
+            :rules="[validateMin]"
+            :disabled="!formData.isRequired"
+          />
 
           <VaInput v-model="formData.max" label="Max" type="number" min="0" required-mark :rules="[validateMax]" />
           <VaSelect
@@ -771,10 +779,11 @@ const submit = async () => {
 watch(
   () => formData.value.isRequired,
   (val) => {
-    if (!val && formData.value.min > 0) {
+    if (!val) {
       formData.value.min = 0
     }
   },
+  { immediate: true },
 )
 </script>
 <style scoped>
