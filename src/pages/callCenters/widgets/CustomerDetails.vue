@@ -73,25 +73,6 @@
             @click.prevent="(selectedUser = ''), (phoneNumber = ''), (name = '')"
           />
 
-          <!-- 
-          <button
-            v-if="!selectedUser"
-            class="text-white bg-blue-500 hover:bg-blue-600 rounded-md h-[30px] w-[30px] flex items-center justify-center"
-            @click.prevent="fetchCustomerDetails(false)"
-          >
-            <span v-if="!isUserLoading">🔍</span>
-            <span v-else class="loading-spinner">⌛</span>
-          </button> -->
-
-          <!-- Clear Button -->
-          <!-- <button
-            v-else
-            class="text-white bg-red-500 hover:bg-red-600 rounded-md h-[30px] w-[30px] flex items-center justify-center"
-            @click.prevent="(selectedUser = ''), (phoneNumber = ''), (name = '')"
-          >
-            ✕
-          </button> -->
-
           <!-- Add / Edit Button -->
           <template v-if="!selectedUser">
             <VaTooltip text="Add Customer" placement="top">
@@ -182,12 +163,6 @@
               >
                 {{ serviceZoneId || 'N/A' }}
               </VaButton>
-              <!-- <button
-                class="text-white bg-blue-500 hover:bg-blue-600 rounded-md h-[30px] w-[30px] flex items-center justify-center"
-                @click="showDeliveryDropdown = true"
-              >
-                {{ serviceZoneId || 'N/A' }}
-              </button> -->
             </template>
 
             <template v-else>
@@ -203,19 +178,13 @@
               />
 
               <VaButton
-                class="bg-blue-500 hover:bg-blue-600 text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
+                class="hover:bg-blue-600 text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
                 size="small"
+                :style="{ '--va-background-color': outlet.primaryColor }"
                 @click="showDeliveryDropdown = true"
               >
                 {{ serviceZoneId || 'N/A' }}
               </VaButton>
-
-              <!-- <button
-                class="text-white bg-blue-500 hover:bg-blue-600 rounded-md h-[30px] w-[30px] flex items-center justify-center"
-                @click="showDeliveryDropdown = true"
-              >
-                {{ serviceZoneId || 'N/A' }}
-              </button> -->
             </template>
 
             <!-- Delivery dropdown (shared) -->

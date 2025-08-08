@@ -15,7 +15,7 @@
                 v-if="offers.length"
                 class="text-white px-4 py-2 rounded-2xl"
                 href="#offers"
-                :style="{ backgroundColor: selectedItem === 'offers' ? outlet.primaryColor : '#919396' }"
+                :style="{ backgroundColor: selectedItem === 'offers' ? outlet.primaryColor : '#aaadb1' }"
                 @click.prevent="selectedItem = 'offers'"
               >
                 Offers
@@ -24,7 +24,7 @@
                 v-for="item in filteredCategories"
                 :key="item._id"
                 :href="`#${item._id}`"
-                :style="{ backgroundColor: selectedItem === item._id ? outlet.primaryColor : '#919396' }"
+                :style="{ backgroundColor: selectedItem === item._id ? outlet.primaryColor : '#aaadb1' }"
                 class="text-white px-4 py-2 rounded-2xl"
                 @click.prevent="selectedItem = item._id"
               >
