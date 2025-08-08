@@ -71,14 +71,18 @@
             />
           </VaCardContent>
         </VaCard>
-        <OrderDetails
-          :delivery-fee="deliveryFee"
-          :date-selected="dateSelected"
-          :is-delivery-zone-selected="isDeliveryZoneSelected"
-          :customer-details-id="customerDetailsId"
-          :order-type="orderType"
-          :is-customer-open="accordian[0]"
-        />
+        <VaCard>
+          <VaCardContent>
+            <OrderDetails
+              :delivery-fee="deliveryFee"
+              :date-selected="dateSelected"
+              :is-delivery-zone-selected="isDeliveryZoneSelected"
+              :customer-details-id="customerDetailsId"
+              :order-type="orderType"
+              :is-customer-open="accordian[0]"
+            />
+          </VaCardContent>
+        </VaCard>
       </div>
     </div>
   </div>

@@ -1,32 +1,31 @@
 <template>
-  <div class="w-full mx-auto order-details bg-white p-4">
+  <div class="w-full">
     <h2 class="font-semibold text-lg text-gray-800 border-b pb-2">Order Details</h2>
     <template v-if="items.length || offersItems.length">
       <!-- Promo Code with Button -->
-      <VaInput
-        v-model="promoCode"
-        placeholder="Promotion Code"
-        size="small"
-        input-class="text-sm pr-28"
-        class="relative my-4"
-      >
-        <template #append>
-          <VaIcon
-            v-if="promoCode"
-            name="close"
-            color="danger"
-            class="absolute right-24 top-1/2 -translate-y-1/2 cursor-pointer"
-            @click="clearPromoCode"
-          />
-          <VaButton
-            size="small"
-            class="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white px-3 py-1 rounded-md text-xs shadow-md"
-            @click="openPromotionModal"
-          >
-            Select
-          </VaButton>
-        </template>
-      </VaInput>
+      <div class="flex flex-wrap items-center gap-1 my-5 w-full">
+        <!-- Promo Code Field -->
+        <VaInput
+          v-model="promoCode"
+          placeholder="Promotion Code"
+          size="small"
+          class="flex-1 min-w-[200px]"
+          input-class="text-sm pr-6"
+        >
+          <template #appendInner>
+            <VaIcon v-if="promoCode" name="close" color="danger" class="cursor-pointer" @click="clearPromoCode" />
+          </template>
+        </VaInput>
+
+        <!-- Select Button -->
+        <VaButton
+          size="small"
+          class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white px-3 py-1 rounded-md text-xs shadow-md"
+          @click="openPromotionModal"
+        >
+          Select
+        </VaButton>
+      </div>
 
       <!-- Order Items -->
       <div :class="isCustomerOpen ? 'order-items-min-height' : 'order-items-height'">
@@ -166,7 +165,7 @@
         </div>
       </div>
       <!-- Summary -->
-      <div class="text-sm mt-4 space-y-1 p-2 bg-slate-50 mb-4">
+      <div class="text-sm mt-5 space-y-1 p-2 bg-slate-50 mb-5">
         <div class="flex justify-between">
           <span class="text-gray-600">Subtotal:</span>
           <span>€{{ subtotal.toFixed(2) }}</span>
@@ -184,7 +183,7 @@
       <!-- Checkout -->
       <VaButton
         :disabled="!customerDetailsId || !orderType || !props.isDeliveryZoneSelected || total === 0"
-        class="mt-4 w-full"
+        class="mt-2 w-full"
         color="success"
         size="large"
         @click="openCheckoutModal"
@@ -461,6 +460,13 @@ function closePromotionModal() {
 }
 </script>
 <style>
+.order-items-height,
+.order-items-min-height {
+  overflow-y: auto;
+  background: #fff; /* or your desired bg */
+  border-radius: 0 0 8px 8px; /* bottom corners rounded */
+  overflow: hidden; /* ensures bg and radius are clipped */
+}
 .order-items-height {
   overflow-y: auto;
   height: calc(100vh - 500px);
