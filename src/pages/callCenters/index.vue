@@ -13,9 +13,10 @@
             <div class="flex flex-wrap gap-2">
               <a
                 v-if="offers.length"
-                :class="['text-white px-4 py-2 rounded-2xl', selectedItem === 'offers' ? 'bg-blue-500' : 'bg-gray-300']"
+                class="text-white px-4 py-2 rounded-2xl"
                 href="#offers"
-                @click="selectedItem = 'offers'"
+                :style="{ backgroundColor: selectedItem === 'offers' ? outlet.primaryColor : '#919396' }"
+                @click.prevent="selectedItem = 'offers'"
               >
                 Offers
               </a>
@@ -23,12 +24,9 @@
                 v-for="item in filteredCategories"
                 :key="item._id"
                 :href="`#${item._id}`"
+                :style="{ backgroundColor: selectedItem === item._id ? outlet.primaryColor : '#919396' }"
                 class="text-white px-4 py-2 rounded-2xl"
-                :class="{
-                  'bg-blue-500': selectedItem === item._id,
-                  'bg-gray-300': selectedItem !== item._id,
-                }"
-                @click="selectedItem = item._id"
+                @click.prevent="selectedItem = item._id"
               >
                 {{ toTitleCase(item.name) }}
               </a>
@@ -144,6 +142,11 @@ const getOffers = async () => {
   offers.value = response.data.data
 }
 
+const outlet = computed(() => {
+  const servicesStore = useServiceStore()
+  return servicesStore.restDetails || {}
+})
+
 const menuItems = computed(() => {
   return (props.categories || []).map((category) => ({
     id: category._id,
@@ -255,16 +258,11 @@ watch(
 
 // Watch route hash and scroll to section if present
 watch(
-  () => route.hash,
-  (hash) => {
-    if (hash && !selectedItem.value) {
-      setTimeout(() => {
-        const el = document.getElementById(hash.replace('#', ''))
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-          selectedItem.value = hash.replace('#', '')
-        }
-      }, 3000)
+  () => selectedItem.value,
+  () => {
+    if (selectedItem.value) {
+      const el = document.getElementById(selectedItem.value)
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   },
   { immediate: true },

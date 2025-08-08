@@ -16,6 +16,7 @@ export const useServiceStore = defineStore('services', {
     return {
       items: [],
       selectedRest: '',
+      restDetails: '',
     }
   },
 
@@ -29,6 +30,9 @@ export const useServiceStore = defineStore('services', {
     },
     async deleteOutlet(payload) {
       return await deleteOutlet(payload)
+    },
+    async setResDetails(payload) {
+      this.restDetails = payload
     },
     async getAreas() {
       return await getAreas(this.selectedRest)

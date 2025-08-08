@@ -60,10 +60,12 @@ const getOutlets = () => {
       if (found) {
         selectedRest.value = found.name
         servicesStore.setRest(found._id)
+        servicesStore.setResDetails(found)
       }
     } else {
       selectedRest.value = servicesStore.items[0].name
       servicesStore.setRest(servicesStore.items[0]._id)
+      servicesStore.setResDetails(servicesStore.items)
     }
   })
 }
@@ -73,6 +75,7 @@ watch(
   () => servicesStore.selectedRest,
   () => {
     selectedRest.value = restlist.value.find((a) => a._id === servicesStore.selectedRest).name
+    servicesStore.setResDetails(restlist.value.find((a) => a._id === servicesStore.selectedRest))
   },
 )
 watch(
@@ -85,6 +88,7 @@ watch(
 watch(selectedRest, (newValue) => {
   const foundRest = restlist.value.find((a) => a.name === newValue)
   if (foundRest) {
+    servicesStore.setResDetails(foundRest)
     servicesStore.setRest(foundRest._id)
     sessionStorage.setItem('selectedRest', foundRest._id)
   }

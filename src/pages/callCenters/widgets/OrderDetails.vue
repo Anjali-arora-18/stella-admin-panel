@@ -20,6 +20,7 @@
         <!-- Select Button -->
         <VaButton
           size="small"
+          :style="{ '--va-background-color': outlet.primaryColor }"
           class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white px-3 py-1 rounded-md text-xs shadow-md"
           @click="openPromotionModal"
         >
@@ -37,13 +38,19 @@
               <VaButton
                 icon="remove"
                 :disabled="item.quantity === 1"
-                color="success"
+                :style="{ '--va-background-color': outlet.primaryColor }"
                 size="small"
                 class="rounded"
                 @click="decreaseQty(item)"
               />
               <VaBadge :text="item.quantity" color="secondary" size="large" class="!py-1 !h-[2rem]" />
-              <VaButton icon="add" color="success" size="small" class="rounded" @click="increaseQty(item)" />
+              <VaButton
+                icon="add"
+                :style="{ '--va-background-color': outlet.primaryColor }"
+                size="small"
+                class="rounded"
+                @click="increaseQty(item)"
+              />
             </div>
 
             <!-- Item Info -->
@@ -185,6 +192,7 @@
         :disabled="!customerDetailsId || !orderType || !props.isDeliveryZoneSelected || total === 0"
         class="mt-2 w-full"
         color="success"
+        :style="{ '--va-background-color': outlet.primaryColor }"
         size="large"
         @click="openCheckoutModal"
       >
@@ -260,6 +268,11 @@ const formattedLabel = (sel) => {
   const totalPrice = sel.price * sel.quantity
   return totalPrice > 0 ? `${sel.name} (+€${totalPrice.toFixed(2)})` : sel.name
 }
+
+const outlet = computed(() => {
+  const servicesStore = useServiceStore()
+  return servicesStore.restDetails || {}
+})
 
 const items = computed(() =>
   cartItems.value.map((item, index) => {

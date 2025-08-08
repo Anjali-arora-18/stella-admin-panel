@@ -16,19 +16,17 @@
       <div v-show="isOpen" class="space-y-3 mt-2">
         <div class="flex bg-gray-100 rounded overflow-hidden text-sm">
           <button
-            :class="
-              selectedTab == 'takeaway' ? 'bg-blue-500 text-white font-semibold' : 'text-gray-600 hover:bg-gray-200'
-            "
+            :class="selectedTab == 'takeaway' ? ` text-white font-semibold` : 'text-gray-600 hover:bg-gray-200'"
             class="flex-1 py-1 transition-colors"
+            :style="{ backgroundColor: selectedTab == 'takeaway' ? outlet.primaryColor : '' }"
             @click="selectedTab = 'takeaway'"
           >
             Takeaway ({{ selectedZoneDetails?.takeawayPromiseTime ?? 0 }}mins)
           </button>
           <button
-            :class="
-              selectedTab == 'delivery' ? 'bg-blue-500 text-white font-semibold' : 'text-gray-600 hover:bg-gray-200'
-            "
+            :class="selectedTab == 'delivery' ? `text-white font-semibold` : 'text-gray-600 hover:bg-gray-200'"
             class="flex-1 py-1 transition-colors"
+            :style="{ backgroundColor: selectedTab == 'delivery' ? outlet.primaryColor : '' }"
             @click="selectedTab = 'delivery'"
           >
             Delivery ({{ selectedZoneDetails?.deliveryPromiseTime ?? 0 }}mins)
@@ -60,8 +58,8 @@
           <!-- Search Button -->
           <VaButton
             v-if="!selectedUser"
-            color="!primary"
-            class="bg-blue-500 hover:bg-blue-600 text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
+            :style="{ '--va-background-color': outlet.primaryColor }"
+            class="h-[30px] w-[30px] rounded-md flex items-center justify-center"
             size="small"
             icon="mso-search"
             @click.prevent="fetchCustomerDetails(false)"
@@ -98,9 +96,10 @@
           <template v-if="!selectedUser">
             <VaTooltip text="Add Customer" placement="top">
               <VaButton
-                class="bg-blue-500 hover:bg-blue-600 text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
+                class="text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
                 size="small"
                 icon="mso-add"
+                :style="{ '--va-background-color': outlet.primaryColor }"
                 @click="openCustomerModal"
               />
             </VaTooltip>
@@ -109,9 +108,10 @@
           <template v-else>
             <VaTooltip text="Edit Customer" placement="top">
               <VaButton
-                class="bg-blue-500 hover:bg-blue-600 text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
+                class="hover:bg-blue-600 text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
                 size="small"
                 icon="mso-edit"
+                :style="{ '--va-background-color': outlet.primaryColor }"
                 @click="openCustomerModal"
               />
             </VaTooltip>
@@ -135,17 +135,17 @@
         <div v-if="selectedTab && selectedUser" class="flex items-center gap-2 w-full">
           <div class="flex bg-gray-100 rounded overflow-hidden text-sm w-1/2">
             <button
-              :class="orderType === 'now' ? 'bg-blue-500 text-white font-semibold' : 'text-gray-600 hover:bg-gray-200'"
+              :class="orderType === 'now' ? ` text-white font-semibold` : 'text-gray-600 hover:bg-gray-200'"
+              :style="{ backgroundColor: orderType == 'now' ? outlet.primaryColor : '' }"
               class="w-1/2 py-1 px-1 transition-colors text-sm"
               @click="orderType = 'now'"
             >
               Order Now
             </button>
             <button
-              :class="
-                orderType === 'future' ? 'bg-blue-500 text-white font-semibold' : 'text-gray-600 hover:bg-gray-200'
-              "
+              :class="orderType === 'future' ? `text-white font-semibold` : 'text-gray-600 hover:bg-gray-200'"
               class="w-1/2 py-1 px-1 transition-colors text-sm"
+              :style="{ backgroundColor: orderType == 'future' ? outlet.primaryColor : '' }"
               @click="orderType = 'future'"
             >
               Future Order
@@ -175,8 +175,9 @@
                 class="border rounded w-full px-2 py-1 text-sm bg-gray-100"
               />
               <VaButton
-                class="bg-blue-500 hover:bg-blue-600 text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
+                class="hover:bg-blue-600 text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
                 size="small"
+                :style="{ '--va-background-color': outlet.primaryColor }"
                 @click="showDeliveryDropdown = true"
               >
                 {{ serviceZoneId || 'N/A' }}
@@ -264,7 +265,7 @@
 
 <script setup>
 import { ref, watch, defineEmits, computed, defineExpose, onMounted, onUnmounted } from 'vue'
-import { useToast } from 'vuestic-ui'
+import { useToast, useColors } from 'vuestic-ui'
 import axios from 'axios'
 import { useServiceStore } from '@/stores/services.ts'
 import CustomerModal from '../modals/CustomerModal.vue'
@@ -297,14 +298,6 @@ const selectedZone = ref('')
 const showDeliveryDropdown = ref(false)
 const selectedZoneDetails = ref(null)
 const orderType = ref('now')
-
-const primaryColor = ref('#3B82F6')
-
-onMounted(async () => {
-  const servicesStore = useServiceStore()
-  const outletRes = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/outlets/${servicesStore.selectedRest}`)
-  primaryColor.value = outletRes.data.data?.primaryColor || '#3B82F6'
-})
 
 onClickOutside(target, (event) => (userResults.value = []), { ignore: [deliveryTarget] })
 onClickOutside(deliveryTarget, (event) => (showDeliveryDropdown.value = false), { ignore: [target] })
@@ -520,6 +513,11 @@ function getParsedAddress(payload) {
 
   return address
 }
+
+const outlet = computed(() => {
+  const servicesStore = useServiceStore()
+  return servicesStore.restDetails || {}
+})
 
 const filteredAddresses = computed(() => {
   let OtherAddresses = []
