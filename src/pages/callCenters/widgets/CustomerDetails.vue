@@ -2,7 +2,7 @@
   <div class="w-full">
     <!-- Header -->
     <div class="flex items-center justify-between">
-      <h2 class="font-semibold text-lg text-gray-800 border-b border-blue-500">Customer Details</h2>
+      <h2 class="font-semibold text-lg text-gray-800">Customer Details</h2>
       <button
         class="border rounded p-1 hover:bg-gray-100 text-sm"
         @click="(isOpen = !isOpen), $emit('setOpen', isOpen)"
@@ -14,7 +14,6 @@
     <!-- Collapsible Content -->
     <Transition name="fade">
       <div v-show="isOpen" class="space-y-3 mt-2">
-        <!-- Toggle Buttons -->
         <div class="flex bg-gray-100 rounded overflow-hidden text-sm">
           <button
             :class="
@@ -36,41 +35,91 @@
           </button>
         </div>
 
-        <!-- Phone & Name -->
-        <div v-if="selectedTab" class="flex items-center gap-2 relative">
+        <!-- Phone & Name Row -->
+        <div v-if="selectedTab" class="flex flex-wrap md:flex-nowrap items-center gap-2 relative w-full">
+          <!-- Mobile Number -->
           <input
             v-model="phoneNumber"
             :disabled="selectedUser !== ''"
             type="number"
-            placeholder="Mobile Number"
-            class="border rounded w-1/2 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Mobile No."
+            class="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-full md:w-[120px]"
             @keyup.enter="fetchCustomerDetails(false)"
           />
+
+          <!-- Customer Name -->
           <input
             v-model="name"
             type="text"
             :disabled="selectedUser !== ''"
             placeholder="Customer Name"
-            class="border rounded w-1/2 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            class="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 flex-1 min-w-0"
             @keyup.enter="fetchCustomerDetails(false)"
           />
+
+          <!-- Search Button -->
+          <VaButton
+            v-if="!selectedUser"
+            color="!primary"
+            class="bg-blue-500 hover:bg-blue-600 text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
+            size="small"
+            icon="mso-search"
+            @click.prevent="fetchCustomerDetails(false)"
+          />
+          <VaButton
+            v-else
+            color="danger"
+            size="small"
+            icon="mso-close"
+            class="h-[30px] w-[30px] rounded-md flex items-center justify-center"
+            @click.prevent="(selectedUser = ''), (phoneNumber = ''), (name = '')"
+          />
+
+          <!-- 
           <button
             v-if="!selectedUser"
-            class="text-blue-600 bg-blue-600 px-2 py-1 rounded-lg hover:text-blue-800"
+            class="text-white bg-blue-500 hover:bg-blue-600 rounded-md h-[30px] w-[30px] flex items-center justify-center"
             @click.prevent="fetchCustomerDetails(false)"
           >
             <span v-if="!isUserLoading">🔍</span>
             <span v-else class="loading-spinner">⌛</span>
-          </button>
-          <button
+          </button> -->
+
+          <!-- Clear Button -->
+          <!-- <button
             v-else
-            class="text-gray-600 px-2 py-1 rounded-lg hover:text-gray-800"
+            class="text-white bg-red-500 hover:bg-red-600 rounded-md h-[30px] w-[30px] flex items-center justify-center"
             @click.prevent="(selectedUser = ''), (phoneNumber = ''), (name = '')"
           >
             ✕
-          </button>
-          <div v-if="userResults.length" id="userResults" class="user-results">
-            <ul ref="userList" class="divide divide-y-2">
+          </button> -->
+
+          <!-- Add / Edit Button -->
+          <template v-if="!selectedUser">
+            <VaTooltip text="Add Customer" placement="top">
+              <VaButton
+                class="bg-blue-500 hover:bg-blue-600 text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
+                size="small"
+                icon="mso-add"
+                @click="openCustomerModal"
+              />
+            </VaTooltip>
+          </template>
+
+          <template v-else>
+            <VaTooltip text="Edit Customer" placement="top">
+              <VaButton
+                class="bg-blue-500 hover:bg-blue-600 text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
+                size="small"
+                icon="mso-edit"
+                @click="openCustomerModal"
+              />
+            </VaTooltip>
+          </template>
+
+          <!-- Suggestions -->
+          <div v-if="userResults.length" id="userResults" class="user-results w-full absolute top-full left-0 mt-2">
+            <ul ref="userList" class="divide divide-y-2 bg-white border rounded shadow w-full z-10">
               <li
                 v-for="user in userResults"
                 :key="user.ID"
@@ -83,18 +132,32 @@
           </div>
         </div>
 
-        <div v-if="selectedTab && !selectedUser" class="flex items-center w-full gap-2">
-          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-[75%]" />
-          <button
-            class="bg-green-500 text-white px-2 py-2 rounded text-xs hover:bg-green-600 w-[25%] whitespace-nowrap"
-            @click="openCustomerModal"
-          >
-            + Add New
-          </button>
-        </div>
-        <div v-if="selectedTab && selectedUser" class="flex items-center w-full gap-2">
-          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-[95%]" />
-          <VaButton class="rounded w-[5%]" color="#B3D943" size="small" icon="mso-edit" @click="openCustomerModal" />
+        <div v-if="selectedTab && selectedUser" class="flex items-center gap-2 w-full">
+          <div class="flex bg-gray-100 rounded overflow-hidden text-sm w-1/2">
+            <button
+              :class="orderType === 'now' ? 'bg-blue-500 text-white font-semibold' : 'text-gray-600 hover:bg-gray-200'"
+              class="w-1/2 py-1 px-1 transition-colors text-sm"
+              @click="orderType = 'now'"
+            >
+              Order Now
+            </button>
+            <button
+              :class="
+                orderType === 'future' ? 'bg-blue-500 text-white font-semibold' : 'text-gray-600 hover:bg-gray-200'
+              "
+              class="w-1/2 py-1 px-1 transition-colors text-sm"
+              @click="orderType = 'future'"
+            >
+              Future Order
+            </button>
+          </div>
+
+          <input
+            v-model="localDateTime"
+            type="datetime-local"
+            class="text-sm border rounded px-2 py-1 w-1/2"
+            :disabled="orderType === 'now'"
+          />
         </div>
 
         <!-- Address -->
@@ -103,7 +166,7 @@
             {{ selectedTab === 'takeaway' ? 'Location' : 'Address' }}
           </label>
 
-          <div class="flex items-center gap-2 relative">
+          <div class="flex flex-wrap md:flex-nowrap items-center gap-2 relative w-full">
             <template v-if="selectedTab === 'takeaway'">
               <input
                 type="text"
@@ -111,7 +174,10 @@
                 disabled
                 class="border rounded w-full px-2 py-1 text-sm bg-gray-100"
               />
-              <button class="bg-blue-500 text-white px-2 py-1 rounded" @click="showDeliveryDropdown = true">
+              <button
+                class="text-white bg-blue-500 hover:bg-blue-600 rounded-md h-[30px] w-[30px] flex items-center justify-center"
+                @click="showDeliveryDropdown = true"
+              >
                 {{ serviceZoneId || 'N/A' }}
               </button>
             </template>
@@ -124,11 +190,12 @@
                 track-by="value"
                 searchable
                 highlight-matched-text
+                class="h-[32px] w-[32px] min-w-[32px] flex items-center justify-center rounded-md p-0"
+                style="--va-select-dropdown-max-height: 100px"
               />
 
               <button
-                :disable="!selectedAddress"
-                class="bg-blue-500 text-white px-2 py-1 rounded"
+                class="text-white bg-blue-500 hover:bg-blue-600 rounded-md h-[30px] w-[30px] flex items-center justify-center"
                 @click="showDeliveryDropdown = true"
               >
                 {{ serviceZoneId || 'N/A' }}
@@ -214,6 +281,15 @@ const selectedUser = ref('')
 const selectedZone = ref('')
 const showDeliveryDropdown = ref(false)
 const selectedZoneDetails = ref(null)
+const orderType = ref('now')
+
+const primaryColor = ref('#3B82F6')
+
+onMounted(async () => {
+  const servicesStore = useServiceStore()
+  const outletRes = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/outlets/${servicesStore.selectedRest}`)
+  primaryColor.value = outletRes.data.data?.primaryColor || '#3B82F6'
+})
 
 onClickOutside(target, (event) => (userResults.value = []), { ignore: [deliveryTarget] })
 onClickOutside(deliveryTarget, (event) => (showDeliveryDropdown.value = false), { ignore: [target] })
@@ -514,10 +590,12 @@ watch(
 watch(
   () => selectedAddress.value,
   () => {
-    selectDeliveryZone(selectedZoneDetails.value)
-    orderStore.setDeliveryZone(zone)
-    emits('setDeliveryZone', true)
-    orderStore.setAddress(selectedAddress.value.text)
+    if (selectedZoneDetails.value) {
+      selectDeliveryZone(selectedZoneDetails.value)
+      orderStore.setDeliveryZone(selectedZoneDetails.value)
+      emits('setDeliveryZone', true)
+      orderStore.setAddress(selectedAddress.value.text)
+    }
   },
 )
 
@@ -574,7 +652,7 @@ defineExpose({
   margin-top: 8px;
   margin-bottom: 16px;
   background: white;
-  z-index: 10;
+  z-index: 50;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -589,5 +667,8 @@ defineExpose({
   flex: 1;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+.va-input-wrapper .va-input-wrapper__fieldset .va-input-wrapper__container .va-input-wrapper__field {
+  padding: 4px 8px;
 }
 </style>

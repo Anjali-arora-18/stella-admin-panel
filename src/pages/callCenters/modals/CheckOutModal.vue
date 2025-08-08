@@ -1,6 +1,13 @@
 <template>
-  <VaModal v-model="showCheckoutModal" no-dismiss class="big-xl-modal" size="large" :mobile-fullscreen="false"
-    hide-default-actions :close-button="!redirectUrl">
+  <VaModal
+    v-model="showCheckoutModal"
+    no-dismiss
+    class="big-xl-modal"
+    size="large"
+    :mobile-fullscreen="false"
+    hide-default-actions
+    :close-button="!redirectUrl"
+  >
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50">
       <!-- Order Summary -->
       <div class="md:col-span-1">
@@ -43,13 +50,19 @@
               <!-- Show selected items inside each offer -->
               <div v-if="item.selections?.length" class="item-extras">
                 <div v-for="(selection, sIndex) in item.selections" :key="sIndex" class="selection-group">
-                  <div v-for="(addedItem, aIndex) in selection.addedItems" :key="`${addedItem.itemId}-${aIndex}`"
-                    class="extra-item">
+                  <div
+                    v-for="(addedItem, aIndex) in selection.addedItems"
+                    :key="`${addedItem.itemId}-${aIndex}`"
+                    class="extra-item"
+                  >
                     <div class="extra-name font-medium text-gray-800">+ {{ addedItem.itemName }}</div>
                     <div v-if="addedItem.selectedOptions?.length" class="pl-4 pt-1 text-sm text-gray-600">
                       <div v-for="group in addedItem.selectedOptions" :key="group.groupId">
-                        <div v-for="option in group.selected" :key="option.optionId"
-                          class="flex justify-between text-sm">
+                        <div
+                          v-for="option in group.selected"
+                          :key="option.optionId"
+                          class="flex justify-between text-sm"
+                        >
                           <span>↳ {{ option.name }}</span>
                           <span>+€{{ (option.price * option.quantity).toFixed(2) }}</span>
                         </div>
@@ -85,9 +98,13 @@
 
         <div class="payment-content flex-grow">
           <div class="payment-options grid sm:grid-cols-2 gap-4">
-            <div v-for="payment in paymentTypes.filter((a) => userDetails.paymentType.includes(a.paymentTypeId))"
-              :key="payment.paymentTypeId" class="payment-option" :class="selectedPayment == payment ? 'selected' : ''"
-              @click="selectedPayment = payment">
+            <div
+              v-for="payment in paymentTypes.filter((a) => userDetails.paymentType.includes(a.paymentTypeId))"
+              :key="payment.paymentTypeId"
+              class="payment-option"
+              :class="selectedPayment == payment ? 'selected' : ''"
+              @click="selectedPayment = payment"
+            >
               <div class="payment-icon">{{ payment.name === 'Cash' ? '💵' : '💳' }}</div>
               <div class="payment-label">{{ payment.name }}</div>
               <div class="payment-desc">
@@ -98,10 +115,15 @@
         </div>
 
         <div class="action-container mt-6">
-          <button id="confirmBtn" :disabled="apiLoading || !selectedPayment" class="btn btn-primary"
-            @click="createOrder">
+          <button
+            id="confirmBtn"
+            :disabled="apiLoading || !selectedPayment"
+            class="btn btn-primary"
+            @click="createOrder"
+          >
             <span v-if="!apiLoading" id="btnText">
-              {{ orderId && selectedPayment === 'Card' ? 'Retry Payment' : 'Payment' }}</span>
+              {{ orderId && selectedPayment === 'Card' ? 'Retry Payment' : 'Payment' }}</span
+            >
             <div v-if="apiLoading" id="loadingSpinner" class="loading-spinner animate-spin"></div>
           </button>
         </div>
@@ -152,18 +174,14 @@ const etaTime = computed(() => {
       ? orderStore.deliveryZone?.deliveryPromiseTime
       : orderStore.deliveryZone.takeawayPromiseTime
 
-  // Create a copy of the date for ETA calculation
   const etaDate = new Date(selectedDate)
   etaDate.setMinutes(etaDate.getMinutes() + promiseTime)
 
-  // Format the time
   const timeString = etaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
 
-  // Check if it's a future order (more than 30 minutes from now)
   const isFutureOrder = selectedDate.getTime() > now.getTime() + 30 * 60 * 1000
 
   if (isFutureOrder) {
-    // Format the date for future orders
     const dateString = selectedDate.toLocaleDateString([], {
       day: 'numeric',
       month: 'short',
@@ -175,23 +193,32 @@ const etaTime = computed(() => {
       hour12: false,
     })
 
-    return `${props.orderType === 'delivery' ? 'Delivery' : 'Takeaway'
-      } - Scheduled for ${dateString} at ${scheduledTimeString}`
+    return `${
+      props.orderType === 'delivery' ? 'Delivery' : 'Takeaway'
+    } - Scheduled for ${dateString} at ${scheduledTimeString}`
   } else {
-    // For current orders
     return props.orderType === 'delivery' ? `Delivery - ETA ${timeString}` : `Takeaway - Ready at ${timeString}`
   }
 })
 
 onMounted(() => {
-  getPaymentOptions()
+  if (serviceStore.selectedRest) {
+    getPaymentOptions()
+  }
 })
 
 const getPaymentOptions = () => {
+  if (!serviceStore.selectedRest) return
+
   const url = import.meta.env.VITE_API_BASE_URL
-  axios.get(`${url}/payments?outletId=${serviceStore.selectedRest}`).then((response) => {
-    paymentTypes.value = response.data.data.filter((a) => a.callCenter)
-  })
+  axios
+    .get(`${url}/payments?outletId=${serviceStore.selectedRest}`)
+    .then((response) => {
+      paymentTypes.value = response.data.data.filter((a) => a.callCenter)
+    })
+    .catch((err) => {
+      console.error('Failed to fetch payment options:', err)
+    })
 }
 
 watch(
@@ -229,10 +256,8 @@ function setInter() {
   }, 2000)
 }
 function resetInter() {
-  // Clear interval when component unmounts
   clearInterval(checkInterval.value)
 }
-// Computed total values
 const subtotal = computed(() => {
   return (
     orderStore.cartItems.reduce((acc, item) => acc + item.totalPrice, 0) +
@@ -377,13 +402,11 @@ async function createOrder() {
       throw new Error(response.data?.message || 'Something went wrong')
     }
   } catch (err: any) {
-    // Handle error — show toast
     init({
       color: 'danger',
       message: err.response.data.message || 'Order failed, please try again.',
     })
 
-    // If backend returns partial data like requestId, save it for retry
     if (err?.response?.data?.data?.requestId) {
       orderId.value = err.response.data.data.requestId
     }
