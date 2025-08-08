@@ -174,12 +174,19 @@
                 disabled
                 class="border rounded w-full px-2 py-1 text-sm bg-gray-100"
               />
-              <button
+              <VaButton
+                class="bg-blue-500 hover:bg-blue-600 text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
+                size="small"
+                @click="showDeliveryDropdown = true"
+              >
+                {{ serviceZoneId || 'N/A' }}
+              </VaButton>
+              <!-- <button
                 class="text-white bg-blue-500 hover:bg-blue-600 rounded-md h-[30px] w-[30px] flex items-center justify-center"
                 @click="showDeliveryDropdown = true"
               >
                 {{ serviceZoneId || 'N/A' }}
-              </button>
+              </button> -->
             </template>
 
             <template v-else>
@@ -194,12 +201,20 @@
                 style="--va-select-dropdown-max-height: 100px"
               />
 
-              <button
+              <VaButton
+                class="bg-blue-500 hover:bg-blue-600 text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
+                size="small"
+                @click="showDeliveryDropdown = true"
+              >
+                {{ serviceZoneId || 'N/A' }}
+              </VaButton>
+
+              <!-- <button
                 class="text-white bg-blue-500 hover:bg-blue-600 rounded-md h-[30px] w-[30px] flex items-center justify-center"
                 @click="showDeliveryDropdown = true"
               >
                 {{ serviceZoneId || 'N/A' }}
-              </button>
+              </button> -->
             </template>
 
             <!-- Delivery dropdown (shared) -->
