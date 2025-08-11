@@ -9,13 +9,16 @@
     >
       <VaCard>
         <VaCardContent class="menu-section">
-          <div class="top-bar flex items-start border-b pb-4 sm:flex-row sm:justify-between gap-4">
+          <div class="category top-bar flex items-start border-b pb-4 sm:flex-row sm:justify-between gap-4">
             <div class="flex flex-wrap gap-2">
               <a
                 v-if="offers.length"
-                class="text-white px-4 py-2 rounded-2xl"
+                class="text-white px-4 py-2 rounded-2xl category-link"
                 href="#offers"
-                :style="{ backgroundColor: selectedItem === 'offers' ? outlet.primaryColor : '#aaadb1' }"
+                :style="{
+                  backgroundColor: selectedItem === 'offers' ? outlet.primaryColor : '#f1f5f9',
+                  color: selectedItem === 'offers' ? '#fff' : '#64748b',
+                }"
                 @click.prevent="selectedItem = 'offers'"
               >
                 Offers
@@ -24,8 +27,11 @@
                 v-for="item in filteredCategories"
                 :key="item._id"
                 :href="`#${item._id}`"
-                :style="{ backgroundColor: selectedItem === item._id ? outlet.primaryColor : '#aaadb1' }"
-                class="text-white px-4 py-2 rounded-2xl"
+                :style="{
+                  backgroundColor: selectedItem === item._id ? outlet.primaryColor : '#f1f5f9',
+                  color: selectedItem === item._id ? '#fff' : '#64748b',
+                }"
+                class="text-white px-4 py-2 rounded-2xl category-link"
                 @click.prevent="selectedItem = item._id"
               >
                 {{ toTitleCase(item.name) }}
@@ -289,6 +295,27 @@ async function getMenu() {
   display: flex;
   flex-direction: column;
   height: calc(100vh - 115px);
+  .category {
+    .flex {
+      .category-link {
+        padding: 8px 16px;
+        background: transparent;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 14px;
+        transition: all 0.2s ease;
+      }
+      .category-link:hover {
+        background: #e2e8f0;
+      }
+      .category-link:active {
+        color: #fff !important;
+      }
+    }
+  }
 }
 
 .menu-scroll {

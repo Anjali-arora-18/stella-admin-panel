@@ -153,7 +153,7 @@
                 type="text"
                 :value="selectedZone || 'No Zone Selected'"
                 disabled
-                class="border rounded w-full px-2 py-1 text-sm bg-gray-100"
+                class="border rounded w-full px-1 py-1 text-sm bg-gray-100"
               />
               <VaButton
                 class="hover:bg-blue-600 text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
@@ -651,6 +651,6 @@ defineExpose({
   transition: all 0.2s ease;
 }
 .va-input-wrapper .va-input-wrapper__fieldset .va-input-wrapper__container .va-input-wrapper__field {
-  padding: 4px 8px;
+  padding: 4px;
 }
 </style>
