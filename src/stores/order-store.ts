@@ -8,8 +8,16 @@ export const useOrderStore = defineStore('order', {
     redirectUrl: '',
     deliveryZone: '',
     address: '',
+    orderFor: 'current',
   }),
+
   actions: {
+    setOrderFor(payload) {
+      this.orderFor = payload
+    },
+    setCartItems(payload) {
+      this.cartItems = payload
+    },
     setDeliveryZone(payload) {
       this.deliveryZone = payload
     },

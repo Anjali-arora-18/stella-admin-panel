@@ -116,18 +116,18 @@
         <div v-if="selectedTab && selectedUser" class="flex items-center gap-2 w-full">
           <div class="flex bg-gray-100 rounded overflow-hidden text-sm w-1/2">
             <button
-              :class="orderType === 'now' ? ` text-white font-semibold` : 'text-gray-600 hover:bg-gray-200'"
-              :style="{ backgroundColor: orderType == 'now' ? outlet.primaryColor : '' }"
+              :class="orderFor === 'current' ? ` text-white font-semibold` : 'text-gray-600 hover:bg-gray-200'"
+              :style="{ backgroundColor: orderFor == 'current' ? outlet.primaryColor : '' }"
               class="w-1/2 py-1 px-1 transition-colors text-sm"
-              @click="orderType = 'now'"
+              @click="orderFor = 'current'"
             >
               Order Now
             </button>
             <button
-              :class="orderType === 'future' ? `text-white font-semibold` : 'text-gray-600 hover:bg-gray-200'"
+              :class="orderFor === 'future' ? `text-white font-semibold` : 'text-gray-600 hover:bg-gray-200'"
               class="w-1/2 py-1 px-1 transition-colors text-sm"
-              :style="{ backgroundColor: orderType == 'future' ? outlet.primaryColor : '' }"
-              @click="orderType = 'future'"
+              :style="{ backgroundColor: orderFor == 'future' ? outlet.primaryColor : '' }"
+              @click="orderFor = 'future'"
             >
               Future Order
             </button>
@@ -137,7 +137,7 @@
             v-model="localDateTime"
             type="datetime-local"
             class="text-sm border rounded px-2 py-1 w-1/2"
-            :disabled="orderType === 'now'"
+            :disabled="orderFor === 'current'"
           />
         </div>
 
@@ -266,7 +266,7 @@ const selectedUser = ref('')
 const selectedZone = ref('')
 const showDeliveryDropdown = ref(false)
 const selectedZoneDetails = ref(null)
-const orderType = ref('now')
+const orderFor = ref('current')
 
 onClickOutside(target, (event) => (userResults.value = []), { ignore: [deliveryTarget] })
 onClickOutside(deliveryTarget, (event) => (showDeliveryDropdown.value = false), { ignore: [target] })
@@ -604,6 +604,10 @@ watch(name, (newVal) => {
   if (!newVal.trim()) {
     userResults.value = []
   }
+})
+
+watch(orderFor, (newVal) => {
+  orderStore.setOrderFor(newVal)
 })
 
 defineExpose({

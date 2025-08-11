@@ -165,6 +165,7 @@ const redirectUrl = computed(() => orderStore.redirectUrl)
 const userDetails = computed(() => userStore.userDetails)
 const checkInterval: any = ref('')
 const paymentTypes: any = ref([])
+const orderFor = computed(() => orderStore.orderFor)
 
 const etaTime = computed(() => {
   const now = new Date()
@@ -312,6 +313,7 @@ async function createOrder() {
   menuItems = orderStore.cartItems.map((e) => {
     return {
       menuItem: e.itemId,
+      orderFor: orderFor.value,
       quantity: e.quantity,
       options: e.selectedOptions.flatMap((group) =>
         group.selected.map((option) => ({
