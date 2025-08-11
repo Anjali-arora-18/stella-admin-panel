@@ -277,9 +277,9 @@ async function checkPaymentStatus(requestId, paymentId) {
       color: 'success',
       message: 'Payment Success',
     })
-    if (orderResponse.value.data.data.orderType.toLowerCase() === 'current') {
+    if (orderFor.value === 'current') {
       try {
-        await orderStore.sendOrderToWinmax(requestId)
+        await orderStore.sendOrderToWinmax(requestId, orderFor.value)
         init({
           color: 'success',
           message: 'Order sent to Winmax',
@@ -379,8 +379,8 @@ async function createOrder() {
         setInter()
       } else {
         try {
-          if (orderResponse.value.data.data.orderType.toLowerCase() === 'current') {
-            await orderStore.sendOrderToWinmax(orderResponse.value.data.data._id)
+          if (orderFor.value === 'current') {
+            await orderStore.sendOrderToWinmax(orderResponse.value.data.data._id, orderFor.value)
             init({
               color: 'success',
               message: 'Order sent to Winmax',

@@ -79,10 +79,11 @@ export const useOrderStore = defineStore('order', {
       const url = import.meta.env.VITE_API_BASE_URL
       return await axios.post(`${url}/payments/${orderId}?paymentTypeId=${paymentTypeId}`)
     },
-    async sendOrderToWinmax(orderId) {
+    async sendOrderToWinmax(orderId, orderFor) {
       const url = import.meta.env.VITE_API_BASE_URL
       return await axios.post(`${url}/winmax/winmax-orders/`, {
         id: orderId,
+        orderFor: orderFor,
       })
     },
     async retryPayment(orderId) {
