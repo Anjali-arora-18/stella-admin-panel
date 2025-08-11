@@ -313,7 +313,6 @@ async function createOrder() {
   menuItems = orderStore.cartItems.map((e) => {
     return {
       menuItem: e.itemId,
-      orderFor: orderFor.value,
       quantity: e.quantity,
       options: e.selectedOptions.flatMap((group) =>
         group.selected.map((option) => ({
@@ -343,6 +342,7 @@ async function createOrder() {
 
   try {
     const payload = {
+      orderFor: orderFor.value,
       customerDetailId: props.customerDetailsId,
       orderType: props.orderType === 'takeaway' ? 'Takeaway' : 'Delivery',
       deliveryZoneId: orderStore.deliveryZone?._id,
