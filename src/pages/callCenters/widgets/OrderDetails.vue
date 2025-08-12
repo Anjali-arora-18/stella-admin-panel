@@ -1,6 +1,6 @@
 <template>
   <div class="w-full">
-    <h2 class="font-semibold text-lg text-gray-800 border-b pb-2">Order Details</h2>
+    <h2 class="font-semibold text-md text-gray-800 border-b pb-2">Order Details</h2>
     <template v-if="items.length || offersItems.length">
       <!-- Promo Code with Button -->
       <div class="flex flex-wrap items-center gap-1 my-5 w-full">
@@ -10,7 +10,7 @@
           placeholder="Promotion Code"
           size="small"
           class="flex-1 min-w-[200px]"
-          input-class="text-sm pr-6"
+          input-class="text-xs pr-6"
         >
           <template #appendInner>
             <VaIcon v-if="promoCode" name="close" color="danger" class="cursor-pointer" @click="clearPromoCode" />
@@ -21,7 +21,7 @@
         <VaButton
           size="small"
           :style="{ '--va-background-color': outlet.primaryColor }"
-          class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white px-3 py-1 rounded-md text-xs shadow-md"
+          class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white px-3 rounded-md text-xs shadow-md"
           @click="openPromotionModal"
         >
           Select
@@ -115,7 +115,7 @@
                 <span class="font-medium text-gray-800"
                   >{{ item.name }}
                   <span class="font-semibold text-gray-700 mb-1 mt-2">
-                    <span v-if="Number(item.basePrice) > 0" class="text-sm font-normal text-gray-500">
+                    <span v-if="Number(item.basePrice) > 0" class="text-xs font-normal text-gray-500">
                       (€{{ Number(item.basePrice).toFixed(2) }})
                     </span>
                   </span>
@@ -134,7 +134,7 @@
                 <div v-for="selectedArticle in item.items" :key="selectedArticle.itemName" class="mt-2 text-xs">
                   <p class="font-semibold text-gray-800 mt-1 flex items-center gap-2">
                     <span class="mb-1">{{ selectedArticle.itemName }}</span>
-                    <span v-if="Number(selectedArticle.basePrice) > 0" class="text-sm font-normal text-gray-500">
+                    <span v-if="Number(selectedArticle.basePrice) > 0" class="text-xs font-normal text-gray-500">
                       (€{{ Number(selectedArticle.basePrice).toFixed(2) }})
                     </span>
                   </p>
@@ -172,16 +172,16 @@
         </div>
       </div>
       <!-- Summary -->
-      <div class="text-sm mt-5 space-y-1 p-2 bg-slate-50 mb-5">
+      <div class="text-xs space-y-1 p-2 bg-slate-50 mb-5">
         <div class="flex justify-between">
-          <span class="text-gray-600">Subtotal:</span>
+          <span class="text-gray-600 text-md">Subtotal:</span>
           <span>€{{ subtotal.toFixed(2) }}</span>
         </div>
         <div v-if="orderType === 'delivery'" class="flex justify-between">
           <span class="text-gray-600">Delivery Fee:</span>
           <span>€{{ deliveryFee.toFixed(2) }}</span>
         </div>
-        <div class="flex justify-between font-bold text-lg pt-2 border-t">
+        <div class="flex justify-between font-bold text-md pt-2 border-t">
           <span>Total:</span>
           <span>€{{ total.toFixed(2) }}</span>
         </div>
@@ -190,10 +190,10 @@
       <!-- Checkout -->
       <VaButton
         :disabled="!customerDetailsId || !orderType || !props.isDeliveryZoneSelected || total === 0"
-        class="mt-2 w-full"
+        class="mt-1 w-full"
         color="success"
         :style="{ '--va-background-color': outlet.primaryColor }"
-        size="large"
+        size="medium"
         @click="openCheckoutModal"
       >
         Checkout Order
@@ -396,7 +396,7 @@ const { init } = useToast()
 async function openPromotionModal() {
   const url = import.meta.env.VITE_API_BASE_URL
   try {
-    const { data } = await axios.get(`${url}/promotion?outletId=${serviceStore.selectedRest}`)
+    const { data } = await axios.get(`${url}/promotions?outletId=${serviceStore.selectedRest}`)
     console.log('Promotion Data:', data)
 
     const validPromotions = data.data.filter((promo) => promo.availableAtCC)
@@ -476,16 +476,16 @@ function closePromotionModal() {
 .order-items-height,
 .order-items-min-height {
   overflow-y: auto;
-  background: #fff; /* or your desired bg */
-  border-radius: 0 0 8px 8px; /* bottom corners rounded */
-  overflow: hidden; /* ensures bg and radius are clipped */
+  background: #fff;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
 }
 .order-items-height {
   overflow-y: auto;
-  height: calc(100vh - 500px);
+  height: calc(100vh - 430px);
 }
 .order-items-min-height {
   overflow-y: auto;
-  height: calc(100vh - 800px);
+  height: calc(100vh - 670px);
 }
 </style>

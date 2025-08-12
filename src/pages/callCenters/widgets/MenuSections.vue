@@ -35,7 +35,7 @@ const { isSidebarMinimized } = storeToRefs(useGlobalStore())
 <style lang="scss" scoped>
 .category-title {
   grid-column: 1 / -1;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: #1e293b;
   margin: 25px 0 15px 0;

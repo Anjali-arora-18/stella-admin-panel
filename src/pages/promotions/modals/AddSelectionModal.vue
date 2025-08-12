@@ -1,5 +1,13 @@
 <template>
-  <VaModal :model-value="isVisible" size="large" close-button hide-default-actions @update:modelValue="$emit('cancel')">
+  <VaModal
+    :model-value="isVisible"
+    class="big-xl-modal !p-0"
+    :mobile-fullscreen="false"
+    size="large"
+    close-button
+    hide-default-actions
+    @update:modelValue="$emit('cancel')"
+  >
     <!-- HEADER -->
     <template #header>
       <div class="flex items-center gap-2">
@@ -19,18 +27,22 @@
     <VaForm ref="form" @submit.prevent="submit">
       <div class="grid gap-4">
         <div>
-          <div class="flex flex-col gap-1 mb-2">
-            <div>
-              <VaInput v-model="searchQuery" placeholder="Search..." size="small" clearable style="width: 50%" />
-            </div>
-            <div>
-              <VaCheckbox v-model="selectAll" class="m-1" label="Select All" />
-            </div>
-          </div>
-
-          <div class="border rounded shadow-sm bg-white max-h-[36vh] overflow-y-auto">
+          <div
+            v-if="!isLoading && props.type !== 'options'"
+            class="border rounded shadow-sm bg-white h-[65vh] overflow-y-auto"
+          >
             <!-- ITEMS TABLE -->
-            <table v-if="!isLoading" class="w-full text-sm">
+            <table class="w-full text-sm">
+              <thead>
+                <tr>
+                  <th class="p-1 text-left align-top">
+                    <!-- Search -->
+                    <VaInput v-model="searchQuery" placeholder="Search..." size="small" class="mb-2" />
+                    <!-- Select All -->
+                    <VaCheckbox v-model="selectAll" class="ml-1" label="Select All" />
+                  </th>
+                </tr>
+              </thead>
               <tbody>
                 <tr v-for="item in sortedList" :key="item._id" class="border-b hover:bg-orange-50">
                   <td class="p-2">
@@ -43,9 +55,88 @@
                 </tr>
               </tbody>
             </table>
-
+          </div>
+          <div v-if="!isLoading && props.type === 'options'" class="pt-3">
+            <!-- <div class="border rounded shadow-sm bg-white h-[65vh] overflow-y-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="p-2 text-left font-semibold text-gray-700">Option Groups</th>
+                  </tr>
+                  <tr>
+                    <th class="p-1 text-left align-top">
+                      <VaInput v-model="groupSearchQuery" placeholder="Search..." size="small" class="mb-2" />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="item in sortedList.filter((a) => a.display)"
+                    :key="item._id"
+                    class="border-b hover:bg-orange-50"
+                  >
+                    <td class="p-2">
+                      <VaCheckbox
+                        :model-value="item.selected"
+                        :label="item.name + ' - ' + item.internalName"
+                        @update:modelValue="item.selected = !item.selected"
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div> -->
+            <VaSelect
+              v-model="selectedGroup"
+              :options="sortedList.map((a) => ({ text: a.name + '-' + a.internalName, value: a._id }))"
+              :filterable="true"
+              :searchable="true"
+              option-value="_id"
+              option-label="name"
+              clearable
+              value-by="value"
+              placeholder="Select Option Group"
+              class="w-full mb-5"
+            />
+            <div class="border rounded shadow-sm bg-white h-[65vh] overflow-y-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr>
+                    <th class="p-2 text-left font-semibold text-gray-700">Options</th>
+                  </tr>
+                  <tr>
+                    <th class="p-1 text-left align-top">
+                      <!-- Search -->
+                      <VaInput v-model="searchQuery" placeholder="Search..." size="small" class="mb-2" />
+                      <!-- Select All -->
+                      <VaCheckbox v-model="selectAll" class="ml-1" label="Select All" />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="item in sortedList
+                      .filter((a) => a._id === selectedGroup || !selectedGroup)
+                      .flatMap((a) => a.computedOptions)
+                      .filter((a) => a.display)"
+                    :key="item._id"
+                    class="border-b hover:bg-orange-50"
+                  >
+                    <td class="p-2">
+                      <VaCheckbox
+                        :model-value="isChecked(item._id)"
+                        :label="item.code + ' - ' + item.name + (props.type === 'options' ? ' - ' + item.posName : '')"
+                        @update:modelValue="toggleSelection(String(item._id))"
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div v-if="isLoading" class="border rounded shadow-sm bg-white h-[65vh] overflow-y-auto">
             <!-- LOADING SKELETON -->
-            <VaSkeletonGroup v-else animation="wave">
+            <VaSkeletonGroup animation="wave">
               <VaCard>
                 <VaCardContent>
                   <VaSkeleton variant="text" height="64px" class="ml-2" :lines="5" />
@@ -67,7 +158,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, toRef, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, toRef, watch, nextTick, onBeforeUnmount } from 'vue'
 import { useToast } from 'vuestic-ui'
 import axios from 'axios'
 import { getPromotionById, updatePromotion, getArticlesByOutlet } from '../services/promotionService'
@@ -89,16 +180,18 @@ const props = defineProps({
 const isVisible = toRef(props, 'isVisible')
 const isLoading = ref(false)
 const items = ref<any[]>([])
+const groups = ref<any[]>([])
 const articles = ref<any[]>([])
 const selectedMenuItems = ref<string[]>([])
 const selectedArticles = ref<string[]>([])
 const searchQuery = ref('')
+const selectedGroup = ref('')
 const promotionData = ref<any>(null)
 const { init } = useToast()
 const selectAll = ref(false)
 
 /* Computed lists */
-const sourceList = computed(() => (props.type === 'options' ? articles.value : items.value))
+const sourceList = computed(() => (props.type === 'options' ? groups.value : items.value))
 
 const sortedList = computed(() => {
   const list = sourceList.value.filter((item) => item.display !== false)
@@ -123,12 +216,21 @@ if (props.type === 'options') {
   selectedMenuItems.value = [...props.pendingSelections]
 }
 
+onBeforeUnmount(() => {
+  console.log('[onBeforeUnmount] Cleaning up state')
+  searchQuery.value = ''
+  selectAll.value = false
+  selectedMenuItems.value = []
+  selectedArticles.value = []
+})
+
 // Add watch on searchQuery to update display property
 watch(
   searchQuery,
   (query) => {
-    if (Array.isArray(sourceList.value)) {
-      sourceList.value.forEach((item) => {
+    const sList = props.type === 'options' ? sourceList.value.flatMap((a) => a.computedOptions) : sourceList.value
+    if (Array.isArray(sList)) {
+      sList.forEach((item) => {
         const name = item.name?.toLowerCase() || ''
         const code = item.code?.toLowerCase() || ''
         const posName = item.posName?.toLowerCase() || ''
@@ -193,9 +295,16 @@ watch([promotionData, items, articles], async ([promo]) => {
 })
 
 watch(selectAll, (value) => {
-  const visibleIds = sourceList.value.filter((a) => a.display).map((item) => String(item._id))
-  console.log('[watch:selectAll] Visible IDs:', visibleIds, '| Select All:', value)
-  const targetList = props.type === 'options' ? selectedArticles : selectedMenuItems
+  const sIds = sourceList.value.filter((a) => a.display)
+  const visibleIds =
+    props.type === 'options'
+      ? sIds
+          .filter((a) => a._id === selectedGroup.value || !selectedGroup.value)
+          .flatMap((a) => a.computedOptions)
+          .filter((a) => a.display)
+          .map((a) => String(a._id))
+      : sIds.map((item) => String(item._id))
+  const targetList: any = props.type === 'options' ? selectedArticles : selectedMenuItems
 
   if (value) {
     // Add all visible (filtered) IDs that are not already selected
@@ -220,6 +329,30 @@ function toggleSelection(id: string) {
     target.splice(idx, 1)
   } else {
     target.push(id)
+  }
+}
+
+const getOptionGroups = async () => {
+  const url = import.meta.env.VITE_API_BASE_URL
+  isLoading.value = true
+  try {
+    const response = await axios.get(
+      url + `/articles-options-groups?limit=100000&&sortKey=name&sortValue=asc&outletId=${props.outletId}`,
+    )
+    const item = response.data.result
+    groups.value = item.map((e) => {
+      return {
+        ...e,
+        selected: !!e.options.find((a) => selectedIds.value.includes(a)),
+        display: true,
+        computedOptions: articles.value.filter((a) => e.options.includes(a._id)),
+      }
+    })
+    console.log('[getOptionGroups] Loaded groups:', groups.value)
+  } catch (error) {
+    init({ message: 'Failed to load OptionGroups', color: 'danger' })
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -249,6 +382,7 @@ async function loadArticles(outletId: string) {
       _id: String(a._id),
     }))
     console.log('[loadArticles] Loaded options:', articles.value)
+    getOptionGroups()
   } catch (err) {
     console.error('[loadArticles] Failed:', err)
     articles.value = []
@@ -327,8 +461,8 @@ tr {
   background-color: rgba(0, 0, 0, 0.1);
   border-radius: 3px;
 }
-.max-h-[36vh] {
-  max-height: 36vh;
+.h-[65vh] {
+  max-height: 70vh;
 }
 .va-checkbox .va-checkbox__square {
   background: #f3f4f6 !important;

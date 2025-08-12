@@ -38,7 +38,7 @@
               </a>
             </div>
             <div class="flex">
-              <span class="bg-black px-4 py-4 text-white text-2xl rounded">
+              <span class="bg-black px-3 py-3 text-white text-xl rounded">
                 {{ currentTime }}
               </span>
             </div>

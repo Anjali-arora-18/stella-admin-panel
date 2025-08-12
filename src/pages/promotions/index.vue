@@ -194,6 +194,7 @@ if (servicesStore.selectedRest) {
           :items="items"
           :loading="isLoading"
           @editPromotions="editPromotions"
+          @getPromotions="getPromotions"
           @openSelectionModal="handleOpenSelectionModal"
         />
 

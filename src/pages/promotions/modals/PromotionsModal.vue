@@ -20,7 +20,7 @@
       <VaForm ref="form" @submit.prevent="submit">
         <div class="p-6 space-y-6">
           <!-- BASIC INFO -->
-          <section>
+          <section v-if="!isUpdating">
             <h2 class="text-md font-semibold mb-2">Basic Information</h2>
             <div class="grid md:grid-cols-3 gap-4">
               <VaInput
@@ -50,7 +50,7 @@
           </section>
 
           <!-- Value Discount -->
-          <section v-if="formData.promotionType === 'Value Discount'">
+          <section v-if="formData.promotionType === 'Value Discount' && !isUpdating">
             <h2 class="text-md font-semibold mb-2">Value Discount Configuration</h2>
             <div class="grid md:grid-cols-2 gap-4">
               <VaInput
@@ -78,7 +78,7 @@
           </section>
 
           <!-- Percentage Discount -->
-          <section v-if="formData.promotionType === 'Percentage Discount'">
+          <section v-if="formData.promotionType === 'Percentage Discount' && !isUpdating">
             <h2 class="text-md font-semibold mb-2">Percentage Discount Configuration</h2>
             <div class="grid md:grid-cols-2 gap-4">
               <VaInput
@@ -106,7 +106,7 @@
           </section>
 
           <!-- Fixed Price -->
-          <section v-if="formData.promotionType === 'Fixed Price'">
+          <section v-if="formData.promotionType === 'Fixed Price' && !isUpdating">
             <h2 class="text-md font-semibold mb-2">Fixed Price Configuration</h2>
 
             <div class="grid md:grid-cols-2 gap-4 items-end">
@@ -131,13 +131,13 @@
           </section>
 
           <!-- Free Delivery -->
-          <section v-if="formData.promotionType === 'Free Delivery'">
+          <section v-if="formData.promotionType === 'Free Delivery' && !isUpdating">
             <h2 class="text-md font-semibold mb-2">Free Delivery Configuration</h2>
             <VaAlert color="primary">Order Type will be automatically set to Delivery.</VaAlert>
           </section>
 
           <!-- Take X Pay Y -->
-          <section v-if="formData.promotionType === 'Take X pay Y'">
+          <section v-if="formData.promotionType === 'Take X pay Y' && !isUpdating">
             <h2 class="text-md font-semibold mb-2">Take X pay Y Configuration</h2>
             <div class="grid md:grid-cols-3 gap-4">
               <VaInput
@@ -164,20 +164,21 @@
           </section>
 
           <!-- Code Generation -->
-          <section>
+          <section v-if="!isUpdating">
             <h2 class="text-md font-semibold mb-2">Code Generation</h2>
             <VaOptionList
               v-model="formData.codeType"
               :options="[
-                { label: 'Single', value: 'single' },
-                { label: 'Multi', value: 'multi' },
-                { label: 'Auto', value: 'auto' },
+                { label: 'Single Code', value: 'SINGLE' },
+                { label: 'Multi Code', value: 'MULTI' },
+                { label: 'No Code (Auto)', value: 'AUTO' },
               ]"
               type="radio"
               text-by="label"
               value-by="value"
             />
-            <div v-if="formData.codeType === 'single'" class="grid md:grid-cols-2 gap-4 mt-4">
+            <!-- Single Code Input -->
+            <div v-if="formData.codeType === 'SINGLE'" class="grid md:grid-cols-2 gap-4 mt-4">
               <VaInput
                 v-model="formData.manualCode"
                 label="Code"
@@ -186,7 +187,9 @@
                 :rules="[validators.required]"
               />
             </div>
-            <div v-if="formData.codeType === 'multi'" class="grid md:grid-cols-2 gap-4 mt-4">
+
+            <!-- Multi Code Input -->
+            <div v-if="formData.codeType === 'MULTI'" class="grid md:grid-cols-2 gap-4 mt-4">
               <VaInput
                 v-model="formData.quantity"
                 label="Quantity"
@@ -198,20 +201,6 @@
               />
               <VaInput v-model="formData.prefix" label="Code Prefix (Optional)" placeholder="e.g. LUNCH" />
             </div>
-            <!-- <div class="grid md:grid-cols-3 gap-4">
-              <VaCheckbox v-model="formData.automatic" label="Automatic Promotion" />
-              <VaInput
-                v-model="formData.quantity"
-                label="Quantity"
-                type="number"
-                min="1"
-                max="50000"
-                :disabled="formData.automatic"
-                :required-mark="!formData.automatic"
-                placeholder="Number of codes to generate"
-              />
-              <VaInput v-model="formData.prefix" label="Code Prefix (Optional)" placeholder="e.g. LUNCH" />
-            </div> -->
           </section>
 
           <!-- Validity & Availability -->
@@ -360,17 +349,10 @@ const promotionsArticles = ref([])
 const fetchArticles = async () => {
   isArticlesLoading.value = true
   try {
-    console.log('[fetchArticles] Fetching for outlet:', servicesStore.selectedRest)
-
     const res = await getMenuItemsByOutlet(servicesStore.selectedRest)
-
-    // Log full API response
-    console.log('[fetchArticles] API raw response:', res)
 
     // Handle different response shapes
     const items = res.data?.data || res.data || []
-
-    console.log('[fetchArticles] Items before mapping:', items)
 
     // Map to article structure
     articles.value = items.map((item) => ({
@@ -379,8 +361,6 @@ const fetchArticles = async () => {
       name: item.name || '',
       selected: false,
     }))
-
-    console.log('[fetchArticles] Mapped articles:', articles.value)
   } catch (e) {
     console.error('[fetchArticles] Failed to load menu items', e)
   } finally {
@@ -440,7 +420,7 @@ const formData = ref({
   fixedPrice: null,
   affect: '',
   // automatic: false,
-  codeType: 'multi', // 'single' | 'multi' | 'auto'
+  codeType: 'SINGLE', // 'SINGLE' | 'MULTI' | 'AUTO'
   manualCode: '', // For Single Code input
   quantity: 1,
   prefix: '',
@@ -471,7 +451,7 @@ const resetForm = () => {
     fixedPrice: null,
     affect: '',
     // automatic: false,
-    codeType: 'multi', // 'single' | 'multi' | 'auto'
+    codeType: 'SINGLE', // 'SINGLE' | 'MULTI' | 'AUTO'
     manualCode: '', // For Single Code input
     quantity: 1,
     prefix: '',
@@ -505,7 +485,6 @@ const promotionTypes = ['Value Discount', 'Percentage Discount', 'Fixed Price', 
 
 const usageTypes = ['Single Use', 'Unlimited']
 const affectOptions = ['Entire Order', 'Selected Items']
-// const daysOfWeek = ['All Days', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 const orderTypes = ['Delivery', 'Takeaway', 'Dine-in']
 
 const allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -558,14 +537,16 @@ function populateFormData(promotion) {
     promotionType: reversePromotionTypeMap[promotion.promotionType] || '',
     usageType: reverseUsageTypeMap[promotion.usage] || '',
     discountValue: promotion.discountValue ?? null,
-    discountPercent: promotion.discountPercentage ?? promotion.discountPercent ?? null, // FIX HERE
+    discountPercent: promotion.discountPercent ?? promotion.discountPercent ?? null,
     fixedPrice: promotion.fixedPrice ?? null,
     affect: reverseAffectMap[promotion.affect] || '',
-    // automatic: !!promotion.automatic,
-    codeType: promotion.automatic ? 'auto' : promotion.quantity > 1 ? 'multi' : 'single',
-    manualCode: promotion.manualCode || '', // if supported
-    quantity: promotion.quantity ?? 1,
-    prefix: promotion.prefix || '',
+    codeType: promotion.automatic ? 'AUTO' : promotion.quantity > 1 ? 'MULTI' : 'SINGLE',
+    manualCode: promotion.codeType === 'SINGLE' ? promotion.codes[0] : '',
+    quantity: promotion.codeType === 'MULTI' ? promotion.quantity : 1,
+    prefix: promotion.codeType === 'MULTI' ? promotion.prefix || '' : '',
+    // codes: promotion.codes || [],
+    // quantity: promotion.quantity ?? 1,
+    // prefix: promotion.prefix || '',
     startDate: toInputDate(promotion.dateRange?.startDate),
     endDate: toInputDate(promotion.dateRange?.endDate),
     startTime,
@@ -603,12 +584,10 @@ watch(
     })
 
     if (visible && props.isEdit && props.promotion) {
-      console.log('[watch:isVisible] Populating formData from props.promotion:', props.promotion)
       populateFormData(props.promotion) // new function to map directly
     }
 
     if (!visible) {
-      console.log('[watch:isVisible] Modal closed, resetting form.')
       resetForm()
     }
   },
@@ -622,7 +601,6 @@ watch(
 )
 
 function onCancel() {
-  console.log('[Modal] Cancel clicked')
   emits('update:isVisible', false)
 }
 
@@ -660,18 +638,19 @@ watch(
     const allZones = safeDeliveryZones.value.filter((z) => z.value !== 'ALL')
     const allZoneValues = allZones.map((z) => z.value)
 
-    const isAllSelected = newVal.some((zone) => zone === 'ALL')
+    const isAllSelected = newVal.includes('ALL') // `some()` can fail if zone is an object
+
+    isAutoSelectingZones = true
 
     if (isAllSelected) {
-      isAutoSelectingZones = true
       formData.value.deliveryZones = allZoneValues
-      nextTick(() => {
-        isAutoSelectingZones = false
-      })
-    } else if (newVal.length === allZoneValues.length) {
-      // Prevent having ALL + all values selected at once
+    } else if (newVal.length === allZoneValues.length && newVal.some((z) => z === 'ALL')) {
       formData.value.deliveryZones = newVal.filter((val) => val !== 'ALL')
     }
+
+    nextTick(() => {
+      isAutoSelectingZones = false
+    })
   },
   { deep: true },
 )
@@ -698,82 +677,17 @@ const getDeliveryZones = async () => {
   }
 }
 
-const loadPromotionData = async (id: string) => {
-  console.log('[loadPromotionData] Called with ID:', id)
-
-  try {
-    // Ensure delivery zones are loaded
-    if (props.deliveryZones.length === 0) {
-      await getDeliveryZones()
-    }
-
-    const response = await getPromotionById(id)
-    console.log('[loadPromotionData] Raw API response:', response.data)
-
-    // Extract the promotion object
-    const promotion = Array.isArray(response.data.data) ? response.data.data[0] : response.data.data
-
-    if (!promotion) {
-      console.warn('[loadPromotionData] No promotion found for ID:', id)
-      return
-    }
-
-    // Map API data to formData
-    formData.value = {
-      _id: promotion._id || '',
-      name: promotion.name || '',
-      promotionType: reversePromotionTypeMap[promotion.promotionType] || '',
-      usageType: reverseUsageTypeMap[promotion.usage] || '',
-      discountValue: promotion.discountValue ?? null,
-      discountPercent: promotion.discountPercent ?? null,
-      fixedPrice: promotion.fixedPrice ?? null,
-      affect: reverseAffectMap[promotion.affect] || '',
-      // automatic: !!promotion.automatic,
-      quantity: promotion.quantity ?? 1,
-      prefix: promotion.prefix || '',
-      startDate: toInputDate(promotion.dateRange?.startDate),
-      endDate: toInputDate(promotion.dateRange?.endDate),
-      startTime: promotion.timeRange?.startTime || '',
-      endTime: promotion.timeRange?.endTime || '',
-      days: Array.isArray(promotion.validDays) ? promotion.validDays.map((num) => numToDay[num]) : [],
-      orderType: Array.isArray(promotion.orderTypes)
-        ? promotion.orderTypes.map((type) => reverseOrderTypeMap[type])
-        : [],
-      deliveryZones: (Array.isArray(promotion.deliveryZoneId) ? promotion.deliveryZoneId : [])
-        .map((id) => props.deliveryZones.find((z) => z.value === id))
-        .filter(Boolean),
-      availableAtCC: !!promotion.availableAtCC,
-      affectOffers: !!promotion.availableWithOffers,
-      minimumOrder: promotion.minimumOrder ?? null,
-      take: promotion.take ?? null,
-      pay: promotion.pay ?? null,
-      assetId: promotion.assetId || '',
-      isActive: promotion.isActive ?? true,
-    }
-
-    console.log('[loadPromotionData] Populated formData:', JSON.parse(JSON.stringify(formData.value)))
-  } catch (error) {
-    init({ message: error.response?.data?.message || 'Failed to load promotion', color: 'danger' })
-  }
-}
-
 const toInputDate = (val: string) => {
   if (!val) return ''
   const d = new Date(val)
   return isNaN(d.getTime()) ? val : d.toISOString().slice(0, 10)
 }
 const submit = async () => {
-  console.log('[SUBMIT] Triggered')
-
   if (!validate()) {
-    console.warn('[SUBMIT] Validation failed')
     return
   }
 
-  console.log('[SUBMIT] Validation passed')
-
   const raw = { ...formData.value }
-  console.log('[SUBMIT] Raw formData:', raw)
   const data: any = {
     name: raw.name,
     isActive: raw.isActive,
@@ -781,9 +695,9 @@ const submit = async () => {
     discountPercent: raw.discountPercent,
     fixedPrice: raw.fixedPrice,
     // automatic: raw.automatic,
-    automatic: raw.codeType === 'auto',
-    quantity: raw.quantity,
-    prefix: raw.prefix,
+    automatic: raw.codeType === 'AUTO',
+    quantity: raw.codeType === 'MULTI' ? raw.quantity : 1,
+    prefix: raw.codeType === 'MULTI' ? raw.prefix : '',
     availableAtCC: raw.availableAtCC,
     availableWithOffers: raw.affectOffers, // FIXED key name
     minimumOrder: raw.minimumOrder,
@@ -814,28 +728,32 @@ const submit = async () => {
     option: [], // Will be managed by AddSelectionModal, default to []
   }
 
-  if (raw.codeType === 'single') {
-    data.manualCode = raw.manualCode
-  } else if (raw.codeType === 'multi') {
+  if (raw.codeType === 'SINGLE') {
+    data.manualCode = raw.manualCode.trim()
+    if (data.manualCode.length === 0) {
+      init({ message: 'Please enter at least one valid code', color: 'danger' })
+      return
+    }
+  } else if (raw.codeType === 'AUTO') {
+    data.manualCode = ''
+  } else if (raw.codeType === 'MULTI') {
+    // data.code = Array.from({ length: raw.quantity }).map((_, i) => `${raw.prefix}-${i + 1}`)
+    // data.code = raw.quantity.map((e) => `${raw.prefix}-${e}`)
     data.quantity = raw.quantity
     data.prefix = raw.prefix
+  } else {
+    data.manualCode = ''
   }
 
   if (raw.assetId) data.assetId = raw.assetId
   if (props.isEdit && raw._id?.trim()) {
     data._id = raw._id
-    console.log('[SUBMIT] Edit mode detected, updating promotion with ID:', raw._id)
   } else {
     delete data._id
-    console.log('[SUBMIT] Create mode detected')
   }
-
-  console.log('[SUBMIT] Final payload ready to send:', data)
 
   // Collect selected menu items
   const selectedMenuItems = articles.value.filter((a) => a.selected).map((a) => a._id)
-
-  console.log('[SUBMIT] Selected Menu Items:', selectedMenuItems)
 
   data.menuItem = selectedMenuItems
 
@@ -843,18 +761,16 @@ const submit = async () => {
     if (data._id) {
       delete data.menuItem
       delete data.option
-      console.log('[SUBMIT] Calling updatePromotion...')
       await updatePromotion(data._id, data)
       init({ message: 'Promotion updated successfully!', color: 'success' })
-      console.log('[SUBMIT] Update successful')
       emits('submitted')
     } else {
       data.option = promotionsArticles.value
       data.menuItem = promotionOptions.value
-      console.log('[SUBMIT] Calling createPromotion...')
+
       const created = await createPromotion(data) // returns promotion object directly
       init({ message: 'Promotion created successfully!', color: 'success' })
-      console.log('[SUBMIT] Creation successful, new ID:', created._id)
+
       emits('submitted')
       // Apply pending selections if any
       // if (props.pendingSelections.value.length) {
@@ -874,7 +790,6 @@ const submit = async () => {
       // }
     }
   } catch (err) {
-    console.error('[SUBMIT] Error during API call:', err)
     init({
       message: err.message || 'Error occurred while saving promotion',
       color: 'danger',

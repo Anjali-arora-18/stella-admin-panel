@@ -2,9 +2,9 @@
   <div class="w-full">
     <!-- Header -->
     <div class="flex items-center justify-between">
-      <h2 class="font-semibold text-lg text-gray-800">Customer Details</h2>
+      <h2 class="font-semibold text-md text-gray-800">Customer Details</h2>
       <button
-        class="border rounded p-1 hover:bg-gray-100 text-sm"
+        class="border rounded p-1 hover:bg-gray-100 text-xs"
         @click="(isOpen = !isOpen), $emit('setOpen', isOpen)"
       >
         <span :class="isOpen ? 'rotate-45' : ''" class="transition-transform p-2">{{ isOpen ? '-' : '+' }}</span>
@@ -14,7 +14,7 @@
     <!-- Collapsible Content -->
     <Transition name="fade">
       <div v-show="isOpen" class="space-y-3 mt-2">
-        <div class="flex bg-gray-100 rounded overflow-hidden text-sm">
+        <div class="flex bg-gray-100 rounded overflow-hidden text-xs">
           <button
             :class="selectedTab == 'takeaway' ? ` text-white font-semibold` : 'text-gray-600 hover:bg-gray-200'"
             class="flex-1 py-1 transition-colors"
@@ -41,7 +41,7 @@
             :disabled="selectedUser !== ''"
             type="number"
             placeholder="Mobile No."
-            class="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-full md:w-[120px]"
+            class="border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-full md:w-[120px]"
             @keyup.enter="fetchCustomerDetails(false)"
           />
 
@@ -51,7 +51,7 @@
             type="text"
             :disabled="selectedUser !== ''"
             placeholder="Customer Name"
-            class="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 flex-1 min-w-0"
+            class="border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 flex-1 min-w-0"
             @keyup.enter="fetchCustomerDetails(false)"
           />
 
@@ -114,18 +114,18 @@
         </div>
 
         <div v-if="selectedTab && selectedUser" class="flex items-center gap-2 w-full">
-          <div class="flex bg-gray-100 rounded overflow-hidden text-sm w-1/2">
+          <div class="flex bg-gray-100 rounded overflow-hidden text-xs w-[60%]">
             <button
               :class="orderFor === 'current' ? ` text-white font-semibold` : 'text-gray-600 hover:bg-gray-200'"
               :style="{ backgroundColor: orderFor == 'current' ? outlet.primaryColor : '' }"
-              class="w-1/2 py-1 px-1 transition-colors text-sm"
+              class="w-1/2 py-1 px-1 transition-colors text-xs"
               @click="orderFor = 'current'"
             >
               Order Now
             </button>
             <button
               :class="orderFor === 'future' ? `text-white font-semibold` : 'text-gray-600 hover:bg-gray-200'"
-              class="w-1/2 py-1 px-1 transition-colors text-sm"
+              class="w-1/2 py-1 px-1 transition-colors text-xs"
               :style="{ backgroundColor: orderFor == 'future' ? outlet.primaryColor : '' }"
               @click="orderFor = 'future'"
             >
@@ -136,14 +136,14 @@
           <input
             v-model="localDateTime"
             type="datetime-local"
-            class="text-sm border rounded px-2 py-1 w-1/2"
+            class="text-xs border rounded px-2 py-1 w-[40%]"
             :disabled="orderFor === 'current'"
           />
         </div>
 
         <!-- Address -->
         <div v-if="selectedTab && selectedUser">
-          <label class="text-sm text-gray-600 font-medium block mb-1">
+          <label class="text-xs text-gray-600 font-medium block mb-1">
             {{ selectedTab === 'takeaway' ? 'Location' : 'Address' }}
           </label>
 
@@ -153,7 +153,7 @@
                 type="text"
                 :value="selectedZone || 'No Zone Selected'"
                 disabled
-                class="border rounded w-full px-1 py-1 text-sm bg-gray-100"
+                class="border rounded w-full px-1 py-1 text-xs bg-gray-100"
               />
               <VaButton
                 class="hover:bg-blue-600 text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
@@ -192,7 +192,7 @@
               v-if="showDeliveryDropdown"
               class="absolute right-0 top-full max-h-[300px] overflow-y-auto mt-1 w-full text-left bg-white border rounded shadow z-10"
             >
-              <ul ref="deliveryList" class="text-sm">
+              <ul ref="deliveryList" class="text-xs">
                 <li
                   v-for="(zone, index) in deliveryZoneOptions"
                   :key="index"
@@ -211,12 +211,12 @@
 
         <!-- Notes -->
         <div v-if="selectedTab">
-          <label class="text-sm text-gray-600 font-medium block mb-1">Notes</label>
+          <label class="text-xs text-gray-600 font-medium block mb-1">Notes</label>
           <textarea
-            rows="3"
+            rows="1"
             disabled
             placeholder="Special instructions, allergies, delivery notes..."
-            class="w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            class="w-full border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
           ></textarea>
         </div>
       </div>
