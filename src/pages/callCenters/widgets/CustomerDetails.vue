@@ -62,7 +62,7 @@
           <VaButton
             v-if="!selectedUser"
             :style="{ '--va-background-color': outlet.primaryColor }"
-            class="h-[30px] w-[30px] rounded-md flex items-center justify-center"
+            class="h-[24px] w-[24px] rounded-md flex items-center justify-center"
             size="small"
             icon="mso-search"
             @click.prevent="fetchCustomerDetails(false)"
@@ -72,7 +72,7 @@
             color="danger"
             size="small"
             icon="mso-close"
-            class="h-[30px] w-[30px] rounded-md flex items-center justify-center"
+            class="h-[24px] w-[24px] rounded-md flex items-center justify-center"
             @click.prevent="(selectedUser = ''), (phoneNumber = ''), (name = '')"
           />
 
@@ -80,7 +80,7 @@
           <template v-if="!selectedUser">
             <VaTooltip text="Add Customer" placement="top">
               <VaButton
-                class="text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
+                class="text-white h-[24px] w-[24px] rounded-md flex items-center justify-center"
                 size="small"
                 icon="mso-add"
                 :style="{ '--va-background-color': outlet.primaryColor }"
@@ -92,7 +92,7 @@
           <template v-else>
             <VaTooltip text="Edit Customer" placement="top">
               <VaButton
-                class="hover:bg-blue-600 text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
+                class="hover:bg-blue-600 text-white h-[24px] w-[24px] rounded-md flex items-center justify-center"
                 size="small"
                 icon="mso-edit"
                 :style="{ '--va-background-color': outlet.primaryColor }"
@@ -159,7 +159,7 @@
                 class="border rounded w-full px-1 py-1 text-xs bg-gray-100"
               />
               <VaButton
-                class="hover:bg-blue-600 text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
+                class="hover:bg-blue-600 text-white h-[24px] w-[24px] rounded-md flex items-center justify-center"
                 size="small"
                 :style="{ '--va-background-color': outlet.primaryColor }"
                 @click="showDeliveryDropdown = true"
@@ -176,12 +176,12 @@
                 track-by="value"
                 searchable
                 highlight-matched-text
-                class="h-[30px] w-[30px] min-w-[32px] flex items-center justify-center rounded-md p-0 text-xs"
+                class="h-[24px] w-[24px] min-w-[32px] flex items-center justify-center rounded-md p-0 text-xs"
                 style="--va-select-dropdown-max-height: 100px"
               />
 
               <VaButton
-                class="hover:bg-blue-600 text-white h-[30px] w-[30px] rounded-md flex items-center justify-center"
+                class="hover:bg-blue-600 text-white h-[24px] w-[24px] rounded-md flex items-center justify-center"
                 size="small"
                 :style="{ '--va-background-color': outlet.primaryColor }"
                 @click="showDeliveryDropdown = true"

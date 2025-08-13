@@ -1,9 +1,9 @@
 <template>
   <div class="w-full">
-    <h2 class="font-semibold text-md text-gray-800 border-b pb-2">Order Details</h2>
+    <h2 class="font-semibold text-md text-gray-800 border-b pb-1">Order Details</h2>
     <template v-if="items.length || offersItems.length">
       <!-- Promo Code with Button -->
-      <div class="flex flex-wrap items-center gap-1 my-5 w-full">
+      <div class="flex flex-wrap items-center gap-1 mt-3 mb-3 w-full">
         <!-- Promo Code Field -->
         <VaInput
           v-model="promoCode"
@@ -29,8 +29,9 @@
       </div>
 
       <!-- Order Items -->
-      <div :class="isCustomerOpen ? 'order-items-min-height' : 'order-items-height'">
-        <div v-for="item in items" :key="item.id" class="mb-4 border-b pb-3 last:border-none">
+      <!-- <div :class="isCustomerOpen ? 'order-items-min-height' : 'order-items-height'"> -->
+      <div :style="orderItemsStyle">
+        <div v-for="item in items" :key="item.id" class="mb-2 border-b pb-2 last:border-none">
           <div class="flex items-start justify-between">
             <!-- Quantity Controls -->
             <div class="flex items-center gap-2">
@@ -102,7 +103,7 @@
             <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
           </div>
         </div>
-        <div v-for="item in offersItems" :key="item.id" class="mb-4 border-b pb-3 last:border-none">
+        <div v-for="item in offersItems" :key="item.id" class="mb-3 border-b pb-2 last:border-none">
           <div class="flex items-start justify-between">
             <!-- Quantity Controls -->
             <div class="flex items-center gap-2">
@@ -172,7 +173,7 @@
         </div>
       </div>
       <!-- Summary -->
-      <div class="text-xs space-y-1 p-2 bg-slate-50 mb-5">
+      <div class="text-xs space-y-1 p-1 bg-slate-50 mb-0">
         <div class="flex justify-between">
           <span class="text-gray-600 text-md">Subtotal:</span>
           <span>€{{ subtotal.toFixed(2) }}</span>
@@ -181,7 +182,7 @@
           <span class="text-gray-600">Delivery Fee:</span>
           <span>€{{ deliveryFee.toFixed(2) }}</span>
         </div>
-        <div class="flex justify-between font-bold text-md pt-2 border-t">
+        <div class="flex justify-between font-bold text-md pt-1 border-t">
           <span>Total:</span>
           <span>€{{ total.toFixed(2) }}</span>
         </div>
@@ -268,6 +269,23 @@ const formattedLabel = (sel) => {
   const totalPrice = sel.price * sel.quantity
   return totalPrice > 0 ? `${sel.name} (+€${totalPrice.toFixed(2)})` : sel.name
 }
+
+const orderItemsStyle = computed(() => {
+  if (props.isCustomerOpen) {
+    if (props.orderType === 'delivery') {
+      return { height: 'calc(100vh - 630px)', overflowY: 'auto' }
+    } else if (props.orderType === 'takeaway') {
+      return { height: 'calc(100vh - 610px)', overflowY: 'auto' }
+    }
+  } else {
+    if (props.orderType === 'delivery') {
+      return { height: 'calc(100vh - 398px)', overflowY: 'auto' }
+    } else if (props.orderType === 'takeaway') {
+      return { height: 'calc(100vh - 380px)', overflowY: 'auto' }
+    }
+  }
+  return {}
+})
 
 const outlet = computed(() => {
   const servicesStore = useServiceStore()
@@ -473,7 +491,7 @@ function closePromotionModal() {
 }
 </script>
 <style>
-.order-items-height,
+/* .order-items-height,
 .order-items-min-height {
   overflow-y: auto;
   background: #fff;
@@ -482,10 +500,10 @@ function closePromotionModal() {
 }
 .order-items-height {
   overflow-y: auto;
-  height: calc(100vh - 430px);
+  height: calc(100vh - 380px);
 }
 .order-items-min-height {
   overflow-y: auto;
-  height: calc(100vh - 670px);
-}
+  height: calc(100vh - 610px);
+} */
 </style>
