@@ -82,7 +82,7 @@
             <h2 class="text-md font-semibold mb-2">Percentage Discount Configuration</h2>
             <div class="grid md:grid-cols-2 gap-4">
               <VaInput
-                v-model="formData.discountPercent"
+                v-model="formData.discountPercentage"
                 label="Discount %"
                 type="number"
                 min="1"
@@ -141,7 +141,7 @@
             <h2 class="text-md font-semibold mb-2">Take X pay Y Configuration</h2>
             <div class="grid md:grid-cols-3 gap-4">
               <VaInput
-                v-model="formData.take"
+                v-model="formData.takeQuantity"
                 label="Take"
                 type="number"
                 min="1"
@@ -149,7 +149,7 @@
                 :rules="[validators.required]"
               />
               <VaInput
-                v-model="formData.pay"
+                v-model="formData.payQuantity"
                 label="Pay"
                 type="number"
                 min="1"
@@ -180,26 +180,25 @@
             <!-- Single Code Input -->
             <div v-if="formData.codeType === 'SINGLE'" class="grid md:grid-cols-2 gap-4 mt-4">
               <VaInput
-                v-model="formData.manualCode"
-                label="Code"
-                placeholder="Enter promotion code"
+                v-model="formData.codes"
+                label="Promotion Code"
                 required-mark
                 :rules="[validators.required]"
+                placeholder="PROMOTION CODE"
               />
             </div>
 
             <!-- Multi Code Input -->
-            <div v-if="formData.codeType === 'MULTI'" class="grid md:grid-cols-2 gap-4 mt-4">
-              <VaInput
-                v-model="formData.quantity"
-                label="Quantity"
-                type="number"
-                min="1"
-                max="50000"
-                required-mark
-                placeholder="Number of codes to generate"
-              />
-              <VaInput v-model="formData.prefix" label="Code Prefix (Optional)" placeholder="e.g. LUNCH" />
+            <div v-if="formData.codeType === 'MULTI'" class="grid md:grid-cols-3 gap-4 mt-4">
+              <VaInput v-model="formData.startFrom" label="Start From" type="number" min="1" required-mark />
+              <VaInput v-model="formData.endAt" label="End At" type="number" min="1" required-mark />
+              <VaInput v-model="formData.codePrefix" label="Code Prefix" placeholder="e.g. SEQ" required-mark />
+            </div>
+
+            <!-- AUTO -->
+            <div v-if="formData.codeType === 'AUTO'" class="grid md:grid-cols-2 gap-4 mt-4">
+              <VaInput v-model="formData.quantity" label="Quantity" type="number" min="1" required-mark />
+              <VaInput v-model="formData.codePrefix" label="Code Prefix" placeholder="e.g. PROMO" />
             </div>
           </section>
 
@@ -416,12 +415,15 @@ const formData = ref({
   promotionType: '',
   usageType: '',
   discountValue: null,
-  discountPercent: null,
+  discountPercentage: null,
   fixedPrice: null,
   affect: '',
   // automatic: false,
   codeType: 'SINGLE', // 'SINGLE' | 'MULTI' | 'AUTO'
-  manualCode: '', // For Single Code input
+  codes: [], // For Single Code input
+  startFrom: 1, // For Multi Code input
+  endAt: 10, // For Multi Code input
+  codePrefix: '', // For Multi Code input
   quantity: 1,
   prefix: '',
   startDate: '',
@@ -434,8 +436,8 @@ const formData = ref({
   availableAtCC: false,
   affectOffers: false,
   minimumOrder: null,
-  take: null,
-  pay: null,
+  takeQuantity: null,
+  payQuantity: null,
   assetId: '',
   isActive: true,
 })
@@ -447,12 +449,11 @@ const resetForm = () => {
     promotionType: '',
     usageType: '',
     discountValue: null,
-    discountPercent: null,
+    discountPercentage: null,
     fixedPrice: null,
     affect: '',
     // automatic: false,
     codeType: 'SINGLE', // 'SINGLE' | 'MULTI' | 'AUTO'
-    manualCode: '', // For Single Code input
     quantity: 1,
     prefix: '',
     startDate: '',
@@ -465,8 +466,8 @@ const resetForm = () => {
     availableAtCC: false,
     affectOffers: false,
     minimumOrder: null,
-    take: null,
-    pay: null,
+    takeQuantity: null,
+    payQuantity: null,
     assetId: '',
     isActive: true,
   }
@@ -537,11 +538,10 @@ function populateFormData(promotion) {
     promotionType: reversePromotionTypeMap[promotion.promotionType] || '',
     usageType: reverseUsageTypeMap[promotion.usage] || '',
     discountValue: promotion.discountValue ?? null,
-    discountPercent: promotion.discountPercent ?? promotion.discountPercent ?? null,
+    discountPercentage: promotion.discountPercentage ?? promotion.discountPercentage ?? null,
     fixedPrice: promotion.fixedPrice ?? null,
     affect: reverseAffectMap[promotion.affect] || '',
     codeType: promotion.automatic ? 'AUTO' : promotion.quantity > 1 ? 'MULTI' : 'SINGLE',
-    manualCode: promotion.codeType === 'SINGLE' ? promotion.codes[0] : '',
     quantity: promotion.codeType === 'MULTI' ? promotion.quantity : 1,
     prefix: promotion.codeType === 'MULTI' ? promotion.prefix || '' : '',
     // codes: promotion.codes || [],
@@ -559,9 +559,10 @@ function populateFormData(promotion) {
     availableAtCC: !!promotion.availableAtCC,
     affectOffers: !!promotion.availableWithOffers,
     minimumOrder: promotion.minimumOrder ?? null,
-    take: promotion.takeQuantity ?? promotion.take ?? null, // handle TAKE_X_PAY_Y
-    pay: promotion.payQuantity ?? promotion.pay ?? null,
+    takeQuantity: promotion.takeQuantity || null,
+    payQuantity: promotion.payQuantity || null,
     assetId: promotion.assetId || '',
+    codes: promotion.codes || [],
     isActive: promotion.isActive ?? true,
   }
 }
@@ -692,7 +693,7 @@ const submit = async () => {
     name: raw.name,
     isActive: raw.isActive,
     discountValue: raw.discountValue,
-    discountPercent: raw.discountPercent,
+    discountPercentage: raw.discountPercentage,
     fixedPrice: raw.fixedPrice,
     // automatic: raw.automatic,
     automatic: raw.codeType === 'AUTO',
@@ -701,8 +702,8 @@ const submit = async () => {
     availableAtCC: raw.availableAtCC,
     availableWithOffers: raw.affectOffers, // FIXED key name
     minimumOrder: raw.minimumOrder,
-    take: raw.take,
-    pay: raw.pay,
+    takeQuantity: raw.takeQuantity,
+    payQuantity: raw.payQuantity,
     promotionType: promotionTypeMap[raw.promotionType],
     affect: affectMap[raw.affect],
     usage: usageTypeMap[raw.usageType],
@@ -718,31 +719,48 @@ const submit = async () => {
     validDays: raw.days.includes('All Days') ? [0, 1, 2, 3, 4, 5, 6] : (raw.days || []).map((d) => dayToNum[d]),
     deliveryZoneId: (raw.deliveryZones || [])
       .map((z) => (typeof z === 'object' ? z.value : z))
-      .filter((id) => id && id !== 'string'), // clean placeholder
+      .filter((id) => id && id !== 'string'),
     createdBy: servicesStore.currentUser?._id || '65edc27fa8c3e330d7db0a23',
     outletId: servicesStore.selectedRest,
     menuItem: articles.value
       .filter((a) => a.selected)
       .map((a) => a._id)
-      .filter((id) => id && id !== 'string'), // clean
-    option: [], // Will be managed by AddSelectionModal, default to []
+      .filter((id) => id && id !== 'string'),
+    option: [],
   }
 
   if (raw.codeType === 'SINGLE') {
-    data.manualCode = raw.manualCode.trim()
-    if (data.manualCode.length === 0) {
-      init({ message: 'Please enter at least one valid code', color: 'danger' })
+    const codeList = Array.isArray(raw.codes)
+      ? raw.codes
+      : raw.codes
+          .split('\n')
+          .map((c) => c.trim())
+          .filter(Boolean)
+
+    if (!codeList.length) {
+      init({ message: 'Please enter at least one code', color: 'danger' })
       return
     }
-  } else if (raw.codeType === 'AUTO') {
-    data.manualCode = ''
+
+    data.codes = codeList
   } else if (raw.codeType === 'MULTI') {
-    // data.code = Array.from({ length: raw.quantity }).map((_, i) => `${raw.prefix}-${i + 1}`)
-    // data.code = raw.quantity.map((e) => `${raw.prefix}-${e}`)
-    data.quantity = raw.quantity
-    data.prefix = raw.prefix
-  } else {
-    data.manualCode = ''
+    if (!raw.startFrom || !raw.endAt || Number(raw.endAt) <= Number(raw.startFrom)) {
+      init({ message: 'Invalid start/end range', color: 'danger' })
+      return
+    }
+
+    data.startFrom = Number(raw.startFrom)
+    data.endAt = Number(raw.endAt)
+    data.codePrefix = raw.codePrefix || ''
+  } else if (raw.codeType === 'AUTO') {
+    if (!raw.quantity || Number(raw.quantity) <= 0) {
+      init({ message: 'Quantity must be greater than 0', color: 'danger' })
+      return
+    }
+
+    data.automaticPromotion = true
+    data.quantity = Number(raw.quantity)
+    data.codePrefix = raw.codePrefix || ''
   }
 
   if (raw.assetId) data.assetId = raw.assetId
@@ -761,6 +779,7 @@ const submit = async () => {
     if (data._id) {
       delete data.menuItem
       delete data.option
+      delete data.codes
       await updatePromotion(data._id, data)
       init({ message: 'Promotion updated successfully!', color: 'success' })
       emits('submitted')

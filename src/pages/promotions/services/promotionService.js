@@ -45,11 +45,7 @@ export async function createPromotion(data) {
  * 2. Update Promotion
  */
 export async function updatePromotion(promotionId, data) {
-  return safeRequest(
-    axios.patch(`${API_BASE_URL}/promotions`, data, {
-      params: { id: promotionId },
-    }),
-  )
+  return safeRequest(axios.patch(`${API_BASE_URL}/promotions/${promotionId}`, data))
 }
 
 /**

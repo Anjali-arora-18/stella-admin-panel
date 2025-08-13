@@ -235,7 +235,7 @@ function formatReadableDate(dateStr) {
           <template v-if="rowData.promotionType === 'FIXED_PRICE'">€{{ rowData.fixedPrice }}</template>
           <template v-else-if="rowData.promotionType === 'VALUE_DISCOUNT'">€{{ rowData.discountValue }}</template>
           <template v-else-if="rowData.promotionType === 'PERCENTAGE_DISCOUNT'">
-            {{ rowData.discountPercent }}%
+            {{ rowData.discountPercentage }}%
           </template>
           <template v-else-if="rowData.promotionType === 'FREE_DELIVERY'">Free Delivery</template>
           <template v-else-if="rowData.promotionType === 'TAKE_X_PAY_Y'">
@@ -262,7 +262,7 @@ function formatReadableDate(dateStr) {
 
         <!-- Auto Code -->
         <template v-else-if="rowData.codeType === 'AUTO'">
-          <!-- <span class="text-gray-400 italic">—</span> -->
+          <span class="code-pill code-auto"> {{ rowData.codes?.length || 0 }} Codes </span>
         </template>
 
         <!-- Fallback -->
@@ -439,5 +439,8 @@ function formatReadableDate(dateStr) {
 /* MULTI CODE – Purple Gradient */
 .code-multi {
   background: linear-gradient(to right, #7c3aed, #a78bfa);
+}
+.code-auto {
+  background: linear-gradient(to right, #ee9f18, #f5ce4f);
 }
 </style>
