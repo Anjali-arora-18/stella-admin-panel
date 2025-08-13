@@ -34,14 +34,17 @@
         </div>
 
         <!-- Phone & Name Row -->
-        <div v-if="selectedTab" class="flex flex-wrap md:flex-nowrap items-center gap-2 relative w-full">
+        <div v-if="selectedTab" class="flex flex-wrap md:flex-nowrap items-center gap-1 relative w-full">
           <!-- Mobile Number -->
           <input
             v-model="phoneNumber"
             :disabled="selectedUser !== ''"
-            type="number"
+            type="tel"
             placeholder="Mobile No."
-            class="border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-full md:w-[120px]"
+            pattern="[0-9]*"
+            inputmode="numeric"
+            class="border rounded px-2 py-1 text-xs outline-none focus:outline-none focus:ring-1 focus:ring-gray-200 focus:border-gray-300 w-full md:w-[120px]"
+            @input="phoneNumber = phoneNumber.replace(/\D/g, '')"
             @keyup.enter="fetchCustomerDetails(false)"
           />
 
@@ -51,7 +54,7 @@
             type="text"
             :disabled="selectedUser !== ''"
             placeholder="Customer Name"
-            class="border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 flex-1 min-w-0"
+            class="border rounded px-2 py-1 text-xs outline-none focus:outline-none focus:ring-1 focus:ring-gray-200 focus:border-gray-300 flex-1 min-w-0"
             @keyup.enter="fetchCustomerDetails(false)"
           />
 
@@ -136,7 +139,7 @@
           <input
             v-model="localDateTime"
             type="datetime-local"
-            class="text-xs border rounded px-2 py-1 w-[40%]"
+            class="text-xs border rounded px-1 py-1 w-[40%]"
             :disabled="orderFor === 'current'"
           />
         </div>
@@ -173,7 +176,7 @@
                 track-by="value"
                 searchable
                 highlight-matched-text
-                class="h-[32px] w-[32px] min-w-[32px] flex items-center justify-center rounded-md p-0"
+                class="h-[30px] w-[30px] min-w-[32px] flex items-center justify-center rounded-md p-0 text-xs"
                 style="--va-select-dropdown-max-height: 100px"
               />
 
