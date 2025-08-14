@@ -79,7 +79,7 @@
             size="small"
             icon="mso-close"
             class="h-[24px] w-[24px] rounded-md flex items-center justify-center"
-            @click.prevent="(selectedUser = ''), (phoneNumber = ''), (name = '')"
+            @click.prevent="showConfirmRemove = true"
           />
 
           <!-- Add / Edit Button -->
@@ -122,7 +122,7 @@
           </div>
         </div>
 
-        <div v-if="selectedTab && selectedUser" class="flex items-center gap-2 w-full">
+        <div v-if="selectedTab && selectedUser" class="flex items-center gap-1 w-full">
           <div class="flex bg-gray-100 rounded overflow-hidden text-xs w-[60%]">
             <button
               :class="orderFor === 'current' ? ` text-white font-semibold` : 'text-gray-600 hover:bg-gray-200'"
@@ -156,7 +156,7 @@
             {{ selectedTab === 'takeaway' ? 'Location' : 'Address' }}
           </label>
 
-          <div class="flex flex-wrap md:flex-nowrap items-center gap-2 relative w-full">
+          <div class="flex flex-wrap md:flex-nowrap items-center gap-1 relative w-full">
             <template v-if="selectedTab === 'takeaway'">
               <input
                 type="text"
@@ -238,6 +238,11 @@
       @setUser="setNewUser"
       @cancel="closeCustomerModal"
     />
+    <ConfirmRemoveCustomerDetails
+      v-model="showConfirmRemove"
+      @confirm="onConfirmRemove"
+      @close="closeConfirmRemoveModal"
+    />
   </div>
 </template>
 
@@ -247,6 +252,7 @@ import { useToast, useColors } from 'vuestic-ui'
 import axios from 'axios'
 import { useServiceStore } from '@/stores/services.ts'
 import CustomerModal from '../modals/CustomerModal.vue'
+import ConfirmRemoveCustomerDetails from '../modals/ConfirmRemoveCustomerDetails.vue'
 import { useOrderStore } from '@/stores/order-store'
 import { onClickOutside } from '@vueuse/core'
 const props = defineProps(['forceRemount'])
@@ -274,13 +280,40 @@ const userResults = ref([])
 const selectedUser = ref('')
 const selectedZone = ref('')
 const showDeliveryDropdown = ref(false)
-// const selectedZoneDetails = ref(null)
+const selectedZoneDetails = ref(null)
 const orderFor = ref('current')
-const selectedZoneDetails = ref({
-  takeawayPromiseTime: 0,
-  deliveryPromiseTime: 0,
-  // meetingPointAddress: [],
-})
+const showConfirmRemove = ref(false)
+
+function handleRemoveCustomer() {
+  // Check if order has items
+  if (orderStore.items && orderStore.items.length > 0) {
+    showConfirmRemove.value = true
+  } else {
+    clearCustomerDetails()
+  }
+}
+
+function clearCustomerDetails() {
+  selectedUser.value = ''
+  phoneNumber.value = ''
+  name.value = ''
+  userResults.value = []
+  selectedAddress.value = ''
+  selectedZone.value = ''
+  serviceZoneId.value = ''
+  selectedZoneDetails.value = null
+  showDeliveryDropdown.value = false
+  emits('setCustomerDetailsId', '')
+  emits('setDeliveryZone', false)
+  emits('setOrderType', '')
+}
+
+function onConfirmRemove() {
+  clearCustomerDetails()
+}
+function closeConfirmRemoveModal() {
+  showConfirmRemove.value = false
+}
 
 onClickOutside(target, (event) => (userResults.value = []), { ignore: [deliveryTarget] })
 onClickOutside(deliveryTarget, (event) => (showDeliveryDropdown.value = false), { ignore: [target] })
