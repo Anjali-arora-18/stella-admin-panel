@@ -155,6 +155,7 @@ const props = defineProps<{
   customerDetailsId: string
   orderType: string
   dateSelected: string
+  promoCode: string
 }>()
 const orderStore = useOrderStore()
 const serviceStore = useServiceStore()
@@ -354,6 +355,7 @@ async function createOrder() {
       outletId: serviceStore.selectedRest,
       orderDateTime: new Date(props.dateSelected).toISOString(),
       paymentMode: selectedPayment.value,
+      promoCode: props.promoCode || '',
     }
 
     let response: any = ''

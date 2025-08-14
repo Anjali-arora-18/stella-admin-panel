@@ -225,6 +225,7 @@
       :delivery-fee="deliveryFee"
       :customer-details-id="customerDetailsId"
       :order-type="orderType"
+      :promo-code="promoCode"
       @cancel="closeCheckoutModal"
     />
     <PromotionModal
