@@ -111,7 +111,7 @@
                                 { 'opacity-50 pointer-events-none': item.customPrice > 0 },
                               ]"
                               :title="item.isVisible ? 'Hide' : 'Show'"
-                              @click="viewItems(index)"
+                              @click="viewItems(item._id)"
                             >
                               <svg
                                 v-if="item.isVisible"
@@ -570,7 +570,7 @@ const groupWorker = new Worker(
               const internalNameMatch = a.code?.toLowerCase().includes(search);
               return {
                 ...a,
-                isVisible: a.isVisible || false,
+                isVisible: a.isVisible,
                 display: nameMatch || internalNameMatch || !searchQuery,
                 articlesOptionsGroup: a.articlesOptionsGroup.map(g => {
                   const nameMatch = g.name?.toLowerCase().includes(groupSearch);
@@ -704,18 +704,35 @@ onMounted(() => {
   getArticles()
 })
 
-const viewItems = function (index) {
-  console.log('viewItems', index, items.value)
-  items.value[index].isVisible = !items.value[index].isVisible
-  groupWorker.postMessage({
-    items: JSON.parse(JSON.stringify(items.value)),
-    groupSearchQuery: groupSearchQuery.value,
-    debouncedSearch: debouncedSearch.value,
-    searchQuery: searchQuery.value,
-  })
-  groupWorker.onmessage = (e) => {
-    // Only update if this is the latest call
-    items.value = JSON.parse(JSON.stringify(e.data))
+// const viewItems = function (index) {
+//   console.log('viewItems', index, items.value)
+//   items.value[index].isVisible = !items.value[index].isVisible
+//   groupWorker.postMessage({
+//     items: JSON.parse(JSON.stringify(items.value)),
+//     groupSearchQuery: groupSearchQuery.value,
+//     debouncedSearch: debouncedSearch.value,
+//     searchQuery: searchQuery.value,
+//   })
+//   groupWorker.onmessage = (e) => {
+//     // Only update if this is the latest call
+//     items.value = JSON.parse(JSON.stringify(e.data))
+//   }
+// }
+
+const viewItems = function (id) {
+  const item = items.value.find((i) => i._id === id)
+  if (item) {
+    item.isVisible = !item.isVisible
+    groupWorker.postMessage({
+      items: JSON.parse(JSON.stringify(items.value)),
+      groupSearchQuery: groupSearchQuery.value,
+      debouncedSearch: debouncedSearch.value,
+      searchQuery: searchQuery.value,
+    })
+    groupWorker.onmessage = (e) => {
+      // Only update if this is the latest call
+      items.value = JSON.parse(JSON.stringify(e.data))
+    }
   }
 }
 
