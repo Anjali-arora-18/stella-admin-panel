@@ -14,14 +14,17 @@
     <!-- Collapsible Content -->
     <Transition name="fade">
       <div v-show="isOpen" class="space-y-3 mt-2">
-        <div class="flex bg-gray-100 rounded overflow-hidden text-xs">
+        <div class="flex bg-gray-100 rounded overflow-hidden text-sm">
           <button
             :class="selectedTab == 'takeaway' ? ` text-white font-semibold` : 'text-gray-600 hover:bg-gray-200'"
             class="flex-1 py-1 transition-colors"
             :style="{ backgroundColor: selectedTab == 'takeaway' ? outlet.primaryColor : '' }"
             @click="selectedTab = 'takeaway'"
           >
-            Takeaway ({{ selectedZoneDetails?.takeawayPromiseTime ?? 0 }}mins)
+            Takeaway
+            <span v-if="(selectedZoneDetails?.takeawayPromiseTime ?? 0) > 0">
+              ({{ selectedZoneDetails.takeawayPromiseTime }} mins)
+            </span>
           </button>
           <button
             :class="selectedTab == 'delivery' ? `text-white font-semibold` : 'text-gray-600 hover:bg-gray-200'"
@@ -29,7 +32,10 @@
             :style="{ backgroundColor: selectedTab == 'delivery' ? outlet.primaryColor : '' }"
             @click="selectedTab = 'delivery'"
           >
-            Delivery ({{ selectedZoneDetails?.deliveryPromiseTime ?? 0 }}mins)
+            Delivery
+            <span v-if="(selectedZoneDetails?.deliveryPromiseTime ?? 0) > 0">
+              ({{ selectedZoneDetails.deliveryPromiseTime }} mins)
+            </span>
           </button>
         </div>
 
@@ -268,8 +274,13 @@ const userResults = ref([])
 const selectedUser = ref('')
 const selectedZone = ref('')
 const showDeliveryDropdown = ref(false)
-const selectedZoneDetails = ref(null)
+// const selectedZoneDetails = ref(null)
 const orderFor = ref('current')
+const selectedZoneDetails = ref({
+  takeawayPromiseTime: 0,
+  deliveryPromiseTime: 0,
+  // meetingPointAddress: [],
+})
 
 onClickOutside(target, (event) => (userResults.value = []), { ignore: [deliveryTarget] })
 onClickOutside(deliveryTarget, (event) => (showDeliveryDropdown.value = false), { ignore: [target] })

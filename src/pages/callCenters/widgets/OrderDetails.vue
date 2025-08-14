@@ -274,15 +274,15 @@ const formattedLabel = (sel) => {
 const orderItemsStyle = computed(() => {
   if (props.isCustomerOpen) {
     if (props.orderType === 'delivery') {
-      return { height: 'calc(100vh - 630px)', overflowY: 'auto' }
+      return { height: 'calc(100vh - 640px)', overflowY: 'auto' }
     } else if (props.orderType === 'takeaway') {
-      return { height: 'calc(100vh - 610px)', overflowY: 'auto' }
+      return { height: 'calc(100vh - 620px)', overflowY: 'auto' }
     }
   } else {
     if (props.orderType === 'delivery') {
-      return { height: 'calc(100vh - 398px)', overflowY: 'auto' }
+      return { height: 'calc(100vh - 405px)', overflowY: 'auto' }
     } else if (props.orderType === 'takeaway') {
-      return { height: 'calc(100vh - 380px)', overflowY: 'auto' }
+      return { height: 'calc(100vh - 385px)', overflowY: 'auto' }
     }
   }
   return {}
