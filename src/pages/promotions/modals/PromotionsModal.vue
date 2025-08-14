@@ -139,7 +139,7 @@
           <!-- Take X Pay Y -->
           <section v-if="formData.promotionType === 'Take X pay Y' && !isUpdating">
             <h2 class="text-md font-semibold mb-2">Take X pay Y Configuration</h2>
-            <div class="grid md:grid-cols-3 gap-4">
+            <div class="grid md:grid-cols-3 gap-4 items-end">
               <VaInput
                 v-model="formData.takeQuantity"
                 label="Take"
@@ -156,7 +156,7 @@
                 required-mark
                 :rules="[validators.required]"
               />
-              <div class="flex gap-2 mt-2">
+              <div class="flex gap-2">
                 <VaButton @click="openArticlesModal">Articles</VaButton>
                 <VaButton @click="openOptionsModal">Options</VaButton>
               </div>

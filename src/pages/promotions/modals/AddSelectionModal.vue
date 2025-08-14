@@ -96,6 +96,7 @@
               clearable
               value-by="value"
               placeholder="Select Option Group"
+              max-height="470px"
               class="w-full mb-5"
             />
             <div class="border rounded shadow-sm bg-white h-[65vh] overflow-y-auto">

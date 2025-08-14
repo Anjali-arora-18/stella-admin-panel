@@ -21,7 +21,7 @@
         <VaButton
           size="small"
           :style="{ '--va-background-color': outlet.primaryColor }"
-          class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white px-3 rounded-md text-xs shadow-md"
+          class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white px-2 py-1 rounded-md text-xs shadow-md"
           @click="openPromotionModal"
         >
           Select

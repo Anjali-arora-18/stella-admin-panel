@@ -176,7 +176,7 @@
                 track-by="value"
                 searchable
                 highlight-matched-text
-                class="h-[24px] w-[24px] min-w-[32px] flex items-center justify-center rounded-md p-0 text-xs"
+                class="h-[24px] w-[24px] min-w-[32px] flex items-center justify-center rounded-md p-0 text-xs mt-1"
                 style="--va-select-dropdown-max-height: 100px"
               />
 
@@ -658,6 +658,6 @@ defineExpose({
   transition: all 0.2s ease;
 }
 .va-input-wrapper .va-input-wrapper__fieldset .va-input-wrapper__container .va-input-wrapper__field {
-  padding: 4px;
+  padding: 6px;
 }
 </style>
