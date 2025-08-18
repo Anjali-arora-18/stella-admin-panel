@@ -17,7 +17,13 @@
     </template>
     <template #right>
       <div class="flex items-center">
-        <VaSelect v-model="selectedRest" :options="restOptions" placeholder="Select an option" />
+        <VaSelect
+          v-model="selectedRest"
+          :options="restOptions"
+          placeholder="Select an option"
+          searchable
+          highlight-matched-text
+        />
         <AppNavbarActions class="app-navbar__actions" :is-mobile="isMobile" />
       </div>
     </template>
@@ -52,7 +58,7 @@ const collapseIconColor = computed(() => getColor('secondary'))
 const getOutlets = () => {
   servicesStore.getAll().then(() => {
     restlist.value = servicesStore.items
-    restOptions.value = servicesStore.items.map((e) => e.name)
+    restOptions.value = servicesStore.items.map((e) => e.name).sort((a, b) => a.localeCompare(b))
 
     const storedRest = sessionStorage.getItem('selectedRest')
     if (storedRest) {
