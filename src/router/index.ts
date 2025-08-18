@@ -9,72 +9,86 @@ const routes: Array<RouteRecordRaw> = [
     name: 'loader',
     path: '/loader/:paymentId',
     component: () => import('../pages/loader/index.vue'),
+    meta: { roles: ['admin', 'super-admin', 'caller', 'editor'] },
   },
   {
     name: 'admin',
     path: '/',
     component: AppLayout,
+    meta: { roles: ['admin', 'super-admin', 'caller', 'editor', 'caller-editor'] },
     redirect: { name: 'login' },
     children: [
       {
         name: 'dashboard',
         path: 'dashboard',
         component: () => import('../pages/admin/dashboard/Dashboard.vue'),
+        meta: { roles: ['admin', 'super-admin', 'caller', 'editor', 'caller-editor'] },
       },
       {
         name: 'stellaUsers',
         path: 'stellaUsers',
         component: () => import('../pages/stellaUsers/index.vue'),
+        meta: { roles: ['super-admin'] },
       },
       {
         name: 'areas',
         path: 'areas',
         component: () => import('../pages/areas/index.vue'),
+        meta: { roles: ['admin', 'super-admin'] },
       },
       {
         name: 'deletedArticles',
         path: 'deletedArticles',
         component: () => import('../pages/deletedArticles/index.vue'),
+        meta: { roles: ['admin', 'super-admin', 'editor', 'caller-editor'] },
       },
       {
         name: 'payments',
         path: 'payments',
         component: () => import('../pages/payments/index.vue'),
+        meta: { roles: ['admin', 'super-admin'] },
       },
       {
         name: 'deliveryZone',
         path: 'deliveryZone',
         component: () => import('../pages/deliveryZone/index.vue'),
+        meta: { roles: ['admin', 'super-admin'] },
       },
       {
         name: 'organizeMenu',
         path: 'organizeMenu',
         component: () => import('../pages/organizeMenu.vue'),
+        meta: { roles: ['admin', 'super-admin', 'editor', 'caller-editor'] },
       },
       {
         name: 'categories',
         path: 'categories',
         component: () => import('../pages/categories/index.vue'),
+        meta: { roles: ['admin', 'super-admin', 'editor', 'caller-editor'] },
       },
       {
         name: 'articles',
         path: 'articles',
         component: () => import('../pages/articles/index.vue'),
+        meta: { roles: ['admin', 'super-admin', 'editor', 'caller-editor'] },
       },
       {
         name: 'articlesOptions',
         path: 'articlesOptions',
         component: () => import('../pages/articlesOptions/index.vue'),
+        meta: { roles: ['admin', 'super-admin', 'editor', 'caller-editor'] },
         children: [
           {
             name: 'articlesOptionsList',
             path: 'list',
             component: () => import('../pages/articlesOptionsList/index.vue'),
+            meta: { roles: ['admin', 'super-admin', 'editor', 'caller-editor'] },
           },
           {
             name: 'articlesOptionsGroups',
             path: 'groups',
             component: () => import('../pages/articlesOptionsGroups/index.vue'),
+            meta: { roles: ['admin', 'super-admin', 'editor', 'caller-editor'] },
           },
         ],
       },
@@ -82,31 +96,35 @@ const routes: Array<RouteRecordRaw> = [
         name: 'offers',
         path: 'offers',
         component: () => import('../pages/offers/index.vue'),
+        meta: { roles: ['admin', 'super-admin', 'editor', 'caller-editor'] },
       },
       {
         name: 'promotions',
         path: 'promotions',
         component: () => import('../pages/promotions/index.vue'),
+        meta: { roles: ['admin', 'super-admin', 'editor', 'caller-editor'] },
       },
       {
         name: 'preferences',
         path: 'preferences',
         component: () => import('../pages/preferences/Preferences.vue'),
       },
-      {
-        name: 'settings',
-        path: 'settings',
-        component: () => import('../pages/settings/Settings.vue'),
-      },
+      // {
+      //   name: 'settings',
+      //   path: 'settings',
+      //   component: () => import('../pages/settings/Settings.vue'),
+      // },
       {
         name: 'allergens',
         path: 'allergens',
         component: () => import('../pages/allergens.vue'),
+        meta: { roles: ['admin', 'super-admin', 'editor', 'caller-editor'] },
       },
       {
         name: 'callCenters',
         path: 'callCenters',
         component: () => import('../pages/callCenters/index.vue'),
+        meta: { roles: ['caller', 'admin', 'super-admin', 'caller-editor'] },
       },
       // {
       //   name: 'companies',
@@ -122,35 +140,39 @@ const routes: Array<RouteRecordRaw> = [
             name: 'list',
             path: 'list',
             component: () => import('../pages/service-zone/index.vue'),
+            meta: { roles: ['super-admin'] },
           },
           {
             name: 'create-outlet',
             path: 'create',
             component: () => import('../pages/service-zone/form.vue'),
+            meta: { roles: ['super-admin'] },
           },
           {
             name: 'update-outlet',
             path: 'update/:id?',
             component: () => import('../pages/service-zone/form.vue'),
+            meta: { roles: ['admin', 'super-admin'] },
           },
           {
             name: 'admin-update-outlet',
             path: 'admin/update/:id?',
             component: () => import('../pages/service-zone/form.vue'),
+            meta: { roles: ['super-admin'] },
           },
         ],
       },
 
-      {
-        name: 'orders',
-        path: 'orders',
-        component: () => import('../pages/orders/index.vue'),
-      },
-      {
-        name: 'users',
-        path: 'users',
-        component: () => import('../pages/users/UsersPage.vue'),
-      },
+      // {
+      //   name: 'orders',
+      //   path: 'orders',
+      //   component: () => import('../pages/orders/index.vue'),
+      // },
+      // {
+      //   name: 'users',
+      //   path: 'users',
+      //   component: () => import('../pages/users/UsersPage.vue'),
+      // },
     ],
   },
   {
@@ -191,6 +213,11 @@ const routes: Array<RouteRecordRaw> = [
     name: '404',
     path: '/404',
     component: () => import('../pages/404.vue'),
+  },
+  {
+    name: '403',
+    path: '/403',
+    component: () => import('../pages/403.vue'),
   },
 ]
 
@@ -233,6 +260,9 @@ async function removeToken() {
 
 router.beforeEach((to, from, next) => {
   const homePage = 'dashboard'
+  const userAlreadyLoggedIn: any = window.sessionStorage.getItem('token')
+  const userRole = window.sessionStorage.getItem('role') || ''
+
   axios.interceptors.response.use(
     (response) => response,
     (error) => {
@@ -243,7 +273,7 @@ router.beforeEach((to, from, next) => {
       return Promise.reject(error)
     },
   )
-  const userAlreadyLoggedIn: any = window.sessionStorage.getItem('token')
+
   if (to.name === '403' || to.name === '404') {
     next()
   }
@@ -262,6 +292,11 @@ router.beforeEach((to, from, next) => {
     }
   } else {
     setToken()
+
+    const allowedRoles = to.meta?.roles as string[] | undefined
+    if (Array.isArray(allowedRoles) && !allowedRoles.includes(userRole)) {
+      return next('/403')
+    }
     if (to.name === 'login') {
       next(homePage)
     } else {

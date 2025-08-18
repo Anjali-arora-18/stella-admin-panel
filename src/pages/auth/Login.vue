@@ -80,6 +80,7 @@ const submit = () => {
           if (response.data.user.outlets && response.data.user.outlets.length) {
             window.sessionStorage.setItem('token', response.data.accessToken)
             window.sessionStorage.setItem('user', response.data.user.id)
+            window.sessionStorage.setItem('role', response.data.user.role)
             serviceStore.setRest(response.data.user.outlets[0])
             window.sessionStorage.setItem('selectedRest', response.data.user.outlets[0])
             if (response.data.user.role.includes('caller')) {
@@ -96,6 +97,7 @@ const submit = () => {
           }
         } else {
           window.sessionStorage.setItem('token', response.data.accessToken)
+          window.sessionStorage.setItem('role', response.data.user.role)
           window.sessionStorage.setItem('user', response.data.user.id)
           push({ name: 'list' })
         }
