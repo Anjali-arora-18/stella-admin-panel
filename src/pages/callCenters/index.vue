@@ -66,6 +66,7 @@
             <CustomerDetails
               ref="customerRef"
               :force-remount="forceRemount"
+              :outlet="outlet"
               @setTab="() => (isCustomerTabActivated = true)"
               @setDeliveryFee="(val) => (deliveryFee = val)"
               @setCustomerDetailsId="(val) => (customerDetailsId = val)"

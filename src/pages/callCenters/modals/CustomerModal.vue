@@ -73,7 +73,7 @@
 
             <p class="mb-2 text-sm font-medium text-gray-500">Search Postcode or Street Name</p>
             <div ref="dropdownContainer" class="relative">
-              <div class="flex flex-col sm:flex-row gap-4 mb-4">
+              <div class="flex flex-col sm:flex-row gap-3 mb-4">
                 <VaInput
                   v-model="searchAdd.postalCode"
                   placeholder="Postcode"
@@ -88,11 +88,12 @@
                 />
                 <VaButton
                   :disabled="!searchAdd.postalCode && !searchAdd.street"
-                  class="w-full sm:w-auto bg-green-800 hover:bg-green-900 text-white"
+                  :style="{ '--va-background-color': outlet.primaryColor }"
+                  class="w-full sm:w-auto rounded-md"
+                  size="medium"
+                  icon="mso-search"
                   @click="fetchStreetName"
-                >
-                  🔍
-                </VaButton>
+                />
               </div>
               <div v-if="streetList.length" id="userResults" ref="dropdownRef" class="customer-results">
                 <ul class="divide divide-y-2">
@@ -107,7 +108,7 @@
                 </ul>
               </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-2">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-2">
               <div>
                 <label class="text-sm font-small text-gray-500">Post Code</label>
                 <VaInput v-model="postCode" class="mt-1" />
@@ -157,11 +158,11 @@
                 <VaButton
                   size="small"
                   class="!text-xs !px-1 !py-1 text-white rounded"
-                  style="background-color: #154ec1"
+                  :style="{ '--va-background-color': outlet.primaryColor }"
                   :disabled="!isAddressValid"
                   @click="addAddress"
                 >
-                  {{ editAddress !== -1 ? 'Edit' : 'Add' }} Address
+                  {{ editAddress !== -1 ? 'Update' : 'Add' }} Address
                 </VaButton>
               </div>
             </div>
@@ -173,12 +174,18 @@
     <div class="bg-[#f8f9fa] px-3 py-4 w-full">
       <div class="flex flex-wrap sm:justify-end items-center gap-4">
         <div class="flex items-center gap-2">
-          <VaCheckbox v-model="notifications" label="Receive Notifications" />
+          <VaCheckbox
+            v-model="notifications"
+            label="Receive Notifications"
+            :color="outlet.primaryColor"
+            :checked-text-color="outlet.primaryColor"
+            class="outline-none focus:outline-none focus:ring-1 focus:ring-gray-200 focus:border-gray-300"
+          />
         </div>
 
         <VaButtonToggle
           v-model="isTick"
-          toggle-color="textSecondary"
+          :toggle-color="outlet.primaryColor"
           color="#65667c"
           :options="[
             {
@@ -197,7 +204,8 @@
 
         <VaButton
           preset="secondary"
-          class="text-gray-600 border border-gray-300 hover:bg-gray-100 text-sm font-medium"
+          :style="{ color: outlet.primaryColor }"
+          class="border-gray-300 hover:bg-gray-100 text-sm font-medium"
           @click="emits('cancel')"
         >
           Cancel
@@ -206,7 +214,8 @@
         <VaButton
           type="submit"
           :disabled="isSubmitting || isTick === null"
-          class="bg-green-800 text-white hover:bg-green-900 text-sm font-semibold"
+          :style="{ '--va-background-color': outlet.primaryColor }"
+          class="text-white text-sm font-semibold"
           @click="handleSubmit"
         >
           {{ isEdit ? 'Save' : 'Add Customer' }}
@@ -230,6 +239,7 @@ const props = defineProps<{
   selectedUser?: Record<string, string>
   userName: string
   userNumber: number
+  outlet: Record<string, any>
 }>()
 const addressListRef = ref(null)
 const addressItems = ref([])
@@ -492,5 +502,16 @@ onBeforeUnmount(() => {
 }
 .custom-scroll::-webkit-scrollbar-track {
   background-color: transparent;
+}
+/* remove focus outline/ring for all VaCheckbox */
+.va-checkbox input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+/* Remove browser focus ring on the hidden input inside VaCheckbox */
+.va-checkbox input[type='checkbox']:focus,
+.va-checkbox input[type='checkbox']:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
 }
 </style>

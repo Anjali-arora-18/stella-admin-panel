@@ -235,6 +235,7 @@
       :selected-user="selectedUser"
       :user-name="name"
       :user-number="phoneNumber"
+      :outlet="outlet"
       @setUser="setNewUser"
       @cancel="closeCustomerModal"
     />
