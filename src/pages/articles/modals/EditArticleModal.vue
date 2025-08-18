@@ -54,6 +54,7 @@
           :multiple="true"
           value-by="id"
           class="mb-1 max-w-[200px]"
+          max-height="300px"
         />
       </div>
       <div class="flex-1">
