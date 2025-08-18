@@ -1,6 +1,13 @@
 <template>
   <section :id="id" class="menu-grid">
-    <div class="category-title">{{ title }}</div>
+    <div
+      class="category-title"
+      :style="{
+        borderBottom: `2px solid ${outlet.primaryColor}`,
+      }"
+    >
+      {{ title }}
+    </div>
 
     <div class="">
       <div
@@ -10,9 +17,12 @@
           'grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6': !isSidebarMinimized,
         }"
       >
-        <OfferCard v-for="item in items" v-if="id === 'offers'" :key="item.id" :item="item" />
-
-        <MenuCard v-for="item in items" v-else :key="item.id" :item="item" :category-id="id" />
+        <template v-if="id === 'offers'">
+          <OfferCard v-for="item in items" :key="item.id" :item="item" />
+        </template>
+        <template v-else>
+          <MenuCard v-for="item in items" :key="item.id" :item="item" :category-id="id" />
+        </template>
       </div>
     </div>
   </section>
@@ -28,6 +38,7 @@ defineProps({
   id: String,
   title: String,
   items: Array,
+  outlet: Object,
 })
 
 const { isSidebarMinimized } = storeToRefs(useGlobalStore())
@@ -40,6 +51,5 @@ const { isSidebarMinimized } = storeToRefs(useGlobalStore())
   color: #1e293b;
   margin: 25px 0 15px 0;
   padding-bottom: 8px;
-  border-bottom: 2px solid blue;
 }
 </style>

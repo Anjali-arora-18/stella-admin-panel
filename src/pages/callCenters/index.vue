@@ -44,13 +44,14 @@
             </div>
           </div>
           <div class="menu-scroll">
-            <MenuSection v-if="offers.length" id="offers" title="OFFERS" :items="offers" />
+            <MenuSection v-if="offers.length" id="offers" title="OFFERS" :items="offers" :outlet="outlet" />
             <MenuSection
               v-for="cat in filteredCategories"
               :id="cat._id"
               :key="cat.name"
               :title="cat.name"
               :items="cat.menuItems"
+              :outlet="outlet"
             />
           </div>
         </VaCardContent>
