@@ -220,7 +220,12 @@
                   </button>
                   <span class="w-4 text-center text-xs">{{ getQty(group.optionGroupId, option.optionId) }}</span>
                   <button
-                    title="Max quantity reached"
+                    :title="
+                      getQty(group.optionGroupId, option.optionId) >=
+                      (option.maximumChoices || group.maximumChoices || 99)
+                        ? 'Max quantity reached'
+                        : ''
+                    "
                     class="w-5 h-5 text-xs font-bold border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50"
                     :disabled="
                       getQty(group.optionGroupId, option.optionId) >=

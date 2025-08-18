@@ -206,6 +206,15 @@
                     €{{ parseFloat(option.price).toFixed(2) }}
                   </p>
 
+                  <!-- <button
+                    :title="getQty(group._id, option._id) === 0 ? 'Min quantity reached' : ''"
+                    class="w-5 h-5 text-xs font-bold border border-gray-300 rounded disabled:hover:bg-transparent hover:bg-gray-100 disabled:opacity-50"
+                    :disabled="getQty(group._id, option._id) === 0"
+                    @click="() => updateMultipleChoice(group, option, getQty(group._id, option._id) - 1)"
+                  >
+                    -
+                  </button> -->
+
                   <button
                     class="w-5 h-5 text-xs font-bold border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50"
                     :disabled="getQty(group._id, option._id) === 0"
@@ -215,7 +224,11 @@
                   </button>
                   <span class="w-4 text-center text-xs">{{ getQty(group._id, option._id) }}</span>
                   <button
-                    title="Max quantity reached"
+                    :title="
+                      getQty(group._id, option._id) >= (option.maximumChoices || group.maximumChoices || 99)
+                        ? 'Max quantity reached'
+                        : ''
+                    "
                     class="w-5 h-5 text-xs font-bold border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50"
                     :disabled="getQty(group._id, option._id) >= (option.maximumChoices || group.maximumChoices || 99)"
                     @click="() => updateMultipleChoice(group, option, getQty(group._id, option._id) + 1)"
