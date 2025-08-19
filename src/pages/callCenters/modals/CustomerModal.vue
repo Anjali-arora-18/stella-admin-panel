@@ -13,7 +13,9 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Customer Info -->
           <div>
-            <h3 class="font-semibold text-gray-700 border-b border-green-800 pb-1 mb-4">Customer Information</h3>
+            <h3 class="font-semibold text-gray-700 pb-1 mb-4 border-b" :style="{ borderColor: outlet.primaryColor }">
+              Customer Information
+            </h3>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
@@ -69,7 +71,9 @@
 
           <!-- Address Info -->
           <div>
-            <h3 class="font-semibold text-gray-700 border-b border-green-800 pb-1 mb-4">Address Information</h3>
+            <h3 class="font-semibold text-gray-700 pb-1 mb-4 border-b" :style="{ borderColor: outlet.primaryColor }">
+              Address Information
+            </h3>
 
             <p class="mb-2 text-sm font-medium text-gray-500">Search Postcode or Street Name</p>
             <div ref="dropdownContainer" class="relative">
@@ -503,12 +507,10 @@ onBeforeUnmount(() => {
 .custom-scroll::-webkit-scrollbar-track {
   background-color: transparent;
 }
-/* remove focus outline/ring for all VaCheckbox */
 .va-checkbox input:focus-visible {
   outline: none !important;
   box-shadow: none !important;
 }
-/* Remove browser focus ring on the hidden input inside VaCheckbox */
 .va-checkbox input[type='checkbox']:focus,
 .va-checkbox input[type='checkbox']:focus-visible {
   outline: none !important;

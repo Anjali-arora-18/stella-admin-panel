@@ -12,7 +12,7 @@
       <!-- Order Summary -->
       <div class="md:col-span-1 flex flex-col">
         <div class="p-4 h-full flex flex-col">
-          <h3 class="summary-title flex-shrink-0">Order Summary</h3>
+          <h3 class="va-h3">Order Summary</h3>
 
           <div class="order-items order-items-wrapper overflow-y-auto flex-grow">
             <div v-for="(item, index) in orderStore.cartItems" :key="item.itemId" class="order-item">
@@ -93,7 +93,7 @@
       <!-- Payment Section -->
       <div v-if="!redirectUrl" class="md:col-span-2 flex flex-col bg-white">
         <div class="header-container">
-          <h3 class="payment-header">{{ etaTime }}</h3>
+          <h3 class="va-h3">{{ etaTime }}</h3>
         </div>
 
         <div class="payment-content flex-grow">
@@ -552,7 +552,7 @@ async function createOrder() {
 .header-container {
   background: #ffffff;
   border-bottom: 2px solid #e5e7eb;
-  padding: 24px 32px;
+  padding: 16px 32px;
   display: flex;
   justify-content: left;
   align-items: center;
