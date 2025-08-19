@@ -2,16 +2,16 @@
   <VaModal
     v-model="showCheckoutModal"
     no-dismiss
-    class="big-xl-modal"
+    class="big-xl-xl-modal"
     size="large"
     :mobile-fullscreen="false"
     hide-default-actions
     :close-button="!redirectUrl"
   >
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50">
+    <div class="grid grid-cols-1 md:grid-cols-3 h-full bg-gray-50">
       <!-- Order Summary -->
-      <div class="md:col-span-1">
-        <div class="p-6 h-full flex flex-col">
+      <div class="md:col-span-1 flex flex-col">
+        <div class="p-4 h-full flex flex-col">
           <h3 class="summary-title flex-shrink-0">Order Summary</h3>
 
           <div class="order-items order-items-wrapper overflow-y-auto flex-grow">
@@ -91,7 +91,7 @@
         </div>
       </div>
       <!-- Payment Section -->
-      <div v-if="!redirectUrl" class="md:col-span-2 flex flex-col bg-white shadow-md">
+      <div v-if="!redirectUrl" class="md:col-span-2 flex flex-col bg-white">
         <div class="header-container">
           <h3 class="payment-header">{{ etaTime }}</h3>
         </div>
@@ -114,7 +114,7 @@
           </div>
         </div>
 
-        <div class="action-container mt-6">
+        <div class="action-container">
           <button
             id="confirmBtn"
             :disabled="apiLoading || !selectedPayment"
@@ -128,7 +128,7 @@
           </button>
         </div>
       </div>
-      <div v-else class="col-span-2 px-5 flex items-center px-10 py-10 bg-white">
+      <div v-else class="col-span-2 flex items-center bg-white">
         <iframe :src="redirectUrl" width="100%" height="100%" />
       </div>
     </div>
@@ -424,7 +424,7 @@ async function createOrder() {
 
 <style scoped>
 .order-items {
-  margin-bottom: 24px;
+  margin-bottom: 2rem;
   background: white;
   border-radius: 12px;
   padding: 20px;

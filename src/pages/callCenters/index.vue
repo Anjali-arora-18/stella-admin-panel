@@ -61,7 +61,7 @@
     <!-- RIGHT SECTION -->
     <div class="md:col-span-2 bg-slate-100 pt-4" style="height: calc(100vh - 98px); overflow-y: hidden">
       <div class="flex flex-col gap-2">
-        <VaCard>
+        <VaCard class="order-card">
           <VaCardContent>
             <CustomerDetails
               ref="customerRef"
@@ -77,7 +77,7 @@
             />
           </VaCardContent>
         </VaCard>
-        <VaCard>
+        <VaCard class="order-card">
           <VaCardContent>
             <OrderDetails
               :delivery-fee="deliveryFee"
@@ -325,5 +325,9 @@ async function getMenu() {
   overflow-x: hidden;
   flex: 1 1 auto;
   padding-right: 0.25rem;
+}
+.order-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 </style>

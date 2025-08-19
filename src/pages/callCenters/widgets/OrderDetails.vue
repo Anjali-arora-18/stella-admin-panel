@@ -274,9 +274,9 @@ const formattedLabel = (sel) => {
 const orderItemsStyle = computed(() => {
   if (props.isCustomerOpen) {
     if (props.orderType === 'delivery') {
-      return { height: 'calc(100vh - 640px)', overflowY: 'auto' }
+      return { height: 'calc(100vh - 645px)', overflowY: 'auto' }
     } else if (props.orderType === 'takeaway') {
-      return { height: 'calc(100vh - 620px)', overflowY: 'auto' }
+      return { height: 'calc(100vh - 625px)', overflowY: 'auto' }
     }
   } else {
     if (props.orderType === 'delivery') {
