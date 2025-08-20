@@ -259,7 +259,6 @@ async function removeToken() {
 }
 
 router.beforeEach((to, from, next) => {
-  const homePage = 'dashboard'
   const userAlreadyLoggedIn: any = window.sessionStorage.getItem('token')
   const userRole = window.sessionStorage.getItem('role') || ''
 
@@ -297,8 +296,34 @@ router.beforeEach((to, from, next) => {
     if (Array.isArray(allowedRoles) && !allowedRoles.includes(userRole)) {
       return next('/403')
     }
+
+    const roleDefaultPages: Record<string, string> = {
+      admin: 'articles',
+      'super-admin': 'dashboard',
+      editor: 'articles',
+      caller: 'callCenters',
+      'caller-editor': 'callCenters',
+    }
+
+    const defaultPage = roleDefaultPages[userRole] || 'dashboard'
+
+    // Block /dashboard for callers, caller-editors, and editors
+    if (to.name === 'dashboard' && (userRole === 'caller' || userRole === 'caller-editor')) {
+      return next({ name: 'callCenters' })
+    }
+
+    if (to.name === 'dashboard' && (userRole === 'editor' || userRole === 'admin')) {
+      return next({ name: 'articles' })
+    }
+
+    // If user lands on root `/` → redirect to role default page
+    if (to.path === '/' || (!to.name && from.name === undefined)) {
+      return next({ name: defaultPage })
+    }
+
+    // If logged-in user tries to visit `/login` → redirect to role default page
     if (to.name === 'login') {
-      next(homePage)
+      return next({ name: defaultPage })
     } else {
       next()
     }
