@@ -299,29 +299,23 @@ router.beforeEach((to, from, next) => {
 
     const roleDefaultPages: Record<string, string> = {
       admin: 'articles',
-      'super-admin': 'dashboard',
+      'super-admin': 'list',
       editor: 'articles',
       caller: 'callCenters',
       'caller-editor': 'callCenters',
     }
 
-    const defaultPage = roleDefaultPages[userRole] || 'dashboard'
+    const defaultPage = roleDefaultPages[userRole] || 'articles'
 
-    // Block /dashboard for callers, caller-editors, and editors
-    if (to.name === 'dashboard' && (userRole === 'caller' || userRole === 'caller-editor')) {
-      return next({ name: 'callCenters' })
+    // If user lands on `/dashboard`, redirect them to their default page
+    if (to.name === 'dashboard') {
+      return next({ name: defaultPage })
     }
 
-    if (to.name === 'dashboard' && (userRole === 'editor' || userRole === 'admin')) {
-      return next({ name: 'articles' })
-    }
-
-    // If user lands on root `/` → redirect to role default page
     if (to.path === '/' || (!to.name && from.name === undefined)) {
       return next({ name: defaultPage })
     }
 
-    // If logged-in user tries to visit `/login` → redirect to role default page
     if (to.name === 'login') {
       return next({ name: defaultPage })
     } else {
