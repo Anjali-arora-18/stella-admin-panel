@@ -89,7 +89,7 @@ function copyToClipboard(text) {
     })
 }
 
-async function selectCode(code) {
+async function selectCode(code, hideToast = false) {
   selectedCode.value = code
   apiLoading.value = true
   let menuItems = []
@@ -144,11 +144,12 @@ async function selectCode(code) {
     const response = await orderStore.validatePromoCode(payload)
 
     if (response.data.success) {
-      console.log('Promo Code is valid', response.data)
+      if (!hideToast) {
+        init({ message: `PromoCode selected`, color: 'success' })
+      }
       orderStore.setOrderTotal(response.data.data)
       emits('select-code', code)
       emits('cancel')
-      init({ message: `PromoCode selected`, color: 'success' })
     } else {
       orderStore.setOrderTotal(null)
       init({ message: `PromoCode invalid`, color: 'danger' })
@@ -161,11 +162,31 @@ async function selectCode(code) {
 }
 
 watch(
+  () => orderStore.cartItems,
+  () => {
+    if (selectedCode.value) {
+      orderStore.setOrderTotal(null) // Reset total when cart items change
+      selectCode(selectedCode.value, true) // Re-validate promo code on cart change
+    }
+  },
+  { deep: true },
+)
+watch(
+  () => props.offerItems,
+  () => {
+    if (selectedCode.value) {
+      orderStore.setOrderTotal(null) // Reset total when order type changes
+      selectCode(selectedCode.value, true) // Re-validate promo code on order type change
+    }
+  },
+  { deep: true },
+)
+watch(
   () => props.orderType,
   () => {
     if (selectedCode.value) {
       orderStore.setOrderTotal(null) // Reset total when order type changes
-      selectCode(selectedCode.value) // Re-validate promo code on order type change
+      selectCode(selectedCode.value, true) // Re-validate promo code on order type change
     }
   },
 )
