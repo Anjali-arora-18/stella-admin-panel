@@ -284,20 +284,24 @@ const formattedLabel = (sel) => {
 }
 
 const orderItemsStyle = computed(() => {
+  let height = {}
   if (props.isCustomerOpen) {
     if (props.orderType === 'delivery') {
-      return { height: 'calc(100vh - 635px)', overflowY: 'auto' }
+      height = { height: 'calc(100vh - 635px)', overflowY: 'auto' }
     } else if (props.orderType === 'takeaway') {
-      return { height: 'calc(100vh - 615px)', overflowY: 'auto' }
+      height = { height: 'calc(100vh - 615px)', overflowY: 'auto' }
     }
   } else {
     if (props.orderType === 'delivery') {
-      return { height: 'calc(100vh - 395px)', overflowY: 'auto' }
+      height = { height: 'calc(100vh - 395px)', overflowY: 'auto' }
     } else if (props.orderType === 'takeaway') {
-      return { height: 'calc(100vh - 375px)', overflowY: 'auto' }
+      height = { height: 'calc(100vh - 375px)', overflowY: 'auto' }
     }
   }
-  return {}
+  if (promotTotal.value) {
+    height.height = `calc(${height.height} - 20px)` // Adjust for discounted price row
+  }
+  return height
 })
 
 const outlet = computed(() => {
