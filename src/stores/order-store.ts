@@ -4,6 +4,7 @@ export const useOrderStore = defineStore('order', {
   state: () => ({
     cartItems: [],
     offerItems: [],
+    cartTotal: null,
     paymentId: '',
     redirectUrl: '',
     deliveryZone: '',
@@ -12,6 +13,9 @@ export const useOrderStore = defineStore('order', {
   }),
 
   actions: {
+    setOrderTotal(payload) {
+      this.cartTotal = payload
+    },
     setOrderFor(payload) {
       this.orderFor = payload
     },
@@ -70,6 +74,10 @@ export const useOrderStore = defineStore('order', {
     async createOrder(payload) {
       const url = import.meta.env.VITE_API_BASE_URL
       return await axios.post(`${url}/orders`, payload)
+    },
+    async validatePromoCode(payload) {
+      const url = import.meta.env.VITE_API_BASE_URL
+      return await axios.post(`${url}/orders/validate-promo`, payload)
     },
     async checkPaymentStatus(orderId, paymentTypeId) {
       const url = import.meta.env.VITE_API_BASE_URL

@@ -173,18 +173,23 @@
         </div>
       </div>
       <!-- Summary -->
-      <div class="text-xs space-y-1 p-1 bg-slate-50 mb-0">
+      <div class="text-xs space-y-1 bg-slate-50 mb-0">
         <div class="flex justify-between">
-          <span class="text-gray-600 text-md">Subtotal:</span>
+          <span class="text-gray-600">Subtotal:</span>
           <span>€{{ subtotal.toFixed(2) }}</span>
         </div>
         <div v-if="orderType === 'delivery'" class="flex justify-between">
           <span class="text-gray-600">Delivery Fee:</span>
           <span>€{{ deliveryFee.toFixed(2) }}</span>
         </div>
-        <div class="flex justify-between font-bold text-md pt-1 border-t">
+        <div v-if="promotTotal" class="flex justify-between">
+          <span class="text-gray-600">Discounted Price:</span>
+          <span>€{{ promotTotal.updatedTotal.toFixed(2) }}</span>
+        </div>
+        <div class="flex justify-between font-bold text-xs pt-1 border-t">
           <span>Total:</span>
-          <span>€{{ total.toFixed(2) }}</span>
+          <span v-if="!promotTotal">€{{ total.toFixed(2) }}</span>
+          <span v-else>€{{ promotTotal.updatedTotal.toFixed(2) }}</span>
         </div>
       </div>
 
@@ -229,8 +234,13 @@
       @cancel="closeCheckoutModal"
     />
     <PromotionModal
-      v-if="showPromotionModal"
+      ref="promotionModal"
+      v-model="showPromotionModal"
       :promotion="promotionData"
+      :date-selected="dateSelected"
+      :order-type="orderType"
+      :delivery-fee="deliveryFee"
+      :customer-details-id="customerDetailsId"
       @cancel="closePromotionModal"
       @selectCode="onCodeSelected"
     />
@@ -238,7 +248,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, useTemplateRef } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useOrderStore } from '@/stores/order-store'
 import { useServiceStore } from '@/stores/services.ts'
@@ -257,6 +267,8 @@ const props = defineProps({
   isDeliveryZoneSelected: Boolean,
   dateSelected: String,
 })
+
+const promotionRef = useTemplateRef('promotionModal')
 const serviceStore = useServiceStore()
 
 const promoCode = ref('')
@@ -274,15 +286,15 @@ const formattedLabel = (sel) => {
 const orderItemsStyle = computed(() => {
   if (props.isCustomerOpen) {
     if (props.orderType === 'delivery') {
-      return { height: 'calc(100vh - 645px)', overflowY: 'auto' }
+      return { height: 'calc(100vh - 635px)', overflowY: 'auto' }
     } else if (props.orderType === 'takeaway') {
-      return { height: 'calc(100vh - 625px)', overflowY: 'auto' }
+      return { height: 'calc(100vh - 615px)', overflowY: 'auto' }
     }
   } else {
     if (props.orderType === 'delivery') {
-      return { height: 'calc(100vh - 405px)', overflowY: 'auto' }
+      return { height: 'calc(100vh - 395px)', overflowY: 'auto' }
     } else if (props.orderType === 'takeaway') {
-      return { height: 'calc(100vh - 385px)', overflowY: 'auto' }
+      return { height: 'calc(100vh - 375px)', overflowY: 'auto' }
     }
   }
   return {}
@@ -366,6 +378,10 @@ const total = computed(() => {
   }
 })
 
+const promotTotal = computed(() => {
+  return orderStore.cartTotal !== null ? orderStore.cartTotal : null
+})
+
 const increaseQty = (item) => {
   const index = cartItems.value.findIndex((i) => i.itemId === item.id)
   if (index !== -1) {
@@ -436,6 +452,10 @@ function onCodeSelected(code) {
 }
 function clearPromoCode() {
   promoCode.value = ''
+  if (promotionRef.value) {
+    promotionRef.value.selectedCode = ''
+  }
+  orderStore.setOrderTotal(null)
 }
 
 const getMenuOptions = async (selectedItem) => {

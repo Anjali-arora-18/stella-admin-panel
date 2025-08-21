@@ -83,9 +83,14 @@
               <span>Delivery Fee:</span>
               <span>€{{ deliveryFee.toFixed(2) }}</span>
             </div>
+            <div v-if="promotTotal" class="total-row">
+              <span>Discounted Price:</span>
+              <span>€{{ promotTotal.updatedTotal.toFixed(2) }}</span>
+            </div>
             <div class="total-row total-final">
               <span>Total Amount:</span>
-              <span>€{{ (totalAmount + deliveryFee).toFixed(2) }}</span>
+              <span v-if="!promotTotal">€{{ (totalAmount + deliveryFee).toFixed(2) }}</span>
+              <span v-else>€{{ promotTotal.updatedTotal.toFixed(2) }}</span>
             </div>
           </div>
         </div>
@@ -265,6 +270,10 @@ const subtotal = computed(() => {
     orderStore.cartItems.reduce((acc, item) => acc + item.totalPrice, 0) +
     orderStore.offerItems.reduce((acc, item) => acc + item.price + item.selectionTotalPrice, 0)
   )
+})
+
+const promotTotal = computed(() => {
+  return orderStore.cartTotal !== null ? orderStore.cartTotal : null
 })
 
 const totalAmount = computed(() => {
