@@ -188,7 +188,7 @@
           <span>€{{ deliveryFee.toFixed(2) }}</span>
         </div>
         <div v-if="promoTotal" class="flex justify-between">
-          <span class="text-gray-600">Discounted Amount:</span>
+          <span class="text-gray-600">Total Discount:</span>
           <span>- €{{ (promoTotal.originalTotal - promoTotal.updatedTotal).toFixed(2) }}</span>
         </div>
         <div class="flex justify-between font-bold text-xs pt-1 border-t">

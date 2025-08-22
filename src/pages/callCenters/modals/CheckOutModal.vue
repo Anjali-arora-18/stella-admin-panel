@@ -84,7 +84,7 @@
               <span>€{{ deliveryFee.toFixed(2) }}</span>
             </div>
             <div v-if="promotTotal" class="total-row">
-              <span>Discounted Price:</span>
+              <span>Total Discount:</span>
               <span>€{{ promotTotal.updatedTotal.toFixed(2) }}</span>
             </div>
             <div class="total-row total-final">

@@ -250,9 +250,9 @@
               />
               <VaInput v-model="formData.minimumOrder" label="Minimum Order (€)" type="number" min="0" step="0.01" />
             </div>
-            <div class="flex items-center gap-6 mt-2">
+            <div class="flex items-center gap-6 mt-3">
               <VaCheckbox v-model="formData.availableAtCC" label="Available at CC" />
-              <VaCheckbox v-model="formData.affectOffers" label="Affect Offers" />
+              <VaCheckbox v-model="formData.affectOffers" label="Affect Offers" disabled="true" />
             </div>
           </section>
         </div>
