@@ -1,5 +1,5 @@
 <template>
-  <div class="menu-item" @click="getOffers">
+  <div v-if="isOfferAvailable(item)" class="menu-item" @click="getOffers">
     <div class="item-content">
       <div class="item-name">{{ item.name }}</div>
       <div class="item-price">€{{ parseFloat(item.price).toFixed(2) }}</div>
@@ -33,7 +33,36 @@ const orderStore = useOrderStore()
 
 const { init } = useToast()
 
+// Function to check if offer is valid based on day & time
+function isOfferAvailable(item) {
+  if (!item.weeklyOffer || !item.timeOffer) return false
+
+  // Get current day and lowercase it
+  const today = new Date()
+  const currentDay = today.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
+
+  // Check if today is in weeklyOffer list
+  if (!item.weeklyOffer.includes(currentDay)) {
+    return false
+  }
+
+  // Get current time in HH:mm format
+  const currentTime = today.toTimeString().slice(0, 5) // "HH:mm"
+  const { startTime, endTime } = item.timeOffer
+
+  // Compare times
+  return currentTime >= startTime && currentTime <= endTime
+}
+
 function getOffers() {
+  // If offer is not available, show toast & stop
+  if (!isOfferAvailable(props.item)) {
+    init({
+      message: 'This offer is not available right now!',
+      color: 'danger',
+    })
+    return
+  }
   openMenuModal()
 }
 function openMenuModal() {
