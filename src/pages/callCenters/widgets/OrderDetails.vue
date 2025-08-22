@@ -102,9 +102,9 @@
             <!-- Item Total -->
             <div class="flex flex-col items-end">
               <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
-              <span v-if="promoTotal && promoMenuItemPrice(item)" class="font-semibold text-red-500"
+              <!-- <span v-if="promoTotal && promoMenuItemPrice(item)" class="font-semibold text-red-500"
                 >- €{{ promoMenuItemPrice(item) }}</span
-              >
+              > -->
             </div>
           </div>
         </div>
