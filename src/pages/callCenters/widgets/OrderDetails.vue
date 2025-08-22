@@ -100,7 +100,12 @@
             </div>
 
             <!-- Item Total -->
-            <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
+            <div class="flex flex-col items-end">
+              <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
+              <span v-if="promoTotal && promoMenuItemPrice(item)" class="font-semibold text-red-500"
+                >- €{{ promoMenuItemPrice(item) }}</span
+              >
+            </div>
           </div>
         </div>
         <div v-for="item in offersItems" :key="item.id" class="mb-3 border-b pb-2 last:border-none">
@@ -182,14 +187,14 @@
           <span class="text-gray-600">Delivery Fee:</span>
           <span>€{{ deliveryFee.toFixed(2) }}</span>
         </div>
-        <div v-if="promotTotal" class="flex justify-between">
-          <span class="text-gray-600">Discounted Price:</span>
-          <span>€{{ promotTotal.updatedTotal.toFixed(2) }}</span>
+        <div v-if="promoTotal" class="flex justify-between">
+          <span class="text-gray-600">Discounted Amount:</span>
+          <span>- €{{ (promoTotal.originalTotal - promoTotal.updatedTotal).toFixed(2) }}</span>
         </div>
         <div class="flex justify-between font-bold text-xs pt-1 border-t">
           <span>Total:</span>
-          <span v-if="!promotTotal">€{{ total.toFixed(2) }}</span>
-          <span v-else>€{{ promotTotal.updatedTotal.toFixed(2) }}</span>
+          <span v-if="!promoTotal">€{{ total.toFixed(2) }}</span>
+          <span v-else>€{{ promoTotal.updatedTotal.toFixed(2) }}</span>
         </div>
       </div>
 
@@ -298,7 +303,7 @@ const orderItemsStyle = computed(() => {
       height = { height: 'calc(100vh - 375px)', overflowY: 'auto' }
     }
   }
-  if (promotTotal.value) {
+  if (promoTotal.value) {
     height.height = `calc(${height.height} - 20px)` // Adjust for discounted price row
   }
   return height
@@ -382,9 +387,18 @@ const total = computed(() => {
   }
 })
 
-const promotTotal = computed(() => {
+const promoTotal = computed(() => {
   return orderStore.cartTotal !== null ? orderStore.cartTotal : null
 })
+
+const promoMenuItemPrice = function (item) {
+  if (!promoTotal.value || !item) return 0
+  const promoMenuItem = promoTotal.value.menuItems.find((a) => a.menuItemId === item.id)
+  if (!promoMenuItem) return 0
+  else {
+    return (promoMenuItem.originalPrice - promoMenuItem.updatedPrice).toFixed(2)
+  }
+}
 
 const increaseQty = (item) => {
   const index = cartItems.value.findIndex((i) => i.itemId === item.id)

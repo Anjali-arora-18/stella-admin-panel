@@ -33,24 +33,19 @@ const orderStore = useOrderStore()
 
 const { init } = useToast()
 
-// Function to check if offer is valid based on day & time
 function isOfferAvailable(item) {
   if (!item.weeklyOffer || !item.timeOffer) return false
 
-  // Get current day and lowercase it
   const today = new Date()
   const currentDay = today.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
 
-  // Check if today is in weeklyOffer list
   if (!item.weeklyOffer.includes(currentDay)) {
     return false
   }
 
-  // Get current time in HH:mm format
-  const currentTime = today.toTimeString().slice(0, 5) // "HH:mm"
+  const currentTime = today.toTimeString().slice(0, 5) 
   const { startTime, endTime } = item.timeOffer
 
-  // Compare times
   return currentTime >= startTime && currentTime <= endTime
 }
 
