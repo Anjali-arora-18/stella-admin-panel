@@ -73,7 +73,7 @@ const orderStore = useOrderStore()
 const serviceStore = useServiceStore()
 const orderFor = computed(() => orderStore.orderFor)
 const selectedCode = ref('')
-defineExpose({ selectedCode })
+
 const sortedPromotions = computed(() =>
   [...props.promotion].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())),
 )
@@ -190,4 +190,5 @@ watch(
     }
   },
 )
+defineExpose({ selectedCode, selectCode })
 </script>

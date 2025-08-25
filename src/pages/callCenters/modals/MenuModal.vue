@@ -206,15 +206,6 @@
                     €{{ parseFloat(option.price).toFixed(2) }}
                   </p>
 
-                  <!-- <button
-                    :title="getQty(group._id, option._id) === 0 ? 'Min quantity reached' : ''"
-                    class="w-5 h-5 text-xs font-bold border border-gray-300 rounded disabled:hover:bg-transparent hover:bg-gray-100 disabled:opacity-50"
-                    :disabled="getQty(group._id, option._id) === 0"
-                    @click="() => updateMultipleChoice(group, option, getQty(group._id, option._id) - 1)"
-                  >
-                    -
-                  </button> -->
-
                   <button
                     class="w-5 h-5 text-xs font-bold border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50"
                     :disabled="getQty(group._id, option._id) === 0"
@@ -246,7 +237,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import { useOrderStore } from '@/stores/order-store'
 import axios from 'axios'
 const orderStore = useOrderStore()
@@ -406,7 +397,6 @@ watch(
       !articlesOptionsGroups.value.length
     )
       return
-
     if (isEdit && item?.selectedOptions) {
       selectedOptions.value = JSON.parse(JSON.stringify(item.selectedOptions))
       const selectedGroupAndOption = item.selectedOptions.find((group) =>
@@ -647,6 +637,18 @@ function increment(item) {
 function decrement(item) {
   if (item.quantity > 0) item.quantity--
 }
+
+onMounted(() => {
+  if (props.isEdit && props.item?.selectedOptions) {
+    selectedOptions.value = JSON.parse(JSON.stringify(props.item.selectedOptions))
+    const selectedGroupAndOption = props.item.selectedOptions.find((group) =>
+      group.selected.flatMap((a) => a.type.toLowerCase()).includes('article'),
+    )
+    if (selectedGroupAndOption) {
+      getArticlesConfiguration(selectedGroupAndOption.groupId, selectedGroupAndOption.selected[0].optionId)
+    }
+  }
+})
 </script>
 
 <style>

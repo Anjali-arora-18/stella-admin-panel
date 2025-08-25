@@ -11,9 +11,10 @@
           size="small"
           class="flex-1 min-w-[200px]"
           input-class="text-xs pr-6"
+          @keypress.enter="applyPromoCode"
         >
           <template #appendInner>
-            <VaIcon v-if="promoCode" name="close" color="danger" class="cursor-pointer" @click="clearPromoCode" />
+            <VaIcon v-if="isPromoValid" name="close" color="danger" class="cursor-pointer" @click="clearPromoCode" />
           </template>
         </VaInput>
 
@@ -178,7 +179,7 @@
         </div>
       </div>
       <!-- Summary -->
-      <div class="text-xs space-y-1 bg-slate-50 mb-0">
+      <div class="text-xs space-y-1 bg-slate-50 mb-0 pl-1 pr-1">
         <div class="flex justify-between">
           <span class="text-gray-600">Subtotal:</span>
           <span>€{{ subtotal.toFixed(2) }}</span>
@@ -216,7 +217,7 @@
     <MenuModal
       v-if="showMenuModal"
       :item="selectedItemWithArticlesOptionsGroups"
-      :category-id="selectedItemWithArticlesOptionsGroups.categoryId"
+      :category-id="selectedItemCategoryId"
       :menu-item-id="selectedItemWithArticlesOptionsGroups.menuItemId"
       :is-edit="isEdit"
       @cancel="closeMenuModal"
@@ -280,6 +281,7 @@ const promoCode = ref('')
 const promotionData = ref(null)
 const showPromotionModal = ref(false)
 const showOfferModal = ref(false)
+const isPromoValid = ref(false)
 const orderStore = useOrderStore()
 const { cartItems, offerItems } = storeToRefs(orderStore)
 
@@ -307,6 +309,21 @@ const orderItemsStyle = computed(() => {
     height.height = `calc(${height.height} - 20px)` // Adjust for discounted price row
   }
   return height
+})
+
+const selectedItemCategoryId = computed(() => {
+  if (!selectedItemWithArticlesOptionsGroups.value) return ''
+  else {
+    const categoryIds = selectedItemWithArticlesOptionsGroups.value.selectedOptions
+      .flatMap((a) => a.categoryId)
+      .filter((a) => a)
+    if (categoryIds.length) {
+      return categoryIds[0]
+    } else {
+      return ''
+    }
+  }
+  return selectedItemWithArticlesOptionsGroups.value.categoryId || ''
 })
 
 const outlet = computed(() => {
@@ -391,6 +408,8 @@ const promoTotal = computed(() => {
   return orderStore.cartTotal !== null ? orderStore.cartTotal : null
 })
 
+const orderFor = computed(() => orderStore.orderFor)
+
 const promoMenuItemPrice = function (item) {
   if (!promoTotal.value || !item) return 0
   const promoMenuItem = promoTotal.value.menuItems.find((a) => a.menuItemId === item.id)
@@ -464,12 +483,96 @@ async function openPromotionModal() {
     init({ message: 'Invalid or expired promotion code.', color: 'danger' })
   }
 }
+
+async function applyPromoCode() {
+  if (!promoCode.value) {
+    init({ message: 'Please enter a promotion code.', color: 'warning' })
+    return
+  }
+  if (props.orderType === 'takeaway' && !props.isDeliveryZoneSelected) {
+    init({ message: 'Please select a delivery zone first.', color: 'warning' })
+    return
+  }
+  if (!props.customerDetailsId) {
+    init({ message: 'Please select a customer first.', color: 'warning' })
+    return
+  }
+  if (total.value === 0) {
+    init({ message: 'Cart is empty. Please add items to the cart.', color: 'warning' })
+    return
+  }
+
+  let menuItems = []
+  menuItems = orderStore.cartItems.map((e) => {
+    return {
+      menuItem: e.itemId,
+      quantity: e.quantity,
+      options: e.selectedOptions.flatMap((group) =>
+        group.selected.map((option) => ({
+          option: option.optionId,
+          quantity: option.quantity,
+        })),
+      ),
+    }
+  })
+
+  const offerMenuItems = orderStore.offerItems.map((offer) => ({
+    offerId: offer.offerId,
+    menuItems: offer.selections.flatMap((selection) =>
+      selection.addedItems.map((item) => ({
+        menuItem: item.itemId,
+        quantity: item.quantity || 1,
+        options:
+          item.selectedOptions?.flatMap((group) =>
+            group.selected.map((option) => ({
+              option: option.optionId,
+              quantity: option.quantity,
+            })),
+          ) || [],
+      })),
+    ),
+  }))
+
+  try {
+    const payload = {
+      orderFor: orderFor.value,
+      customerDetailId: props.customerDetailsId,
+      orderType: props.orderType === 'takeaway' ? 'Takeaway' : 'Delivery',
+      deliveryZoneId: orderStore.deliveryZone?._id,
+      address: orderStore.address,
+      menuItems,
+      offerMenuItems,
+      orderNotes: '',
+      deliveryFee: props.deliveryFee,
+      outletId: serviceStore.selectedRest,
+      orderDateTime: new Date(props.dateSelected).toISOString(),
+      paymentMode: '',
+      promoCode: promoCode.value || '',
+      hasOtherOffers: offerMenuItems.length,
+    }
+
+    const response = await orderStore.validatePromoCode(payload)
+
+    if (response.data.success) {
+      init({ message: `PromoCode selected`, color: 'success' })
+      orderStore.setOrderTotal(response.data.data)
+      isPromoValid.value = true
+    } else {
+      orderStore.setOrderTotal(null)
+      init({ message: `PromoCode invalid`, color: 'danger' })
+    }
+  } catch (err) {
+    init({ message: `PromoCode invalid`, color: 'danger' })
+  }
+}
 function onCodeSelected(code) {
   promoCode.value = code
+  isPromoValid.value = true
   showPromotionModal.value = false
 }
 function clearPromoCode() {
   promoCode.value = ''
+  isPromoValid.value = false
   if (promotionRef.value) {
     promotionRef.value.selectedCode = ''
   }
@@ -488,6 +591,8 @@ const getMenuOptions = async (selectedItem) => {
     // Assign item with groups only if data is returned
     selectedItemWithArticlesOptionsGroups.value = {
       ...selectedItem,
+      menuItemId: selectedItem.menuItemId || selectedItem.itemId,
+      categoryId: selectedItem.categoryId || response.data.categoryId,
       articlesOptionsGroups: articlesOptionsGroups || [],
     }
 
