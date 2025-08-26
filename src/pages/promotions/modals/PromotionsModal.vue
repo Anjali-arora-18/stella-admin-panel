@@ -784,8 +784,8 @@ const submit = async () => {
       init({ message: 'Promotion updated successfully!', color: 'success' })
       emits('submitted')
     } else {
-      data.option = promotionsArticles.value
-      data.menuItem = promotionOptions.value
+      data.option = promotionOptions.value
+      data.menuItem = promotionsArticles.value
 
       const created = await createPromotion(data) // returns promotion object directly
       init({ message: 'Promotion created successfully!', color: 'success' })

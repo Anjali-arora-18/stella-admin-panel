@@ -63,8 +63,8 @@
           label="Description"
           placeholder="Description"
           type="textarea"
-          :min-rows="6"
-          :max-rows="6"
+          :min-rows="4"
+          :max-rows="4"
           class="mb-1 w-full"
         />
       </div>
