@@ -58,7 +58,7 @@ const getOptions = async () => {
   const url = import.meta.env.VITE_API_BASE_URL
   isLoading.value = true
   try {
-    const response = await axios.get(url + '/articles-options?limit=500&outletId=' + servicesStore.selectedRest)
+    const response = await axios.get(url + '/articles-options?limit=10000&outletId=' + servicesStore.selectedRest)
 
     items.value = response.data.result
       .map((e) => {
