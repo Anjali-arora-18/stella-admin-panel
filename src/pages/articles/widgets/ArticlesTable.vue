@@ -140,7 +140,7 @@ function openFileModal(data) {
         <VaInput
           v-model="searchQuery"
           placeholder="Search articles by code or name..."
-          class="w-full sm:w-[320px]"
+          class="w-[300px] sm:w-[320px] md:w-[400px]"
           size="small"
         />
       </div>
