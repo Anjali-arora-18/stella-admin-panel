@@ -1,8 +1,8 @@
 <template>
   <div>
     <VaForm v-if="!loading" ref="form" @submit="restaurantId ? updateRestaurant() : createRestaurant()">
-      <div class="flex flex-row justify-between md:items-center">
-        <h1 class="mb-3 font-bold">Restaurant Details</h1>
+      <div class="flex flex-row justify-between md:items-center mt-4">
+        <h1 class="mb-3 font-bold text-lg">Restaurant Details</h1>
         <div class="flex gap-x-4 ml-auto mb-3">
           <VaButton :disabled="!restaurantData.name" type="submit">{{ restaurantId ? 'Save' : 'Create' }}</VaButton>
           <VaButton preset="primary">Reset</VaButton>
@@ -84,7 +84,7 @@
         </VaCardContent>
       </VaCard>
 
-      <h1 class="mb-3 mt-8 font-bold">Configuration</h1>
+      <h1 class="mb-3 mt-6 font-bold text-lg">Configuration</h1>
       <VaCard>
         <VaCardContent>
           <div class="flex-col justify-start items-start gap-4 inline-flex w-full">
@@ -452,7 +452,7 @@
         </VaCardContent>
       </VaCard>
 
-      <h1 class="mb-3 mt-8 font-bold">Design</h1>
+      <h1 class="mb-3 mt-6 font-bold text-lg">Design</h1>
       <VaCard>
         <VaCardContent>
           <div class="flex-col justify-start items-start gap-4 inline-flex w-full">

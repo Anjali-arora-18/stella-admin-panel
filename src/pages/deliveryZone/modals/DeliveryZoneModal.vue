@@ -3,12 +3,12 @@
     v-model="isVisible"
     class="big-form"
     :mobile-fullscreen="false"
-    size="medium"
+    size="large"
     hide-default-actions
     close-button
   >
     <template #header>
-      <h1 class="va-h6 mb-2">Add Delivery Zone</h1>
+      <h1 class="va-h6 mb-4">Add Delivery Zone</h1>
     </template>
 
     <VaForm ref="form" @submit.prevent="submit">

@@ -134,7 +134,7 @@ function openFileModal(data) {
 
 <template>
   <div>
-    <div class="flex flex-col sm:flex-row justify-between items-center mb-5 gap-4">
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
       <div class="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
         <h1 class="page-title">Articles</h1>
         <VaInput

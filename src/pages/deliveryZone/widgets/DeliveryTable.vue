@@ -5,7 +5,7 @@ import { ref, toRef } from 'vue'
 import { useServiceStore } from '@/stores/services'
 import PostCodeModal from '../modals/PostCodeModal.vue'
 import axios from 'axios'
-const emits = defineEmits(['getDeliveryZones'])
+const emits = defineEmits(['getDeliveryZones', 'openModal'])
 const props = defineProps({
   items: {
     type: Array,
@@ -140,6 +140,12 @@ const items = toRef(props, 'items')
 
 <template>
   <div>
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="page-title">Delivery Zones</h1>
+      <div class="flex gap-2">
+        <VaButton size="small" color="primary" @click="emits('openModal')">Add Delivery Zone</VaButton>
+      </div>
+    </div>
     <VaDataTable
       :columns="columns"
       :items="items"

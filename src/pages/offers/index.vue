@@ -62,14 +62,7 @@ if (servicesStore.selectedRest) {
 
 <template>
   <div>
-    <div class="flex items-center justify-between">
-      <h1 class="page-title font-bold">Offers</h1>
-      <div class="flex gap-2">
-        <VaButton size="small" color="primary" @click="isOfferModalOpen = true">Add Offers</VaButton>
-      </div>
-    </div>
-
-    <VaCard>
+    <VaCard class="mt-4">
       <VaCardContent>
         <OfferTable
           :key="forceReMount"
@@ -77,6 +70,7 @@ if (servicesStore.selectedRest) {
           :loading="isLoading"
           @editOffers="editOffers"
           @getOffers="getOffers"
+          @openOfferModal="isOfferModalOpen = true"
         />
       </VaCardContent>
     </VaCard>

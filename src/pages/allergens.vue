@@ -25,9 +25,11 @@ const items = toRef(props, 'items')
 
 <template>
   <div>
-    <h1 class="page-title font-bold">Allergens</h1>
-    <VaCard>
+    <VaCard class="mt-4">
       <VaCardContent>
+        <div class="flex items-center justify-between mb-4">
+          <h1 class="page-title">Allergens</h1>
+        </div>
         <VaDataTable
           :columns="columns"
           :items="allergenOptions"

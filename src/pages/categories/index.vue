@@ -30,7 +30,7 @@ const getCategories = (outletId) => {
       editSchedule: false,
       _id: item._id || '',
       name: item.name || '',
-      code: item.code || '',
+      wCode: item.code || '',
       schedule: item.schedule || { selected: '' },
       ...item,
     }))
@@ -108,34 +108,38 @@ const isImportCategoryModalOpen = ref(false)
 </script>
 
 <template>
-  <div class="flex items-center justify-between">
+  <div>
+    <!-- <div class="flex items-center justify-between">
     <h1 class="page-title font-bold">Categories</h1>
     <div class="flex gap-2">
       <VaButton color="primary" size="small" @click="isImportCategoryModalOpen = true"> Import</VaButton>
       <VaButton size="small" color="primary" @click="isEditCategoryModalOpen = true"> Add Category </VaButton>
     </div>
+  </div> -->
+
+    <VaCard class="mt-4">
+      <VaCardContent>
+        <CategoriesTable
+          :items="items"
+          :loading="isLoading"
+          :sort-by="sortBy"
+          :sort-order="sortOrder"
+          @sortBy="updateSortBy"
+          @sortingOrder="updateSortOrder"
+          @deleteCategory="deleteCategory"
+          @updateCategoryModal="updateCategory"
+          @updateCategory="updateCategoryDirectly"
+          @addCategory="isEditCategoryModalOpen = true"
+          @importCategory="isImportCategoryModalOpen = true"
+        />
+      </VaCardContent>
+    </VaCard>
+
+    <EditCategoryModal
+      v-if="isEditCategoryModalOpen"
+      :selected-category="selectedCategory"
+      @cancel="(isEditCategoryModalOpen = false), (selectedCategory = ''), getCategories(serviceStore.selectedRest)"
+    />
+    <ImportCategoryModal v-if="isImportCategoryModalOpen" @cancel="closeImportCategoryModal" />
   </div>
-
-  <VaCard>
-    <VaCardContent>
-      <CategoriesTable
-        :items="items"
-        :loading="isLoading"
-        :sort-by="sortBy"
-        :sort-order="sortOrder"
-        @sortBy="updateSortBy"
-        @sortingOrder="updateSortOrder"
-        @deleteCategory="deleteCategory"
-        @updateCategoryModal="updateCategory"
-        @updateCategory="updateCategoryDirectly"
-      />
-    </VaCardContent>
-  </VaCard>
-
-  <EditCategoryModal
-    v-if="isEditCategoryModalOpen"
-    :selected-category="selectedCategory"
-    @cancel="(isEditCategoryModalOpen = false), (selectedCategory = ''), getCategories(serviceStore.selectedRest)"
-  />
-  <ImportCategoryModal v-if="isImportCategoryModalOpen" @cancel="closeImportCategoryModal" />
 </template>

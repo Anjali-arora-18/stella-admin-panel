@@ -3,7 +3,15 @@ import { defineVaDataTableColumns, useModal } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
 import { ref, computed, toRef, watch } from 'vue'
 import { useServiceStore } from '@/stores/services'
-const emits = defineEmits(['updateCategoryModal', 'updateCategory', 'sortBy', 'sortingOrder'])
+const emits = defineEmits([
+  'updateCategoryModal',
+  'updateCategory',
+  'sortBy',
+  'sortingOrder',
+  'deleteCategory',
+  'addCategory',
+  'importCategory',
+])
 const { confirm } = useModal()
 const router = useRouter()
 const servicesStore = useServiceStore()
@@ -74,14 +82,23 @@ const filteredItems = computed(() => {
 
 <template>
   <div>
-    <div class="mb-4">
-      <VaInput
-        v-model="searchQuery"
-        placeholder="Search categories by code or name..."
-        class="max-w-[400px]"
-        size="small"
-      />
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+      <div class="flex items-center gap-4 flex-wrap">
+        <h1 class="page-title">Categories</h1>
+        <VaInput
+          v-model="searchQuery"
+          placeholder="Search categories by code or name..."
+          class="w-[300px] sm:w-[320px] md:w-[400px]"
+          size="small"
+        />
+      </div>
+
+      <div class="flex gap-2 shrink-0">
+        <VaButton color="primary" size="small" @click="emits('importCategory')">Import</VaButton>
+        <VaButton size="small" color="primary" @click="emits('addCategory')">Add Category</VaButton>
+      </div>
     </div>
+
     <VaDataTable
       :columns="columns"
       :items="filteredItems"

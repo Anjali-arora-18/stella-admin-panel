@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { ref, computed, toRef, watch } from 'vue'
 import { useServiceStore } from '@/stores/services'
 import axios from 'axios'
-const emits = defineEmits(['getPayments', 'editPayment'])
+const emits = defineEmits(['getPayments', 'editPayment', 'addPayment'])
 const props = defineProps({
   items: {
     type: Array,
@@ -76,6 +76,13 @@ const items = toRef(props, 'items')
 
 <template>
   <div>
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="page-title">Payments</h1>
+      <div class="flex gap-2">
+        <VaButton size="small" color="primary" @click="emits('addPayment')"> Add Payment </VaButton>
+      </div>
+    </div>
+
     <VaDataTable
       :columns="columns"
       :items="items"

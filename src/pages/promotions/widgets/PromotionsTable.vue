@@ -7,7 +7,7 @@ import AddSelectionModal from '../modals/AddSelectionModal.vue'
 import axios from 'axios'
 import { updatePromotion, getMenuItemsByOutlet } from '../services/promotionService'
 
-const emits = defineEmits(['getPromotions', 'editPromotions', 'openSelectionModal'])
+const emits = defineEmits(['getPromotions', 'editPromotions', 'openSelectionModal', 'openPromotionModal'])
 const props = defineProps({
   items: {
     type: Array,
@@ -195,6 +195,12 @@ function formatReadableDate(dateStr) {
 
 <template>
   <div>
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="page-title">Promotions</h1>
+      <div class="flex gap-2">
+        <VaButton size="small" color="primary" @click="emits('openPromotionModal')"> Add Promotion </VaButton>
+      </div>
+    </div>
     <VaDataTable
       :columns="columns"
       :items="localItems"

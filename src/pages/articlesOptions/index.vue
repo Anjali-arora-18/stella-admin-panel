@@ -42,10 +42,10 @@ export default {
 </script>
 <style scoped>
 ::v-deep(.va-tab__label) {
-  font-size: 16px;
+  font-size: 17px;
 }
 
 ::v-deep(.va-tab--active .va-tab__label) {
-  font-size: 17px;
+  font-size: 18px;
 }
 </style>
