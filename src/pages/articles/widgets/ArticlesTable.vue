@@ -166,7 +166,7 @@ function openFileModal(data) {
       :loading="$props.loading"
       :disable-client-side-sorting="true"
       :style="{
-        '--va-data-table-height': '650px',
+        '--va-data-table-height': '710px',
         '--va-data-table-thead-background': 'var(--va-background-element)',
         '--va-data-table-thead-color': '#2C82E0',
       }"

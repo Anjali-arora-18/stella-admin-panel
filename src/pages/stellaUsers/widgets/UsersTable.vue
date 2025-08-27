@@ -115,7 +115,7 @@ watch(searchQuery, (search) => {
           size="small"
         />
       </div>
-      <div class="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto justify-end">
+      <div class="flex flex-col sm:flex-row sm:items-center gap-6 w-full sm:w-auto justify-end">
         <div class="flex gap-2">
           <VaButton size="small" color="primary" @click="emits('adduseropenmodal')"> Add User </VaButton>
         </div>
@@ -135,7 +135,7 @@ watch(searchQuery, (search) => {
       :loading="$props.loading"
       :disable-client-side-sorting="true"
       :style="{
-        '--va-data-table-height': '650px',
+        '--va-data-table-height': '710px',
         '--va-data-table-thead-background': 'var(--va-background-element)',
         '--va-data-table-thead-color': '#2C82E0',
       }"

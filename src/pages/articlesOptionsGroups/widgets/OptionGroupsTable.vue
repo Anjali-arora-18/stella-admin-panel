@@ -150,7 +150,7 @@ watch(searchQuery, (search) => {
       :loading="$props.loading"
       :disable-client-side-sorting="true"
       :style="{
-        '--va-data-table-height': '580px',
+        '--va-data-table-height': '660px',
         '--va-data-table-thead-background': 'var(--va-background-element)',
         '--va-data-table-thead-color': '#2C82E0',
       }"
