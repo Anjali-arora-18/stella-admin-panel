@@ -345,11 +345,31 @@ function setAddress(address) {
   streetList.value = []
 }
 
-function addAddress() {
+async function addAddress() {
   if (!isAddressValid.value) {
     init({ color: 'danger', message: 'Please fill all required address fields.' })
     return
   }
+
+  if (editAddress.value === -1) {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/postalcodes/streets`, {
+        params: {
+          postalCode: postCode.value,
+          streetName: streetAddress.value,
+        },
+      })
+
+      if (!response.data.data || response.data.data.length === 0) {
+        init({ color: 'danger', message: 'Address not available for Delivery' })
+        return
+      }
+    } catch (error) {
+      init({ color: 'danger', message: 'Failed to verify delivery availability' })
+      return
+    }
+  }
+
   const payload = {
     designation: designation.value,
     floor: floor.value,
@@ -404,19 +424,23 @@ function editAddressFields(addr, index) {
 
 async function fetchStreetName() {
   streetList.value = []
-  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/postalcodes/streets`, {
-    params: {
-      postalCode: searchAdd.postalCode,
-      streetName: searchAdd.street,
-    },
-  })
-  if (response.status === 200) {
-    streetList.value = response.data.data
-  } else {
-    init({
-      color: 'danger',
-      message: response.data.error,
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/postalcodes/streets`, {
+      params: {
+        postalCode: searchAdd.postalCode,
+        streetName: searchAdd.street,
+      },
     })
+
+    if (response.status === 200 && response.data.data.length > 0) {
+      streetList.value = response.data.data
+    } else {
+      streetList.value = []
+      init({ color: 'danger', message: 'Address not available for Delivery' })
+    }
+  } catch (error) {
+    streetList.value = []
+    init({ color: 'danger', message: 'Failed to fetch address data' })
   }
 }
 

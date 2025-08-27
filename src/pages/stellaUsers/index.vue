@@ -25,7 +25,7 @@ const getStellaUsers = (outletId) => {
   items.value = []
   const payload = {
     page: pageNumber.value,
-    limit: 10,
+    limit: 100,
     search: searchQuery.value,
     sortBy: sortBy.value,
     sortOrder: sortOrder.value,
