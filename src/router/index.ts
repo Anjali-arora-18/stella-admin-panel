@@ -105,16 +105,6 @@ const routes: Array<RouteRecordRaw> = [
         meta: { roles: ['admin', 'super-admin', 'editor', 'caller-editor'] },
       },
       {
-        name: 'preferences',
-        path: 'preferences',
-        component: () => import('../pages/preferences/Preferences.vue'),
-      },
-      // {
-      //   name: 'settings',
-      //   path: 'settings',
-      //   component: () => import('../pages/settings/Settings.vue'),
-      // },
-      {
         name: 'allergens',
         path: 'allergens',
         component: () => import('../pages/allergens.vue'),
@@ -126,12 +116,6 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../pages/callCenters/index.vue'),
         meta: { roles: ['caller', 'admin', 'super-admin', 'caller-editor'] },
       },
-      // {
-      //   name: 'companies',
-      //   path: 'companies',
-      //   component: () => import('../pages/companies/index.vue'),
-      // },
-
       {
         name: 'outlets',
         path: 'outlets',
@@ -162,17 +146,6 @@ const routes: Array<RouteRecordRaw> = [
           },
         ],
       },
-
-      // {
-      //   name: 'orders',
-      //   path: 'orders',
-      //   component: () => import('../pages/orders/index.vue'),
-      // },
-      // {
-      //   name: 'users',
-      //   path: 'users',
-      //   component: () => import('../pages/users/UsersPage.vue'),
-      // },
     ],
   },
   {

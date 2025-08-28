@@ -132,36 +132,5 @@ export default {
         icon: 'group',
       },
     },
-    // {
-    //   name: 'services',
-    //   displayName: 'menu.services',
-    //   visible: false,
-    //   meta: {
-    //     icon: 'group',
-    //   },
-    // },
-    // {
-    //   name: 'orders',
-    //   visible: true,
-    //   displayName: 'menu.orders',
-    //   meta: {
-    //     icon: 'group',
-    //   },
-    // },
-    // {
-    //   name: 'configurations',
-    //   visible: false,
-    //   displayName: 'menu.configurations',
-    //   meta: {
-    //     icon: 'group',
-    //   },
-    // },
-    {
-      name: 'preferences',
-      displayName: 'menu.preferences',
-      meta: {
-        icon: 'manage_accounts',
-      },
-    },
   ] as INavigationRoute[],
 }

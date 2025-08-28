@@ -5,30 +5,27 @@
         <VaButton preset="secondary" color="textPrimary">
           <span class="profile-dropdown__anchor min-w-max">
             <slot />
-            <VaAvatar :size="32" color="warning">
-              <svg
-                width="100"
-                height="100"
-                viewBox="0 0 100 100"
-                xmlns="http://www.w3.org/2000/svg"
-                stroke="#000"
-                stroke-width="8"
-              >
-                <circle cx="50" cy="30" r="15" />
-                <path d="M30 80 C30 60, 70 60, 70 80" />
-              </svg>
+            <VaAvatar
+              :size="32"
+              color="primary"
+              class="font-bold text-white flex items-center justify-center uppercase profile-avatar"
+            >
+              {{ userInitials }}
             </VaAvatar>
           </span>
         </VaButton>
       </template>
+
       <VaDropdownContent
         class="profile-dropdown__content md:w-60 px-0 py-4 w-full"
         :style="{ '--hover-color': hoverColor }"
       >
-        <VaList v-for="group in options" :key="group.name">
-          <header v-if="group.name" class="uppercase text-[var(--va-secondary)] opacity-80 font-bold text-xs px-4">
-            {{ t(`user.${group.name}`) }}
+        <VaList v-for="group in updatedOptions" :key="group.name">
+          <header v-if="group.name" class="uppercase text-[var(--va-secondary)] opacity-80 font-bold text-xs px-4 mt-2">
+            {{ group.name }}
           </header>
+
+          <!-- Menu Items -->
           <VaListItem
             v-for="item in group.list"
             :key="item.name"
@@ -46,14 +43,36 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useColors } from 'vuestic-ui'
+import { useUsersStore } from '@/stores/users'
 
 const { colors, setHSLAColor } = useColors()
 const hoverColor = computed(() => setHSLAColor(colors.focus, { a: 0.1 }))
 
 const { t } = useI18n()
+const usersStore = useUsersStore()
+
+onMounted(async () => {
+  if (!usersStore.userDetails) {
+    await usersStore.getUser()
+  }
+})
+
+const fullName = computed(() => {
+  const user = usersStore.userDetails
+  if (!user) return ''
+  return `${user.firstName || ''} ${user.lastName || ''}`.trim()
+})
+
+const userInitials = computed(() => {
+  const user = usersStore.userDetails
+  if (!user) return ''
+  const first = user.firstName?.charAt(0) || ''
+  const last = user.lastName?.charAt(0) || ''
+  return (first + last).toUpperCase()
+})
 
 type ProfileListItem = {
   name: string
@@ -68,7 +87,7 @@ type ProfileOptions = {
   list: ProfileListItem[]
 }
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     options?: ProfileOptions[]
   }>(),
@@ -77,13 +96,7 @@ withDefaults(
       {
         name: 'account',
         separator: true,
-        list: [
-          {
-            name: 'profile',
-            to: 'preferences',
-            icon: 'mso-account_circle',
-          },
-        ],
+        list: [],
       },
       {
         name: '',
@@ -100,6 +113,15 @@ withDefaults(
   },
 )
 
+const updatedOptions = computed(() => {
+  return props.options.map((group) => {
+    if (group.name === 'account') {
+      return { ...group, name: fullName.value || 'Account' }
+    }
+    return group
+  })
+})
+
 const isShown = ref(false)
 
 const resolveLinkAttribute = (item: ProfileListItem) => {
@@ -108,6 +130,10 @@ const resolveLinkAttribute = (item: ProfileListItem) => {
 </script>
 
 <style lang="scss">
+.profile-avatar {
+  font-size: 12px !important;
+  line-height: 1 !important;
+}
 .profile-dropdown {
   cursor: pointer;
 
