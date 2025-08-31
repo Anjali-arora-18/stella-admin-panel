@@ -248,7 +248,7 @@
 </template>
 
 <script setup>
-import { ref, watch, defineEmits, computed, defineExpose, onMounted, onUnmounted } from 'vue'
+import { ref, watch, defineEmits, computed, defineExpose, onMounted, onUnmounted, onBeforeUnmount } from 'vue'
 import { useToast, useColors } from 'vuestic-ui'
 import axios from 'axios'
 import { useServiceStore } from '@/stores/services.ts'
@@ -319,8 +319,22 @@ function closeConfirmRemoveModal() {
 onClickOutside(target, (event) => (userResults.value = []), { ignore: [deliveryTarget] })
 onClickOutside(deliveryTarget, (event) => (showDeliveryDropdown.value = false), { ignore: [target] })
 
-const localDateTime = ref(formatDateTimeLocal(new Date()))
+const localDateTime = ref('')
 const selectedDate = ref(new Date())
+
+const getLocalDateTime = () => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  const hours = String(now.getHours()).padStart(2, '0')
+  const minutes = String(now.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+const updateTimeOnly = () => {
+  localDateTime.value = getLocalDateTime()
+}
 
 watch(
   localDateTime,
@@ -337,41 +351,43 @@ watch(
   },
   { immediate: true },
 )
+let timeInterval = null
 
-function formatDateTimeLocal(date) {
-  const pad = (n) => String(n).padStart(2, '0')
-  const yyyy = date.getFullYear()
-  const mm = pad(date.getMonth() + 1)
-  const dd = pad(date.getDate())
-  const hh = pad(date.getHours())
-  const min = pad(date.getMinutes())
-  return `${yyyy}-${mm}-${dd}T${hh}:${min}`
-}
-onMounted(() => {
+const startAutoUpdateTime = () => {
+  stopAutoUpdateTime()
   updateTimeOnly()
-  // timeInterval = setInterval(updateTimeOnly, 30000)
+  timeInterval = setInterval(() => {
+    if (orderFor.value === 'current') {
+      updateTimeOnly()
+    }
+  }, 1000)
+}
+
+const stopAutoUpdateTime = () => {
+  if (timeInterval) {
+    clearInterval(timeInterval)
+    timeInterval = null
+  }
+}
+watch(orderFor, (newVal) => {
+  if (newVal === 'current') {
+    startAutoUpdateTime()
+  } else {
+    stopAutoUpdateTime()
+  }
+})
+onMounted(() => {
+  if (orderFor.value === 'current') {
+    startAutoUpdateTime()
+  }
+})
+onBeforeUnmount(() => {
+  stopAutoUpdateTime()
 })
 
 // onUnmounted(() => {
-//   clearInterval(timeInterval)
+//   stopAutoUpdateTime()
 // })
-
-// let timeInterval
-
-function updateTimeOnly() {
-  const current = new Date()
-  const existingDate = new Date(localDateTime.value)
-
-  const updatedDate = new Date(
-    existingDate.getFullYear(),
-    existingDate.getMonth(),
-    existingDate.getDate(),
-    current.getHours(),
-    current.getMinutes(),
-  )
-
-  localDateTime.value = formatDateTimeLocal(updatedDate)
-}
 
 function openCustomerModal() {
   showCustomerModal.value = true
