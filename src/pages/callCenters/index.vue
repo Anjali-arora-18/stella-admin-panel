@@ -4,53 +4,94 @@
     <div
       class="md:col-span-5 bg-slate-100 py-4"
       :class="{
-        'opacity-50 pointer-events-none': !isCustomerTabActivated || !customerDetailsId,
+        'opacity-50 pointer-events-none': (!isCustomerTabActivated || !customerDetailsId) && isNotLocalHost,
       }"
     >
       <VaCard>
         <VaCardContent class="menu-section">
-          <div class="category top-bar flex items-start border-b pb-4 sm:flex-row sm:justify-between gap-4">
-            <div class="flex flex-wrap gap-2">
-              <a
-                v-if="offers.length"
-                class="text-white px-4 py-2 rounded-2xl category-link"
-                href="#offers"
-                :style="{
-                  backgroundColor: selectedItem === 'offers' ? outlet.primaryColor : '#f1f5f9',
-                  color: selectedItem === 'offers' ? '#fff' : '#64748b',
-                }"
-                @click.prevent="selectedItem = 'offers'"
-              >
-                Offers
-              </a>
-              <a
-                v-for="item in filteredCategories"
-                :key="item._id"
-                :href="`#${item._id}`"
-                :style="{
-                  backgroundColor: selectedItem === item._id ? outlet.primaryColor : '#f1f5f9',
-                  color: selectedItem === item._id ? '#fff' : '#64748b',
-                }"
-                class="text-white px-4 py-2 rounded-2xl category-link"
-                @click.prevent="selectedItem = item._id"
-              >
-                {{ toTitleCase(item.name) }}
-              </a>
-            </div>
-            <div class="flex">
+          <div class="category top-bar flex flex-col gap-2 border-b pb-4">
+            <div class="flex flex-wrap gap-2 items-center justify-between">
+              <!-- CATEGORY LINKS -->
+              <div class="flex flex-wrap gap-2">
+                <a
+                  v-if="offers.length"
+                  class="text-white px-4 py-2 rounded-2xl category-link"
+                  href="#offers"
+                  :style="{
+                    backgroundColor: selectedItem === 'offers' ? outlet.primaryColor : '#f1f5f9',
+                    color: selectedItem === 'offers' ? '#fff' : '#64748b',
+                  }"
+                  @click.prevent="selectCategory('offers')"
+                >
+                  Offers
+                </a>
+
+                <a
+                  v-for="item in filteredCategories"
+                  :key="item._id"
+                  :href="`#${item._id}`"
+                  :style="{
+                    backgroundColor: selectedItem === item._id ? outlet.primaryColor : '#f1f5f9',
+                    color: selectedItem === item._id ? '#fff' : '#64748b',
+                  }"
+                  class="text-white px-4 py-2 rounded-2xl category-link"
+                  @click.prevent="selectCategory(item)"
+                >
+                  {{ toTitleCase(item.name) }}
+                </a>
+              </div>
+
               <span class="bg-black px-3 py-3 text-white text-xl rounded">
                 {{ currentTime }}
               </span>
             </div>
+
+            <!-- SUBCATEGORIES (SHOW ONLY WHEN CATEGORY CLICKED) -->
+            <div v-if="activeSubCategories.length" class="flex overflow-x-auto gap-2 pl-2 subcategories-scroll">
+              <a
+                v-for="sub in activeSubCategories"
+                :key="sub._id"
+                :href="`#${sub._id}`"
+                :style="{
+                  backgroundColor: selectedSubCategory === sub._id ? outlet.primaryColor : '#f1f5f9',
+                  color: selectedSubCategory === sub._id ? '#fff' : '#64748b',
+                }"
+                class="whitespace-nowrap text-white rounded-xl category-link subcategory-link"
+                @click.prevent="selectSubCategory(sub._id)"
+              >
+                {{ toTitleCase(sub.name) }}
+              </a>
+            </div>
           </div>
+
           <div class="menu-scroll">
-            <MenuSection v-if="offers.length" id="offers" title="OFFERS" :items="offers" :outlet="outlet" />
+            <MenuSection
+              v-if="offers.length"
+              id="offers"
+              :category="category"
+              title="OFFERS"
+              :items="offers"
+              :outlet="outlet"
+            />
+
             <MenuSection
               v-for="cat in filteredCategories"
               :id="cat._id"
               :key="cat.name"
+              :category="cat"
               :title="cat.name"
               :items="cat.menuItems"
+              :outlet="outlet"
+            />
+
+            <!-- Subcategory Menu Sections -->
+            <MenuSection
+              v-for="sub in activeSubCategories"
+              :id="sub._id"
+              :key="sub.name"
+              :category="sub"
+              :title="sub.name"
+              :items="sub.menuItems"
               :outlet="outlet"
             />
           </div>
@@ -59,6 +100,7 @@
     </div>
 
     <!-- RIGHT SECTION -->
+
     <div class="md:col-span-2 bg-slate-100 pt-4" style="height: calc(100vh - 98px); overflow-y: hidden">
       <div class="flex flex-col gap-2">
         <VaCard class="order-card">
@@ -77,6 +119,7 @@
             />
           </VaCardContent>
         </VaCard>
+
         <VaCard class="order-card">
           <VaCardContent>
             <OrderDetails
@@ -124,6 +167,7 @@ const dateSelected = ref('')
 const isDeliveryZoneSelected = ref('')
 const categories = computed(() => menuStore.categories)
 const restDetails = computed(() => menuStore.restDetails)
+const isNotLocalHost = computed(() => !window.location.href.includes('localhost'))
 const isLoading = ref(false)
 const menuStore = useMenuStore()
 const accordian = ref([true, true])
@@ -139,9 +183,36 @@ const toTitleCase = (text) => {
 }
 
 const selectedItem = ref(null)
+const selectedSubCategory = ref(null)
+const activeSubCategories = ref([])
 const currentTime = ref('')
 const forceRemount = ref(0)
 const offers = ref([])
+
+const selectCategory = (category) => {
+  if (category === 'offers') {
+    selectedItem.value = 'offers'
+    activeSubCategories.value = []
+    return
+  }
+
+  selectedItem.value = category._id
+
+  if (category.subCategories && category.subCategories.length) {
+    activeSubCategories.value = category.subCategories.filter((sub) => sub.menuItems && sub.menuItems.length > 0)
+  } else {
+    activeSubCategories.value = []
+  }
+}
+
+const selectSubCategory = (subId) => {
+  selectedSubCategory.value = subId
+
+  const el = document.getElementById(subId)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
 
 const getOffers = async () => {
   const url = import.meta.env.VITE_API_BASE_URL
@@ -310,6 +381,10 @@ async function getMenu() {
         font-size: 14px;
         transition: all 0.2s ease;
       }
+      .subcategory-link {
+        padding: 6px 12px;
+        font-size: 13px;
+      }
       .category-link:hover {
         background: #e2e8f0;
       }
@@ -326,8 +401,29 @@ async function getMenu() {
   flex: 1 1 auto;
   padding-right: 0.25rem;
 }
+
 .order-card {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.subcategories-scroll {
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: thin;
+  -ms-overflow-style: none;
+}
+
+.subcategories-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.subcategories-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+
+.subcategories-scroll::-webkit-scrollbar-track {
+  background: transparent;
 }
 </style>

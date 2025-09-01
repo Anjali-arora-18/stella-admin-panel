@@ -8,29 +8,36 @@
     >
       {{ title }}
     </div>
-
-    <div class="">
-      <div
-        class="grid gap-4 sm:min-w-max"
-        :class="{
-          'sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6': isSidebarMinimized,
-          'grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6': !isSidebarMinimized,
-        }"
-      >
-        <template v-if="id === 'offers'">
-          <OfferCard v-for="item in items" :key="item.id" :item="item" />
-        </template>
-        <template v-else>
-          <MenuCard v-for="item in items" :key="item.id" :item="item" :category-id="id" />
-        </template>
+    <div v-if="id === 'offers'">
+      <MenuSubSections :id="id" :title="title" :items="items" :outlet="outlet" />
+    </div>
+    <div v-else>
+      <MenuSubSections
+        :id="id"
+        :title="title"
+        :items="items.filter((item) => !item.subCategories.length)"
+        :outlet="outlet"
+      />
+      <div v-if="category.subCategories && category.subCategories.length">
+        <div v-for="subCat in category.subCategories" :key="subCat._id" class="ml-5">
+          <div
+            v-if="subCat.menuItems && subCat.menuItems.length"
+            class="category-title"
+            :style="{
+              borderBottom: `2px solid ${outlet.primaryColor}`,
+            }"
+          >
+            {{ subCat.name }}
+          </div>
+          <MenuSubSections :id="subCat._id" :title="title" :items="subCat.menuItems" :outlet="outlet" />
+        </div>
       </div>
     </div>
   </section>
 </template>
 
 <script setup>
-import MenuCard from '@/pages/callCenters/widgets/MenuCard.vue'
-import OfferCard from '@/pages/callCenters/widgets/OfferCard.vue'
+import MenuSubSections from '@/pages/callCenters/widgets/MenuSubSections.vue'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 
@@ -38,6 +45,7 @@ defineProps({
   id: String,
   title: String,
   items: Array,
+  category: Object,
   outlet: Object,
 })
 
