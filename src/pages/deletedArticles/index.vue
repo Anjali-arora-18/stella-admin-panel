@@ -11,13 +11,11 @@ const isLoading = ref(false)
 </script>
 
 <template>
-  <div class="flex items-center justify-between">
-    <h1 class="page-title font-bold">Deleted Article</h1>
+  <div>
+    <VaCard class="mt-4">
+      <VaCardContent>
+        <DeletedArticleTable :items="items" :loading="isLoading" />
+      </VaCardContent>
+    </VaCard>
   </div>
-
-  <VaCard>
-    <VaCardContent>
-      <DeletedArticleTable :items="items" :loading="isLoading" />
-    </VaCardContent>
-  </VaCard>
 </template>

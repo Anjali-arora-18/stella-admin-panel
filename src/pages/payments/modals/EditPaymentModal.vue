@@ -13,24 +13,32 @@
     </template>
 
     <VaForm ref="form" @submit.prevent="submit()">
-      <div class="grid grid-cols-2 md:grid-cols-1 gap-4 justify-between">
-        <VaInput v-model="formData.name" label="Name" placeholder="Name" type="text" />
+      <div class="grid grid-cols-2 md:grid-cols-1 gap-3 justify-between">
+        <VaInput v-model="formData.name" label="Name" placeholder="Name" type="text" :rules="[validators.required]" />
         <VaSelect
           v-model="formData.paymentGateway"
           value-by="value"
           label="Payment Gateway"
           :options="paymentGateway"
+          :rules="[validators.required]"
         />
-        <div v-if="formData.paymentGateway" class="grid md:grid-cols-1 gap-4">
+        <div v-if="formData.paymentGateway" class="grid md:grid-cols-1 gap-3">
           <div
-            v-for="e in paymentOptions.find((a) => a.paymentMethodName === formData.paymentGateway).inputConfig"
+            v-for="e in paymentOptions.find((a) => a.paymentMethodName === formData.paymentGateway)?.inputConfig || []"
             :key="e.label"
           >
-            <VaInput v-model="e.value" :label="e.label" :type="e.type" />
+            <VaInput v-model="e.value" :type="e.type" :rules="e.required ? [validators.required] : []">
+              <template #label>
+                <span>
+                  {{ e.label }}
+                  <span v-if="e.required" class="required-asterisk">*</span>
+                </span>
+              </template>
+            </VaInput>
           </div>
         </div>
         <VaInput v-model="formData.paymentTypeId" label="Payment Type ID" placeholder="Payment Type ID" type="text" />
-        <div class="grid md:grid-cols-4 gap-4">
+        <div class="grid md:grid-cols-4 gap-3">
           <VaCheckbox v-model="formData.dineIn" label="Dine-in" />
           <VaCheckbox v-model="formData.delivery" label="Delivery" />
           <VaCheckbox v-model="formData.takeaway" label="Takeaway" />
@@ -38,7 +46,7 @@
         </div>
       </div>
 
-      <div class="flex justify-end mt-4">
+      <div class="flex justify-end mt-3">
         <VaButton type="submit">{{ isUpdating ? 'Update' : 'Add' }}</VaButton>
       </div>
     </VaForm>
@@ -84,17 +92,19 @@ const getPaymentconfig = () => {
     paymentGateway.value = response.data.data.types.map((e) => {
       return { text: e, value: e }
     })
+
     paymentOptions.value = response.data.data.config.map((e) => {
       return {
         ...e,
         inputConfig: e.inputConfig.map((config) => {
           return {
             ...config,
-            value: '',
+            value: config.default || '',
           }
         }),
       }
     })
+
     if (props.selectedPayment) {
       axios
         .get(`${import.meta.env.VITE_API_BASE_URL}/payments/${props.selectedPayment._id}`)
@@ -102,7 +112,7 @@ const getPaymentconfig = () => {
           formData.value = response.data.data
           paymentOptions.value
             .find((a) => a.paymentMethodName === formData.value.paymentGateway)
-            .inputConfig.map((e) => {
+            ?.inputConfig.forEach((e) => {
               e.value = response.data.data.paymentGatewayConfig[e.name] || ''
             })
         })
@@ -114,9 +124,15 @@ const getPaymentconfig = () => {
 }
 
 const submit = async () => {
-  const selectedPaymentGatewayInputKeys = paymentOptions.value.find(
-    (a) => a.paymentMethodName === formData.value.paymentGateway,
-  ).inputConfig
+  const selectedGateway = paymentOptions.value.find((a) => a.paymentMethodName === formData.value.paymentGateway)
+
+  if (!selectedGateway) {
+    init({ message: 'Please select a valid payment gateway', color: 'danger' })
+    return
+  }
+
+  const selectedPaymentGatewayInputKeys = selectedGateway.inputConfig
+
   if (validate()) {
     let data = JSON.parse(JSON.stringify(formData.value))
     data = {
@@ -153,3 +169,9 @@ const submit = async () => {
 }
 getPaymentconfig()
 </script>
+<style scoped>
+.required-asterisk {
+  color: red;
+  font-weight: bold;
+}
+</style>

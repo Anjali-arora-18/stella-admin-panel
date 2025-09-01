@@ -1,36 +1,38 @@
 <template>
-  <div class="w-full mx-auto order-details bg-white p-4">
-    <h2 class="font-semibold text-lg text-gray-800 border-b pb-2">Order Details</h2>
+  <div class="w-full">
+    <h2 class="font-semibold text-md text-gray-800 border-b pb-1">Order Details</h2>
     <template v-if="items.length || offersItems.length">
       <!-- Promo Code with Button -->
-      <VaInput
-        v-model="promoCode"
-        placeholder="Promotion Code"
-        size="small"
-        input-class="text-sm pr-28"
-        class="relative my-4"
-      >
-        <template #append>
-          <VaIcon
-            v-if="promoCode"
-            name="close"
-            color="danger"
-            class="absolute right-24 top-1/2 -translate-y-1/2 cursor-pointer"
-            @click="clearPromoCode"
-          />
-          <VaButton
-            size="small"
-            class="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white px-3 py-1 rounded-md text-xs shadow-md"
-            @click="openPromotionModal"
-          >
-            Select
-          </VaButton>
-        </template>
-      </VaInput>
+      <div class="flex flex-wrap items-center gap-1 mt-3 mb-3 w-full">
+        <!-- Promo Code Field -->
+        <VaInput
+          v-model="promoCode"
+          placeholder="Promotion Code"
+          size="small"
+          class="flex-1 min-w-[200px]"
+          input-class="text-xs pr-6"
+          @keypress.enter="applyPromoCode"
+        >
+          <template #appendInner>
+            <VaIcon v-if="isPromoValid" name="close" color="danger" class="cursor-pointer" @click="clearPromoCode" />
+          </template>
+        </VaInput>
+
+        <!-- Select Button -->
+        <VaButton
+          size="small"
+          :style="{ '--va-background-color': outlet.primaryColor }"
+          class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white px-2 py-1 rounded-md text-xs shadow-md"
+          @click="openPromotionModal"
+        >
+          Select
+        </VaButton>
+      </div>
 
       <!-- Order Items -->
-      <div :class="isCustomerOpen ? 'order-items-min-height' : 'order-items-height'">
-        <div v-for="item in items" :key="item.id" class="mb-4 border-b pb-3 last:border-none">
+      <!-- <div :class="isCustomerOpen ? 'order-items-min-height' : 'order-items-height'"> -->
+      <div :style="orderItemsStyle">
+        <div v-for="item in items" :key="item.id" class="mb-2 border-b pb-2 last:border-none">
           <div class="flex items-start justify-between">
             <!-- Quantity Controls -->
             <div class="flex items-center gap-2">
@@ -38,13 +40,19 @@
               <VaButton
                 icon="remove"
                 :disabled="item.quantity === 1"
-                color="success"
+                :style="{ '--va-background-color': outlet.primaryColor }"
                 size="small"
                 class="rounded"
                 @click="decreaseQty(item)"
               />
               <VaBadge :text="item.quantity" color="secondary" size="large" class="!py-1 !h-[2rem]" />
-              <VaButton icon="add" color="success" size="small" class="rounded" @click="increaseQty(item)" />
+              <VaButton
+                icon="add"
+                :style="{ '--va-background-color': outlet.primaryColor }"
+                size="small"
+                class="rounded"
+                @click="increaseQty(item)"
+              />
             </div>
 
             <!-- Item Info -->
@@ -93,10 +101,15 @@
             </div>
 
             <!-- Item Total -->
-            <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
+            <div class="flex flex-col items-end">
+              <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
+              <!-- <span v-if="promoTotal && promoMenuItemPrice(item)" class="font-semibold text-red-500"
+                >- €{{ promoMenuItemPrice(item) }}</span
+              > -->
+            </div>
           </div>
         </div>
-        <div v-for="item in offersItems" :key="item.id" class="mb-4 border-b pb-3 last:border-none">
+        <div v-for="item in offersItems" :key="item.id" class="mb-3 border-b pb-2 last:border-none">
           <div class="flex items-start justify-between">
             <!-- Quantity Controls -->
             <div class="flex items-center gap-2">
@@ -109,7 +122,7 @@
                 <span class="font-medium text-gray-800"
                   >{{ item.name }}
                   <span class="font-semibold text-gray-700 mb-1 mt-2">
-                    <span v-if="Number(item.basePrice) > 0" class="text-sm font-normal text-gray-500">
+                    <span v-if="Number(item.basePrice) > 0" class="text-xs font-normal text-gray-500">
                       (€{{ Number(item.basePrice).toFixed(2) }})
                     </span>
                   </span>
@@ -128,7 +141,7 @@
                 <div v-for="selectedArticle in item.items" :key="selectedArticle.itemName" class="mt-2 text-xs">
                   <p class="font-semibold text-gray-800 mt-1 flex items-center gap-2">
                     <span class="mb-1">{{ selectedArticle.itemName }}</span>
-                    <span v-if="Number(selectedArticle.basePrice) > 0" class="text-sm font-normal text-gray-500">
+                    <span v-if="Number(selectedArticle.basePrice) > 0" class="text-xs font-normal text-gray-500">
                       (€{{ Number(selectedArticle.basePrice).toFixed(2) }})
                     </span>
                   </p>
@@ -166,7 +179,7 @@
         </div>
       </div>
       <!-- Summary -->
-      <div class="text-sm mt-4 space-y-1 p-2 bg-slate-50 mb-4">
+      <div class="text-xs space-y-1 bg-slate-50 mb-0 pl-1 pr-1">
         <div class="flex justify-between">
           <span class="text-gray-600">Subtotal:</span>
           <span>€{{ subtotal.toFixed(2) }}</span>
@@ -175,18 +188,24 @@
           <span class="text-gray-600">Delivery Fee:</span>
           <span>€{{ deliveryFee.toFixed(2) }}</span>
         </div>
-        <div class="flex justify-between font-bold text-lg pt-2 border-t">
+        <div v-if="promoTotal" class="flex justify-between">
+          <span class="text-gray-600">Total Discount:</span>
+          <span>- €{{ (promoTotal.originalTotal - promoTotal.updatedTotal).toFixed(2) }}</span>
+        </div>
+        <div class="flex justify-between font-bold text-xs pt-1 border-t">
           <span>Total:</span>
-          <span>€{{ total.toFixed(2) }}</span>
+          <span v-if="!promoTotal">€{{ total.toFixed(2) }}</span>
+          <span v-else>€{{ promoTotal.updatedTotal.toFixed(2) }}</span>
         </div>
       </div>
 
       <!-- Checkout -->
       <VaButton
         :disabled="!customerDetailsId || !orderType || !props.isDeliveryZoneSelected || total === 0"
-        class="mt-4 w-full"
+        class="mt-1 w-full"
         color="success"
-        size="large"
+        :style="{ '--va-background-color': outlet.primaryColor }"
+        size="medium"
         @click="openCheckoutModal"
       >
         Checkout Order
@@ -198,7 +217,7 @@
     <MenuModal
       v-if="showMenuModal"
       :item="selectedItemWithArticlesOptionsGroups"
-      :category-id="selectedItemWithArticlesOptionsGroups.categoryId"
+      :category-id="selectedItemCategoryId"
       :menu-item-id="selectedItemWithArticlesOptionsGroups.menuItemId"
       :is-edit="isEdit"
       @cancel="closeMenuModal"
@@ -217,11 +236,17 @@
       :delivery-fee="deliveryFee"
       :customer-details-id="customerDetailsId"
       :order-type="orderType"
+      :promo-code="promoCode"
       @cancel="closeCheckoutModal"
     />
     <PromotionModal
-      v-if="showPromotionModal"
+      ref="promotionModal"
+      v-model="showPromotionModal"
       :promotion="promotionData"
+      :date-selected="dateSelected"
+      :order-type="orderType"
+      :delivery-fee="deliveryFee"
+      :customer-details-id="customerDetailsId"
       @cancel="closePromotionModal"
       @selectCode="onCodeSelected"
     />
@@ -229,7 +254,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, useTemplateRef } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useOrderStore } from '@/stores/order-store'
 import { useServiceStore } from '@/stores/services.ts'
@@ -248,12 +273,15 @@ const props = defineProps({
   isDeliveryZoneSelected: Boolean,
   dateSelected: String,
 })
+
+const promotionRef = useTemplateRef('promotionModal')
 const serviceStore = useServiceStore()
 
 const promoCode = ref('')
 const promotionData = ref(null)
 const showPromotionModal = ref(false)
 const showOfferModal = ref(false)
+const isPromoValid = ref(false)
 const orderStore = useOrderStore()
 const { cartItems, offerItems } = storeToRefs(orderStore)
 
@@ -261,6 +289,47 @@ const formattedLabel = (sel) => {
   const totalPrice = sel.price * sel.quantity
   return totalPrice > 0 ? `${sel.name} (+€${totalPrice.toFixed(2)})` : sel.name
 }
+
+const orderItemsStyle = computed(() => {
+  let height = {}
+  if (props.isCustomerOpen) {
+    if (props.orderType === 'delivery') {
+      height = { height: 'calc(100vh - 635px)', overflowY: 'auto' }
+    } else if (props.orderType === 'takeaway') {
+      height = { height: 'calc(100vh - 615px)', overflowY: 'auto' }
+    }
+  } else {
+    if (props.orderType === 'delivery') {
+      height = { height: 'calc(100vh - 395px)', overflowY: 'auto' }
+    } else if (props.orderType === 'takeaway') {
+      height = { height: 'calc(100vh - 375px)', overflowY: 'auto' }
+    }
+  }
+  if (promoTotal.value) {
+    height.height = `calc(${height.height} - 20px)` // Adjust for discounted price row
+  }
+  return height
+})
+
+const selectedItemCategoryId = computed(() => {
+  if (!selectedItemWithArticlesOptionsGroups.value) return ''
+  else {
+    const categoryIds = selectedItemWithArticlesOptionsGroups.value.selectedOptions
+      .flatMap((a) => a.categoryId)
+      .filter((a) => a)
+    if (categoryIds.length) {
+      return categoryIds[0]
+    } else {
+      return ''
+    }
+  }
+  return selectedItemWithArticlesOptionsGroups.value.categoryId || ''
+})
+
+const outlet = computed(() => {
+  const servicesStore = useServiceStore()
+  return servicesStore.restDetails || {}
+})
 
 const items = computed(() =>
   cartItems.value.map((item, index) => {
@@ -335,6 +404,21 @@ const total = computed(() => {
   }
 })
 
+const promoTotal = computed(() => {
+  return orderStore.cartTotal !== null ? orderStore.cartTotal : null
+})
+
+const orderFor = computed(() => orderStore.orderFor)
+
+const promoMenuItemPrice = function (item) {
+  if (!promoTotal.value || !item) return 0
+  const promoMenuItem = promoTotal.value.menuItems.find((a) => a.menuItemId === item.id)
+  if (!promoMenuItem) return 0
+  else {
+    return (promoMenuItem.originalPrice - promoMenuItem.updatedPrice).toFixed(2)
+  }
+}
+
 const increaseQty = (item) => {
   const index = cartItems.value.findIndex((i) => i.itemId === item.id)
   if (index !== -1) {
@@ -384,7 +468,7 @@ const { init } = useToast()
 async function openPromotionModal() {
   const url = import.meta.env.VITE_API_BASE_URL
   try {
-    const { data } = await axios.get(`${url}/promotion?outletId=${serviceStore.selectedRest}`)
+    const { data } = await axios.get(`${url}/promotions?outletId=${serviceStore.selectedRest}`)
     console.log('Promotion Data:', data)
 
     const validPromotions = data.data.filter((promo) => promo.availableAtCC)
@@ -399,12 +483,100 @@ async function openPromotionModal() {
     init({ message: 'Invalid or expired promotion code.', color: 'danger' })
   }
 }
+
+async function applyPromoCode() {
+  if (!promoCode.value) {
+    init({ message: 'Please enter a promotion code.', color: 'warning' })
+    return
+  }
+  if (props.orderType === 'takeaway' && !props.isDeliveryZoneSelected) {
+    init({ message: 'Please select a delivery zone first.', color: 'warning' })
+    return
+  }
+  if (!props.customerDetailsId) {
+    init({ message: 'Please select a customer first.', color: 'warning' })
+    return
+  }
+  if (total.value === 0) {
+    init({ message: 'Cart is empty. Please add items to the cart.', color: 'warning' })
+    return
+  }
+
+  let menuItems = []
+  menuItems = orderStore.cartItems.map((e) => {
+    return {
+      menuItem: e.itemId,
+      quantity: e.quantity,
+      options: e.selectedOptions.flatMap((group) =>
+        group.selected.map((option) => ({
+          option: option.optionId,
+          quantity: option.quantity,
+        })),
+      ),
+    }
+  })
+
+  const offerMenuItems = orderStore.offerItems.map((offer) => ({
+    offerId: offer.offerId,
+    menuItems: offer.selections.flatMap((selection) =>
+      selection.addedItems.map((item) => ({
+        menuItem: item.itemId,
+        quantity: item.quantity || 1,
+        options:
+          item.selectedOptions?.flatMap((group) =>
+            group.selected.map((option) => ({
+              option: option.optionId,
+              quantity: option.quantity,
+            })),
+          ) || [],
+      })),
+    ),
+  }))
+
+  try {
+    const payload = {
+      orderFor: orderFor.value,
+      customerDetailId: props.customerDetailsId,
+      orderType: props.orderType === 'takeaway' ? 'Takeaway' : 'Delivery',
+      deliveryZoneId: orderStore.deliveryZone?._id,
+      address: orderStore.address,
+      menuItems,
+      offerMenuItems,
+      orderNotes: '',
+      deliveryFee: props.deliveryFee,
+      outletId: serviceStore.selectedRest,
+      orderDateTime: new Date(props.dateSelected).toISOString(),
+      paymentMode: '',
+      promoCode: promoCode.value || '',
+      hasOtherOffers: offerMenuItems.length,
+    }
+
+    const response = await orderStore.validatePromoCode(payload)
+
+    if (response.data.success) {
+      init({ message: `PromoCode selected`, color: 'success' })
+      orderStore.setOrderTotal(response.data.data)
+      isPromoValid.value = true
+    } else {
+      orderStore.setOrderTotal(null)
+      init({ message: `PromoCode invalid`, color: 'danger' })
+    }
+  } catch (err) {
+    init({ message: `PromoCode invalid`, color: 'danger' })
+  }
+}
 function onCodeSelected(code) {
   promoCode.value = code
+  isPromoValid.value = true
   showPromotionModal.value = false
 }
 function clearPromoCode() {
   promoCode.value = ''
+  isPromoValid.value = false
+  if (promotionRef.value) {
+    promotionRef.value.selectedCode = ''
+  }
+  orderStore.setOrderTotal(null)
 }
 
 const getMenuOptions = async (selectedItem) => {
@@ -419,6 +591,8 @@ const getMenuOptions = async (selectedItem) => {
     // Assign item with groups only if data is returned
     selectedItemWithArticlesOptionsGroups.value = {
       ...selectedItem,
+      menuItemId: selectedItem.menuItemId || selectedItem.itemId,
+      categoryId: selectedItem.categoryId || response.data.categoryId,
       articlesOptionsGroups: articlesOptionsGroups || [],
     }
 
@@ -461,12 +635,19 @@ function closePromotionModal() {
 }
 </script>
 <style>
+/* .order-items-height,
+.order-items-min-height {
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
 .order-items-height {
   overflow-y: auto;
-  height: calc(100vh - 500px);
+  height: calc(100vh - 380px);
 }
 .order-items-min-height {
   overflow-y: auto;
-  height: calc(100vh - 800px);
-}
+  height: calc(100vh - 610px);
+} */
 </style>

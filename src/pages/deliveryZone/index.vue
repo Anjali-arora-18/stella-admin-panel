@@ -57,16 +57,15 @@ if (servicesStore.selectedRest) {
 
 <template>
   <div>
-    <div class="flex items-center justify-between">
-      <h1 class="page-title font-bold">Delivery Zones</h1>
-      <div class="flex gap-2">
-        <VaButton size="small" color="primary" @click="isDeliveryZoneModalOpen = true">Add Delivery Zone</VaButton>
-      </div>
-    </div>
-
-    <VaCard>
+    <VaCard class="mt-4">
       <VaCardContent>
-        <DeliveryTable :key="forceReMount" :items="items" :loading="isLoading" @getDeliveryZones="getDeliveryZones" />
+        <DeliveryTable
+          :key="forceReMount"
+          :items="items"
+          :loading="isLoading"
+          @getDeliveryZones="getDeliveryZones"
+          @openModal="isDeliveryZoneModalOpen = true"
+        />
       </VaCardContent>
     </VaCard>
     <DeliveryZoneModal v-if="isDeliveryZoneModalOpen" @cancel="(isDeliveryZoneModalOpen = false), getDeliveryZones()" />

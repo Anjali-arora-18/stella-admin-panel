@@ -2,9 +2,9 @@
   <div class="w-full">
     <!-- Header -->
     <div class="flex items-center justify-between">
-      <h2 class="font-semibold text-lg text-gray-800 border-b border-blue-500">Customer Details</h2>
+      <h2 class="font-semibold text-md text-gray-800">Customer Details</h2>
       <button
-        class="border rounded p-1 hover:bg-gray-100 text-sm"
+        class="border rounded p-1 hover:bg-gray-100 text-xs"
         @click="(isOpen = !isOpen), $emit('setOpen', isOpen)"
       >
         <span :class="isOpen ? 'rotate-45' : ''" class="transition-transform p-2">{{ isOpen ? '-' : '+' }}</span>
@@ -14,63 +14,102 @@
     <!-- Collapsible Content -->
     <Transition name="fade">
       <div v-show="isOpen" class="space-y-3 mt-2">
-        <!-- Toggle Buttons -->
         <div class="flex bg-gray-100 rounded overflow-hidden text-sm">
           <button
-            :class="
-              selectedTab == 'takeaway' ? 'bg-blue-500 text-white font-semibold' : 'text-gray-600 hover:bg-gray-200'
-            "
+            :class="selectedTab == 'takeaway' ? ` text-white font-semibold` : 'text-gray-600 hover:bg-gray-200'"
             class="flex-1 py-1 transition-colors"
+            :style="{ backgroundColor: selectedTab == 'takeaway' ? outlet.primaryColor : '' }"
             @click="selectedTab = 'takeaway'"
           >
             Takeaway
+            <span v-if="(selectedZoneDetails?.takeawayPromiseTime ?? 0) > 0">
+              ({{ selectedZoneDetails.takeawayPromiseTime }} mins)
+            </span>
           </button>
           <button
-            :class="
-              selectedTab == 'delivery' ? 'bg-blue-500 text-white font-semibold' : 'text-gray-600 hover:bg-gray-200'
-            "
+            :class="selectedTab == 'delivery' ? `text-white font-semibold` : 'text-gray-600 hover:bg-gray-200'"
             class="flex-1 py-1 transition-colors"
+            :style="{ backgroundColor: selectedTab == 'delivery' ? outlet.primaryColor : '' }"
             @click="selectedTab = 'delivery'"
           >
             Delivery
+            <span v-if="(selectedZoneDetails?.deliveryPromiseTime ?? 0) > 0">
+              ({{ selectedZoneDetails.deliveryPromiseTime }} mins)
+            </span>
           </button>
         </div>
 
-        <!-- Phone & Name -->
-        <div v-if="selectedTab" class="flex items-center gap-2 relative">
+        <!-- Phone & Name Row -->
+        <div v-if="selectedTab" class="flex flex-wrap md:flex-nowrap items-center gap-1 relative w-full">
+          <!-- Mobile Number -->
           <input
             v-model="phoneNumber"
             :disabled="selectedUser !== ''"
-            type="number"
-            placeholder="Mobile Number"
-            class="border rounded w-1/2 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            type="tel"
+            placeholder="Mobile No."
+            pattern="[0-9]*"
+            inputmode="numeric"
+            class="border rounded px-2 py-1 text-xs outline-none focus:outline-none focus:ring-1 focus:ring-gray-200 focus:border-gray-300 w-full md:w-[120px]"
+            @input="phoneNumber = phoneNumber.replace(/\D/g, '')"
             @keyup.enter="fetchCustomerDetails(false)"
           />
+
+          <!-- Customer Name -->
           <input
             v-model="name"
             type="text"
             :disabled="selectedUser !== ''"
             placeholder="Customer Name"
-            class="border rounded w-1/2 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            class="border rounded px-2 py-1 text-xs outline-none focus:outline-none focus:ring-1 focus:ring-gray-200 focus:border-gray-300 flex-1 min-w-0"
             @keyup.enter="fetchCustomerDetails(false)"
           />
-          <button
+
+          <!-- Search Button -->
+          <VaButton
             v-if="!selectedUser"
-            class="text-blue-600 bg-blue-600 px-2 py-1 rounded-lg hover:text-blue-800"
+            :style="{ '--va-background-color': outlet.primaryColor }"
+            class="h-[24px] w-[24px] rounded-md flex items-center justify-center"
+            size="small"
+            icon="mso-search"
             @click.prevent="fetchCustomerDetails(false)"
-          >
-            <span v-if="!isUserLoading">🔍</span>
-            <span v-else class="loading-spinner">⌛</span>
-          </button>
-          <button
+          />
+          <VaButton
             v-else
-            class="text-gray-600 px-2 py-1 rounded-lg hover:text-gray-800"
-            @click.prevent="(selectedUser = ''), (phoneNumber = ''), (name = '')"
-          >
-            ✕
-          </button>
-          <div v-if="userResults.length" id="userResults" class="user-results">
-            <ul ref="userList" class="divide divide-y-2">
+            color="danger"
+            size="small"
+            icon="mso-close"
+            class="h-[24px] w-[24px] rounded-md flex items-center justify-center"
+            @click.prevent="showConfirmRemove = true"
+          />
+
+          <!-- Add / Edit Button -->
+          <template v-if="!selectedUser">
+            <VaTooltip text="Add Customer" placement="top">
+              <VaButton
+                class="text-white h-[24px] w-[24px] rounded-md flex items-center justify-center"
+                size="small"
+                icon="mso-add"
+                :style="{ '--va-background-color': outlet.primaryColor }"
+                @click="openCustomerModal"
+              />
+            </VaTooltip>
+          </template>
+
+          <template v-else>
+            <VaTooltip text="Edit Customer" placement="top">
+              <VaButton
+                class="hover:bg-blue-600 text-white h-[24px] w-[24px] rounded-md flex items-center justify-center"
+                size="small"
+                icon="mso-edit"
+                :style="{ '--va-background-color': outlet.primaryColor }"
+                @click="openCustomerModal"
+              />
+            </VaTooltip>
+          </template>
+
+          <!-- Suggestions -->
+          <div v-if="userResults.length" id="userResults" class="user-results w-full absolute top-full left-0 mt-2">
+            <ul ref="userList" class="divide divide-y-2 bg-white border rounded shadow w-full z-10">
               <li
                 v-for="user in userResults"
                 :key="user.ID"
@@ -83,37 +122,56 @@
           </div>
         </div>
 
-        <div v-if="selectedTab && !selectedUser" class="flex items-center w-full gap-2">
-          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-[75%]" />
-          <button
-            class="bg-green-500 text-white px-2 py-2 rounded text-xs hover:bg-green-600 w-[25%] whitespace-nowrap"
-            @click="openCustomerModal"
-          >
-            + Add New
-          </button>
-        </div>
-        <div v-if="selectedTab && selectedUser" class="flex items-center w-full gap-2">
-          <input v-model="localDateTime" type="datetime-local" class="text-sm border rounded px-2 py-1 w-[95%]" />
-          <VaButton class="rounded w-[5%]" color="#B3D943" size="small" icon="mso-edit" @click="openCustomerModal" />
+        <div v-if="selectedTab && selectedUser" class="flex items-center gap-1 w-full">
+          <div class="flex bg-gray-100 rounded overflow-hidden text-xs w-[60%]">
+            <button
+              :class="orderFor === 'current' ? ` text-white font-semibold` : 'text-gray-600 hover:bg-gray-200'"
+              :style="{ backgroundColor: orderFor == 'current' ? outlet.primaryColor : '' }"
+              class="w-1/2 py-1 px-1 transition-colors text-xs"
+              @click="orderFor = 'current'"
+            >
+              Order Now
+            </button>
+            <button
+              :class="orderFor === 'future' ? `text-white font-semibold` : 'text-gray-600 hover:bg-gray-200'"
+              class="w-1/2 py-1 px-1 transition-colors text-xs"
+              :style="{ backgroundColor: orderFor == 'future' ? outlet.primaryColor : '' }"
+              @click="orderFor = 'future'"
+            >
+              Future Order
+            </button>
+          </div>
+
+          <input
+            v-model="localDateTime"
+            type="datetime-local"
+            class="text-xs border rounded px-1 py-1 w-[40%]"
+            :disabled="orderFor === 'current'"
+          />
         </div>
 
         <!-- Address -->
         <div v-if="selectedTab && selectedUser">
-          <label class="text-sm text-gray-600 font-medium block mb-1">
+          <label class="text-xs text-gray-600 font-medium block mb-1">
             {{ selectedTab === 'takeaway' ? 'Location' : 'Address' }}
           </label>
 
-          <div class="flex items-center gap-2 relative">
+          <div class="flex flex-wrap md:flex-nowrap items-center gap-1 relative w-full">
             <template v-if="selectedTab === 'takeaway'">
               <input
                 type="text"
                 :value="selectedZone || 'No Zone Selected'"
                 disabled
-                class="border rounded w-full px-2 py-1 text-sm bg-gray-100"
+                class="border rounded w-full px-1 py-1 text-xs bg-gray-100"
               />
-              <button class="bg-blue-500 text-white px-2 py-1 rounded" @click="showDeliveryDropdown = true">
+              <VaButton
+                class="hover:bg-blue-600 text-white h-[24px] w-[24px] rounded-md flex items-center justify-center"
+                size="small"
+                :style="{ '--va-background-color': outlet.primaryColor }"
+                @click="showDeliveryDropdown = true"
+              >
                 {{ serviceZoneId || 'N/A' }}
-              </button>
+              </VaButton>
             </template>
 
             <template v-else>
@@ -124,15 +182,18 @@
                 track-by="value"
                 searchable
                 highlight-matched-text
+                class="h-[24px] w-[24px] min-w-[32px] flex items-center justify-center rounded-md p-0 text-xs mt-1"
+                style="--va-select-dropdown-max-height: 100px"
               />
 
-              <button
-                :disable="!selectedAddress"
-                class="bg-blue-500 text-white px-2 py-1 rounded"
+              <VaButton
+                class="hover:bg-blue-600 text-white h-[24px] w-[24px] rounded-md flex items-center justify-center"
+                size="small"
+                :style="{ '--va-background-color': outlet.primaryColor }"
                 @click="showDeliveryDropdown = true"
               >
                 {{ serviceZoneId || 'N/A' }}
-              </button>
+              </VaButton>
             </template>
 
             <!-- Delivery dropdown (shared) -->
@@ -140,7 +201,7 @@
               v-if="showDeliveryDropdown"
               class="absolute right-0 top-full max-h-[300px] overflow-y-auto mt-1 w-full text-left bg-white border rounded shadow z-10"
             >
-              <ul ref="deliveryList" class="text-sm">
+              <ul ref="deliveryList" class="text-xs">
                 <li
                   v-for="(zone, index) in deliveryZoneOptions"
                   :key="index"
@@ -159,12 +220,12 @@
 
         <!-- Notes -->
         <div v-if="selectedTab">
-          <label class="text-sm text-gray-600 font-medium block mb-1">Notes</label>
+          <label class="text-xs text-gray-600 font-medium block mb-1">Notes</label>
           <textarea
-            rows="3"
+            rows="1"
             disabled
             placeholder="Special instructions, allergies, delivery notes..."
-            class="w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            class="w-full border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
           ></textarea>
         </div>
       </div>
@@ -174,18 +235,25 @@
       :selected-user="selectedUser"
       :user-name="name"
       :user-number="phoneNumber"
+      :outlet="outlet"
       @setUser="setNewUser"
       @cancel="closeCustomerModal"
+    />
+    <ConfirmRemoveCustomerDetails
+      v-model="showConfirmRemove"
+      @confirm="onConfirmRemove"
+      @close="closeConfirmRemoveModal"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, watch, defineEmits, computed, defineExpose, onMounted, onUnmounted } from 'vue'
-import { useToast } from 'vuestic-ui'
+import { ref, watch, defineEmits, computed, defineExpose, onMounted, onUnmounted, onBeforeUnmount } from 'vue'
+import { useToast, useColors } from 'vuestic-ui'
 import axios from 'axios'
 import { useServiceStore } from '@/stores/services.ts'
 import CustomerModal from '../modals/CustomerModal.vue'
+import ConfirmRemoveCustomerDetails from '../modals/ConfirmRemoveCustomerDetails.vue'
 import { useOrderStore } from '@/stores/order-store'
 import { onClickOutside } from '@vueuse/core'
 const props = defineProps(['forceRemount'])
@@ -214,12 +282,59 @@ const selectedUser = ref('')
 const selectedZone = ref('')
 const showDeliveryDropdown = ref(false)
 const selectedZoneDetails = ref(null)
+const orderFor = ref('current')
+const showConfirmRemove = ref(false)
+
+function handleRemoveCustomer() {
+  // Check if order has items
+  if (orderStore.items && orderStore.items.length > 0) {
+    showConfirmRemove.value = true
+  } else {
+    clearCustomerDetails()
+  }
+}
+
+function clearCustomerDetails() {
+  selectedUser.value = ''
+  phoneNumber.value = ''
+  name.value = ''
+  userResults.value = []
+  selectedAddress.value = ''
+  selectedZone.value = ''
+  serviceZoneId.value = ''
+  selectedZoneDetails.value = null
+  showDeliveryDropdown.value = false
+  emits('setCustomerDetailsId', '')
+  emits('setDeliveryZone', false)
+  emits('setOrderType', '')
+}
+
+function onConfirmRemove() {
+  clearCustomerDetails()
+}
+function closeConfirmRemoveModal() {
+  showConfirmRemove.value = false
+}
 
 onClickOutside(target, (event) => (userResults.value = []), { ignore: [deliveryTarget] })
 onClickOutside(deliveryTarget, (event) => (showDeliveryDropdown.value = false), { ignore: [target] })
 
-const localDateTime = ref(formatDateTimeLocal(new Date()))
+const localDateTime = ref('')
 const selectedDate = ref(new Date())
+
+const getLocalDateTime = () => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  const hours = String(now.getHours()).padStart(2, '0')
+  const minutes = String(now.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+const updateTimeOnly = () => {
+  localDateTime.value = getLocalDateTime()
+}
 
 watch(
   localDateTime,
@@ -236,41 +351,43 @@ watch(
   },
   { immediate: true },
 )
+let timeInterval = null
 
-function formatDateTimeLocal(date) {
-  const pad = (n) => String(n).padStart(2, '0')
-  const yyyy = date.getFullYear()
-  const mm = pad(date.getMonth() + 1)
-  const dd = pad(date.getDate())
-  const hh = pad(date.getHours())
-  const min = pad(date.getMinutes())
-  return `${yyyy}-${mm}-${dd}T${hh}:${min}`
-}
-onMounted(() => {
+const startAutoUpdateTime = () => {
+  stopAutoUpdateTime()
   updateTimeOnly()
-  timeInterval = setInterval(updateTimeOnly, 30000)
-})
-
-onUnmounted(() => {
-  clearInterval(timeInterval)
-})
-
-let timeInterval
-
-function updateTimeOnly() {
-  const current = new Date()
-  const existingDate = new Date(localDateTime.value)
-
-  const updatedDate = new Date(
-    existingDate.getFullYear(),
-    existingDate.getMonth(),
-    existingDate.getDate(),
-    current.getHours(),
-    current.getMinutes(),
-  )
-
-  localDateTime.value = formatDateTimeLocal(updatedDate)
+  timeInterval = setInterval(() => {
+    if (orderFor.value === 'current') {
+      updateTimeOnly()
+    }
+  }, 1000)
 }
+
+const stopAutoUpdateTime = () => {
+  if (timeInterval) {
+    clearInterval(timeInterval)
+    timeInterval = null
+  }
+}
+watch(orderFor, (newVal) => {
+  if (newVal === 'current') {
+    startAutoUpdateTime()
+  } else {
+    stopAutoUpdateTime()
+  }
+})
+onMounted(() => {
+  if (orderFor.value === 'current') {
+    startAutoUpdateTime()
+  }
+})
+onBeforeUnmount(() => {
+  stopAutoUpdateTime()
+})
+
+// onUnmounted(() => {
+//   stopAutoUpdateTime()
+// })
 
 function openCustomerModal() {
   showCustomerModal.value = true
@@ -337,7 +454,7 @@ function selectDeliveryZone(zone) {
   if (zone) {
     emits('setDeliveryFee', selectedTab.value === 'takeaway' ? 0 : zone.deliveryCharge)
     emits('setDeliveryZone', true)
-    orderStore.setDeliveryZone(zone._id)
+    orderStore.setDeliveryZone(zone)
     selectedZone.value = zone.name
     serviceZoneId.value = zone.serviceZoneId
     selectedZoneDetails.value = zone
@@ -430,6 +547,11 @@ function getParsedAddress(payload) {
   return address
 }
 
+const outlet = computed(() => {
+  const servicesStore = useServiceStore()
+  return servicesStore.restDetails || {}
+})
+
 const filteredAddresses = computed(() => {
   let OtherAddresses = []
   let addresses = []
@@ -514,9 +636,12 @@ watch(
 watch(
   () => selectedAddress.value,
   () => {
-    selectDeliveryZone(selectedZoneDetails.value)
-    emits('setDeliveryZone', true)
-    orderStore.setAddress(selectedAddress.value.text)
+    if (selectedZoneDetails.value) {
+      selectDeliveryZone(selectedZoneDetails.value)
+      orderStore.setDeliveryZone(selectedZoneDetails.value)
+      emits('setDeliveryZone', true)
+      orderStore.setAddress(selectedAddress.value.text)
+    }
   },
 )
 
@@ -543,6 +668,10 @@ watch(name, (newVal) => {
   if (!newVal.trim()) {
     userResults.value = []
   }
+})
+
+watch(orderFor, (newVal) => {
+  orderStore.setOrderFor(newVal)
 })
 
 defineExpose({
@@ -573,7 +702,7 @@ defineExpose({
   margin-top: 8px;
   margin-bottom: 16px;
   background: white;
-  z-index: 10;
+  z-index: 50;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -588,5 +717,8 @@ defineExpose({
   flex: 1;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+.va-input-wrapper .va-input-wrapper__fieldset .va-input-wrapper__container .va-input-wrapper__field {
+  padding: 6px;
 }
 </style>

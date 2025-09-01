@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { defineVaDataTableColumns, useModal, useToast } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
-import { toRef, ref } from 'vue'
+import { toRef, ref, defineEmits, defineProps } from 'vue'
 import { useServiceStore } from '../../../stores/services'
 import axios from 'axios'
-const emits = defineEmits(['openTableModal', 'loadData'])
+const emits = defineEmits(['openTableModal', 'loadData', 'addClicked'])
 const { confirm } = useModal()
 const { init } = useToast()
 const activeCheck = toRef(true)
@@ -29,6 +29,8 @@ const columns = defineVaDataTableColumns([
 ])
 
 const props = defineProps({
+  title: { type: String, default: 'Outlets' },
+  addButtonLabel: { type: String, default: 'Add Outlet' },
   items: {
     type: Array,
     required: true,
@@ -103,120 +105,131 @@ function downloadQrCode(rowData) {
 </script>
 
 <template>
-  <VaDataTable
-    :columns="columns"
-    :items="items"
-    :loading="$props.loading"
-    :style="{
-      '--va-data-table-thead-background': 'var(--va-background-element)',
-      '--va-data-table-thead-color': '#2C82E0',
-    }"
-    sticky-header
-  >
-    <template #cell(numericId)="{ rowData }">
-      <div class="max-w-[120px] ellipsis">
-        {{ rowData.numericId }}
-      </div>
-    </template>
-
-    <template #cell(name)="{ rowData }">
-      <div class="ellipsis max-w-[230px]">
-        {{ rowData.name }}
-      </div>
-    </template>
-    <template #cell(email)="{ rowData }">
-      <div class="ellipsis max-w-[230px]">
-        {{ rowData.email }}
-      </div>
-    </template>
-    <template #cell(address)="{ rowData }">
-      <div class="ellipsis max-w-[230px]">
-        {{ rowData.address }}
-      </div>
-    </template>
-    <template #cell(download_qr)="{ rowData }">
-      <div class="text-center">
-        <VaButton preset="plain" size="small" class="underline text-light text-center" @click="downloadQrCode(rowData)"
-          ><svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="size-6"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
-            />
-          </svg>
-        </VaButton>
-      </div>
-    </template>
-    <template #cell(active)="{ rowData }">
-      <div class="ellipsis max-w-[230px]">
-        <VaBadge :color="rowData.active ? 'success' : 'danger'" :text="rowData.active ? 'Yes' : 'No'" />
-      </div>
-    </template>
-    <template #cell(webhook)="{ rowData }">
-      <div>
-        <VaButton color="primary" size="small" class="rounded-full px-2 text-xs" @click="generateWebhook(rowData)">
-          Generate
-        </VaButton>
-      </div>
-    </template>
-    <template #cell(actions)="{ rowData }">
-      <VaButton
-        preset="primary"
-        size="small"
-        icon="mso-edit"
-        @click="router.push('/outlets/admin/update/' + rowData._id)"
-      />
-      <VaButton
-        preset="primary"
-        size="small"
-        color="danger"
-        icon="mso-delete"
-        class="ml-2"
-        @click="onButtonOutletDelete(rowData)"
-      />
-    </template>
-    <template #cell(select)="{ rowData }">
-      <VaBadge v-if="$props.selectedRest === rowData._id" color="primary" class="mr-2" text="Selected"></VaBadge>
-      <VaButton v-else :preset="'primary'" @click.prevent="serviceStore.setRest(rowData._id)"> Select </VaButton>
-    </template>
-  </VaDataTable>
-  <VaModal
-    v-model="showWebhookModal"
-    size="medium"
-    hide-default-actions
-    :close-on-esc="true"
-    :close-on-click-outside="true"
-  >
-    <template #header>
-      <h3 class="va-h4 ml-3">Webhook Details</h3>
-    </template>
-    <div class="p-3 space-y-4">
-      <VaInput
-        v-model="webhookData.signature"
-        label="Signature"
-        readonly
-        copy
-        class="disabled-look"
-        @copy="handleCopy('Signature')"
-      />
-      <VaInput
-        v-model="webhookData.webhookId"
-        label="Webhook ID"
-        readonly
-        copy
-        class="disabled-look"
-        @copy="handleCopy('Webhook ID')"
-      />
-      <VaInput v-model="webhookData.url" label="URL" readonly copy class="disabled-look" @copy="handleCopy('URL')" />
+  <div>
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="page-title">Outlets</h1>
+      <VaButton size="small" color="primary" @click="emits('addClicked')">{{ addButtonLabel }}</VaButton>
     </div>
-  </VaModal>
+    <VaDataTable
+      :columns="columns"
+      :items="items"
+      :loading="$props.loading"
+      :style="{
+        '--va-data-table-thead-background': 'var(--va-background-element)',
+        '--va-data-table-thead-color': '#2C82E0',
+      }"
+      sticky-header
+      @loadData="emits('loadData')"
+    >
+      <template #cell(numericId)="{ rowData }">
+        <div class="max-w-[120px] ellipsis">
+          {{ rowData.numericId }}
+        </div>
+      </template>
+
+      <template #cell(name)="{ rowData }">
+        <div class="ellipsis max-w-[230px]">
+          {{ rowData.name }}
+        </div>
+      </template>
+      <template #cell(email)="{ rowData }">
+        <div class="ellipsis max-w-[230px]">
+          {{ rowData.email }}
+        </div>
+      </template>
+      <template #cell(address)="{ rowData }">
+        <div class="ellipsis max-w-[230px]">
+          {{ rowData.address }}
+        </div>
+      </template>
+      <template #cell(download_qr)="{ rowData }">
+        <div class="text-center">
+          <VaButton
+            preset="plain"
+            size="small"
+            class="underline text-light text-center"
+            @click="downloadQrCode(rowData)"
+            ><svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="size-6"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+              />
+            </svg>
+          </VaButton>
+        </div>
+      </template>
+      <template #cell(active)="{ rowData }">
+        <div class="ellipsis max-w-[230px]">
+          <VaBadge :color="rowData.active ? 'success' : 'danger'" :text="rowData.active ? 'Yes' : 'No'" />
+        </div>
+      </template>
+      <template #cell(webhook)="{ rowData }">
+        <div>
+          <VaButton color="primary" size="small" class="rounded-full px-2 text-xs" @click="generateWebhook(rowData)">
+            Generate
+          </VaButton>
+        </div>
+      </template>
+      <template #cell(actions)="{ rowData }">
+        <VaButton
+          preset="primary"
+          size="small"
+          icon="mso-edit"
+          @click="router.push('/outlets/admin/update/' + rowData._id)"
+        />
+        <VaButton
+          preset="primary"
+          size="small"
+          color="danger"
+          icon="mso-delete"
+          class="ml-2"
+          @click="onButtonOutletDelete(rowData)"
+        />
+      </template>
+      <template #cell(select)="{ rowData }">
+        <VaBadge v-if="$props.selectedRest === rowData._id" color="primary" class="mr-2" text="Selected"></VaBadge>
+        <VaButton v-else :preset="'primary'" @click.prevent="serviceStore.setRest(rowData._id)"> Select </VaButton>
+      </template>
+    </VaDataTable>
+    <VaModal
+      v-model="showWebhookModal"
+      size="medium"
+      hide-default-actions
+      :close-on-esc="true"
+      :close-on-click-outside="true"
+    >
+      <template #header>
+        <h3 class="va-h4 ml-3">Webhook Details</h3>
+      </template>
+      <div class="p-3 space-y-4">
+        <VaInput
+          v-model="webhookData.signature"
+          label="Signature"
+          readonly
+          copy
+          class="disabled-look"
+          @copy="handleCopy('Signature')"
+        />
+        <VaInput
+          v-model="webhookData.webhookId"
+          label="Webhook ID"
+          readonly
+          copy
+          class="disabled-look"
+          @copy="handleCopy('Webhook ID')"
+        />
+        <VaInput v-model="webhookData.url" label="URL" readonly copy class="disabled-look" @copy="handleCopy('URL')" />
+      </div>
+    </VaModal>
+  </div>
 </template>
 
 <style lang="scss" scoped>

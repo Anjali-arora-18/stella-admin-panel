@@ -89,6 +89,9 @@ if (servicesStore.selectedRest) {
 
 <template>
   <div>
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="page-title">Deleted Article</h1>
+    </div>
     <VaDataTable
       :columns="columns"
       :items="items"

@@ -22,17 +22,11 @@
             type="number"
             min="0"
             required-mark
-            :rules="[validators.required]"
+            :rules="[validateMin]"
+            :disabled="!formData.isRequired"
           />
 
-          <VaInput
-            v-model="formData.max"
-            label="Max"
-            type="number"
-            min="0"
-            required-mark
-            :rules="[validators.required]"
-          />
+          <VaInput v-model="formData.max" label="Max" type="number" min="0" required-mark :rules="[validateMax]" />
           <VaSelect
             v-model="formData.isRequired"
             label="Is Required"
@@ -117,7 +111,7 @@
                                 { 'opacity-50 pointer-events-none': item.customPrice > 0 },
                               ]"
                               :title="item.isVisible ? 'Hide' : 'Show'"
-                              @click="viewItems(index)"
+                              @click="viewItems(item._id)"
                             >
                               <svg
                                 v-if="item.isVisible"
@@ -283,6 +277,7 @@
                 <tbody>
                   <VaVirtualScroller
                     v-slot="{ item, index }"
+                    :key="debouncedSearch"
                     :items="
                       items
                         .filter((a) => a.isVisible)
@@ -362,6 +357,7 @@
                 <tbody>
                   <VaVirtualScroller
                     v-slot="{ item, index }"
+                    :key="debouncedSearch"
                     :items="
                       items
                         .filter((a) => a.selected)
@@ -493,6 +489,41 @@ const groupSearchQuery = ref('')
 const optionSearchQuery = ref('')
 const defaultOptions = ref([])
 const defaultArticles = ref([])
+const debouncedSearch = ref('')
+
+function debounce(fn, delay) {
+  let timeout
+  return (...args) => {
+    clearTimeout(timeout)
+    timeout = setTimeout(() => {
+      fn(...args)
+    }, delay)
+  }
+}
+
+const updateSearch = debounce((value) => {
+  debouncedSearch.value = value
+}, 300)
+
+watch(optionSearchQuery, (newVal) => {
+  updateSearch(newVal)
+})
+const validateMin = (value) => {
+  if (value === null || value === '') return 'Min is required'
+  if (isNaN(value)) return 'Min must be a number'
+  if (value < 0) return 'Min must be ≥ 0'
+  return true
+}
+
+const validateMax = (value) => {
+  if (value === null || value === '') return 'Max is required'
+  if (isNaN(value)) return 'Max must be a number'
+  if (value < 0) return 'Max must be ≥ 0'
+  if (formData.value.min !== null && parseInt(value) < parseInt(formData.value.min)) {
+    return 'Max must be ≥ Min'
+  }
+  return true
+}
 
 defaultArticles.value = props.offerSelection?.menuItemDefaultOptions || []
 
@@ -529,9 +560,9 @@ const groupWorker = new Worker(
       [
         `
       self.onmessage = function(e) {
-        const { items, groupSearchQuery, optionSearchQuery, searchQuery } = e.data;
+        const { items, groupSearchQuery, debouncedSearch, searchQuery } = e.data;
         const groupSearch = groupSearchQuery.toLowerCase();
-        const optionSearch = optionSearchQuery.toLowerCase();
+        const optionSearch = debouncedSearch.toLowerCase();
         const search = searchQuery.toLowerCase();
         const filtered = items
           .map(a => {
@@ -539,7 +570,7 @@ const groupWorker = new Worker(
               const internalNameMatch = a.code?.toLowerCase().includes(search);
               return {
                 ...a,
-                isVisible: a.isVisible || false,
+                isVisible: a.isVisible,
                 display: nameMatch || internalNameMatch || !searchQuery,
                 articlesOptionsGroup: a.articlesOptionsGroup.map(g => {
                   const nameMatch = g.name?.toLowerCase().includes(groupSearch);
@@ -572,17 +603,16 @@ const groupWorker = new Worker(
 const lastWorkerCall = ref(0)
 
 watch(
-  [groupSearchQuery, optionSearchQuery, searchQuery],
+  [groupSearchQuery, debouncedSearch, searchQuery],
   () => {
     const callId = ++lastWorkerCall.value
     groupWorker.postMessage({
       items: JSON.parse(JSON.stringify(items.value)),
       groupSearchQuery: groupSearchQuery.value,
-      optionSearchQuery: optionSearchQuery.value,
+      debouncedSearch: debouncedSearch.value,
       searchQuery: searchQuery.value,
     })
     groupWorker.onmessage = (e) => {
-      // Only update if this is the latest call
       if (callId === lastWorkerCall.value) {
         items.value = JSON.parse(JSON.stringify(e.data))
       }
@@ -593,8 +623,8 @@ watch(
 
 const formData = ref({
   name: '',
-  min: null,
-  max: null,
+  min: 0,
+  max: 0,
   isRequired: true,
 })
 
@@ -674,75 +704,104 @@ onMounted(() => {
   getArticles()
 })
 
-const viewItems = function (index) {
-  console.log('viewItems', index, items.value)
-  items.value[index].isVisible = !items.value[index].isVisible
-  groupWorker.postMessage({
-    items: JSON.parse(JSON.stringify(items.value)),
-    groupSearchQuery: groupSearchQuery.value,
-    optionSearchQuery: optionSearchQuery.value,
-    searchQuery: searchQuery.value,
-  })
-  groupWorker.onmessage = (e) => {
-    // Only update if this is the latest call
-    items.value = JSON.parse(JSON.stringify(e.data))
+// const viewItems = function (index) {
+//   console.log('viewItems', index, items.value)
+//   items.value[index].isVisible = !items.value[index].isVisible
+//   groupWorker.postMessage({
+//     items: JSON.parse(JSON.stringify(items.value)),
+//     groupSearchQuery: groupSearchQuery.value,
+//     debouncedSearch: debouncedSearch.value,
+//     searchQuery: searchQuery.value,
+//   })
+//   groupWorker.onmessage = (e) => {
+//     // Only update if this is the latest call
+//     items.value = JSON.parse(JSON.stringify(e.data))
+//   }
+// }
+
+const viewItems = function (id) {
+  const item = items.value.find((i) => i._id === id)
+  if (item) {
+    item.isVisible = !item.isVisible
+    groupWorker.postMessage({
+      items: JSON.parse(JSON.stringify(items.value)),
+      groupSearchQuery: groupSearchQuery.value,
+      debouncedSearch: debouncedSearch.value,
+      searchQuery: searchQuery.value,
+    })
+    groupWorker.onmessage = (e) => {
+      // Only update if this is the latest call
+      items.value = JSON.parse(JSON.stringify(e.data))
+    }
   }
 }
 
 const submit = async () => {
-  if (validate()) {
-    const payload = {
-      selections: JSON.parse(JSON.stringify(props.offerData.selections || [])),
-    }
-    const data = JSON.parse(JSON.stringify(formData.value))
-    data.min = parseInt(data.min)
-    data.max = parseInt(data.max)
-    data.isActive = true
-    data.menuItemDefaultOptions = defaultArticles.value
+  const isValid = await validate()
+  if (!isValid) return
+  if (!formData.value.isRequired && formData.value.min > 0) {
+    formData.value.min = 0
+  }
+  const payload = {
+    selections: JSON.parse(JSON.stringify(props.offerData.selections || [])),
+  }
+  const data = JSON.parse(JSON.stringify(formData.value))
+  data.min = parseInt(data.min)
+  data.max = parseInt(data.max)
+  data.isActive = true
+  data.menuItemDefaultOptions = defaultArticles.value
 
-    // Reconstruct menuItems from the current UI state to reflect latest selection/free changes
-    data.menuItems = items.value
-      .filter((item: any) => !!item.selected)
-      .map((item: any) => ({
-        menuItemId: item._id,
-        isFree: !!item.isFree,
-        customPrice: item.customPrice || 0,
-        optionGroups: item.articlesOptionsGroup
-          .filter((group: any) => !!group.selected)
-          .map((group: any) => ({
-            optionGroupId: group.id,
-            customMaxChoices: group.customMaxChoices || 0,
-            selectedOptionsDefaultOption: defaultOptions.value
-              .filter((opt) => opt.startsWith(group.id + '-'))
-              .map((opt) => opt.split('-')[1]),
-            selectedOptions: group.articlesOptions
-              .filter((option: any) => !!option.selected)
-              .map((option: any) => ({
-                optionId: option.id,
-                isFree: !!option.isFree,
-                customPrice: option.customPrice || 0,
-                isDefault: defaultOptions.value.includes(option.id),
-              })),
-          })),
-      }))
+  // Reconstruct menuItems from the current UI state to reflect latest selection/free changes
+  data.menuItems = items.value
+    .filter((item: any) => !!item.selected)
+    .map((item: any) => ({
+      menuItemId: item._id,
+      isFree: !!item.isFree,
+      customPrice: item.customPrice || 0,
+      optionGroups: item.articlesOptionsGroup
+        .filter((group: any) => !!group.selected)
+        .map((group: any) => ({
+          optionGroupId: group.id,
+          customMaxChoices: group.customMaxChoices || 0,
+          selectedOptionsDefaultOption: defaultOptions.value
+            .filter((opt) => opt.startsWith(group.id + '-'))
+            .map((opt) => opt.split('-')[1]),
+          selectedOptions: group.articlesOptions
+            .filter((option: any) => !!option.selected)
+            .map((option: any) => ({
+              optionId: option.id,
+              isFree: !!option.isFree,
+              customPrice: option.customPrice || 0,
+              isDefault: defaultOptions.value.includes(option.id),
+            })),
+        })),
+    }))
 
-    const url = import.meta.env.VITE_API_BASE_URL
-    if (props.isEditSelection) {
-      const index = props.offerData.selections.findIndex((e: any) => e._id === props.offerSelection._id)
-      payload.selections[index] = data
-    } else {
-      payload.selections.push(data)
-    }
-    try {
-      await axios.put(`${url}/offers/${props.offerData._id}/selections`, payload)
-      init({ message: 'Offers updated successfully!', color: 'success' })
-      emits('cancel')
-      emits('getOffers')
-    } catch (err) {
-      init({ message: err?.response?.data?.message || 'Error occurred', color: 'danger' })
-    }
+  const url = import.meta.env.VITE_API_BASE_URL
+  if (props.isEditSelection) {
+    const index = props.offerData.selections.findIndex((e: any) => e._id === props.offerSelection._id)
+    payload.selections[index] = data
+  } else {
+    payload.selections.push(data)
+  }
+  try {
+    await axios.put(`${url}/offers/${props.offerData._id}/selections`, payload)
+    init({ message: 'Offers updated successfully!', color: 'success' })
+    emits('cancel')
+    emits('getOffers')
+  } catch (err) {
+    init({ message: err?.response?.data?.message || 'Error occurred', color: 'danger' })
   }
 }
+watch(
+  () => formData.value.isRequired,
+  (val) => {
+    if (!val) {
+      formData.value.min = 0
+    }
+  },
+  { immediate: true },
+)
 </script>
 <style scoped>
 tr {

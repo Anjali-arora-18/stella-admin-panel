@@ -1,9 +1,6 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-4">
-      <h1 class="page-title font-bold">Article Options</h1>
-    </div>
-    <div class="rounded border bg-white p-3 w-full" style="box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1)">
+    <div class="rounded bg-white p-4 w-full mt-4">
       <VaTabs v-model="activeTab" grow>
         <template #tabs>
           <VaTab label="Option Groups" />
@@ -43,3 +40,16 @@ export default {
   methods: {},
 }
 </script>
+<style scoped>
+::v-deep(.va-tabs__wrapper) {
+  box-shadow: none !important;
+}
+
+::v-deep(.va-tab__label) {
+  font-size: 17px;
+}
+
+::v-deep(.va-tab--active .va-tab__label) {
+  font-size: 18px;
+}
+</style>

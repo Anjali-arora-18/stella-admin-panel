@@ -38,7 +38,9 @@
 
 <script setup>
 import { useToast } from 'vuestic-ui'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useOrderStore } from '@/stores/order-store'
+import { useServiceStore } from '@/stores/services'
 
 const emits = defineEmits(['cancel', 'select-code'])
 const { init } = useToast()
@@ -48,7 +50,29 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  customerDetailsId: {
+    type: String,
+    default: '',
+  },
+  orderType: {
+    type: String,
+    default: 'delivery',
+  },
+  deliveryFee: {
+    type: Number,
+    default: 0,
+  },
+  dateSelected: {
+    type: String,
+    default: new Date().toISOString(),
+  },
 })
+
+const apiLoading = ref(false)
+const orderStore = useOrderStore()
+const serviceStore = useServiceStore()
+const orderFor = computed(() => orderStore.orderFor)
+const selectedCode = ref('')
 
 const sortedPromotions = computed(() =>
   [...props.promotion].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())),
@@ -65,9 +89,106 @@ function copyToClipboard(text) {
     })
 }
 
-function selectCode(code) {
-  emits('select-code', code)
-  emits('cancel')
-  init({ message: `PromoCode selected`, color: 'success' })
+async function selectCode(code, hideToast = false) {
+  selectedCode.value = code
+  apiLoading.value = true
+  let menuItems = []
+  menuItems = orderStore.cartItems.map((e) => {
+    return {
+      menuItem: e.itemId,
+      quantity: e.quantity,
+      options: e.selectedOptions.flatMap((group) =>
+        group.selected.map((option) => ({
+          option: option.optionId,
+          quantity: option.quantity,
+        })),
+      ),
+    }
+  })
+
+  const offerMenuItems = orderStore.offerItems.map((offer) => ({
+    offerId: offer.offerId,
+    menuItems: offer.selections.flatMap((selection) =>
+      selection.addedItems.map((item) => ({
+        menuItem: item.itemId,
+        quantity: item.quantity || 1,
+        options:
+          item.selectedOptions?.flatMap((group) =>
+            group.selected.map((option) => ({
+              option: option.optionId,
+              quantity: option.quantity,
+            })),
+          ) || [],
+      })),
+    ),
+  }))
+
+  try {
+    const payload = {
+      orderFor: orderFor.value,
+      customerDetailId: props.customerDetailsId,
+      orderType: props.orderType === 'takeaway' ? 'Takeaway' : 'Delivery',
+      deliveryZoneId: orderStore.deliveryZone?._id,
+      address: orderStore.address,
+      menuItems,
+      offerMenuItems,
+      orderNotes: '',
+      deliveryFee: props.deliveryFee,
+      outletId: serviceStore.selectedRest,
+      orderDateTime: new Date(props.dateSelected).toISOString(),
+      paymentMode: '',
+      promoCode: code || '',
+      hasOtherOffers: offerMenuItems.length,
+    }
+
+    const response = await orderStore.validatePromoCode(payload)
+
+    if (response.data.success) {
+      if (!hideToast) {
+        init({ message: `PromoCode selected`, color: 'success' })
+      }
+      orderStore.setOrderTotal(response.data.data)
+      emits('select-code', code)
+      emits('cancel')
+    } else {
+      orderStore.setOrderTotal(null)
+      init({ message: `PromoCode invalid`, color: 'danger' })
+    }
+  } catch (err) {
+    console.log(err)
+  } finally {
+    apiLoading.value = false
+  }
 }
+
+watch(
+  () => orderStore.cartItems,
+  () => {
+    if (selectedCode.value) {
+      orderStore.setOrderTotal(null) // Reset total when cart items change
+      selectCode(selectedCode.value, true) // Re-validate promo code on cart change
+    }
+  },
+  { deep: true },
+)
+watch(
+  () => props.offerItems,
+  () => {
+    if (selectedCode.value) {
+      orderStore.setOrderTotal(null) // Reset total when order type changes
+      selectCode(selectedCode.value, true) // Re-validate promo code on order type change
+    }
+  },
+  { deep: true },
+)
+watch(
+  () => props.orderType,
+  () => {
+    if (selectedCode.value) {
+      orderStore.setOrderTotal(null) // Reset total when order type changes
+      selectCode(selectedCode.value, true) // Re-validate promo code on order type change
+    }
+  },
+)
+defineExpose({ selectedCode, selectCode })
 </script>

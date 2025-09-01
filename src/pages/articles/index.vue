@@ -165,42 +165,38 @@ const isImportArticleModalOpen = ref(false)
 </script>
 
 <template>
-  <div class="flex items-center justify-between">
-    <h1 class="page-title font-bold">Articles</h1>
-    <div class="flex gap-2">
-      <VaButton color="primary" size="small" @click="isImportArticleModalOpen = true"> Import</VaButton>
-      <VaButton size="small" color="primary" @click="isEditArticleModalOpen = true"> Add Article </VaButton>
-    </div>
+  <div>
+    <VaCard class="mt-4">
+      <VaCardContent>
+        <ArticlesTable
+          :items="items"
+          :loading="isLoading"
+          :search-query="searchQuery"
+          :current-page="currentPage"
+          :categories="categories"
+          :count="count"
+          :sort-by="sortBy"
+          :sort-order="sortOrder"
+          @update:searchQuery="(val) => (searchQuery = val)"
+          @update:currentPage="(val) => (currentPage = val)"
+          @sortBy="updateSortBy"
+          @sortingOrder="updateSortOrder"
+          @updateArticleModal="updateArticleModal"
+          @deleteArticle="deleteArticle"
+          @getArticlesForPagination="getArticlesForPagination"
+          @updateArticle="updateArticleDirectly"
+          @addArticle="isEditArticleModalOpen = true"
+          @importArticle="isImportArticleModalOpen = true"
+          @cloneArticle="cloneArticle"
+        />
+      </VaCardContent>
+    </VaCard>
+
+    <EditArticleModal
+      v-if="isEditArticleModalOpen"
+      :selected-category="selectedArticle"
+      @cancel="(selectedArticle = ''), (isEditArticleModalOpen = false), getArticles(serviceStore.selectedRest)"
+    />
+    <ImportArticleModal v-if="isImportArticleModalOpen" @cancel="isImportArticleModalOpen = false" />
   </div>
-
-  <VaCard>
-    <VaCardContent>
-      <ArticlesTable
-        :items="items"
-        :loading="isLoading"
-        :search-query="searchQuery"
-        :current-page="currentPage"
-        :categories="categories"
-        :count="count"
-        :sort-by="sortBy"
-        :sort-order="sortOrder"
-        @update:searchQuery="(val) => (searchQuery = val)"
-        @update:currentPage="(val) => (currentPage = val)"
-        @sortBy="updateSortBy"
-        @sortingOrder="updateSortOrder"
-        @updateArticleModal="updateArticleModal"
-        @deleteArticle="deleteArticle"
-        @getArticlesForPagination="getArticlesForPagination"
-        @updateArticle="updateArticleDirectly"
-        @cloneArticle="cloneArticle"
-      />
-    </VaCardContent>
-  </VaCard>
-
-  <EditArticleModal
-    v-if="isEditArticleModalOpen"
-    :selected-category="selectedArticle"
-    @cancel="(selectedArticle = ''), (isEditArticleModalOpen = false), getArticles(serviceStore.selectedRest)"
-  />
-  <ImportArticleModal v-if="isImportArticleModalOpen" @cancel="isImportArticleModalOpen = false" />
 </template>

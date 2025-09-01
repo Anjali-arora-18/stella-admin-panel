@@ -4,12 +4,24 @@ export const useOrderStore = defineStore('order', {
   state: () => ({
     cartItems: [],
     offerItems: [],
+    cartTotal: null,
     paymentId: '',
     redirectUrl: '',
     deliveryZone: '',
     address: '',
+    orderFor: 'current',
   }),
+
   actions: {
+    setOrderTotal(payload) {
+      this.cartTotal = payload
+    },
+    setOrderFor(payload) {
+      this.orderFor = payload
+    },
+    setCartItems(payload) {
+      this.cartItems = payload
+    },
     setDeliveryZone(payload) {
       this.deliveryZone = payload
     },
@@ -63,6 +75,10 @@ export const useOrderStore = defineStore('order', {
       const url = import.meta.env.VITE_API_BASE_URL
       return await axios.post(`${url}/orders`, payload)
     },
+    async validatePromoCode(payload) {
+      const url = import.meta.env.VITE_API_BASE_URL
+      return await axios.post(`${url}/orders/validate-promo`, payload)
+    },
     async checkPaymentStatus(orderId, paymentTypeId) {
       const url = import.meta.env.VITE_API_BASE_URL
       return await axios.put(`${url}/payments/verify/${orderId}?paymentTypeId=${paymentTypeId}`)
@@ -71,10 +87,11 @@ export const useOrderStore = defineStore('order', {
       const url = import.meta.env.VITE_API_BASE_URL
       return await axios.post(`${url}/payments/${orderId}?paymentTypeId=${paymentTypeId}`)
     },
-    async sendOrderToWinmax(orderId) {
+    async sendOrderToWinmax(orderId, orderFor) {
       const url = import.meta.env.VITE_API_BASE_URL
       return await axios.post(`${url}/winmax/winmax-orders/`, {
         id: orderId,
+        orderFor: orderFor,
       })
     },
     async retryPayment(orderId) {

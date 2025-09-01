@@ -17,7 +17,13 @@
     </template>
     <template #right>
       <div class="flex items-center">
-        <VaSelect v-model="selectedRest" :options="restOptions" placeholder="Select an option" />
+        <VaSelect
+          v-model="selectedRest"
+          :options="restOptions"
+          placeholder="Select an option"
+          searchable
+          highlight-matched-text
+        />
         <AppNavbarActions class="app-navbar__actions" :is-mobile="isMobile" />
       </div>
     </template>
@@ -52,7 +58,7 @@ const collapseIconColor = computed(() => getColor('secondary'))
 const getOutlets = () => {
   servicesStore.getAll().then(() => {
     restlist.value = servicesStore.items
-    restOptions.value = servicesStore.items.map((e) => e.name)
+    restOptions.value = servicesStore.items.map((e) => e.name).sort((a, b) => a.localeCompare(b))
 
     const storedRest = sessionStorage.getItem('selectedRest')
     if (storedRest) {
@@ -60,10 +66,12 @@ const getOutlets = () => {
       if (found) {
         selectedRest.value = found.name
         servicesStore.setRest(found._id)
+        servicesStore.setResDetails(found)
       }
     } else {
       selectedRest.value = servicesStore.items[0].name
       servicesStore.setRest(servicesStore.items[0]._id)
+      servicesStore.setResDetails(servicesStore.items)
     }
   })
 }
@@ -73,6 +81,7 @@ watch(
   () => servicesStore.selectedRest,
   () => {
     selectedRest.value = restlist.value.find((a) => a._id === servicesStore.selectedRest).name
+    servicesStore.setResDetails(restlist.value.find((a) => a._id === servicesStore.selectedRest))
   },
 )
 watch(
@@ -85,6 +94,7 @@ watch(
 watch(selectedRest, (newValue) => {
   const foundRest = restlist.value.find((a) => a.name === newValue)
   if (foundRest) {
+    servicesStore.setResDetails(foundRest)
     servicesStore.setRest(foundRest._id)
     sessionStorage.setItem('selectedRest', foundRest._id)
   }

@@ -170,7 +170,7 @@
                 v-for="option in group.selectedOptions"
                 v-if="group.multipleChoice"
                 :key="option.optionId"
-                class="w-[200px] h-[80px] relative flex flex-col justify-between border rounded-xl p-2 transition hover:shadow-sm"
+                class="w-[200px] h-[80px] relative flex flex-col justify-between border rounded-xl transition hover:shadow-sm cursor-pointer"
                 :class="
                   getQty(group.optionGroupId, option.optionId) > 0
                     ? 'border-gray-700 bg-[#f8f9fa] border-2'
@@ -178,8 +178,8 @@
                 "
               >
                 <!-- Top content -->
-                <div class="flex items-center gap-1">
-                  <div v-if="option.imageUrl" class="item-image">
+                <div class="flex items-start gap-1">
+                  <div v-if="option.imageUrl" class="image-wrapper">
                     <img
                       :src="option.imageUrl"
                       alt="Topping"
@@ -187,31 +187,46 @@
                       class="rounded w-full h-full"
                     />
                   </div>
-                  <div class="text-left">
-                    <p class="font-semibold text-sm text-gray-800">{{ option.name }}</p>
+                  <div class="text-left leading-tight pt-1 pl-1">
+                    <p
+                      class="font-semibold text-sm text-gray-800 leading-4 line-clamp-3"
+                      style="
+                        display: -webkit-box;
+                        -webkit-line-clamp: 3;
+                        -webkit-box-orient: vertical;
+                        overflow: hidden;
+                      "
+                    >
+                      {{ option.name }}
+                    </p>
                   </div>
                 </div>
 
                 <!-- Bottom-right quantity control -->
-                <div class="absolute bottom-2 right-2 flex items-center bottom-1 gap-1">
+                <div class="absolute bottom-1 right-2 flex items-center gap-1">
                   <div
                     v-if="(option.customPrice || option.price) && !option.isFree"
-                    class="text-gray-800 font-semibold text-sm mt-2"
+                    class="text-gray-800 font-semibold text-xs mt-1"
                   >
                     €{{ parseFloat(option.customPrice || option.price).toFixed(2) }}
                   </div>
-                  <p v-if="option.isFree" class="text-sm text-gray-600 font-medium mr-2">Free</p>
+                  <p v-if="option.isFree" class="text-xs text-gray-600 font-medium mr-1">Free</p>
                   <button
-                    class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50"
+                    class="w-5 h-5 text-xs font-bold border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50"
                     :disabled="getQty(group.optionGroupId, option.optionId) === 0"
                     @click="() => updateMultipleChoice(group, option, getQty(group.optionGroupId, option.optionId) - 1)"
                   >
                     -
                   </button>
-                  <span class="w-5 text-center text-sm">{{ getQty(group.optionGroupId, option.optionId) }}</span>
+                  <span class="w-4 text-center text-xs">{{ getQty(group.optionGroupId, option.optionId) }}</span>
                   <button
-                    title="Max quantity reached"
-                    class="w-6 h-6 text-sm font-bold border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50"
+                    :title="
+                      getQty(group.optionGroupId, option.optionId) >=
+                      (option.maximumChoices || group.maximumChoices || 99)
+                        ? 'Max quantity reached'
+                        : ''
+                    "
+                    class="w-5 h-5 text-xs font-bold border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50"
                     :disabled="
                       getQty(group.optionGroupId, option.optionId) >=
                       (option.maximumChoices || group.maximumChoices || 99)
@@ -644,5 +659,19 @@ function decrement(item) {
   justify-content: center;
   font-size: 40px;
   flex-shrink: 0;
+}
+.image-wrapper {
+  flex-shrink: 0;
+  width: 60px; /* or tweak for ratio */
+  height: 77px; /* full height of option box */
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* fills the area without distortion */
+  display: block;
 }
 </style>
