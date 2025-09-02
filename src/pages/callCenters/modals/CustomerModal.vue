@@ -59,25 +59,24 @@
                   </div>
 
                   <!-- Action Buttons -->
-                  <div class="flex gap-2">
+                  <div class="flex gap-1">
                     <!-- Edit Button -->
                     <VaButton
-                      preset="primary"
-                      color="primary"
+                      preset="secondary"
                       size="small"
                       icon="mso-edit"
                       aria-label="Edit Address"
                       @click="editAddressFields(addr, index)"
                     />
                     <!-- Delete Button -->
-                    <VaButton
+                    <!-- <VaButton
                       preset="danger"
                       color="danger"
                       size="small"
                       icon="mso-delete"
                       aria-label="Delete Address"
                       @click="deleteAddress(index)"
-                    />
+                    /> -->
                   </div>
                 </div>
               </div>
@@ -437,11 +436,10 @@ function editAddressFields(addr, index) {
   })
 }
 
-async function deleteAddress(index: number) {
-  if (!confirm('Are you sure you want to delete this address?')) return
-
-  address.value.splice(index, 1)
-}
+// async function deleteAddress(index: number) {
+//   if (!confirm('Are you sure you want to delete this address?')) return
+//   address.value.splice(index, 1)
+// }
 
 async function fetchStreetName() {
   streetList.value = []
