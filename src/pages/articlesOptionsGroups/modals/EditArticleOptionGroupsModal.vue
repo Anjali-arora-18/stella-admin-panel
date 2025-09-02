@@ -113,6 +113,7 @@ const formData = ref({
 })
 
 const isUpdating = computed(() => !!Object.keys(props.selectedOptionGroups).length && props.selectedOptionGroups._id)
+const isDuplicating = computed(() => Object.keys(props.selectedOptionGroups).length && !props.selectedOptionGroups._id)
 
 if (props.selectedOptionGroups && props.selectedOptionGroups._id) {
   axios
@@ -164,7 +165,15 @@ const submit = async () => {
         init({ message: "You've successfully updated a OptionGroups", color: 'success' })
       } else {
         delete data._id
-        await axios.post(`${url}/articles-options-groups`, data)
+        const result = await axios.post(`${url}/articles-options-groups`, data)
+        if (isDuplicating.value) {
+          await axios.patch(`${url}/articles-options-groups/${result.data.data._id}/add-options`, {
+            optionIds: props.selectedOptionGroups.options,
+          })
+          await axios.patch(`${url}/articles-options-groups/${result.data.data._id}`, {
+            menuItems: props.selectedOptionGroups.menuItems,
+          })
+        }
         init({ message: "You've successfully created a OptionGroups", color: 'success' })
       }
 
