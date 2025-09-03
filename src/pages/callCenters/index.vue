@@ -85,7 +85,7 @@
             />
 
             <!-- Subcategory Menu Sections -->
-            <MenuSection
+            <!-- <MenuSection
               v-for="sub in activeSubCategories"
               :id="sub._id"
               :key="sub.name"
@@ -93,7 +93,7 @@
               :title="sub.name"
               :items="sub.menuItems"
               :outlet="outlet"
-            />
+            /> -->
           </div>
         </VaCardContent>
       </VaCard>
