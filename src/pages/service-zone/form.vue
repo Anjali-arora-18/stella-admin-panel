@@ -649,7 +649,7 @@ export default {
     const fetchOutletTypes = async () => {
       try {
         const response = await axios.get(`${url}/outlet-types`)
-        types.value = response.data?.data?.map((item) => item.name) || []
+        types.value = response.data?.data?.map((item) => item.name).sort((a, b) => a.localeCompare(b)) || []
       } catch (error) {
         init({ message: 'Failed to fetch outlet types', color: 'danger' })
       }
@@ -662,6 +662,7 @@ export default {
         })
 
         types.value.push(response.data.data.name)
+        types.value.sort((a, b) => a.localeCompare(b))
 
         selectedType.value = response.data.data.name
 
