@@ -85,7 +85,7 @@
             </div>
             <div v-if="promotTotal" class="total-row">
               <span>Total Discount:</span>
-              <span>€{{ promotTotal.updatedTotal.toFixed(2) }}</span>
+              <span>- €{{ (promotTotal.originalTotal - promotTotal.updatedTotal).toFixed(2) }}</span>
             </div>
             <div class="total-row total-final">
               <span>Total Amount:</span>
