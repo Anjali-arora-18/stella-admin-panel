@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineVaDataTableColumns, useModal, useToast } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
-import { ref, computed, toRef, watch } from 'vue'
+import { ref, computed, toRef, watch, defineEmits, defineProps } from 'vue'
 import { useServiceStore } from '@/stores/services'
 import axios from 'axios'
 const emits = defineEmits([
@@ -11,6 +11,7 @@ const emits = defineEmits([
   'sortBy',
   'sortingOrder',
   'getUsersForPagination',
+  'adduseropenmodal',
 ])
 const props = defineProps({
   items: {
@@ -104,16 +105,29 @@ watch(searchQuery, (search) => {
 
 <template>
   <div>
-    <div class="flex flex-col sm:flex-row justify-between items-center mb-5 gap-4">
-      <VaInput v-model="searchQuery" placeholder="Search..." class="max-w-[400px] w-full" size="small" />
-      <VaPagination
-        v-model="currentPage"
-        :pages="pages"
-        buttons-preset="default"
-        gapped
-        :visible-pages="3"
-        class="justify-center"
-      />
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+      <div class="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
+        <h1 class="page-title">Users</h1>
+        <VaInput
+          v-model="searchQuery"
+          placeholder="Search..."
+          class="w-[300px] sm:w-[320px] md:w-[400px]"
+          size="small"
+        />
+      </div>
+      <div class="flex flex-col sm:flex-row sm:items-center gap-6 w-full sm:w-auto justify-end">
+        <div class="flex gap-2">
+          <VaButton size="small" color="primary" @click="emits('adduseropenmodal')"> Add User </VaButton>
+        </div>
+        <VaPagination
+          v-model="currentPage"
+          :pages="pages"
+          buttons-preset="default"
+          gapped
+          :visible-pages="3"
+          class="justify-center"
+        />
+      </div>
     </div>
     <VaDataTable
       :columns="columns"
@@ -121,7 +135,7 @@ watch(searchQuery, (search) => {
       :loading="$props.loading"
       :disable-client-side-sorting="true"
       :style="{
-        '--va-data-table-height': '650px',
+        '--va-data-table-height': '710px',
         '--va-data-table-thead-background': 'var(--va-background-element)',
         '--va-data-table-thead-color': '#2C82E0',
       }"

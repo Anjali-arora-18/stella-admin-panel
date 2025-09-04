@@ -1,5 +1,5 @@
 <template>
-  <div class="menu-item" @click="getOffers">
+  <div v-if="isOfferAvailable(item)" class="menu-item" @click="getOffers">
     <div class="item-content">
       <div class="item-name">{{ item.name }}</div>
       <div class="item-price">€{{ parseFloat(item.price).toFixed(2) }}</div>
@@ -33,7 +33,50 @@ const orderStore = useOrderStore()
 
 const { init } = useToast()
 
+// Check if offer is available based on weekly days, time, and date
+function isOfferAvailable(item) {
+  const today = new Date()
+
+  // ✅ 1. Check Date Range (dateOffer)
+  if (item.dateOffer && item.dateOffer.startDate && item.dateOffer.endDate) {
+    const startDate = new Date(item.dateOffer.startDate)
+    const endDate = new Date(item.dateOffer.endDate)
+
+    if (today < startDate || today > endDate) {
+      return false // Current date is out of range
+    }
+  }
+
+  // ✅ 2. Check Weekly Days (weeklyOffer)
+  if (item.weeklyOffer && Array.isArray(item.weeklyOffer)) {
+    const currentDay = today.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
+    if (!item.weeklyOffer.includes(currentDay)) {
+      return false // Today is not allowed
+    }
+  }
+
+  // ✅ 3. Check Time Range (timeOffer)
+  if (item.timeOffer && item.timeOffer.startTime && item.timeOffer.endTime) {
+    const currentTime = today.toTimeString().slice(0, 5) // HH:mm
+    const { startTime, endTime } = item.timeOffer
+
+    if (currentTime < startTime || currentTime > endTime) {
+      return false // Current time is out of range
+    }
+  }
+
+  return true
+}
+
 function getOffers() {
+  // If offer is not available, show toast & stop
+  if (!isOfferAvailable(props.item)) {
+    init({
+      message: 'This offer is not available right now!',
+      color: 'danger',
+    })
+    return
+  }
   openMenuModal()
 }
 function openMenuModal() {

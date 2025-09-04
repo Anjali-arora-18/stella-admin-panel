@@ -105,7 +105,7 @@ export const useMenuStore = defineStore('menu', {
               menuItems: itemsWithoutSubCategories,
               subCategories: this.categories[categoryIndex].subCategories.map((e) => {
                 const subCategoryItems = itemsWithSubCategories.filter(
-                  (item) => item.subCategories && item.subCategories.find((a) => a.id === e._id),
+                  (item) => item.subCategories.length && item.subCategories.find((a) => a.id === e._id),
                 )
                 return {
                   ...e,

@@ -158,17 +158,7 @@ async function deleteArea(payload) {
 
 <template>
   <div>
-    <div class="flex items-center justify-between">
-      <h1 class="page-title font-bold">Areas</h1>
-      <div class="flex gap-2">
-        <VaButton :disabled="!servicesStore.selectedRest" size="small" color="primary" @click="openAreaModal = true">
-          Add Area
-        </VaButton>
-        <VaButton color="primary" size="small" @click="openTableModal()"> Add Table </VaButton>
-      </div>
-    </div>
-
-    <VaCard>
+    <VaCard class="mt-4">
       <VaCardContent>
         <AreasTable
           v-if="servicesStore.selectedRest"
@@ -181,6 +171,7 @@ async function deleteArea(payload) {
           @loadAreaTable="getAreas(false)"
           @editTable="editTable"
           @openTableModal="openTableModal"
+          @openAreaModal="openAreaModal = true"
         />
         <span v-else>Please select Outlet</span>
       </VaCardContent>

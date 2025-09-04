@@ -1,10 +1,6 @@
 <template>
   <VaForm ref="form" @submit.prevent="submit">
     <h1 class="font-semibold text-4xl mb-4">Log in</h1>
-    <p class="text-base mb-4 leading-5">
-      New to Stella?
-      <!-- <RouterLink :to="{ name: 'signup' }" class="font-semibold text-primary">Sign up</RouterLink> -->
-    </p>
     <VaInput
       v-model="formData.email"
       :rules="[validators.required, validators.email]"
@@ -80,6 +76,7 @@ const submit = () => {
           if (response.data.user.outlets && response.data.user.outlets.length) {
             window.sessionStorage.setItem('token', response.data.accessToken)
             window.sessionStorage.setItem('user', response.data.user.id)
+            window.sessionStorage.setItem('role', response.data.user.role)
             serviceStore.setRest(response.data.user.outlets[0])
             window.sessionStorage.setItem('selectedRest', response.data.user.outlets[0])
             if (response.data.user.role.includes('caller')) {
@@ -96,6 +93,7 @@ const submit = () => {
           }
         } else {
           window.sessionStorage.setItem('token', response.data.accessToken)
+          window.sessionStorage.setItem('role', response.data.user.role)
           window.sessionStorage.setItem('user', response.data.user.id)
           push({ name: 'list' })
         }

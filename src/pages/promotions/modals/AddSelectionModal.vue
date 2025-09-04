@@ -1,56 +1,143 @@
 <template>
   <VaModal
     :model-value="isVisible"
-    @update:modelValue="$emit('cancel')"
     class="big-xl-modal !p-0"
+    :mobile-fullscreen="false"
     size="large"
     close-button
     hide-default-actions
+    @update:modelValue="$emit('cancel')"
   >
     <!-- HEADER -->
     <template #header>
-      <h1 class="va-h6 mb-3">
-        {{ props.type === 'options' ? 'Update Promotion Options' : 'Update Promotion Menu Items' }}
-      </h1>
+      <div class="flex items-center gap-2">
+        <h1 class="va-h6 mb-3">
+          {{ props.type === 'options' ? 'Update Promotion Options' : 'Update Promotion Articles' }}
+        </h1>
+        <span
+          v-if="selectedIds.length > 0"
+          class="inline-flex items-center justify-center text-xs font-semibold text-white bg-primary rounded-full w-6 h-6"
+        >
+          {{ selectedIds.length }}
+        </span>
+      </div>
     </template>
 
     <!-- FORM -->
     <VaForm ref="form" @submit.prevent="submit">
       <div class="grid gap-4">
         <div>
-          <div class="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-2">
-            {{ props.type === 'options' ? 'Options' : 'Menu Items' }}
-          </div>
-
-          <VaInput
-            v-model="searchQuery"
-            placeholder="Search..."
-            size="small"
-            class="w-full mb-2"
-          />
-
-          <div class="border rounded shadow-sm bg-white max-h-[36vh] overflow-y-auto">
+          <div
+            v-if="!isLoading && props.type !== 'options'"
+            class="border rounded shadow-sm bg-white h-[65vh] overflow-y-auto"
+          >
             <!-- ITEMS TABLE -->
-            <table v-if="!isLoading" class="w-full text-sm">
+            <table class="w-full text-sm">
+              <thead>
+                <tr>
+                  <th class="p-1 text-left align-top">
+                    <!-- Search -->
+                    <VaInput v-model="searchQuery" placeholder="Search..." size="small" class="mb-2" />
+                    <!-- Select All -->
+                    <VaCheckbox v-model="selectAll" class="ml-1" label="Select All" />
+                  </th>
+                </tr>
+              </thead>
               <tbody>
-                <tr
-                  v-for="item in filteredItems"
-                  :key="item._id"
-                  class="border-b hover:bg-orange-50"
-                >
+                <tr v-for="item in sortedList" :key="item._id" class="border-b hover:bg-orange-50">
                   <td class="p-2">
                     <VaCheckbox
                       :model-value="isChecked(item._id)"
-                      @update:model-value="toggleSelection(String(item._id))"
-                      :label="item.code + ' - ' + item.name"
+                      :label="item.code + ' - ' + item.name + (props.type === 'options' ? ' - ' + item.posName : '')"
+                      @update:modelValue="toggleSelection(String(item._id))"
                     />
                   </td>
                 </tr>
               </tbody>
             </table>
-
+          </div>
+          <div v-if="!isLoading && props.type === 'options'" class="pt-3">
+            <!-- <div class="border rounded shadow-sm bg-white h-[65vh] overflow-y-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="p-2 text-left font-semibold text-gray-700">Option Groups</th>
+                  </tr>
+                  <tr>
+                    <th class="p-1 text-left align-top">
+                      <VaInput v-model="groupSearchQuery" placeholder="Search..." size="small" class="mb-2" />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="item in sortedList.filter((a) => a.display)"
+                    :key="item._id"
+                    class="border-b hover:bg-orange-50"
+                  >
+                    <td class="p-2">
+                      <VaCheckbox
+                        :model-value="item.selected"
+                        :label="item.name + ' - ' + item.internalName"
+                        @update:modelValue="item.selected = !item.selected"
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div> -->
+            <VaSelect
+              v-model="selectedGroup"
+              :options="sortedList.map((a) => ({ text: a.name + '-' + a.internalName, value: a._id }))"
+              :filterable="true"
+              :searchable="true"
+              option-value="_id"
+              option-label="name"
+              clearable
+              value-by="value"
+              placeholder="Select Option Group"
+              max-height="470px"
+              class="w-full mb-5"
+            />
+            <div class="border rounded shadow-sm bg-white h-[65vh] overflow-y-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr>
+                    <th class="p-2 text-left font-semibold text-gray-700">Options</th>
+                  </tr>
+                  <tr>
+                    <th class="p-1 text-left align-top">
+                      <!-- Search -->
+                      <VaInput v-model="searchQuery" placeholder="Search..." size="small" class="mb-2" />
+                      <!-- Select All -->
+                      <VaCheckbox v-model="selectAll" class="ml-1" label="Select All" />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="item in sortedList
+                      .filter((a) => a._id === selectedGroup || !selectedGroup)
+                      .flatMap((a) => a.computedOptions)
+                      .filter((a) => a.display)"
+                    :key="item._id"
+                    class="border-b hover:bg-orange-50"
+                  >
+                    <td class="p-2">
+                      <VaCheckbox
+                        :model-value="isChecked(item._id)"
+                        :label="item.code + ' - ' + item.name + (props.type === 'options' ? ' - ' + item.posName : '')"
+                        @update:modelValue="toggleSelection(String(item._id))"
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div v-if="isLoading" class="border rounded shadow-sm bg-white h-[65vh] overflow-y-auto">
             <!-- LOADING SKELETON -->
-            <VaSkeletonGroup v-else animation="wave">
+            <VaSkeletonGroup animation="wave">
               <VaCard>
                 <VaCardContent>
                   <VaSkeleton variant="text" height="64px" class="ml-2" :lines="5" />
@@ -72,7 +159,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, toRef, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, toRef, watch, nextTick, onBeforeUnmount } from 'vue'
 import { useToast } from 'vuestic-ui'
 import axios from 'axios'
 import { getPromotionById, updatePromotion, getArticlesByOutlet } from '../services/promotionService'
@@ -85,26 +172,38 @@ const props = defineProps({
   isVisible: { type: Boolean, default: false },
   promotionId: { type: String, required: true },
   outletId: { type: String, required: true },
+  pendingSelections: { type: Array, default: () => [] },
   isEditSelection: { type: Boolean, default: false },
-  pendingSelections: { type: Object, required: true },
-  type: { type: String, default: 'menuItems' }, // 'menuItems' or 'options'
+  type: { type: String, default: 'menuItems' },
 })
 
 /* State */
 const isVisible = toRef(props, 'isVisible')
 const isLoading = ref(false)
 const items = ref<any[]>([])
+const groups = ref<any[]>([])
 const articles = ref<any[]>([])
 const selectedMenuItems = ref<string[]>([])
 const selectedArticles = ref<string[]>([])
 const searchQuery = ref('')
+const selectedGroup = ref('')
 const promotionData = ref<any>(null)
 const { init } = useToast()
+const selectAll = ref(false)
 
 /* Computed lists */
-const sourceList = computed(() =>
-  props.type === 'options' ? articles.value : items.value
-)
+const sourceList = computed(() => (props.type === 'options' ? groups.value : items.value))
+
+const sortedList = computed(() => {
+  const list = sourceList.value.filter((item) => item.display !== false)
+  const filterSelected = props.type === 'options' ? selectedArticles.value : selectedMenuItems.value
+  const selected = filterSelected.filter((a: any) => props.pendingSelections.includes(a))
+  return list.sort((a, b) => {
+    const aSelected = selected.includes(String(a._id)) ? -1 : 1
+    const bSelected = selected.includes(String(b._id)) ? -1 : 1
+    return aSelected - bSelected
+  })
+})
 
 const selectedIds = computed(() => {
   const ids = props.type === 'options' ? selectedArticles.value : selectedMenuItems.value
@@ -112,18 +211,49 @@ const selectedIds = computed(() => {
   return ids
 })
 
-const filteredItems = computed(() =>
-  Array.isArray(sourceList.value)
-    ? sourceList.value.filter((item) => {
+if (props.type === 'options') {
+  selectedArticles.value = [...props.pendingSelections]
+} else {
+  selectedMenuItems.value = [...props.pendingSelections]
+}
+
+onBeforeUnmount(() => {
+  console.log('[onBeforeUnmount] Cleaning up state')
+  searchQuery.value = ''
+  selectAll.value = false
+  selectedMenuItems.value = []
+  selectedArticles.value = []
+})
+
+// Add watch on searchQuery to update display property
+watch(
+  searchQuery,
+  (query) => {
+    const sList = props.type === 'options' ? sourceList.value.flatMap((a) => a.computedOptions) : sourceList.value
+    if (Array.isArray(sList)) {
+      sList.forEach((item) => {
         const name = item.name?.toLowerCase() || ''
         const code = item.code?.toLowerCase() || ''
-        return (
-          name.includes(searchQuery.value.toLowerCase()) ||
-          code.includes(searchQuery.value.toLowerCase())
-        )
+        const posName = item.posName?.toLowerCase() || ''
+        item.display =
+          name.includes(query.toLowerCase()) ||
+          code.includes(query.toLowerCase()) ||
+          posName.includes(query.toLowerCase())
+        const searchTerm = query.toLowerCase()
+        item.display =
+          name.includes(searchTerm) || code.includes(searchTerm) || posName.includes(searchTerm) || !searchTerm
       })
-    : []
+    }
+  },
+  { immediate: true },
 )
+watch(sourceList, () => {
+  const visibleIds = sourceList.value.filter((item) => item.display !== false).map((item) => String(item._id))
+  const targetList = props.type === 'options' ? selectedArticles.value : selectedMenuItems.value
+
+  const allSelected = visibleIds.every((id) => targetList.includes(id))
+  selectAll.value = allSelected
+})
 
 /* Helper to check if item is selected */
 function isChecked(id: string) {
@@ -153,36 +283,77 @@ watch([promotionData, items, articles], async ([promo]) => {
   await nextTick()
 
   if (props.type === 'menuItems') {
-    const validIds = items.value.map(i => String(i._id))
-    selectedMenuItems.value = (promo.menuItem || [])
-      .map(String)
-      .filter(id => validIds.includes(id))
-
-    console.log('[watch] Valid menuItems after filtering:', selectedMenuItems.value)
+    const validIds = items.value.map((i) => String(i._id))
+    selectedMenuItems.value = (promo.menuItem || []).map(String).filter((id) => validIds.includes(id))
   }
 
   if (props.type === 'options') {
-    const validIds = articles.value.map(i => String(i._id))
-    selectedArticles.value = (promo.option || [])
-      .map(String)
-      .filter(id => validIds.includes(id))
+    const validIds = articles.value.map((i) => String(i._id))
+    selectedArticles.value = (promo.option || []).map(String).filter((id) => validIds.includes(id))
 
     console.log('[watch] Valid options after filtering:', selectedArticles.value)
   }
 })
 
+watch(selectAll, (value) => {
+  const sIds = sourceList.value.filter((a) => a.display)
+  const visibleIds =
+    props.type === 'options'
+      ? sIds
+          .filter((a) => a._id === selectedGroup.value || !selectedGroup.value)
+          .flatMap((a) => a.computedOptions)
+          .filter((a) => a.display)
+          .map((a) => String(a._id))
+      : sIds.map((item) => String(item._id))
+  const targetList: any = props.type === 'options' ? selectedArticles : selectedMenuItems
+
+  if (value) {
+    // Add all visible (filtered) IDs that are not already selected
+    visibleIds.forEach((id) => {
+      if (!targetList.value.includes(id)) targetList.value.push(id)
+    })
+  } else {
+    // Remove only visible (filtered) IDs
+    for (const id of visibleIds) {
+      const index = targetList.value.indexOf(id)
+      if (index !== -1) targetList.value.splice(index, 1)
+    }
+  }
+})
+
 /* Toggle selection */
 function toggleSelection(id: string) {
-  const target =
-    props.type === 'options' ? selectedArticles.value : selectedMenuItems.value
+  const target = props.type === 'options' ? selectedArticles.value : selectedMenuItems.value
 
   const idx = target.indexOf(id)
   if (idx > -1) {
     target.splice(idx, 1)
-    console.log(`[toggleSelection] Removed ${id}. Current:`, target)
   } else {
     target.push(id)
-    console.log(`[toggleSelection] Added ${id}. Current:`, target)
+  }
+}
+
+const getOptionGroups = async () => {
+  const url = import.meta.env.VITE_API_BASE_URL
+  isLoading.value = true
+  try {
+    const response = await axios.get(
+      url + `/articles-options-groups?limit=100000&&sortKey=name&sortValue=asc&outletId=${props.outletId}`,
+    )
+    const item = response.data.result
+    groups.value = item.map((e) => {
+      return {
+        ...e,
+        selected: !!e.options.find((a) => selectedIds.value.includes(a)),
+        display: true,
+        computedOptions: articles.value.filter((a) => e.options.includes(a._id)),
+      }
+    })
+    console.log('[getOptionGroups] Loaded groups:', groups.value)
+  } catch (error) {
+    init({ message: 'Failed to load OptionGroups', color: 'danger' })
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -191,9 +362,9 @@ const fetchMenuItems = async () => {
   isLoading.value = true
   try {
     const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/menuItems`, {
-      params: { outletId: props.outletId, sortKey: 'id', sortValue: 'asc', isDeleted: false },
+      params: { outletId: props.outletId, sortKey: 'id', sortValue: 'asc', isDeleted: false, limit: 1000000 },
     })
-    items.value = res.data.map((i: any) => ({ ...i, _id: String(i._id) }))
+    items.value = res.data.map((i: any) => ({ ...i, display: true, _id: String(i._id) }))
     console.log('[fetchMenuItems] Loaded menu items:', items.value)
   } catch (err) {
     console.error('[fetchMenuItems] Failed:', err)
@@ -208,9 +379,11 @@ async function loadArticles(outletId: string) {
     const result = await getArticlesByOutlet(outletId)
     articles.value = (Array.isArray(result) ? result : []).map((a: any) => ({
       ...a,
+      display: true,
       _id: String(a._id),
     }))
     console.log('[loadArticles] Loaded options:', articles.value)
+    getOptionGroups()
   } catch (err) {
     console.error('[loadArticles] Failed:', err)
     articles.value = []
@@ -241,9 +414,7 @@ const submit = async () => {
     }
 
     const payload =
-      props.type === 'options'
-        ? { option: selectedArticles.value }
-        : { menuItem: selectedMenuItems.value }
+      props.type === 'options' ? { option: selectedArticles.value } : { menuItem: selectedMenuItems.value }
 
     console.log('[submit] Payload being sent:', payload)
     await updatePromotion(props.promotionId, payload)
@@ -278,7 +449,6 @@ onMounted(() => {
 
   init()
 })
-
 </script>
 
 <style scoped>
@@ -292,7 +462,11 @@ tr {
   background-color: rgba(0, 0, 0, 0.1);
   border-radius: 3px;
 }
-.max-h-[36vh] {
-  max-height: 36vh;
+.h-[65vh] {
+  max-height: 70vh;
+}
+.va-checkbox .va-checkbox__square {
+  background: #f3f4f6 !important;
+  border: 1px solid #d1d5db !important;
 }
 </style>

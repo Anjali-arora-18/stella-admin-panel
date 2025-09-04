@@ -2,17 +2,17 @@
   <VaModal
     v-model="showCheckoutModal"
     no-dismiss
-    class="big-xl-modal"
+    class="big-xl-xl-modal"
     size="large"
     :mobile-fullscreen="false"
     hide-default-actions
     :close-button="!redirectUrl"
   >
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50">
+    <div class="grid grid-cols-1 md:grid-cols-3 h-full bg-gray-50">
       <!-- Order Summary -->
-      <div class="md:col-span-1">
-        <div class="p-6 h-full flex flex-col">
-          <h3 class="summary-title flex-shrink-0">Order Summary</h3>
+      <div class="md:col-span-1 flex flex-col">
+        <div class="p-4 h-full flex flex-col">
+          <h3 class="va-h3">Order Summary</h3>
 
           <div class="order-items order-items-wrapper overflow-y-auto flex-grow">
             <div v-for="(item, index) in orderStore.cartItems" :key="item.itemId" class="order-item">
@@ -83,17 +83,22 @@
               <span>Delivery Fee:</span>
               <span>€{{ deliveryFee.toFixed(2) }}</span>
             </div>
+            <div v-if="promotTotal" class="total-row">
+              <span>Total Discount:</span>
+              <span>- €{{ (promotTotal.originalTotal - promotTotal.updatedTotal).toFixed(2) }}</span>
+            </div>
             <div class="total-row total-final">
               <span>Total Amount:</span>
-              <span>€{{ (totalAmount + deliveryFee).toFixed(2) }}</span>
+              <span v-if="!promotTotal">€{{ (totalAmount + deliveryFee).toFixed(2) }}</span>
+              <span v-else>€{{ promotTotal.updatedTotal.toFixed(2) }}</span>
             </div>
           </div>
         </div>
       </div>
       <!-- Payment Section -->
-      <div v-if="!redirectUrl" class="md:col-span-2 flex flex-col bg-white shadow-md">
+      <div v-if="!redirectUrl" class="md:col-span-2 flex flex-col bg-white">
         <div class="header-container">
-          <h3 class="payment-header">Complete Order</h3>
+          <h3 class="va-h3">{{ etaTime }}</h3>
         </div>
 
         <div class="payment-content flex-grow">
@@ -114,7 +119,7 @@
           </div>
         </div>
 
-        <div class="action-container mt-6">
+        <div class="action-container">
           <button
             id="confirmBtn"
             :disabled="apiLoading || !selectedPayment"
@@ -128,7 +133,7 @@
           </button>
         </div>
       </div>
-      <div v-else class="col-span-2 px-5 flex items-center px-10 py-10 bg-white">
+      <div v-else class="col-span-2 flex items-center bg-white">
         <iframe :src="redirectUrl" width="100%" height="100%" />
       </div>
     </div>
@@ -144,6 +149,7 @@ import { useServiceStore } from '@/stores/services'
 import { storeToRefs } from 'pinia'
 import { elements } from 'chart.js'
 import axios from 'axios'
+
 const showCheckoutModal = ref(true)
 const selectedPayment: any = ref(null)
 const apiLoading = ref(false)
@@ -154,6 +160,7 @@ const props = defineProps<{
   customerDetailsId: string
   orderType: string
   dateSelected: string
+  promoCode: string
 }>()
 const orderStore = useOrderStore()
 const serviceStore = useServiceStore()
@@ -164,12 +171,61 @@ const redirectUrl = computed(() => orderStore.redirectUrl)
 const userDetails = computed(() => userStore.userDetails)
 const checkInterval: any = ref('')
 const paymentTypes: any = ref([])
+const orderFor = computed(() => orderStore.orderFor)
+
+const etaTime = computed(() => {
+  const now = new Date()
+  const selectedDate = new Date(props.dateSelected)
+  const promiseTime =
+    props.orderType === 'delivery'
+      ? orderStore.deliveryZone?.deliveryPromiseTime
+      : orderStore.deliveryZone.takeawayPromiseTime
+
+  const etaDate = new Date(selectedDate)
+  etaDate.setMinutes(etaDate.getMinutes() + promiseTime)
+
+  const timeString = etaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+
+  const isFutureOrder = selectedDate.getTime() > now.getTime() + 30 * 60 * 1000
+
+  if (isFutureOrder) {
+    const dateString = selectedDate.toLocaleDateString([], {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+    const scheduledTimeString = selectedDate.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
+
+    return `${
+      props.orderType === 'delivery' ? 'Delivery' : 'Takeaway'
+    } - Scheduled for ${dateString} at ${scheduledTimeString}`
+  } else {
+    return props.orderType === 'delivery' ? `Delivery - ETA ${timeString}` : `Takeaway - Ready at ${timeString}`
+  }
+})
+
+onMounted(() => {
+  if (serviceStore.selectedRest) {
+    getPaymentOptions()
+  }
+})
 
 const getPaymentOptions = () => {
+  if (!serviceStore.selectedRest) return
+
   const url = import.meta.env.VITE_API_BASE_URL
-  axios.get(`${url}/payments?outletId=${serviceStore.selectedRest}`).then((response) => {
-    paymentTypes.value = response.data.data.filter((a) => a.callCenter)
-  })
+  axios
+    .get(`${url}/payments?outletId=${serviceStore.selectedRest}`)
+    .then((response) => {
+      paymentTypes.value = response.data.data.filter((a) => a.callCenter)
+    })
+    .catch((err) => {
+      console.error('Failed to fetch payment options:', err)
+    })
 }
 
 watch(
@@ -207,15 +263,17 @@ function setInter() {
   }, 2000)
 }
 function resetInter() {
-  // Clear interval when component unmounts
   clearInterval(checkInterval.value)
 }
-// Computed total values
 const subtotal = computed(() => {
   return (
     orderStore.cartItems.reduce((acc, item) => acc + item.totalPrice, 0) +
     orderStore.offerItems.reduce((acc, item) => acc + item.price + item.selectionTotalPrice, 0)
   )
+})
+
+const promotTotal = computed(() => {
+  return orderStore.cartTotal !== null ? orderStore.cartTotal : null
 })
 
 const totalAmount = computed(() => {
@@ -229,24 +287,26 @@ async function checkPaymentStatus(requestId, paymentId) {
       color: 'success',
       message: 'Payment Success',
     })
-    try {
-      await orderStore.sendOrderToWinmax(requestId)
-      init({
-        color: 'success',
-        message: 'Order sent to Winmax',
-      })
-      setTimeout(() => {
-        orderStore.cartItems = []
-        window.location.reload()
-      }, 800)
-    } catch (err) {
-      init({
-        color: 'danger',
-        message: err.response.data.error,
-      })
-      orderStore.setPaymentLink('')
-      orderResponse.value = ''
-      orderId.value = ''
+    if (orderFor.value === 'current') {
+      try {
+        await orderStore.sendOrderToWinmax(requestId, orderFor.value)
+        init({
+          color: 'success',
+          message: 'Order sent to Winmax',
+        })
+        setTimeout(() => {
+          orderStore.cartItems = []
+          window.location.reload()
+        }, 800)
+      } catch (err) {
+        init({
+          color: 'danger',
+          message: err.response.data.error,
+        })
+        orderStore.setPaymentLink('')
+        orderResponse.value = ''
+        orderId.value = ''
+      }
     }
   } else {
     init({
@@ -292,9 +352,10 @@ async function createOrder() {
 
   try {
     const payload = {
+      orderFor: orderFor.value,
       customerDetailId: props.customerDetailsId,
       orderType: props.orderType === 'takeaway' ? 'Takeaway' : 'Delivery',
-      deliveryZoneId: orderStore.deliveryZone,
+      deliveryZoneId: orderStore.deliveryZone?._id,
       address: orderStore.address,
       menuItems,
       offerMenuItems,
@@ -303,6 +364,7 @@ async function createOrder() {
       outletId: serviceStore.selectedRest,
       orderDateTime: new Date(props.dateSelected).toISOString(),
       paymentMode: selectedPayment.value,
+      promoCode: props.promoCode || '',
     }
 
     let response: any = ''
@@ -328,11 +390,13 @@ async function createOrder() {
         setInter()
       } else {
         try {
-          await orderStore.sendOrderToWinmax(orderResponse.value.data.data._id)
-          init({
-            color: 'success',
-            message: 'Order sent to Winmax',
-          })
+          if (orderFor.value === 'current') {
+            await orderStore.sendOrderToWinmax(orderResponse.value.data.data._id, orderFor.value)
+            init({
+              color: 'success',
+              message: 'Order sent to Winmax',
+            })
+          }
           setTimeout(() => {
             orderStore.cartItems = []
             window.location.reload()
@@ -351,13 +415,11 @@ async function createOrder() {
       throw new Error(response.data?.message || 'Something went wrong')
     }
   } catch (err: any) {
-    // Handle error — show toast
     init({
       color: 'danger',
       message: err.response.data.message || 'Order failed, please try again.',
     })
 
-    // If backend returns partial data like requestId, save it for retry
     if (err?.response?.data?.data?.requestId) {
       orderId.value = err.response.data.data.requestId
     }
@@ -371,7 +433,7 @@ async function createOrder() {
 
 <style scoped>
 .order-items {
-  margin-bottom: 24px;
+  margin-bottom: 2rem;
   background: white;
   border-radius: 12px;
   padding: 20px;
@@ -383,13 +445,16 @@ async function createOrder() {
   padding: 12px 0;
   border-bottom: 1px solid #f3f4f6;
 }
+
 .order-items-wrapper {
   max-height: calc(100vh - 350px);
   overflow-y: auto;
 }
+
 .order-items::-webkit-scrollbar {
   width: 6px;
 }
+
 .order-items::-webkit-scrollbar-thumb {
   background: #ccc;
   border-radius: 3px;
@@ -496,7 +561,7 @@ async function createOrder() {
 .header-container {
   background: #ffffff;
   border-bottom: 2px solid #e5e7eb;
-  padding: 24px 32px;
+  padding: 16px 32px;
   display: flex;
   justify-content: left;
   align-items: center;

@@ -25,7 +25,7 @@ const getStellaUsers = (outletId) => {
   items.value = []
   const payload = {
     page: pageNumber.value,
-    limit: 10,
+    limit: 100,
     search: searchQuery.value,
     sortBy: sortBy.value,
     sortOrder: sortOrder.value,
@@ -97,14 +97,7 @@ async function deleteUser(payload) {
 
 <template>
   <div>
-    <div class="flex items-center justify-between">
-      <h1 class="page-title font-bold">Users</h1>
-      <div class="flex gap-2">
-        <VaButton size="small" color="primary" @click="isEditStellaUserModalOpen = true"> Add User </VaButton>
-      </div>
-    </div>
-
-    <VaCard>
+    <VaCard class="mt-4">
       <VaCardContent>
         <StellaUsersTable
           :sort-by="sortBy"
@@ -118,6 +111,7 @@ async function deleteUser(payload) {
           @editUser="editUser"
           @deleteUser="deleteUser"
           @getUsersForPagination="getUsersForPagination"
+          @adduseropenmodal="isEditStellaUserModalOpen = true"
         />
       </VaCardContent>
     </VaCard>

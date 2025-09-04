@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { defineVaDataTableColumns, useModal, useToast } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
-import { ref, watch } from 'vue'
+import { ref, watch, defineEmits } from 'vue'
 import { useServiceStore } from '@/stores/services'
 import AddSelectionModal from '../modals/AddSelectionModal.vue'
 import axios from 'axios'
 import { updatePromotion, getMenuItemsByOutlet } from '../services/promotionService'
 
-const emits = defineEmits(['getPromotions', 'editPromotions', 'openSelectionModal'])
+const emits = defineEmits(['getPromotions', 'editPromotions', 'openSelectionModal', 'openPromotionModal'])
 const props = defineProps({
   items: {
     type: Array,
@@ -159,15 +159,15 @@ const onButtonPromotionDelete = async (payload) => {
 }
 
 async function deletePromotion(payload) {
-  await axios
-    .delete(`${import.meta.env.VITE_API_BASE_URL}/promotions/${payload._id}`)
-    .then(() => {
-      init({ message: 'Promotion deleted successfully', color: 'success' })
-      emits('getPromotions')
-    })
-    .catch((err) => {
-      init({ message: err.response?.data?.error || 'Delete failed', color: 'danger' })
-    })
+  try {
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/promotions/${payload._id}`)
+    init({ message: 'Promotion deleted successfully', color: 'success' })
+
+    // Still tell parent to refresh if needed
+    emits('getPromotions')
+  } catch (err) {
+    init({ message: err.response?.data?.error || 'Delete failed', color: 'danger' })
+  }
 }
 
 const localItems = ref([])
@@ -195,13 +195,19 @@ function formatReadableDate(dateStr) {
 
 <template>
   <div>
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="page-title">Promotions</h1>
+      <div class="flex gap-2">
+        <VaButton size="small" color="primary" @click="emits('openPromotionModal')"> Add Promotion </VaButton>
+      </div>
+    </div>
     <VaDataTable
       :columns="columns"
-      :items="items"
+      :items="localItems"
       :loading="$props.loading"
       :style="{
         '--va-data-table-height': '710px',
-        '--va-data-table-thead-background': 'var(--va-background-element)',
+        '--va-data-table-thead-background': 'var(--va-background-elemt)',
         '--va-data-table-thead-color': '#2C82E0',
       }"
       sticky-header
@@ -246,9 +252,29 @@ function formatReadableDate(dateStr) {
 
       <!-- Codes -->
       <template #cell(codes)="{ rowData }">
-        <span class="px-3 py-1 rounded-full text-white bg-purple-600 text-sm">
-          {{ rowData.codes?.length || 0 }}
-        </span>
+        <!-- Single Code -->
+        <template v-if="rowData.codeType === 'SINGLE'">
+          <span class="code-pill code-single">
+            {{ rowData.codes?.[0] || '—' }}
+          </span>
+        </template>
+
+        <!-- Multi Code -->
+        <template v-else-if="rowData.codeType === 'MULTI'">
+          <span class="code-pill code-multi">
+            {{ rowData.codes?.filter((c) => c.used)?.length || 0 }}/{{ rowData.codes?.length || 0 }}
+          </span>
+        </template>
+
+        <!-- Auto Code -->
+        <template v-else-if="rowData.codeType === 'AUTO'">
+          <span class="code-pill code-auto"> {{ rowData.codes?.length || 0 }} Codes </span>
+        </template>
+
+        <!-- Fallback -->
+        <template v-else>
+          <!-- <span class="text-gray-400 italic">—</span> -->
+        </template>
       </template>
 
       <!-- Available at CC -->
@@ -400,5 +426,27 @@ function formatReadableDate(dateStr) {
 .type-takex {
   background: #fce7f3;
   color: #ec4899;
+}
+.code-pill {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  text-align: center;
+  min-width: 70px;
+}
+/* SINGLE CODE – Green Gradient */
+.code-single {
+  background: linear-gradient(to right, #16a34a, #22c55e);
+  border-radius: 10px !important;
+}
+/* MULTI CODE – Purple Gradient */
+.code-multi {
+  background: linear-gradient(to right, #7c3aed, #a78bfa);
+}
+.code-auto {
+  background: linear-gradient(to right, #ee9f18, #f5ce4f);
 }
 </style>

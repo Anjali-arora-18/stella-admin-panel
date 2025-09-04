@@ -6,7 +6,7 @@ import { useServiceStore } from '@/stores/services'
 import FileUpload from '@/components/file-uploader/FileUpload.vue'
 import AddSelectionModal from '../modals/AddSelectionModal.vue'
 import axios from 'axios'
-const emits = defineEmits(['getOffers', 'editOffers'])
+const emits = defineEmits(['getOffers', 'editOffers', 'openOfferModal'])
 const props = defineProps({
   items: {
     type: Array,
@@ -224,6 +224,12 @@ function formatReadableDate(dateStr: string): string {
 
 <template>
   <div>
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="page-title">Offers</h1>
+      <div class="flex gap-2">
+        <VaButton size="small" color="primary" @click="emits('openOfferModal')">Add Offers</VaButton>
+      </div>
+    </div>
     <VaDataTable
       :columns="columns"
       :items="items"

@@ -54,6 +54,7 @@
           :multiple="true"
           value-by="id"
           class="mb-1 max-w-[200px]"
+          max-height="300px"
         />
       </div>
       <div class="flex-1">
@@ -62,8 +63,8 @@
           label="Description"
           placeholder="Description"
           type="textarea"
-          :min-rows="6"
-          :max-rows="6"
+          :min-rows="4"
+          :max-rows="4"
           class="mb-1 w-full"
         />
       </div>

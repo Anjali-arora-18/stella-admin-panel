@@ -132,7 +132,13 @@ const totalSelected = computed(() => {
 
 // Disable if no items selected at all
 const hasAtLeastOneSelection = computed(() => {
-  return offer.value ? offer.value.selections.every((group) => group.addedItems && group.addedItems.length > 0) : false
+  return offer.value
+    ? offer.value.selections.filter((a) => a.isRequired).length
+      ? offer.value.selections
+        .filter((a) => a.isRequired)
+        .every((group) => group.addedItems && group.addedItems.length > 0)
+      : true
+    : false
 })
 
 const { addOnPrice } = storeToRefs(menuStore)

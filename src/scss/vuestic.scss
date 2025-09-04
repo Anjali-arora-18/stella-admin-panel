@@ -97,6 +97,19 @@
   min-height: 500px;
   min-width: 95vw;
 }
+.big-xl-xl-modal .va-modal__inner {
+  padding: 0 !important;
+}
+.big-xl-xl-modal .va-modal__dialog {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+}
+.big-xl-xl-modal .va-modal__message {
+  height: 100vh !important;
+  margin: 0 !important;
+}
 
 .big-modal .va-modal__dialog .va-stepper__step-content {
   margin-bottom: 0px !important;

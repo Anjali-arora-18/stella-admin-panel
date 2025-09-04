@@ -110,9 +110,13 @@ const formData = ref({
   mandatory: false,
   minimumChoices: 0,
   maximumChoices: 0,
+  defaultOptions: [],
+  options: [],
+  menuItems: [],
 })
 
 const isUpdating = computed(() => !!Object.keys(props.selectedOptionGroups).length && props.selectedOptionGroups._id)
+const isDuplicating = computed(() => Object.keys(props.selectedOptionGroups).length && !props.selectedOptionGroups._id)
 
 if (props.selectedOptionGroups && props.selectedOptionGroups._id) {
   axios
@@ -135,6 +139,9 @@ if (props.selectedOptionGroups && props.selectedOptionGroups._id) {
     mandatory: props.selectedOptionGroups.mandatory || false,
     minimumChoices: props.selectedOptionGroups.minimumChoices || 0,
     maximumChoices: props.selectedOptionGroups.maximumChoices || 0,
+    defaultOptions: props.selectedOptionGroups.defaultOptions || [],
+    options: props.selectedOptionGroups.options || [],
+    menuItems: props.selectedOptionGroups.menuItems || [],
   }
 }
 
@@ -164,7 +171,24 @@ const submit = async () => {
         init({ message: "You've successfully updated a OptionGroups", color: 'success' })
       } else {
         delete data._id
-        await axios.post(`${url}/articles-options-groups`, data)
+        const result = await axios.post(`${url}/articles-options-groups`, data)
+        if (isDuplicating.value) {
+          if (props.selectedOptionGroups.options && props.selectedOptionGroups.options.length) {
+            await axios.patch(`${url}/articles-options-groups/${result.data.data._id}/add-options`, {
+              optionIds: props.selectedOptionGroups.options,
+            })
+          }
+          if (props.selectedOptionGroups.defaultOptions && props.selectedOptionGroups.defaultOptions.length) {
+            await axios.patch(`${url}/articles-options-groups/${result.data.data._id}`, {
+              defaultOptions: props.selectedOptionGroups.defaultOptions,
+            })
+          }
+          if (props.selectedOptionGroups.menuItems && props.selectedOptionGroups.menuItems.length) {
+            await axios.patch(`${url}/articles-options-groups/${result.data.data._id}`, {
+              menuItems: props.selectedOptionGroups.menuItems,
+            })
+          }
+        }
         init({ message: "You've successfully created a OptionGroups", color: 'success' })
       }
 

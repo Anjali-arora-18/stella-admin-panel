@@ -274,7 +274,7 @@ watch(
 
 <template>
   <div>
-    <h1 class="page-title font-bold">Organize Menu</h1>
+    <h1 class="page-title">Organize Menu</h1>
     <VaAccordion v-model="openedAccordian" @update:modelValue="getArticles">
       <VueDraggableNext class="dragArea list-group w-full" :list="categories" @change="movedCategory">
         <VaCollapse

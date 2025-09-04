@@ -34,6 +34,8 @@ const emits = defineEmits([
   'sortBy',
   'sortingOrder',
   'getArticlesForPagination',
+  'addArticle',
+  'importArticle',
 ])
 
 const { confirm } = useModal()
@@ -42,6 +44,13 @@ const { init } = useToast()
 const currentPage = ref(1)
 const items = toRef(props, 'items')
 const searchQuery = ref('')
+const onAddClick = () => {
+  emits('addArticle', { adding: true, searchQuery: searchQuery.value, page: currentPage.value })
+}
+const onImportClick = () => {
+  emits('importArticle')
+}
+
 const allergenOptions = subCategoryStore.allergenOptions.map((e) => {
   return { text: e.text, id: e.id }
 })
@@ -125,21 +134,31 @@ function openFileModal(data) {
 
 <template>
   <div>
-    <div class="flex flex-col sm:flex-row justify-between items-center mb-5 gap-4">
-      <VaInput
-        v-model="searchQuery"
-        placeholder="Search articles by code or name..."
-        class="max-w-[400px] w-full"
-        size="small"
-      />
-      <VaPagination
-        v-model="currentPage"
-        :pages="pages"
-        buttons-preset="default"
-        gapped
-        :visible-pages="3"
-        class="justify-center"
-      />
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+      <div class="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
+        <h1 class="page-title">Articles</h1>
+        <VaInput
+          v-model="searchQuery"
+          placeholder="Search articles by code or name..."
+          class="w-[300px] sm:w-[320px] md:w-[400px]"
+          size="small"
+        />
+      </div>
+      <div class="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto justify-end">
+        <div class="flex gap-2">
+          <VaButton color="primary" size="small" @click="onImportClick">Import</VaButton>
+          <VaButton size="small" color="primary" @click="onAddClick">Add Article</VaButton>
+        </div>
+
+        <VaPagination
+          v-model="currentPage"
+          :pages="pages"
+          buttons-preset="default"
+          gapped
+          :visible-pages="3"
+          class="sm:ml-4 justify-center"
+        />
+      </div>
     </div>
     <VaDataTable
       :columns="columns"
@@ -147,7 +166,7 @@ function openFileModal(data) {
       :loading="$props.loading"
       :disable-client-side-sorting="true"
       :style="{
-        '--va-data-table-height': '650px',
+        '--va-data-table-height': '710px',
         '--va-data-table-thead-background': 'var(--va-background-element)',
         '--va-data-table-thead-color': '#2C82E0',
       }"
@@ -362,7 +381,6 @@ function openFileModal(data) {
             "
           />
 
-          <!-- Delete Button (Top-Right Corner) -->
           <VaButton
             v-if="rowData.imageUrl"
             preset="plain"

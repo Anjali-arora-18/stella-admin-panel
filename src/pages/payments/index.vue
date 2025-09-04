@@ -57,28 +57,24 @@ if (servicesStore.selectedRest) {
 </script>
 
 <template>
-  <div class="flex items-center justify-between">
-    <h1 class="page-title font-bold">Payments</h1>
-    <div class="flex gap-2">
-      <VaButton size="small" color="primary" @click="isEditPaymentModalOpen = true"> Add Payment </VaButton>
-    </div>
+  <div>
+    <VaCard class="mt-4">
+      <VaCardContent>
+        <PaymentTable
+          :key="forceReMount"
+          :items="items"
+          :loading="isLoading"
+          @editPayment="editPayment"
+          @getPayments="getPayments"
+          @addPayment="isEditPaymentModalOpen = true"
+        />
+      </VaCardContent>
+    </VaCard>
+
+    <EditPaymentModal
+      v-if="isEditPaymentModalOpen"
+      :selected-payment="selectedPayments"
+      @cancel="(isEditPaymentModalOpen = false), (selectedPayments = ''), getPayments(servicesStore.selectedRest)"
+    />
   </div>
-
-  <VaCard>
-    <VaCardContent>
-      <PaymentTable
-        :key="forceReMount"
-        :items="items"
-        :loading="isLoading"
-        @editPayment="editPayment"
-        @getPayments="getPayments"
-      />
-    </VaCardContent>
-  </VaCard>
-
-  <EditPaymentModal
-    v-if="isEditPaymentModalOpen"
-    :selected-payment="selectedPayments"
-    @cancel="(isEditPaymentModalOpen = false), (selectedPayments = ''), getPayments(servicesStore.selectedRest)"
-  />
 </template>

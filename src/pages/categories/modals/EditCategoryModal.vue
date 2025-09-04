@@ -2,7 +2,7 @@
   <VaModal
     class="big-form"
     :mobile-fullscreen="false"
-    size="medium"
+    size="large"
     hide-default-actions
     model-value
     close-button
@@ -17,7 +17,7 @@
         <VaInput
           v-model="formData.name"
           :rules="[validators.required]"
-          class="mb-1 max-w-[250px]"
+          class="mb-1 max-w-[300px]"
           label="Name"
           required-mark
           placeholder="Name"
@@ -32,7 +32,7 @@
           :options="areas"
           :multiple="true"
           value-by="value"
-          class="mb-1 max-w-[250px]"
+          class="mb-1 max-w-[430px]"
         />
       </div>
       <VaTextarea

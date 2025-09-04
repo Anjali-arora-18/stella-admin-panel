@@ -16,9 +16,6 @@ async function safeRequest(promise) {
     const response = await promise
     return response.data
   } catch (err) {
-    // Log error details
-    console.error('[Promotion API Error]', err.response?.data || err.message)
-
     // Handle duplicate key error (Mongo specific)
     if (err.response?.data?.message?.includes('E11000')) {
       throw new Error('A promotion with this code already exists.')
@@ -32,29 +29,23 @@ async function safeRequest(promise) {
 axios.interceptors.response.use(
   (res) => res,
   (err) => {
-    console.error('[Axios Interceptor Error]', err.response?.data || err.message)
     return Promise.reject(err)
-  }
+  },
 )
 
 /**
  * 1. Create Promotion
  */
 export async function createPromotion(data) {
-  return safeRequest(
-    axios.post(`${API_BASE_URL}/promotion`, data)
-  )
+  console.log('[createPromotion] Payload:', JSON.stringify(data, null, 2))
+  return safeRequest(axios.post(`${API_BASE_URL}/promotions`, data))
 }
 
 /**
  * 2. Update Promotion
  */
 export async function updatePromotion(promotionId, data) {
-  return safeRequest(
-    axios.patch(`${API_BASE_URL}/promotion`, data, {
-      params: { id: promotionId },
-    })
-  )
+  return safeRequest(axios.patch(`${API_BASE_URL}/promotions/${promotionId}`, data))
 }
 
 /**
@@ -62,9 +53,9 @@ export async function updatePromotion(promotionId, data) {
  */
 export async function deletePromotion(id) {
   return safeRequest(
-    axios.delete(`${API_BASE_URL}/promotion`, {
+    axios.delete(`${API_BASE_URL}/promotions`, {
       params: { id },
-    })
+    }),
   )
 }
 
@@ -73,9 +64,9 @@ export async function deletePromotion(id) {
  */
 export async function getPromotionsByOutlet(outletId) {
   return safeRequest(
-    axios.get(`${API_BASE_URL}/promotion`, {
+    axios.get(`${API_BASE_URL}/promotions`, {
       params: { outletId },
-    })
+    }),
   )
 }
 
@@ -83,18 +74,14 @@ export async function getPromotionsByOutlet(outletId) {
  * 5. Get Promotion by ID
  */
 export async function getPromotionById(id) {
-  return safeRequest(
-    axios.get(`${API_BASE_URL}/promotion/${id}`)
-  )
+  return safeRequest(axios.get(`${API_BASE_URL}/promotions/${id}`))
 }
 
 /**
  * 6. Validate Promotion Code
  */
 export async function validatePromotion(data) {
-  return safeRequest(
-    axios.post(`${API_BASE_URL}/promotion/validate`, data)
-  )
+  return safeRequest(axios.post(`${API_BASE_URL}/promotions/validate`, data))
 }
 
 /**
@@ -109,7 +96,7 @@ export async function getMenuItemsByOutlet(outletId) {
         sortValue: 'asc',
         isDeleted: false,
       },
-    })
+    }),
   )
 }
 
@@ -118,11 +105,11 @@ export const getArticlesByOutlet = async (outletId) => {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/articles-options`, {
       params: {
         outletId,
-        limit: 50,           // or pass dynamic limit if you paginate
+        limit: 1000000, // or pass dynamic limit if you paginate
         page: 1,
-        sortKey: 'name',     // valid sort field
-        sortValue: 'asc'
-      }
+        sortKey: 'name', // valid sort field
+        sortValue: 'asc',
+      },
     })
 
     // The API wraps data in `result`, so extract it safely
