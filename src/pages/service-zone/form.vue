@@ -38,6 +38,7 @@
                   allow-create
                   required-mark
                   :rules="[validators.required]"
+                  option-value="_id"
                   @createNew="addNewOption"
                 />
               </div>
@@ -630,7 +631,7 @@ export default {
     }
   },
   setup() {
-    const types = ref(['Outlet'])
+    const types = ref([])
     const mode = ref([
       { text: 'view Only', value: 'viewOnly' },
       { text: 'Online Ordering', value: 'onlineOrdering' },
@@ -642,10 +643,40 @@ export default {
     const restaurantId = route.params.id
     const { init } = useToast()
     const loading = ref(false)
+
+    const url = import.meta.env.VITE_API_BASE_URL
+
+    const fetchOutletTypes = async () => {
+      try {
+        const response = await axios.get(`${url}/outlet-types`)
+        types.value = response.data?.data?.map((item) => item.name).sort((a, b) => a.localeCompare(b)) || []
+      } catch (error) {
+        init({ message: 'Failed to fetch outlet types', color: 'danger' })
+      }
+    }
+
+    const addNewOption = async (newOption) => {
+      try {
+        const response = await axios.post(`${url}/outlet-types`, {
+          name: newOption,
+        })
+
+        types.value.push(response.data.data.name)
+        types.value.sort((a, b) => a.localeCompare(b))
+
+        selectedType.value = response.data.data.name
+
+        init({ message: `"${newOption}" added successfully!`, color: 'success' })
+      } catch (error) {
+        const msg = error?.response?.data?.message || 'Failed to add type'
+        init({ message: msg, color: 'danger' })
+      }
+    }
+    fetchOutletTypes()
+
     const parseTime = (input) => {
       if (/^\d{2}:\d{2}$/.test(input)) {
         const [hours, minutes] = input.split(':').map(Number)
-
         return { hours, minutes }
       }
       return null
@@ -662,6 +693,7 @@ export default {
       serviceStore,
       init,
       validators,
+      addNewOption,
     }
   },
   data() {
@@ -831,9 +863,9 @@ export default {
     this.fetchRestaurantDetails()
   },
   methods: {
-    addNewOption(newOption) {
-      this.types = [...this.types, newOption]
-    },
+    // addNewOption(newOption) {
+    //   this.types = [...this.types, newOption]
+    // },
     parseTimeToDate(timeString) {
       return timeString
     },
@@ -1075,7 +1107,7 @@ export default {
         assetIds: this.restaurantData.assetIds || [],
         description: this.restaurantData.description || '',
         slug: this.restaurantData.slug || '',
-        type: this.restaurantData.type || '',
+        type: this.restaurantData.type || _id,
         address: this.restaurantData.address || '',
         postcode: this.restaurantData.postcode || '',
         email: this.restaurantData.email || '',
@@ -1296,6 +1328,7 @@ export default {
       if (this.$refs.form.validate()) {
         const data = removeNulls(this.createPayload())
         const url = import.meta.env.VITE_API_BASE_URL
+        delete data.name
 
         const response = await axios.patch(`${url}/outlets/${this.restaurantId}`, data)
 

@@ -196,9 +196,9 @@ const sourceList = computed(() => (props.type === 'options' ? groups.value : ite
 
 const sortedList = computed(() => {
   const list = sourceList.value.filter((item) => item.display !== false)
-
+  const filterSelected = props.type === 'options' ? selectedArticles.value : selectedMenuItems.value
+  const selected = filterSelected.filter((a: any) => props.pendingSelections.includes(a))
   return list.sort((a, b) => {
-    const selected = props.type === 'options' ? selectedArticles.value : selectedMenuItems.value
     const aSelected = selected.includes(String(a._id)) ? -1 : 1
     const bSelected = selected.includes(String(b._id)) ? -1 : 1
     return aSelected - bSelected

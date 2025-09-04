@@ -57,13 +57,27 @@
                     <span v-if="addr.city">,{{ addr.city }}</span>
                     <span v-if="addr.postCode">,{{ addr.postCode }}</span>
                   </div>
-                  <VaButton
-                    preset="secondary"
-                    size="small"
-                    icon="mso-edit"
-                    aria-label="Edit Address"
-                    @click="editAddressFields(addr, index)"
-                  />
+
+                  <!-- Action Buttons -->
+                  <div class="flex gap-1">
+                    <!-- Edit Button -->
+                    <VaButton
+                      preset="secondary"
+                      size="small"
+                      icon="mso-edit"
+                      aria-label="Edit Address"
+                      @click="editAddressFields(addr, index)"
+                    />
+                    <!-- Delete Button -->
+                    <!-- <VaButton
+                      preset="danger"
+                      color="danger"
+                      size="small"
+                      icon="mso-delete"
+                      aria-label="Delete Address"
+                      @click="deleteAddress(index)"
+                    /> -->
+                  </div>
                 </div>
               </div>
             </div>
@@ -422,13 +436,20 @@ function editAddressFields(addr, index) {
   })
 }
 
+// async function deleteAddress(index: number) {
+//   if (!confirm('Are you sure you want to delete this address?')) return
+//   address.value.splice(index, 1)
+// }
+
 async function fetchStreetName() {
   streetList.value = []
+  const servicesStore = useServiceStore()
   try {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/postalcodes/streets`, {
       params: {
         postalCode: searchAdd.postalCode,
         streetName: searchAdd.street,
+        outletId: servicesStore.selectedRest,
       },
     })
 

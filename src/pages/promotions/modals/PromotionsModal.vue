@@ -791,22 +791,6 @@ const submit = async () => {
       init({ message: 'Promotion created successfully!', color: 'success' })
 
       emits('submitted')
-      // Apply pending selections if any
-      // if (props.pendingSelections.value.length) {
-      //   console.log('[SUBMIT] Pending selections found:', props.pendingSelections.value)
-      //   try {
-      //     await updatePromotion(created._id, {
-      //       menuItem: props.pendingSelections.value,
-      //     })
-      //     init({ message: 'Pending selections applied!', color: 'success' })
-      //     props.pendingSelections.value = []
-      //     emits('cancel')
-      //     console.log('[SUBMIT] Pending selections applied successfully')
-      //   } catch (err) {
-      //     console.error('[SUBMIT] Failed to apply pending selections:', err)
-      //     init({ message: err.message || 'Failed to apply pending selections', color: 'danger' })
-      //   }
-      // }
     }
   } catch (err) {
     init({

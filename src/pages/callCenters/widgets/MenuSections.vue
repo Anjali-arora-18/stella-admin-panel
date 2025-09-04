@@ -29,7 +29,7 @@
           >
             {{ subCat.name }}
           </div>
-          <MenuSubSections :id="subCat._id" :title="title" :items="subCat.menuItems" :outlet="outlet" />
+          <MenuSubSections :id="id" :title="title" :items="subCat.menuItems" :outlet="outlet" />
         </div>
       </div>
     </div>
