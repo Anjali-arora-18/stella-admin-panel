@@ -67,7 +67,7 @@
               <span class="block"
                 >Origin: <span class="font-bold">{{ getOrderSource(order.orderSource) }}</span></span
               >
-              <span class="text-xs text-gray-500">{{ customer?.Name }}</span>
+              <span class="text-xs text-gray-500">{{ getTheEmployeeName(order.outletEmployee) }}</span>
             </div>
           </div>
 
@@ -86,13 +86,13 @@
         <!-- EXPANDABLE ARTICLE LIST -->
         <div v-if="expandedIndex === index" class="bg-white px-6 pb-4 border-t border-gray-200">
           <div
-            v-for="(item, idx) in order.items || []"
+            v-for="(item, idx) in order.menuItems || []"
             :key="idx"
             class="flex justify-between items-start py-2 border-b last:border-none"
           >
             <div class="flex flex-wrap items-center gap-2">
               <p class="font-semibold text-xs">
-                {{ item.quantity }} x {{ item.name }}
+                {{ item.quantity }} x {{ item.menuItem }}
                 <span
                   v-if="item.extra"
                   class="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-normal"
@@ -103,14 +103,14 @@
 
               <div class="flex flex-wrap gap-1 text-xs">
                 <span
-                  v-for="addon in item.addons || []"
+                  v-for="addon in item.options || []"
                   :key="addon.name"
                   class="px-2 py-0.5 rounded-full"
                   :class="{
-                    'bg-green-100 text-green-700': addon.type === 'extra',
-                    'bg-blue-100 text-blue-700': addon.type === 'article',
-                    'bg-red-100 text-red-700': addon.type === 'hold',
-                    'bg-amber-100 text-amber-700': addon.type === 'modifier',
+                    'bg-green-100 text-green-700': addon.type.toLowerCase() === 'extra',
+                    'bg-blue-100 text-blue-700': addon.type.toLowerCase() === 'article',
+                    'bg-red-100 text-red-700': addon.type.toLowerCase() === 'hold',
+                    'bg-amber-100 text-amber-700': addon.type.toLowerCase() === 'modifier',
                   }"
                 >
                   {{ addon.name }}
@@ -119,7 +119,28 @@
               </div>
             </div>
 
-            <span class="font-bold">€ {{ item.price }}</span>
+            <span class="font-bold">€ {{ getTotalPrice(item.options) }}</span>
+          </div>
+          <div class="flex justify-between items-start py-2 border-b last:border-none">
+            <div class="flex flex-wrap items-center gap-2">
+              <p class="font-semibold text-xs">SubTotal</p>
+            </div>
+
+            <span class="font-bold">€ {{ order.subtotal.toFixed(2) }}</span>
+          </div>
+          <div class="flex justify-between items-start py-2 border-b last:border-none">
+            <div class="flex flex-wrap items-center gap-2">
+              <p class="font-semibold text-xs">Discount Amount</p>
+            </div>
+
+            <span class="font-bold">- € {{ order.discount.toFixed(2) }}</span>
+          </div>
+          <div class="flex justify-between items-start py-2 border-b last:border-none">
+            <div class="flex flex-wrap items-center gap-2">
+              <p class="font-semibold text-xs">Total</p>
+            </div>
+
+            <span class="font-bold">€ {{ order.total.toFixed(2) }}</span>
           </div>
         </div>
       </div>
@@ -130,6 +151,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import { useUsersStore } from '@/stores/users.ts'
+import { useMenuStore } from '@/stores/getMenu'
 
 const props = defineProps({
   customer: { type: Object, required: true },
@@ -143,6 +166,7 @@ const props = defineProps({
 const emits = defineEmits(['close'])
 
 const orders = ref([])
+const users = ref([])
 const expandedIndex = ref(null)
 const isLoading = ref(true)
 
@@ -186,12 +210,37 @@ const getDeliveryZoneName = (deliveryZoneId) => {
 const url = import.meta.env.VITE_API_BASE_URL
 
 const fetchOrders = async () => {
+  const menuItems = useMenuStore()
   try {
     const res = await axios.get(
       `${url}/orders/history?phone=${props.customer?.Phone}&page=1&limit=50&from=2025-01-01&status=Completed`,
     )
     if (res.data?.status === 'Success') {
-      orders.value = res.data.data.items
+      orders.value = res.data.data.items.map((order) => {
+        // Map menu item IDs to names
+        const detailedItems = (order.menuItems || []).map((item) => {
+          const menuItem = menuItems.unFilteredMenuItems.find((mi) => mi._id === item.menuItem)
+          const options = menuItem.articlesOptionsGroup.flatMap((group) => group.articlesOptions)
+
+          return {
+            ...item,
+            menuItem: menuItem ? menuItem.name : 'Unknown Item',
+            options:
+              item.options.map((opt) => {
+                const optionDetails = options?.find((o) => o._id === opt.option)
+                return {
+                  ...opt,
+                  ...optionDetails,
+                  name: optionDetails ? optionDetails.name : 'Unknown Option',
+                }
+              }) || [],
+          }
+        })
+        return {
+          ...order,
+          menuItems: detailedItems,
+        }
+      })
     } else {
       orders.value = []
     }
@@ -203,7 +252,34 @@ const fetchOrders = async () => {
   }
 }
 
+const fetchUsers = async () => {
+  try {
+    const userStore = useUsersStore()
+    const { data } = await userStore.getAll({
+      page: 1,
+      limit: 1000,
+      search: '',
+      sortBy: 'name',
+      sortOrder: 'asc',
+    })
+    users.value = data
+  } catch (error) {
+    console.error('Error fetching users:', error)
+  }
+}
+
+const getTheEmployeeName = (employee) => {
+  return users.value.find((user) => user._id === employee)?.username
+}
+
+const getTotalPrice = (options) => {
+  if (!options || !Array.isArray(options)) return '0.00'
+  const total = options.reduce((sum, opt) => sum + (opt.price || 0), 0)
+  return total.toFixed(2)
+}
+
 onMounted(() => {
+  fetchUsers()
   fetchOrders()
 })
 </script>
