@@ -54,7 +54,7 @@
 
             <div>
               <span class="block"
-                >Outlet: <span class="font-bold">{{ outlet.name }}</span></span
+                >Outlet: <span class="font-bold">{{ getDeliveryZoneName(order.deliveryZoneId) }}</span></span
               >
               <span class="text-xs text-gray-500">
                 {{ order.orderType }}
@@ -65,7 +65,7 @@
 
             <div>
               <span class="block"
-                >Origin: <span class="font-bold">{{ order.orderSource }}</span></span
+                >Origin: <span class="font-bold">{{ getOrderSource(order.orderSource) }}</span></span
               >
               <span class="text-xs text-gray-500">{{ customer?.Name }}</span>
             </div>
@@ -134,6 +134,10 @@ import axios from 'axios'
 const props = defineProps({
   customer: { type: Object, required: true },
   outlet: { type: Object, required: true },
+  deliveryZoneOptions: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const emits = defineEmits(['close'])
@@ -165,6 +169,18 @@ const formatOnlyTime = (dateStr) => {
     hour: '2-digit',
     minute: '2-digit',
   })
+}
+const getOrderSource = (source) => {
+  if (!source) return ''
+  return source === 'CC' ? 'Call Center' : source
+}
+
+const getDeliveryZoneName = (deliveryZoneId) => {
+  if (!deliveryZoneId || !Array.isArray(props.deliveryZoneOptions)) {
+    return ''
+  }
+  const zone = props.deliveryZoneOptions.find((z) => z._id === deliveryZoneId)
+  return zone ? zone.name : ''
 }
 
 const url = import.meta.env.VITE_API_BASE_URL

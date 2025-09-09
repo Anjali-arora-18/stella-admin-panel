@@ -261,6 +261,7 @@
       v-if="showHistoryModal"
       :customer="selectedUser"
       :outlet="outlet"
+      :delivery-zone-options="deliveryZoneOptions"
       @close="showHistoryModal = false"
     />
   </div>
