@@ -477,7 +477,7 @@ async function openPromotionModal() {
       promotionData.value = validPromotions
       showPromotionModal.value = true
     } else {
-      init({ message: 'No valid promotions available at Call Center.', color: 'danger' })
+      init({ message: 'No promotions available at Call Center.', color: 'danger' })
     }
   } catch (error) {
     init({ message: 'Invalid or expired promotion code.', color: 'danger' })

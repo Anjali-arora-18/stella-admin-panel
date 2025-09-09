@@ -6,6 +6,7 @@
     size="large"
     hide-default-actions
     close-button
+    @update:modelValue="$emit('close')"
   >
     <h3 class="va-h3 ml-3">{{ isEdit ? 'Edit Customer' : 'Add New Customer' }}</h3>
     <div class="bg-white p-4 pb-0">
