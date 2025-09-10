@@ -119,7 +119,7 @@
               </div>
             </div>
 
-            <span class="font-bold">€ {{ getTotalPrice(item.options) }}</span>
+            <span class="font-bold">€ {{ getTotalPrice(item) }}</span>
           </div>
           <div class="flex justify-between items-start py-2 border-b last:border-none">
             <div class="flex flex-wrap items-center gap-2">
@@ -225,6 +225,7 @@ const fetchOrders = async () => {
           return {
             ...item,
             menuItem: menuItem ? menuItem.name : 'Unknown Item',
+            ...menuItem,
             options:
               item.options.map((opt) => {
                 const optionDetails = options?.find((o) => o._id === opt.option)
@@ -272,10 +273,11 @@ const getTheEmployeeName = (employee) => {
   return users.value.find((user) => user._id === employee)?.username
 }
 
-const getTotalPrice = (options) => {
-  if (!options || !Array.isArray(options)) return '0.00'
-  const total = options.reduce((sum, opt) => sum + (opt.price || 0), 0)
-  return total.toFixed(2)
+const getTotalPrice = (item) => {
+  if (!item.options.length) return item.price.toFixed(2)
+  const total = item.options.reduce((sum, opt) => sum + (opt.price || 0), 0)
+  console.log(total, item.price, item)
+  return (total + item.price).toFixed(2)
 }
 
 onMounted(() => {

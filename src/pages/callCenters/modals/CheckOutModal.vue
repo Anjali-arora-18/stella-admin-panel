@@ -433,7 +433,7 @@ async function createOrder() {
 
 <style scoped>
 .order-items {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   background: white;
   border-radius: 12px;
   padding: 20px;
