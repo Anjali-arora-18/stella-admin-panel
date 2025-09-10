@@ -39,7 +39,7 @@
                 >Order Number: <span class="font-bold">{{ order.tableNumber }}</span>
               </span>
               <span class="text-xs text-gray-500"
-                >{{ formatDateTime(order.orderDateTime) }} • {{ formatOnlyTime(order.orderDispatchToWinmaxTime) }}</span
+                >{{ formatDateTime(order.createdAt) }} • {{ getPromisedTime(order.createdAt, order.orderType) }}</span
               >
             </div>
             <div class="border-l border-gray-300 h-6"></div>
@@ -161,6 +161,8 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  takeawayPromiseTime: { type: Number, default: 0 },
+  deliveryPromiseTime: { type: Number, default: 0 },
 })
 
 const emits = defineEmits(['close'])
@@ -186,14 +188,23 @@ const formatDateTime = (dateStr) => {
   })
 }
 
-const formatOnlyTime = (dateStr) => {
-  if (!dateStr) return 'N/A'
-  const date = new Date(dateStr)
+const getPromisedTime = (createdAt, orderType) => {
+  if (!createdAt) return 'N/A'
+
+  const date = new Date(createdAt)
+
+  if (orderType?.toLowerCase() === 'takeaway') {
+    date.setMinutes(date.getMinutes() + (props.takeawayPromiseTime || 0))
+  } else if (orderType?.toLowerCase() === 'delivery') {
+    date.setMinutes(date.getMinutes() + (props.deliveryPromiseTime || 0))
+  }
+
   return date.toLocaleTimeString('en-GB', {
     hour: '2-digit',
     minute: '2-digit',
   })
 }
+
 const getOrderSource = (source) => {
   if (!source) return ''
   return source === 'CC' ? 'Call Center' : source
