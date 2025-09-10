@@ -264,6 +264,7 @@
       :delivery-zone-options="deliveryZoneOptions"
       :takeaway-promise-time="selectedZoneDetails?.takeawayPromiseTime || 0"
       :delivery-promise-time="selectedZoneDetails?.deliveryPromiseTime || 0"
+      :future-schedule="orderFor === 'future' ? localDateTime : null"
       @close="showHistoryModal = false"
     />
   </div>

@@ -27,11 +27,18 @@
 
     <!-- Orders List -->
     <div v-else class="p-3 bg-white">
-      <div v-for="(order, index) in orders" :key="order._id" class="order-card border rounded-lg mb-3 shadow-sm">
-        <div
-          class="flex justify-between items-center p-4 cursor-pointer hover:bg-red-50 transition"
-          @click="toggleOrder(index)"
-        >
+      <div
+        v-for="(order, index) in orders"
+        :key="order._id"
+        class="order-card border rounded-lg mb-3 shadow-sm relative"
+        :style="{ paddingLeft: order.orderFor === 'future' ? '65px' : '0px' }"
+      >
+        <!-- GREEN RIBBON FOR FUTURE ORDER -->
+        <div v-if="order.orderFor === 'future'" class="future-ribbon">
+          <span>Future</span>
+          <span>Order</span>
+        </div>
+        <div class="flex justify-between items-center p-4 cursor-pointer transition" @click="toggleOrder(index)">
           <!-- LEFT DETAILS -->
           <div class="flex items-center gap-8 font-semibold">
             <div>
@@ -39,8 +46,14 @@
                 >Order Number: <span class="font-bold">{{ order.tableNumber }}</span>
               </span>
               <span class="text-xs text-gray-500"
-                >{{ formatDateTime(order.createdAt) }} • {{ getPromisedTime(order.createdAt, order.orderType) }}</span
-              >
+                >{{ formatDateTime(order.createdAt) }} •
+                <template v-if="order.orderFor === 'future'">
+                  {{ formatDateTime(order.orderDateTime) }}
+                </template>
+                <template v-else>
+                  {{ getPromisedTime(order.createdAt, order.orderType) }}
+                </template>
+              </span>
             </div>
             <div class="border-l border-gray-300 h-6"></div>
 
@@ -163,6 +176,7 @@ const props = defineProps({
   },
   takeawayPromiseTime: { type: Number, default: 0 },
   deliveryPromiseTime: { type: Number, default: 0 },
+  futureSchedule: { type: [String, Date], default: null },
 })
 
 const emits = defineEmits(['close'])
@@ -301,12 +315,36 @@ onMounted(() => {
   background: #fff;
   border: 1px solid #eee;
   transition: all 0.2s ease-in-out;
+  overflow: hidden;
 }
 
-.order-card:hover {
-  /* box-shadow: 0 2px 8px rgba(255, 0, 0, 0.1); */
-}
 .opt {
   font-size: 11px;
+}
+.future-ribbon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 65px;
+  background-color: #16a34a;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+  z-index: 20;
+  /* border-top-left-radius: 6px; */
+  /* border-bottom-left-radius: 6px; */
+  pointer-events: none;
+}
+
+.future-ribbon span {
+  display: block;
+  text-align: center;
+  line-height: 18px;
 }
 </style>
