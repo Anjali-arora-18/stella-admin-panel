@@ -329,9 +329,14 @@ const editSelected = (orderId) => {
 const toggleOrder = (index) => {
   if (expandedIndex.value === index) {
     expandedIndex.value = null
+    for (const key in selectedItems) {
+      delete selectedItems[key]
+    }
   } else {
     expandedIndex.value = index
-    selectedItems.value = {}
+    for (const key in selectedItems) {
+      delete selectedItems[key]
+    }
   }
 }
 
