@@ -294,10 +294,11 @@ const fetchUsers = async () => {
   }
 }
 
-const getTheEmployeeName = (employee) => {
-  return users.value.find((user) => user._id === employee)?.username
+const getTheEmployeeName = (employeeId) => {
+  const user = users.value.find((user) => user._id === employeeId)
+  if (!user) return ''
+  return [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username
 }
-
 const getTotalPrice = (item) => {
   if (!item.options.length) return item.price.toFixed(2)
   const total = item.options.reduce((sum, opt) => sum + (opt.price || 0), 0)
