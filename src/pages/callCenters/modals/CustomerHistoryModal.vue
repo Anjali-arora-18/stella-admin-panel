@@ -38,7 +38,13 @@
           <span>Future</span>
           <span>Order</span>
         </div>
-        <div class="flex justify-between items-center p-4 cursor-pointer transition" @click="toggleOrder(index)">
+        <div
+          class="flex justify-between items-center p-4 cursor-pointer transition"
+          :class="{
+            'bg-gray-100': expandedIndex === index,
+          }"
+          @click="toggleOrder(index)"
+        >
           <!-- LEFT DETAILS -->
           <div class="flex items-center gap-8 font-semibold">
             <div>
@@ -101,9 +107,28 @@
           <div
             v-for="(item, idx) in order.menuItems || []"
             :key="idx"
-            class="flex justify-between items-start py-2 border-b last:border-none"
+            class="flex justify-between items-start py-2 border-b last:border-none cursor-pointer relative"
+            :class="{
+              'bg-gray-50': isItemSelected(order._id, idx),
+              'hover:bg-gray-50': true,
+            }"
+            @click="toggleItemSelect(order._id, idx)"
           >
-            <div class="flex flex-wrap items-center gap-2">
+            <!-- Checkbox only when selected -->
+            <div v-if="isItemSelected(order._id, idx)" class="absolute left-2 top-1/2 -translate-y-1/2">
+              <VaCheckbox
+                :model-value="true"
+                color="primary"
+                :readonly="true"
+                class="pointer-events-none"
+                @click.stop
+              />
+            </div>
+
+            <div
+              class="flex flex-wrap items-center gap-2 pl-8"
+              :class="isItemSelected(order._id, idx) ? 'pl-8' : 'pl-0'"
+            >
               <p class="font-semibold text-xs">
                 {{ item.quantity }} x {{ item.menuItem }}
                 <span
@@ -134,35 +159,87 @@
 
             <span class="font-bold">€ {{ getTotalPrice(item) }}</span>
           </div>
-          <div class="flex justify-between items-start py-2 border-b last:border-none">
-            <div class="flex flex-wrap items-center gap-2">
-              <p class="font-semibold text-xs">SubTotal</p>
+
+          <!-- Totals -->
+          <div class="mt-2 space-y-1 text-xs">
+            <div v-if="order.discount > 0" class="border-b pb-1">
+              <div class="flex justify-end gap-16">
+                <span class="font-semibold">SubTotal:</span>
+                <span class="font-bold">€ {{ order.subtotal.toFixed(2) }}</span>
+              </div>
             </div>
 
-            <span class="font-bold">€ {{ order.subtotal.toFixed(2) }}</span>
+            <div v-if="order.discount > 0" class="border-b pb-1">
+              <div class="flex justify-end gap-16">
+                <span class="font-semibold">Discount Amount:</span>
+                <span class="font-bold">-€ {{ order.discount.toFixed(2) }}</span>
+              </div>
+            </div>
+
+            <div v-if="order.orderType === 'Delivery' && order.deliveryFee > 0" class="border-b pb-1">
+              <div class="flex justify-end gap-16">
+                <span class="font-semibold">Delivery Fee:</span>
+                <span class="font-bold">€ {{ order.deliveryFee.toFixed(2) }}</span>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-end gap-16">
+                <span class="font-semibold">Total:</span>
+                <span class="font-bold">€ {{ order.total.toFixed(2) }}</span>
+              </div>
+            </div>
           </div>
-          <div class="flex justify-between items-start py-2 border-b last:border-none">
-            <div class="flex flex-wrap items-center gap-2">
-              <p class="font-semibold text-xs">Discount Amount</p>
-            </div>
 
-            <span class="font-bold">- € {{ order.discount.toFixed(2) }}</span>
-          </div>
-          <div class="flex justify-between items-start py-2 border-b last:border-none">
-            <div class="flex flex-wrap items-center gap-2">
-              <p class="font-semibold text-xs">Total</p>
-            </div>
+          <div class="flex gap-2">
+            <button
+              class="px-3 py-1 rounded-full bg-red-500 text-white font-semibold text-xs transition disabled:opacity-40 disabled:cursor-not-allowed"
+              :disabled="!hasSelectedForOrder(order._id)"
+              @click="openConfirm('remove', order._id)"
+            >
+              Remove
+            </button>
 
-            <span class="font-bold">€ {{ order.total.toFixed(2) }}</span>
+            <button
+              class="px-3 py-1 rounded-full bg-yellow-400 text-xs text-white font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed"
+              :disabled="!hasSelectedForOrder(order._id)"
+              @click="openConfirm('edit', order._id)"
+            >
+              Edit
+            </button>
           </div>
         </div>
       </div>
     </div>
+
+    <VaModal v-model="isConfirmOpen" size="small" hide-default-actions close-button>
+      <div class="text-sm text-gray-700 py-2">
+        Are you sure you want to
+        <span class="font-bold capitalize">{{ confirmAction }}</span>
+        the selected Items?
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <VaButton class="px-2 rounded-full" preset="secondary" size="small" @click="isConfirmOpen = false"
+            >Cancel</VaButton
+          >
+          <VaButton
+            class="px-2 rounded-full"
+            :color="confirmAction === 'remove' ? 'danger' : 'warning'"
+            size="small"
+            @click="confirmYes"
+          >
+            Yes
+          </VaButton>
+        </div>
+      </template>
+    </VaModal>
   </VaModal>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
 import axios from 'axios'
 import { useUsersStore } from '@/stores/users.ts'
 import { useMenuStore } from '@/stores/getMenu'
@@ -176,7 +253,8 @@ const props = defineProps({
   },
   takeawayPromiseTime: { type: Number, default: 0 },
   deliveryPromiseTime: { type: Number, default: 0 },
-  futureSchedule: { type: [String, Date], default: null },
+  deliveryFee: { type: Number, default: 0 },
+  selectedTab: { type: String, default: '' },
 })
 
 const emits = defineEmits(['close'])
@@ -185,9 +263,76 @@ const orders = ref([])
 const users = ref([])
 const expandedIndex = ref(null)
 const isLoading = ref(true)
+const selectedItems = reactive({})
+
+const isConfirmOpen = ref(false)
+const confirmAction = ref(null)
+const confirmOrderId = ref(null)
+
+const openConfirm = (action, orderId) => {
+  confirmAction.value = action
+  confirmOrderId.value = orderId
+  isConfirmOpen.value = true
+}
+
+const confirmYes = () => {
+  if (confirmAction.value === 'remove') {
+    removeSelected(confirmOrderId.value)
+  } else if (confirmAction.value === 'edit') {
+    editSelected(confirmOrderId.value)
+  }
+  isConfirmOpen.value = false
+}
+
+const toggleItemSelect = (orderId, idx) => {
+  if (!selectedItems[orderId]) {
+    selectedItems[orderId] = []
+  }
+  const pos = selectedItems[orderId].indexOf(idx)
+  if (pos > -1) {
+    selectedItems[orderId].splice(pos, 1)
+  } else {
+    selectedItems[orderId].push(idx)
+  }
+}
+
+const isItemSelected = (orderId, idx) => {
+  return Array.isArray(selectedItems[orderId]) && selectedItems[orderId].includes(idx)
+}
+
+const hasSelectedForOrder = (orderId) => {
+  return Array.isArray(selectedItems[orderId]) && selectedItems[orderId].length > 0
+}
+
+const removeSelected = (orderId) => {
+  if (!hasSelectedForOrder(orderId)) return
+  const orderIndex = orders.value.findIndex((o) => o._id === orderId)
+  if (orderIndex === -1) return
+
+  const idxs = [...selectedItems[orderId]].sort((a, b) => b - a)
+  idxs.forEach((i) => {
+    if (orders.value[orderIndex].menuItems && orders.value[orderIndex].menuItems[i] !== undefined) {
+      orders.value[orderIndex].menuItems.splice(i, 1)
+    }
+  })
+
+  selectedItems[orderId] = []
+}
+
+const editSelected = (orderId) => {
+  if (!hasSelectedForOrder(orderId)) return
+  const order = orders.value.find((o) => o._id === orderId)
+  const items = (selectedItems[orderId] || []).map((i) => order?.menuItems?.[i]).filter(Boolean)
+  console.log('Edit items for order', orderId, items)
+}
 
 const toggleOrder = (index) => {
-  expandedIndex.value = expandedIndex.value === index ? null : index
+  if (expandedIndex.value === index) {
+    expandedIndex.value = null
+  } else {
+    expandedIndex.value = index
+    selectedItems.value = {}
+  }
 }
 
 const formatDateTime = (dateStr) => {
@@ -338,8 +483,6 @@ onMounted(() => {
   letter-spacing: 0.5px;
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
   z-index: 20;
-  /* border-top-left-radius: 6px; */
-  /* border-bottom-left-radius: 6px; */
   pointer-events: none;
 }
 
@@ -347,5 +490,8 @@ onMounted(() => {
   display: block;
   text-align: center;
   line-height: 18px;
+}
+.hover\:bg-gray-50:hover {
+  background-color: #f9f9f9;
 }
 </style>
