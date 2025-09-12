@@ -39,7 +39,7 @@
           <span>Order</span>
         </div>
         <div
-          class="flex justify-between items-center p-4 cursor-pointer transition"
+          class="flex justify-between items-center p-4 cursor-pointer transition group"
           :class="{
             'bg-gray-100': expandedIndex === index,
           }"
@@ -88,6 +88,48 @@
               >
               <span class="text-xs text-gray-500">{{ getTheEmployeeName(order.outletEmployee) }}</span>
             </div>
+          </div>
+
+          <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+            <span
+              size="small"
+              class="rounded-full text-black px-2 py-1 font-semibold text-xs"
+              style="background-color: #f4f4f6"
+            >
+              <VaIcon name="warning" color="danger" size="small" /> Add Complaint
+            </span>
+
+            <span
+              size="small"
+              class="rounded-full text-black px-2 py-1 font-semibold text-xs"
+              style="background-color: #f4f4f6"
+            >
+              <VaIcon name="note" size="small" /> Add Note
+            </span>
+
+            <span
+              size="small"
+              class="rounded-full text-black px-2 py-1 font-semibold text-xs"
+              style="background-color: #f4f4f6"
+            >
+              <VaIcon name="notes" size="small" /> Repeat Order
+            </span>
+
+            <span
+              size="small"
+              class="rounded-full text-white px-2 py-1 font-semibold text-xs"
+              style="background-color: #187d36"
+            >
+              <VaIcon name="add" size="small" /> Add Items
+            </span>
+
+            <span
+              size="small"
+              class="rounded-full text-white px-2 py-1 font-semibold text-xs"
+              style="background-color: #de1a22"
+            >
+              <VaIcon name="cancel" size="small" /> Cancel Order
+            </span>
           </div>
 
           <span
