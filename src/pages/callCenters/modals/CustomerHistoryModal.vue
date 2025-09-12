@@ -211,30 +211,38 @@
         </div>
       </div>
     </div>
+  </VaModal>
 
-    <VaModal v-model="isConfirmOpen" size="small" hide-default-actions close-button>
-      <div class="text-sm text-gray-700 py-2">
-        Are you sure you want to
-        <span class="font-bold capitalize">{{ confirmAction }}</span>
-        the selected Items?
+  <!-- Confirmation Modal -->
+
+  <VaModal
+    v-model="isConfirmOpen"
+    size="small"
+    hide-default-actions
+    close-button
+    @update:modelValue="isConfirmOpen = $event"
+  >
+    <div class="text-sm text-gray-700 py-1">
+      Are you sure you want to
+      <span class="font-bold capitalize">{{ confirmAction }}</span>
+      the selected Items?
+    </div>
+
+    <template #footer>
+      <div class="flex justify-end gap-3">
+        <VaButton class="px-2 rounded-full" preset="secondary" size="small" @click="isConfirmOpen = false"
+          >Cancel</VaButton
+        >
+        <VaButton
+          class="px-2 rounded-full"
+          :color="confirmAction === 'remove' ? 'danger' : 'warning'"
+          size="small"
+          @click="confirmYes"
+        >
+          Yes
+        </VaButton>
       </div>
-
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <VaButton class="px-2 rounded-full" preset="secondary" size="small" @click="isConfirmOpen = false"
-            >Cancel</VaButton
-          >
-          <VaButton
-            class="px-2 rounded-full"
-            :color="confirmAction === 'remove' ? 'danger' : 'warning'"
-            size="small"
-            @click="confirmYes"
-          >
-            Yes
-          </VaButton>
-        </div>
-      </template>
-    </VaModal>
+    </template>
   </VaModal>
 </template>
 
