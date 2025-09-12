@@ -28,7 +28,7 @@
     <!-- Orders List -->
     <div v-else class="p-3 bg-white">
       <div
-        v-for="(order, index) in orders"
+        v-for="(order, index) in ordersToShow"
         :key="order._id"
         class="order-card border rounded-lg mb-3 shadow-sm relative"
         :style="{ paddingLeft: order.orderFor === 'future' ? '65px' : '0px' }"
@@ -210,6 +210,11 @@
           </div>
         </div>
       </div>
+      <div v-if="orders.length > 7" class="text-center mt-5">
+        <VaButton color="primary" class="px-3 rounded-full" @click="showAll = !showAll">
+          {{ showAll ? 'Show Less' : 'Load More' }}
+        </VaButton>
+      </div>
     </div>
   </VaModal>
 
@@ -247,7 +252,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, computed } from 'vue'
 import axios from 'axios'
 import { useUsersStore } from '@/stores/users.ts'
 import { useMenuStore } from '@/stores/getMenu'
@@ -390,17 +395,22 @@ const getDeliveryZoneName = (deliveryZoneId) => {
   return zone ? zone.name : ''
 }
 
+const showAll = ref(false)
+
+const ordersToShow = computed(() => {
+  return showAll.value ? orders.value : orders.value.slice(0, 7)
+})
+
 const url = import.meta.env.VITE_API_BASE_URL
 
 const fetchOrders = async () => {
   const menuItems = useMenuStore()
   try {
     const res = await axios.get(
-      `${url}/orders/history?phone=${props.customer?.Phone}&page=1&limit=50&from=2025-01-01&status=Completed`,
+      `${url}/orders/history?phone=${props.customer?.Phone}&page=1&limit=500&from=2025-01-01&status=Completed`,
     )
     if (res.data?.status === 'Success') {
       orders.value = res.data.data.items.map((order) => {
-        // Map menu item IDs to names
         const detailedItems = (order.menuItems || []).map((item) => {
           const menuItem = menuItems.unFilteredMenuItems.find((mi) => mi._id === item.menuItem)
           const options = menuItem.articlesOptionsGroup.flatMap((group) => group.articlesOptions)
