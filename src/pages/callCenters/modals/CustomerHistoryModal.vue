@@ -41,7 +41,7 @@
         <div
           class="flex justify-between items-center p-4 cursor-pointer transition group"
           :class="{
-            'bg-gray-100': expandedIndex === index,
+            'bg-gray-200': expandedIndex === index,
           }"
           @click="toggleOrder(index)"
         >
@@ -118,48 +118,47 @@
           <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition">
             <span
               v-if="!order._complaints || order._complaints.length === 0"
-              size="small"
-              class="rounded-full text-black px-2 py-1 font-semibold text-xs"
+              class="flex items-center gap-1 rounded-full text-black px-2 py-1 font-semibold text-md cursor-pointer"
               style="background-color: #f4f4f6"
               @click.stop="openComplaint(order._id)"
             >
-              <VaIcon name="warning" color="danger" size="small" /> Add Complaint
+              <VaIcon name="warning" color="danger" size="medium" /> Add Complaint
             </span>
 
             <span
               size="small"
-              class="rounded-full text-black px-2 py-1 font-semibold text-xs"
+              class="flex items-center gap-1 rounded-full text-black px-2 py-1 font-semibold text-md cursor-pointer"
               style="background-color: #f4f4f6"
               @click.stop="openNote(order._id, order._note)"
             >
-              <VaIcon name="note" size="small" /> Add Note
+              <VaIcon name="note" size="medium" /> Add Note
             </span>
 
             <span
               size="small"
-              class="rounded-full text-black px-2 py-1 font-semibold text-xs"
+              class="flex items-center gap-1 rounded-full text-black px-2 py-1 font-semibold text-md cursor-pointer"
               style="background-color: #f4f4f6"
               @click.stop="openConfirm('repeat', order._id)"
             >
-              <VaIcon name="notes" size="small" /> Repeat Order
+              <VaIcon name="notes" size="medium" /> Repeat Order
             </span>
 
             <span
               size="small"
-              class="rounded-full text-white px-2 py-1 font-semibold text-xs"
+              class="flex items-center gap-1 rounded-full text-white px-2 py-1 font-semibold text-md cursor-pointer"
               style="background-color: #187d36"
               @click.stop="openConfirm('add', order._id)"
             >
-              <VaIcon name="add" size="small" /> Add Items
+              <VaIcon name="add" size="medium" /> Add Items
             </span>
 
             <span
               size="small"
-              class="rounded-full text-white px-2 py-1 font-semibold text-xs"
+              class="flex items-center gap-1 rounded-full text-white px-2 py-1 font-semibold text-md cursor-pointer"
               style="background-color: #de1a22"
               @click.stop="openConfirm('cancel', order._id)"
             >
-              <VaIcon name="cancel" size="small" /> Cancel Order
+              <VaIcon name="cancel" size="medium" /> Cancel Order
             </span>
           </div>
 
