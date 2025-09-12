@@ -90,11 +90,38 @@
             </div>
           </div>
 
+          <!-- Complaints list -->
+          <div v-if="order._complaints?.length" class="mt-2 space-y-1">
+            <div
+              v-for="(c, i) in order._complaints"
+              :key="i"
+              class="flex flex-col items-center text-sm text-center cursor-pointer"
+              @click.stop="editComplaint(order._id, i, c)"
+            >
+              <span class="flex items-center justify-center" style="color: #de1a22">
+                <VaIcon name="warning" size="24px" class="rounded-full" />
+              </span>
+              <span
+                class="font-semibold truncate"
+                style="
+                  max-width: 150px;
+                  display: inline-block;
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                "
+                >{{ c }}</span
+              >
+            </div>
+          </div>
+
           <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition">
             <span
+              v-if="!order._complaints || order._complaints.length === 0"
               size="small"
               class="rounded-full text-black px-2 py-1 font-semibold text-xs"
               style="background-color: #f4f4f6"
+              @click.stop="openComplaint(order._id)"
             >
               <VaIcon name="warning" color="danger" size="small" /> Add Complaint
             </span>
@@ -103,6 +130,7 @@
               size="small"
               class="rounded-full text-black px-2 py-1 font-semibold text-xs"
               style="background-color: #f4f4f6"
+              @click.stop="openNote(order._id, order._note)"
             >
               <VaIcon name="note" size="small" /> Add Note
             </span>
@@ -111,6 +139,7 @@
               size="small"
               class="rounded-full text-black px-2 py-1 font-semibold text-xs"
               style="background-color: #f4f4f6"
+              @click.stop="openConfirm('repeat', order._id)"
             >
               <VaIcon name="notes" size="small" /> Repeat Order
             </span>
@@ -119,6 +148,7 @@
               size="small"
               class="rounded-full text-white px-2 py-1 font-semibold text-xs"
               style="background-color: #187d36"
+              @click.stop="openConfirm('add', order._id)"
             >
               <VaIcon name="add" size="small" /> Add Items
             </span>
@@ -127,6 +157,7 @@
               size="small"
               class="rounded-full text-white px-2 py-1 font-semibold text-xs"
               style="background-color: #de1a22"
+              @click.stop="openConfirm('cancel', order._id)"
             >
               <VaIcon name="cancel" size="small" /> Cancel Order
             </span>
@@ -269,14 +300,28 @@
     close-button
     @update:modelValue="isConfirmOpen = $event"
   >
-    <div class="text-sm text-gray-700 py-1">
+    <div class="text-sm text-gray-700 py-1 pb-5">
       Are you sure you want to
-      <span class="font-bold capitalize">{{ confirmAction }}</span>
-      the selected Items?
+      <span class="font-bold capitalize">
+        {{
+          confirmAction === 'repeat'
+            ? 'repeat this order'
+            : confirmAction === 'add'
+              ? 'add items to this order'
+              : confirmAction === 'cancel'
+                ? 'cancel this order'
+                : confirmAction === 'edit'
+                  ? 'edit the selected Items'
+                  : confirmAction === 'remove'
+                    ? 'remove the selected Items'
+                    : ''
+        }}</span
+      >
+      ?
     </div>
 
     <template #footer>
-      <div class="flex justify-end gap-3">
+      <div class="flex justify-end gap-1 mt-3">
         <VaButton class="px-2 rounded-full" preset="secondary" size="small" @click="isConfirmOpen = false"
           >Cancel</VaButton
         >
@@ -291,6 +336,25 @@
       </div>
     </template>
   </VaModal>
+
+  <HistoryAddNoteModal
+    :is-open="showAddNoteModal"
+    :order-id="selectedOrderId"
+    :note="noteToEdit"
+    @update:isOpen="showAddNoteModal = $event"
+    @saved="handleNoteSaved"
+    @updated="handleNoteUpdated"
+    @removed="handleNoteRemoved"
+  />
+  <HistoryComplaintModal
+    :is-open="showComplaintModal"
+    :order-id="selectedOrderId"
+    :complaint="complaintToEdit"
+    @update:isOpen="showComplaintModal = $event"
+    @saved="handleComplaintSaved"
+    @updated="handleComplaintUpdated"
+    @removed="handleComplaintRemoved"
+  />
 </template>
 
 <script setup>
@@ -298,6 +362,8 @@ import { ref, onMounted, reactive, computed } from 'vue'
 import axios from 'axios'
 import { useUsersStore } from '@/stores/users.ts'
 import { useMenuStore } from '@/stores/getMenu'
+import HistoryAddNoteModal from './HistoryAddNoteModal.vue'
+import HistoryComplaintModal from './HistoryComplaintModal.vue'
 
 const props = defineProps({
   customer: { type: Object, required: true },
@@ -314,6 +380,30 @@ const props = defineProps({
 
 const emits = defineEmits(['close'])
 
+const showAddNoteModal = ref(false)
+const showComplaintModal = ref(false)
+const selectedOrderId = ref(null)
+
+const noteToEdit = ref(null)
+const complaintToEdit = ref(null)
+
+const editComplaint = (orderId, index, text) => {
+  selectedOrderId.value = orderId
+  complaintToEdit.value = { orderId, index, text }
+  showComplaintModal.value = true
+}
+const openComplaint = (orderId) => {
+  selectedOrderId.value = orderId
+  showComplaintModal.value = true
+  complaintToEdit.value = null
+}
+
+const openNote = (orderId, note) => {
+  selectedOrderId.value = orderId
+  noteToEdit.value = note ? { orderId, text: note } : null
+  showAddNoteModal.value = true
+}
+
 const orders = ref([])
 const users = ref([])
 const expandedIndex = ref(null)
@@ -324,6 +414,46 @@ const isConfirmOpen = ref(false)
 const confirmAction = ref(null)
 const confirmOrderId = ref(null)
 
+const handleComplaintSaved = ({ orderId, text }) => {
+  const order = orders.value.find((o) => o._id === orderId)
+  if (!order) return
+  if (!order._complaints) order._complaints = []
+  order._complaints.push(text)
+}
+
+const handleComplaintUpdated = ({ orderId, index, text }) => {
+  const order = orders.value.find((o) => o._id === orderId)
+  if (order && Array.isArray(order._complaints) && order._complaints[index] !== undefined) {
+    order._complaints[index] = text
+  }
+}
+
+const handleComplaintRemoved = ({ orderId, index }) => {
+  const order = orders.value.find((o) => o._id === orderId)
+  if (!order || !Array.isArray(order._complaints)) return
+
+  order._complaints.splice(index, 1)
+
+  if (order._complaints.length === 0) {
+    order._complaints = []
+  }
+}
+
+const handleNoteSaved = ({ orderId, text }) => {
+  const order = orders.value.find((o) => o._id === orderId)
+  if (order) order._note = text
+}
+
+const handleNoteUpdated = ({ orderId, text }) => {
+  const order = orders.value.find((o) => o._id === orderId)
+  if (order) order._note = text
+}
+
+const handleNoteRemoved = ({ orderId }) => {
+  const order = orders.value.find((o) => o._id === orderId)
+  if (order) order._note = null
+}
+
 const openConfirm = (action, orderId) => {
   confirmAction.value = action
   confirmOrderId.value = orderId
@@ -331,11 +461,26 @@ const openConfirm = (action, orderId) => {
 }
 
 const confirmYes = () => {
-  if (confirmAction.value === 'remove') {
-    removeSelected(confirmOrderId.value)
-  } else if (confirmAction.value === 'edit') {
-    editSelected(confirmOrderId.value)
+  if (!confirmAction.value || !confirmOrderId.value) return
+
+  switch (confirmAction.value) {
+    case 'remove':
+      removeSelected(confirmOrderId.value)
+      break
+    case 'edit':
+      editSelected(confirmOrderId.value)
+      break
+    case 'repeat':
+      repeatOrder(confirmOrderId.value)
+      break
+    case 'add':
+      addItemsToOrder(confirmOrderId.value)
+      break
+    case 'cancel':
+      cancelOrder(confirmOrderId.value)
+      break
   }
+
   isConfirmOpen.value = false
 }
 
@@ -378,7 +523,21 @@ const editSelected = (orderId) => {
   if (!hasSelectedForOrder(orderId)) return
   const order = orders.value.find((o) => o._id === orderId)
   const items = (selectedItems[orderId] || []).map((i) => order?.menuItems?.[i]).filter(Boolean)
-  console.log('Edit items for order', orderId, items)
+}
+
+const repeatOrder = (orderId) => {
+  const order = orders.value.find((o) => o._id === orderId)
+  if (!order) return
+}
+
+const addItemsToOrder = (orderId) => {
+  const order = orders.value.find((o) => o._id === orderId)
+  if (!order) return
+}
+
+const cancelOrder = (orderId) => {
+  const order = orders.value.find((o) => o._id === orderId)
+  if (!order) return
 }
 
 const toggleOrder = (index) => {
