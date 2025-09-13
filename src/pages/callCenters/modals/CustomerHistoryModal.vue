@@ -115,7 +115,7 @@
 
           <div class="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition mr-5">
             <span
-              v-if="!order._complaints || order._complaints.length === 0"
+              v-if="!order.complaint || order.complaint === ''"
               class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer"
               style="background-color: #f4f4f6"
               @click.stop="openComplaint(order._id)"
