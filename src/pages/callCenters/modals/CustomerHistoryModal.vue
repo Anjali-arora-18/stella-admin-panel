@@ -91,12 +91,10 @@
           </div>
 
           <!-- Complaints list -->
-          <div v-if="order._complaints?.length" class="ml-5 space-y-1">
+          <div v-if="order.complaint" class="ml-5 space-y-1">
             <div
-              v-for="(c, i) in order._complaints"
-              :key="i"
               class="flex flex-col items-center text-sm text-center cursor-pointer"
-              @click.stop="editComplaint(order._id, i, c)"
+              @click.stop="editComplaint(order._id, order.complaint)"
             >
               <span class="flex items-center justify-center" style="color: #de1a22">
                 <VaIcon name="warning" size="24px" class="rounded-full" />
@@ -129,7 +127,7 @@
               size="small"
               class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer"
               style="background-color: #f4f4f6"
-              @click.stop="openNote(order._id, order._note)"
+              @click.stop="openNote(order._id, order.note)"
             >
               <VaIcon name="note" size="small" /> Add Note
             </span>
@@ -392,7 +390,7 @@ const selectedOrderId = ref(null)
 const noteToEdit = ref(null)
 const complaintToEdit = ref(null)
 
-const editComplaint = (orderId, index, text) => {
+const editComplaint = (orderId, text) => {
   // Close and reset first
   showComplaintModal.value = false
   complaintToEdit.value = null
@@ -400,7 +398,7 @@ const editComplaint = (orderId, index, text) => {
   // Reopen with fresh data
   setTimeout(() => {
     selectedOrderId.value = orderId
-    complaintToEdit.value = { orderId, index, text }
+    complaintToEdit.value = { orderId, text }
     showComplaintModal.value = true
   }, 0)
 }
@@ -427,44 +425,60 @@ const isConfirmOpen = ref(false)
 const confirmAction = ref(null)
 const confirmOrderId = ref(null)
 
-const handleComplaintSaved = ({ orderId, text }) => {
+const handleComplaintSaved = async ({ orderId, text }) => {
   const order = orders.value.find((o) => o._id === orderId)
-  if (!order) return
-  if (!order._complaints) order._complaints = []
-  order._complaints.push(text)
-}
-
-const handleComplaintUpdated = ({ orderId, index, text }) => {
-  const order = orders.value.find((o) => o._id === orderId)
-  if (order && Array.isArray(order._complaints) && order._complaints[index] !== undefined) {
-    order._complaints[index] = text
+  if (order) {
+    await axios.patch(`${url}/orders/${orderId}/complaint`, { complaint: text })
+    init({ message: 'Complaint updated successfully', color: 'success' })
+    fetchOrders()
   }
 }
 
-const handleComplaintRemoved = ({ orderId, index }) => {
+const handleComplaintUpdated = async ({ orderId, text }) => {
   const order = orders.value.find((o) => o._id === orderId)
-  if (!order || !Array.isArray(order._complaints)) return
 
-  order._complaints.splice(index, 1)
-
-  if (order._complaints.length === 0) {
-    order._complaints = []
+  if (order) {
+    await axios.patch(`${url}/orders/${orderId}/complaint`, { complaint: text })
+    init({ message: 'Complaint updated successfully', color: 'success' })
+    fetchOrders()
   }
 }
 
-const handleNoteSaved = ({ orderId, text }) => {
+const handleComplaintRemoved = async ({ orderId }) => {
   const order = orders.value.find((o) => o._id === orderId)
-  if (order) order._note = text
+
+  if (order) {
+    await axios.patch(`${url}/orders/${orderId}/complaint`, { complaint: '' })
+    init({ message: 'Complaint removed successfully', color: 'success' })
+    fetchOrders()
+  }
 }
 
-const handleNoteUpdated = ({ orderId, text }) => {
+const handleNoteSaved = async ({ orderId, text }) => {
   const order = orders.value.find((o) => o._id === orderId)
-  if (order) order._note = text
+  if (order) {
+    await axios.patch(`${url}/orders/${orderId}/note`, { note: text })
+    init({ message: 'Note added successfully', color: 'success' })
+    fetchOrders()
+  }
 }
 
-const handleNoteRemoved = ({ orderId }) => {
+const handleNoteUpdated = async ({ orderId, text }) => {
   const order = orders.value.find((o) => o._id === orderId)
-  if (order) order._note = null
+  if (order) {
+    await axios.patch(`${url}/orders/${orderId}/note`, { note: text })
+    init({ message: 'Note updated successfully', color: 'success' })
+    fetchOrders()
+  }
+}
+
+const handleNoteRemoved = async ({ orderId }) => {
+  const order = orders.value.find((o) => o._id === orderId)
+  if (order) {
+    await axios.patch(`${url}/orders/${orderId}/note`, { note: '' })
+    init({ message: 'Note removed successfully', color: 'success' })
+    fetchOrders()
+  }
 }
 
 const openConfirm = (action, orderId) => {
@@ -477,21 +491,21 @@ const confirmYes = () => {
   if (!confirmAction.value || !confirmOrderId.value) return
 
   switch (confirmAction.value) {
-    case 'remove':
-      removeSelected(confirmOrderId.value)
-      break
-    case 'edit':
-      editSelected(confirmOrderId.value)
-      break
-    case 'repeat':
-      repeatOrder(confirmOrderId.value)
-      break
-    case 'add':
-      addItemsToOrder(confirmOrderId.value)
-      break
-    case 'cancel':
-      cancelOrder(confirmOrderId.value)
-      break
+  case 'remove':
+    removeSelected(confirmOrderId.value)
+    break
+  case 'edit':
+    editSelected(confirmOrderId.value)
+    break
+  case 'repeat':
+    repeatOrder(confirmOrderId.value)
+    break
+  case 'add':
+    addItemsToOrder(confirmOrderId.value)
+    break
+  case 'cancel':
+    cancelOrder(confirmOrderId.value)
+    break
   }
 
   isConfirmOpen.value = false
@@ -738,7 +752,7 @@ const applyOrderEdit = async (orderId, action, tableNumber, payload = {}) => {
     )
     init({
       message: res.data.message,
-      type: res.data.status !== 'Failed' ? 'success' : 'danger',
+      color: res.data.status !== 'Failed' ? 'success' : 'danger',
     })
     return res.data
   } catch (err) {

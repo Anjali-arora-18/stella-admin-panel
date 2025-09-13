@@ -9,7 +9,7 @@
     <h3 class="text-lg font-semibold mb-3">Add Complaint</h3>
 
     <VaTextarea
-      v-model="complaint"
+      v-model="pComplaint"
       placeholder="Enter a complaint about this order..."
       class="w-full"
       autosize
@@ -40,36 +40,36 @@ const props = defineProps({
 })
 const emits = defineEmits(['update:isOpen', 'saved', 'updated', 'removed'])
 
-const complaint = ref('')
+const pComplaint = ref('')
 const isEditing = computed(() => !!props.complaint)
 
 watch(
   () => props.complaint,
   (val) => {
-    complaint.value = val?.text || ''
+    pComplaint.value = val?.text || ''
   },
   { immediate: true },
 )
 
 const close = () => {
   emits('update:isOpen', false)
-  complaint.value = ''
+  pComplaint.value = ''
 }
 
 const saveComplaint = () => {
-  if (!complaint.value.trim()) return
-  emits('saved', { orderId: props.orderId, text: complaint.value })
+  if (!pComplaint.value.trim()) return
+  emits('saved', { orderId: props.orderId, text: pComplaint.value })
   close()
 }
 
 const updateComplaint = () => {
-  if (!complaint.value.trim()) return
-  emits('updated', { orderId: props.complaint.orderId, index: props.complaint.index, text: complaint.value })
+  if (!pComplaint.value.trim()) return
+  emits('updated', { orderId: props.complaint.orderId, text: pComplaint.value })
   close()
 }
 
 const removeComplaint = () => {
-  emits('removed', { orderId: props.complaint.orderId, index: props.complaint.index })
+  emits('removed', { orderId: props.complaint.orderId })
   close()
 }
 </script>
