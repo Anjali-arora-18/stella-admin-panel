@@ -91,7 +91,7 @@
           </div>
 
           <!-- Complaints list -->
-          <div v-if="order._complaints?.length" class="mt-2 space-y-1">
+          <div v-if="order._complaints?.length" class="ml-5 space-y-1">
             <div
               v-for="(c, i) in order._complaints"
               :key="i"
@@ -110,55 +110,55 @@
                   overflow: hidden;
                   text-overflow: ellipsis;
                 "
-                >{{ c }}</span
+                >Complaint</span
               >
             </div>
           </div>
 
-          <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+          <div class="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition mr-5">
             <span
               v-if="!order._complaints || order._complaints.length === 0"
-              class="flex items-center gap-1 rounded-full text-black px-2 py-1 font-semibold text-md cursor-pointer"
+              class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer"
               style="background-color: #f4f4f6"
               @click.stop="openComplaint(order._id)"
             >
-              <VaIcon name="warning" color="danger" size="medium" /> Add Complaint
+              <VaIcon name="warning" color="danger" size="small" /> Add Complaint
             </span>
 
             <span
               size="small"
-              class="flex items-center gap-1 rounded-full text-black px-2 py-1 font-semibold text-md cursor-pointer"
+              class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer"
               style="background-color: #f4f4f6"
               @click.stop="openNote(order._id, order._note)"
             >
-              <VaIcon name="note" size="medium" /> Add Note
+              <VaIcon name="note" size="small" /> Add Note
             </span>
 
             <span
               size="small"
-              class="flex items-center gap-1 rounded-full text-black px-2 py-1 font-semibold text-md cursor-pointer"
+              class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer"
               style="background-color: #f4f4f6"
               @click.stop="openConfirm('repeat', order._id)"
             >
-              <VaIcon name="notes" size="medium" /> Repeat Order
+              <VaIcon name="notes" size="small" /> Repeat Order
             </span>
 
             <span
               size="small"
-              class="flex items-center gap-1 rounded-full text-white px-2 py-1 font-semibold text-md cursor-pointer"
-              style="background-color: #187d36"
+              class="flex items-center gap-1 rounded-full text-white px-2 py-1.5 font-semibold text-xs cursor-pointer"
+              style="background-color: #2d5d2a"
               @click.stop="openConfirm('add', order._id)"
             >
-              <VaIcon name="add" size="medium" /> Add Items
+              <VaIcon name="add" size="small" /> Add Items
             </span>
 
             <span
               size="small"
-              class="flex items-center gap-1 rounded-full text-white px-2 py-1 font-semibold text-md cursor-pointer"
+              class="flex items-center gap-1 rounded-full text-white px-2 py-1.5 font-semibold text-xs cursor-pointer"
               style="background-color: #de1a22"
               @click.stop="openConfirm('cancel', order._id)"
             >
-              <VaIcon name="cancel" size="medium" /> Cancel Order
+              <VaIcon name="cancel" size="small" /> Cancel Order
             </span>
           </div>
 
@@ -283,7 +283,7 @@
         </div>
       </div>
       <div v-if="orders.length > 7" class="text-center mt-5">
-        <VaButton color="primary" class="px-3 rounded-full" @click="showAll = !showAll">
+        <VaButton color="#2D5D2A" class="px-3 rounded-full" @click="showAll = !showAll">
           {{ showAll ? 'Show Less' : 'Load More' }}
         </VaButton>
       </div>
@@ -349,7 +349,12 @@
     :is-open="showComplaintModal"
     :order-id="selectedOrderId"
     :complaint="complaintToEdit"
-    @update:isOpen="showComplaintModal = $event"
+    @update:isOpen="
+      (val) => {
+        showComplaintModal = val
+        if (!val) complaintToEdit = null
+      }
+    "
     @saved="handleComplaintSaved"
     @updated="handleComplaintUpdated"
     @removed="handleComplaintRemoved"
@@ -357,7 +362,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, computed } from 'vue'
+import { ref, onMounted, reactive, computed, nextTick } from 'vue'
 import axios from 'axios'
 import { useUsersStore } from '@/stores/users.ts'
 import { useMenuStore } from '@/stores/getMenu'
@@ -387,14 +392,22 @@ const noteToEdit = ref(null)
 const complaintToEdit = ref(null)
 
 const editComplaint = (orderId, index, text) => {
-  selectedOrderId.value = orderId
-  complaintToEdit.value = { orderId, index, text }
-  showComplaintModal.value = true
+  // Close and reset first
+  showComplaintModal.value = false
+  complaintToEdit.value = null
+
+  // Reopen with fresh data
+  setTimeout(() => {
+    selectedOrderId.value = orderId
+    complaintToEdit.value = { orderId, index, text }
+    showComplaintModal.value = true
+  }, 0)
 }
+
 const openComplaint = (orderId) => {
   selectedOrderId.value = orderId
-  showComplaintModal.value = true
   complaintToEdit.value = null
+  showComplaintModal.value = true
 }
 
 const openNote = (orderId, note) => {
