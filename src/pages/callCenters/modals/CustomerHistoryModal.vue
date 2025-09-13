@@ -362,13 +362,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, computed, nextTick } from 'vue'
+import { ref, onMounted, reactive, computed } from 'vue'
 import axios from 'axios'
 import { useUsersStore } from '@/stores/users.ts'
 import { useMenuStore } from '@/stores/getMenu'
 import HistoryAddNoteModal from './HistoryAddNoteModal.vue'
 import HistoryComplaintModal from './HistoryComplaintModal.vue'
-
+import { useToast } from 'vuestic-ui'
+const { init } = useToast()
 const props = defineProps({
   customer: { type: Object, required: true },
   outlet: { type: Object, required: true },
@@ -516,40 +517,82 @@ const hasSelectedForOrder = (orderId) => {
   return Array.isArray(selectedItems[orderId]) && selectedItems[orderId].length > 0
 }
 
-const removeSelected = (orderId) => {
-  if (!hasSelectedForOrder(orderId)) return
-  const orderIndex = orders.value.findIndex((o) => o._id === orderId)
-  if (orderIndex === -1) return
+const removeSelected = async (orderId) => {
+  const order = orders.value.find((o) => o._id === orderId)
+  if (!order) return
 
-  const idxs = [...selectedItems[orderId]].sort((a, b) => b - a)
-  idxs.forEach((i) => {
-    if (orders.value[orderIndex].menuItems && orders.value[orderIndex].menuItems[i] !== undefined) {
-      orders.value[orderIndex].menuItems.splice(i, 1)
-    }
+  const items = (selectedItems[orderId] || []).map((i) => order.menuItems[i])
+  if (!items.length) return
+
+  const payload = buildOfferMenuItemsPayload(items)
+
+  await applyOrderEdit(orderId, 'remove', order.tableNumber, payload)
+  fetchOrders()
+}
+
+const editSelected = async (orderId) => {
+  const order = orders.value.find((o) => o._id === orderId)
+  if (!order) return
+
+  const items = (selectedItems[orderId] || []).map((i) => order.menuItems[i])
+  if (!items.length) return
+
+  const payload = buildOfferMenuItemsPayload(items)
+
+  await applyOrderEdit(orderId, 'edit', order.tableNumber, payload)
+  fetchOrders()
+}
+
+const repeatOrder = async (orderId) => {
+  const order = orders.value.find((o) => o._id === orderId)
+  if (!order) return
+
+  const payload = buildOfferMenuItemsPayload(order.menuItems)
+
+  await applyOrderEdit(orderId, 'repeat', order.tableNumber, payload)
+  fetchOrders()
+}
+
+const addItemsToOrder = async (orderId) => {
+  const order = orders.value.find((o) => o._id === orderId)
+  if (!order) return
+
+  const items = (selectedItems[orderId] || []).map((i) => order.menuItems[i])
+  if (!items.length) return
+
+  const payload = buildOfferMenuItemsPayload(items, '687e0a484e996f117b336b39') // pass actual offerId
+
+  await applyOrderEdit(orderId, 'add', order.tableNumber, payload)
+  fetchOrders()
+}
+
+const cancelOrder = async (orderId) => {
+  const order = orders.value.find((o) => o._id === orderId)
+  if (!order) return
+
+  await applyOrderEdit(orderId, 'cancel', order.tableNumber)
+  fetchOrders()
+}
+const buildOfferMenuItemsPayload = (items) => {
+  // Group items by offerId (because one order can have multiple offers)
+  const menuItems = []
+
+  items.forEach((item) => {
+    menuItems.push({
+      menuItem: item._id,
+      quantity: item.quantity,
+      isFree: !!item.isFree,
+      options: (item.options || []).map((opt) => ({
+        option: opt._id,
+        quantity: opt.quantity || 1,
+      })),
+    })
   })
 
-  selectedItems[orderId] = []
-}
-
-const editSelected = (orderId) => {
-  if (!hasSelectedForOrder(orderId)) return
-  const order = orders.value.find((o) => o._id === orderId)
-  const items = (selectedItems[orderId] || []).map((i) => order?.menuItems?.[i]).filter(Boolean)
-}
-
-const repeatOrder = (orderId) => {
-  const order = orders.value.find((o) => o._id === orderId)
-  if (!order) return
-}
-
-const addItemsToOrder = (orderId) => {
-  const order = orders.value.find((o) => o._id === orderId)
-  if (!order) return
-}
-
-const cancelOrder = (orderId) => {
-  const order = orders.value.find((o) => o._id === orderId)
-  if (!order) return
+  // Transform into offerMenuItems array
+  return {
+    menuItems,
+  }
 }
 
 const toggleOrder = (index) => {
@@ -672,6 +715,35 @@ const fetchUsers = async () => {
     users.value = data
   } catch (error) {
     console.error('Error fetching users:', error)
+  }
+}
+
+const applyOrderEdit = async (orderId, action, tableNumber, payload = {}) => {
+  try {
+    const res = await axios.post(
+      `${url}/order-edits/${orderId}/apply`,
+      {
+        action,
+        tableNumber,
+        ...payload,
+      },
+      {
+        params: {
+          orderId,
+          tableNumber,
+          posUser: 'STELLA',
+          posPass: 'St3ll@',
+        },
+      },
+    )
+    init({
+      message: res.data.message,
+      type: res.data.status !== 'Failed' ? 'success' : 'danger',
+    })
+    return res.data
+  } catch (err) {
+    console.error('Order edit failed:', err)
+    throw err
   }
 }
 
