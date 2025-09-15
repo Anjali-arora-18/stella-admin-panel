@@ -542,8 +542,20 @@ const removeSelected = async (orderId) => {
   if (!items.length) return
 
   const payload = buildOfferMenuItemsPayload(items)
+  console.log(payload)
 
-  await applyOrderEdit(orderId, 'remove', order.tableNumber, payload)
+  await new Promise.all(
+    payload.menuItems.forEach((item) => {
+      const data = {
+        menuItems: [
+          {
+            menuItem: item.menuItem,
+          },
+        ],
+      }
+      applyOrderEdit(orderId, 'delete', order.tableNumber, data)
+    }),
+  )
   fetchOrders()
 }
 
@@ -749,7 +761,6 @@ const fetchOrders = async () => {
           menuItems: detailedItems,
         }
       })
-      console.log('Fetched orders:', orders.value)
     } else {
       orders.value = []
     }
@@ -778,6 +789,7 @@ const fetchUsers = async () => {
 }
 
 const applyOrderEdit = async (orderId, action, tableNumber, payload = {}) => {
+  const userStore = useUsersStore()
   try {
     const res = await axios.post(
       `${url}/order-edits/${orderId}/apply`,
@@ -790,8 +802,8 @@ const applyOrderEdit = async (orderId, action, tableNumber, payload = {}) => {
         params: {
           orderId,
           tableNumber,
-          posUser: 'STELLA',
-          posPass: 'St3ll@',
+          posUser: userStore.userDetails.posCreds.posId || 'STELLA',
+          posPass: userStore.userDetails.posCreds.posPassword || 'st3ll@',
         },
       },
     )
@@ -802,6 +814,7 @@ const applyOrderEdit = async (orderId, action, tableNumber, payload = {}) => {
     return res.data
   } catch (err) {
     console.error('Order edit failed:', err)
+    init({ message: err.response.data.message, color: 'danger' })
     throw err
   }
 }
@@ -814,7 +827,6 @@ const getTheEmployeeName = (employeeId) => {
 const getTotalPrice = (item) => {
   if (!item.options.length) return item.price.toFixed(2)
   const total = item.options.reduce((sum, opt) => sum + (opt.price || 0), 0)
-  console.log(total, item.price, item)
   return (total + item.price).toFixed(2)
 }
 
