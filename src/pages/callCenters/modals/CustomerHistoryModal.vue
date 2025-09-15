@@ -544,8 +544,9 @@ const removeSelected = async (orderId) => {
   const payload = buildOfferMenuItemsPayload(items)
   console.log(payload)
 
-  await new Promise.all(
-    payload.menuItems.forEach((item) => {
+  // Await all API calls in parallel and wait for all to finish
+  await Promise.all(
+    payload.menuItems.map((item) => {
       const data = {
         menuItems: [
           {
@@ -553,9 +554,10 @@ const removeSelected = async (orderId) => {
           },
         ],
       }
-      applyOrderEdit(orderId, 'delete', order.tableNumber, data)
+      return applyOrderEdit(orderId, 'delete', order.tableNumber, data)
     }),
   )
+
   fetchOrders()
 }
 
@@ -803,7 +805,7 @@ const applyOrderEdit = async (orderId, action, tableNumber, payload = {}) => {
           orderId,
           tableNumber,
           posUser: userStore.userDetails.posCreds.posId || 'STELLA',
-          posPass: userStore.userDetails.posCreds.posPassword || 'st3ll@',
+          posPass: userStore.userDetails.posCreds.posPassword || 'St3ll@',
         },
       },
     )
