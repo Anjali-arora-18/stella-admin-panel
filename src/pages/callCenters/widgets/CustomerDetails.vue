@@ -96,15 +96,28 @@
           </template>
 
           <template v-else>
-            <VaTooltip text="Edit Customer" placement="top">
-              <VaButton
-                class="hover:bg-blue-600 text-white h-[24px] w-[24px] rounded-md flex items-center justify-center"
-                size="small"
-                icon="mso-edit"
-                :style="{ '--va-background-color': outlet.primaryColor }"
-                @click="openCustomerModal"
-              />
-            </VaTooltip>
+            <div class="flex items-center gap-1">
+              <VaTooltip text="Edit Customer" placement="top">
+                <VaButton
+                  class="hover:bg-blue-600 text-white h-[24px] w-[24px] rounded-md flex items-center justify-center"
+                  size="small"
+                  icon="mso-edit"
+                  :style="{ '--va-background-color': outlet.primaryColor }"
+                  @click="openCustomerModal"
+                />
+              </VaTooltip>
+
+              <!-- Order History Button -->
+              <VaTooltip text="View Order History" placement="top">
+                <VaButton
+                  class="hover:bg-green-600 text-white h-[24px] w-[24px] rounded-md flex items-center justify-center"
+                  size="small"
+                  icon="mso-history"
+                  :style="{ '--va-background-color': outlet.primaryColor }"
+                  @click="showHistoryModal = true"
+                />
+              </VaTooltip>
+            </div>
           </template>
 
           <!-- Suggestions -->
@@ -244,6 +257,17 @@
       @confirm="onConfirmRemove"
       @close="closeConfirmRemoveModal"
     />
+    <CustomerHistoryModal
+      v-if="showHistoryModal"
+      :customer="selectedUser"
+      :outlet="outlet"
+      :delivery-zone-options="deliveryZoneOptions"
+      :takeaway-promise-time="selectedZoneDetails?.takeawayPromiseTime || 0"
+      :delivery-promise-time="selectedZoneDetails?.deliveryPromiseTime || 0"
+      :delivery-fee="selectedZoneDetails?.deliveryCharge || 0"
+      :selected-tab="selectedTab"
+      @close="showHistoryModal = false"
+    />
   </div>
 </template>
 
@@ -254,6 +278,7 @@ import axios from 'axios'
 import { useServiceStore } from '@/stores/services.ts'
 import CustomerModal from '../modals/CustomerModal.vue'
 import ConfirmRemoveCustomerDetails from '../modals/ConfirmRemoveCustomerDetails.vue'
+import CustomerHistoryModal from '../modals/CustomerHistoryModal.vue'
 import { useOrderStore } from '@/stores/order-store'
 import { onClickOutside } from '@vueuse/core'
 const props = defineProps(['forceRemount'])
@@ -284,6 +309,7 @@ const showDeliveryDropdown = ref(false)
 const selectedZoneDetails = ref(null)
 const orderFor = ref('current')
 const showConfirmRemove = ref(false)
+const showHistoryModal = ref(false)
 
 function handleRemoveCustomer() {
   // Check if order has items
