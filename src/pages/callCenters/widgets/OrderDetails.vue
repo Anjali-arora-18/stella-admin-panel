@@ -102,10 +102,18 @@
 
             <!-- Item Total -->
             <div class="flex flex-col items-end">
-              <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
-              <!-- <span v-if="promoTotal && promoMenuItemPrice(item)" class="font-semibold text-red-500"
-                >- €{{ promoMenuItemPrice(item) }}</span
-              > -->
+              <!-- Show both prices if promo applied -->
+              <template v-if="promoTotal && promoMenuItemPrice(item) !== item.total.toFixed(2)">
+                <span class="original-price"> €{{ item.total.toFixed(2) }} </span>
+                <span v-if="promoMenuItemPrice(item) >= 0" class="updated-price">
+                  €{{ promoMenuItemPrice(item) ? promoMenuItemPrice(item) : 0 }}
+                </span>
+              </template>
+
+              <!-- Show normal price if no promo -->
+              <template v-else>
+                <span class="font-semibold text-green-800"> €{{ item.total.toFixed(2) }} </span>
+              </template>
             </div>
           </div>
         </div>
@@ -411,11 +419,12 @@ const promoTotal = computed(() => {
 const orderFor = computed(() => orderStore.orderFor)
 
 const promoMenuItemPrice = function (item) {
+  console.log('Calculating promoMenuItemPrice for item:', promoTotal.value, item)
   if (!promoTotal.value || !item) return 0
   const promoMenuItem = promoTotal.value.menuItems.find((a) => a.menuItemId === item.id)
-  if (!promoMenuItem) return 0
+  if (!promoMenuItem) return item.total
   else {
-    return (promoMenuItem.originalPrice - promoMenuItem.updatedPrice).toFixed(2)
+    return promoMenuItem.updatedPrice ? promoMenuItem.updatedPrice.toFixed(2) : promoMenuItem.updatedPrice
   }
 }
 
@@ -635,19 +644,16 @@ function closePromotionModal() {
 }
 </script>
 <style>
-/* .order-items-height,
-.order-items-min-height {
-  overflow-y: auto;
-  background: #fff;
-  border-radius: 0 0 8px 8px;
-  overflow: hidden;
+.original-price {
+  text-decoration: line-through;
+  color: #9ca3af;
+  font-size: 0.8rem;
 }
-.order-items-height {
-  overflow-y: auto;
-  height: calc(100vh - 380px);
+
+.updated-price {
+  color: #dc2626;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-top: 2px;
 }
-.order-items-min-height {
-  overflow-y: auto;
-  height: calc(100vh - 610px);
-} */
 </style>
