@@ -211,7 +211,9 @@
 
               <div class="flex flex-wrap gap-1 text-xs">
                 <span
-                  v-for="addon in item.options || []"
+                  v-for="addon in item.articlesOptionsGroup
+                    .flatMap((a) => a.articlesOptions)
+                    .filter((a) => a.selected) || []"
                   :key="addon.name"
                   class="px-2 py-0.5 rounded-full"
                   :class="{
@@ -364,6 +366,7 @@ import { ref, onMounted, reactive, computed } from 'vue'
 import axios from 'axios'
 import { useUsersStore } from '@/stores/users.ts'
 import { useMenuStore } from '@/stores/getMenu'
+import { useOrderStore } from '@/stores/order-store.ts'
 import HistoryAddNoteModal from './HistoryAddNoteModal.vue'
 import HistoryComplaintModal from './HistoryComplaintModal.vue'
 import { useToast } from 'vuestic-ui'
@@ -560,11 +563,50 @@ const editSelected = async (orderId) => {
 const repeatOrder = async (orderId) => {
   const order = orders.value.find((o) => o._id === orderId)
   if (!order) return
+  const data = order.menuItems.map((menuItem) => {
+    return {
+      itemId: menuItem._id,
+      itemName: menuItem.menuItem,
+      basePrice: parseFloat(menuItem.price) || 0,
+      totalPrice: 0,
+      imageUrl: menuItem.imageUrl || '',
+      promotionCode: menuItem.promotionCode || '',
+      isRepeatedOrder: true,
+      quantity: menuItem.quantity,
+      isFree: !!menuItem.isFree,
+      selectedOptions: menuItem.articlesOptionsGroup
+        .filter((group) => {
+          const doesGroupHasOptions = group.articlesOptions.filter((opt) => opt.selected)
+          return doesGroupHasOptions.length > 0
+        })
+        .map((group) => {
+          return {
+            groupId: group._id,
+            groupName: group.name,
+            categoryId: menuItem.categories.length > 0 ? menuItem.categories[0]._id : null,
+            menuItemId: menuItem._id,
+            selected: group.articlesOptions
+              .filter((opt) => opt.selected)
+              .map((opt) => ({
+                ...opt,
+                optionId: opt._id,
+                optionName: opt.name,
+                price: opt.price || 0,
+                type: opt.type,
+                quantity: opt.quantity || 1,
+              })),
+          }
+        }),
+    }
+  })
+  const orderStore = useOrderStore()
+  data.map((e) => {
+    orderStore.addItemToCart(e)
+    const newIndex = orderStore.cartItems.length - 1
+    orderStore.calculateItemTotal(newIndex)
+  })
 
-  const payload = buildOfferMenuItemsPayload(order.menuItems)
-
-  await applyOrderEdit(orderId, 'repeat', order.tableNumber, payload)
-  fetchOrders()
+  emits('close')
 }
 
 const addItemsToOrder = async (orderId) => {
@@ -683,21 +725,23 @@ const fetchOrders = async () => {
       orders.value = res.data.data.items.map((order) => {
         const detailedItems = (order.menuItems || []).map((item) => {
           const menuItem = menuItems.unFilteredMenuItems.find((mi) => mi._id === item.menuItem)
-          const options = menuItem.articlesOptionsGroup.flatMap((group) => group.articlesOptions)
 
           return {
             ...item,
             menuItem: menuItem ? menuItem.name : 'Unknown Item',
             ...menuItem,
-            options:
-              item.options.map((opt) => {
-                const optionDetails = options?.find((o) => o._id === opt.option)
-                return {
-                  ...opt,
-                  ...optionDetails,
-                  name: optionDetails ? optionDetails.name : 'Unknown Option',
-                }
-              }) || [],
+            articlesOptionsGroup: menuItem.articlesOptionsGroup.map((group) => ({
+              ...group,
+              articlesOptions:
+                group.articlesOptions.map((opt) => {
+                  const optionDetails = item.options?.find((o) => o.option === opt._id)
+                  return {
+                    ...opt,
+                    ...optionDetails,
+                    selected: !!optionDetails,
+                  }
+                }) || [],
+            })),
           }
         })
         return {
@@ -705,6 +749,7 @@ const fetchOrders = async () => {
           menuItems: detailedItems,
         }
       })
+      console.log('Fetched orders:', orders.value)
     } else {
       orders.value = []
     }
