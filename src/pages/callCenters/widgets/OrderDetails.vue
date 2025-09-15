@@ -1,6 +1,8 @@
 <template>
   <div class="w-full">
-    <h2 class="font-semibold text-md text-gray-800 border-b pb-1">Order Details</h2>
+    <h2 class="font-semibold text-md text-gray-800 border-b pb-1">
+      Order Details {{ orderStore.editOrder ? '(Edit - ' + orderStore.editOrder.tableNumber + ')' : '' }}
+    </h2>
     <template v-if="items.length || offersItems.length">
       <!-- Promo Code with Button -->
       <div class="flex flex-wrap items-center gap-1 mt-3 mb-3 w-full">
@@ -201,8 +203,13 @@
           <span>- €{{ (promoTotal.originalTotal - promoTotal.updatedTotal).toFixed(2) }}</span>
         </div>
         <div class="flex justify-between font-bold text-xs pt-1 border-t">
-          <span>Total:</span>
-          <span v-if="!promoTotal">€{{ total.toFixed(2) }}</span>
+          <span v-if="orderStore.editOrder"
+            >Total:
+            <span class="text-green-600">PAID AMOUNT: €{{ orderStore.editOrder.total.toFixed(2) }}</span>
+          </span>
+          <span v-else>Total:</span>
+          <span v-if="orderStore.editOrder">Balance €{{ getTotalPrice }}</span>
+          <span v-else-if="!promoTotal">€{{ total.toFixed(2) }}</span>
           <span v-else>€{{ promoTotal.updatedTotal.toFixed(2) }}</span>
         </div>
       </div>
@@ -262,7 +269,7 @@
 </template>
 
 <script setup>
-import { ref, computed, useTemplateRef } from 'vue'
+import { ref, computed, useTemplateRef, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useOrderStore } from '@/stores/order-store'
 import { useServiceStore } from '@/stores/services.ts'
@@ -297,6 +304,17 @@ const formattedLabel = (sel) => {
   const totalPrice = sel.price * sel.quantity
   return totalPrice > 0 ? `${sel.name} (+€${totalPrice.toFixed(2)})` : sel.name
 }
+
+const getTotalPrice = computed(() => {
+  if (orderStore.editOrder) {
+    if (promoTotal.value) {
+      return (promoTotal.value.updatedTotal - orderStore.editOrder.total).toFixed(2) || 0
+    } else {
+      return (total.value - orderStore.editOrder.total).toFixed(2) || 0
+    }
+  }
+  return total.value.toFixed(2)
+})
 
 const orderItemsStyle = computed(() => {
   let height = {}
@@ -642,6 +660,16 @@ function closeOfferModal() {
 function closePromotionModal() {
   showPromotionModal.value = false
 }
+
+watch(
+  () => orderStore.editOrder,
+  () => {
+    // Reset promo code and validity when order type changes
+    if (!orderStore.cartItems.length) {
+      orderStore.resetEditOrder()
+    }
+  },
+)
 </script>
 <style>
 .original-price {

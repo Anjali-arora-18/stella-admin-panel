@@ -83,14 +83,19 @@
               <span>Delivery Fee:</span>
               <span>€{{ deliveryFee.toFixed(2) }}</span>
             </div>
-            <div v-if="promotTotal" class="total-row">
+            <div v-if="promoTotal" class="total-row">
               <span>Total Discount:</span>
-              <span>- €{{ (promotTotal.originalTotal - promotTotal.updatedTotal).toFixed(2) }}</span>
+              <span>- €{{ (promoTotal.originalTotal - promoTotal.updatedTotal).toFixed(2) }}</span>
             </div>
             <div class="total-row total-final">
-              <span>Total Amount:</span>
-              <span v-if="!promotTotal">€{{ (totalAmount + deliveryFee).toFixed(2) }}</span>
-              <span v-else>€{{ promotTotal.updatedTotal.toFixed(2) }}</span>
+              <span v-if="orderStore.editOrder"
+                >Total:
+                <span class="text-green-600">PAID AMOUNT: €{{ orderStore.editOrder.total.toFixed(2) }}</span>
+              </span>
+              <span v-else>Total:</span>
+              <span v-if="orderStore.editOrder">Balance €{{ getTotalPrice }}</span>
+              <span v-else-if="!promoTotal">€{{ (totalAmount + deliveryFee).toFixed(2) }}</span>
+              <span v-else>€{{ promoTotal.updatedTotal.toFixed(2) }}</span>
             </div>
           </div>
         </div>
@@ -124,7 +129,7 @@
             id="confirmBtn"
             :disabled="apiLoading || !selectedPayment"
             class="btn btn-primary"
-            @click="createOrder"
+            @click="orderStore.editOrder ? updateOrder() : createOrder()"
           >
             <span v-if="!apiLoading" id="btnText">
               {{ orderId && selectedPayment === 'Card' ? 'Retry Payment' : 'Payment' }}</span
@@ -208,6 +213,18 @@ const etaTime = computed(() => {
   }
 })
 
+const getTotalPrice = computed(() => {
+  const total = totalAmount.value + props.deliveryFee
+  if (orderStore.editOrder) {
+    if (promoTotal.value) {
+      return (promoTotal.value.updatedTotal - orderStore.editOrder.total).toFixed(2) || 0
+    } else {
+      return (total - orderStore.editOrder.total).toFixed(2) || 0
+    }
+  }
+  return total.toFixed(2)
+})
+
 onMounted(() => {
   if (serviceStore.selectedRest) {
     getPaymentOptions()
@@ -272,7 +289,7 @@ const subtotal = computed(() => {
   )
 })
 
-const promotTotal = computed(() => {
+const promoTotal = computed(() => {
   return orderStore.cartTotal !== null ? orderStore.cartTotal : null
 })
 
@@ -314,6 +331,53 @@ async function checkPaymentStatus(requestId, paymentId) {
       message: response.data.message,
     })
     orderStore.setPaymentLink('')
+  }
+}
+
+async function updateOrder() {
+  const url = import.meta.env.VITE_API_BASE_URL
+  const userStore = useUsersStore()
+  try {
+    const res = await axios.post(
+      `${url}/order-edits/${orderStore.editOrder._id}/apply`,
+      {
+        action: 'edit',
+        tableNumber: orderStore.editOrder.tableNumber,
+
+        menuItems: orderStore.cartItems.map((e) => {
+          return {
+            menuItem: e.itemId,
+            quantity: e.quantity,
+            options: e.selectedOptions.flatMap((group) =>
+              group.selected.map((option) => ({
+                option: option.optionId,
+                quantity: option.quantity,
+              })),
+            ),
+          }
+        }),
+      },
+      {
+        params: {
+          orderId: orderStore.editOrder._id,
+          tableNumber: orderStore.editOrder.tableNumber,
+          posUser: userStore.userDetails.posCreds.posId || 'STELLA',
+          posPass: userStore.userDetails.posCreds.posPassword || 'St3ll@',
+        },
+      },
+    )
+    init({
+      message: res.data.message,
+      color: res.data.status !== 'Failed' ? 'success' : 'danger',
+    })
+    orderStore.editOrder = null
+    orderStore.cartItems = []
+    window.location.reload()
+    return res.data
+  } catch (err) {
+    console.error('Order edit failed:', err)
+    init({ message: err.response.data.message, color: 'danger' })
+    throw err
   }
 }
 

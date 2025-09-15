@@ -494,21 +494,21 @@ const confirmYes = () => {
   if (!confirmAction.value || !confirmOrderId.value) return
 
   switch (confirmAction.value) {
-  case 'remove':
-    removeSelected(confirmOrderId.value)
-    break
-  case 'edit':
-    editSelected(confirmOrderId.value)
-    break
-  case 'repeat':
-    repeatOrder(confirmOrderId.value)
-    break
-  case 'add':
-    addItemsToOrder(confirmOrderId.value)
-    break
-  case 'cancel':
-    cancelOrder(confirmOrderId.value)
-    break
+    case 'remove':
+      removeSelected(confirmOrderId.value)
+      break
+    case 'edit':
+      editSelected(confirmOrderId.value)
+      break
+    case 'repeat':
+      repeatOrder(confirmOrderId.value)
+      break
+    case 'add':
+      addItemsToOrder(confirmOrderId.value)
+      break
+    case 'cancel':
+      cancelOrder(confirmOrderId.value)
+      break
   }
 
   isConfirmOpen.value = false
@@ -565,13 +565,58 @@ const editSelected = async (orderId) => {
   const order = orders.value.find((o) => o._id === orderId)
   if (!order) return
 
-  const items = (selectedItems[orderId] || []).map((i) => order.menuItems[i])
-  if (!items.length) return
+  // const items = (selectedItems[orderId] || []).map((i) => order.menuItems[i])
+  // if (!items.length) return
 
-  const payload = buildOfferMenuItemsPayload(items)
+  // console.log('Edit items:', items)
 
-  await applyOrderEdit(orderId, 'edit', order.tableNumber, payload)
-  fetchOrders()
+  const data = order.menuItems.map((menuItem) => {
+    return {
+      orderId: orderId,
+      itemId: menuItem._id,
+      itemName: menuItem.menuItem,
+      basePrice: parseFloat(menuItem.price) || 0,
+      totalPrice: 0,
+      imageUrl: menuItem.imageUrl || '',
+      promotionCode: menuItem.promotionCode || '',
+      isRepeatedOrder: true,
+      quantity: menuItem.quantity,
+      isFree: !!menuItem.isFree,
+      selectedOptions: menuItem.articlesOptionsGroup
+        .filter((group) => {
+          const doesGroupHasOptions = group.articlesOptions.filter((opt) => opt.selected)
+          return doesGroupHasOptions.length > 0
+        })
+        .map((group) => {
+          return {
+            groupId: group._id,
+            groupName: group.name,
+            categoryId: menuItem.categories.length > 0 ? menuItem.categories[0].id : null,
+            menuItemId: menuItem._id,
+            selected: group.articlesOptions
+              .filter((opt) => opt.selected)
+              .map((opt) => ({
+                ...opt,
+                optionId: opt._id,
+                optionName: opt.name,
+                price: parseFloat(opt.price) || 0,
+                type: opt.type,
+                quantity: opt.quantity || 1,
+              })),
+          }
+        }),
+    }
+  })
+
+  const orderStore = useOrderStore()
+  orderStore.addEditOrder(order)
+  data.map((e) => {
+    orderStore.addItemToCart(e)
+    const newIndex = orderStore.cartItems.length - 1
+    orderStore.calculateItemTotal(newIndex)
+  })
+
+  emits('close')
 }
 
 const repeatOrder = async (orderId) => {
@@ -597,7 +642,7 @@ const repeatOrder = async (orderId) => {
           return {
             groupId: group._id,
             groupName: group.name,
-            categoryId: menuItem.categories.length > 0 ? menuItem.categories[0]._id : null,
+            categoryId: menuItem.categories.length > 0 ? menuItem.categories[0].id : null,
             menuItemId: menuItem._id,
             selected: group.articlesOptions
               .filter((opt) => opt.selected)
@@ -763,6 +808,7 @@ const fetchOrders = async () => {
           menuItems: detailedItems,
         }
       })
+      console.log(orders.value)
     } else {
       orders.value = []
     }
