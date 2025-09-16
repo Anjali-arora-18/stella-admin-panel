@@ -91,6 +91,13 @@
     <span class="text-xs text-gray-400">({{ promoStats.percent }}%)</span>
   </span>
 </div>
+<div class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition">
+  <span class="text-sm font-bold mb-1 text-yellow-400">Promo Codes:</span>
+  <span class="text-lg font-semibold">
+    {{ promoStats.count }} 
+    <span class="text-xs text-gray-400">({{ promoStats.percent }}%)</span>
+  </span>
+</div>
           <div class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition">
   <span class="text-sm font-bold mb-1 text-red-500">Complaints:</span>
   <span class="text-lg font-semibold">
@@ -128,6 +135,12 @@
           <span>Order</span>
         </div>
         <div
+  class="flex justify-between items-center p-4 cursor-pointer transition group hover:bg-gray-100"
+  :class="{
+    'bg-gray-100': expandedIndex === index,
+  }"
+  @click="toggleOrder(index)"
+>
   class="flex justify-between items-center p-4 cursor-pointer transition group hover:bg-gray-100"
   :class="{
     'bg-gray-100': expandedIndex === index,
@@ -228,12 +241,35 @@
     </span>
   </div>
 </div>
+<div v-if="order.note" class="ml-2">
+  <div
+    class="flex flex-col items-center justify-center text-sm text-center cursor-pointer 
+           rounded-lg transition-colors duration-200 group hover:bg-gray-200 p-2 w-24 gap-1"
+    @click.stop="openNote(order._id, order.note)"
+  >
+    <span class="flex items-center justify-center">
+      <NotepadText class="w-8 h-8 text-black" />
+    </span>
+    <span
+      class="font-semibold truncate"
+      style="
+        max-width: 150px;
+        display: inline-block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      "
+    >
+      Note
+    </span>
+  </div>
+</div>
 
 
 <div class="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition mr-5">
   <span
     v-if="!order.complaint || order.complaint === ''"
-    class="flex items-center gap-1 rounded-full text-black px-2 py-2 font-semibold text-xs cursor-pointer bg-gray-200 hover:bg-gray-300 transition-colors"
+    class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer bg-gray-100 hover:bg-gray-300 transition-colors"
     @click.stop="openComplaint(order._id)"
   >
     <TriangleAlert class="w-4 h-4 text-red-600" /> Add Complaint
