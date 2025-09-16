@@ -437,7 +437,6 @@ const promoTotal = computed(() => {
 const orderFor = computed(() => orderStore.orderFor)
 
 const promoMenuItemPrice = function (item) {
-  console.log('Calculating promoMenuItemPrice for item:', promoTotal.value, item)
   if (!promoTotal.value || !item) return 0
   const promoMenuItem = promoTotal.value.menuItems.find((a) => a.menuItemId === item.id)
   if (!promoMenuItem) return item.total
