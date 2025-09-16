@@ -672,24 +672,22 @@ const addItemsToOrder = async (orderId) => {
   const order = orders.value.find((o) => o._id === orderId)
   if (!order) return
 
-  const items = (selectedItems[orderId] || []).map((i) => order.menuItems[i])
-  if (!items.length) return
+  const orderStore = useOrderStore()
+  orderStore.addEditOrder(order)
 
-  const payload = buildOfferMenuItemsPayload(items, '687e0a484e996f117b336b39') // pass actual offerId
-
-  await applyOrderEdit(orderId, 'add', order.tableNumber, payload)
-  fetchOrders()
+  emits('close')
 }
 
-const cancelOrder = async (orderId) => {
+async function cancelOrder(orderId) {
   const order = orders.value.find((o) => o._id === orderId)
-  if (!order) return
-
-  await applyOrderEdit(orderId, 'cancel', order.tableNumber)
+  const payload = {
+    cancelReasonId: 'Order is cancelled',
+  }
+  await applyOrderEdit(orderId, 'cancel', order.tableNumber, payload)
   fetchOrders()
 }
+
 const buildOfferMenuItemsPayload = (items) => {
-  // Group items by offerId (because one order can have multiple offers)
   const menuItems = []
 
   items.forEach((item) => {
