@@ -20,9 +20,9 @@
     <template #footer>
       <div class="flex justify-end gap-3">
         <VaButton preset="secondary" @click="close">Cancel</VaButton>
-        <VaButton v-if="isEditing" color="warning" @click="removeComplaint"> Remove </VaButton>
+        <VaButton v-if="isEditing" color="danger" @click="removeComplaint"> Remove </VaButton>
 
-        <VaButton color="danger" @click="isEditing ? updateComplaint() : saveComplaint()">
+        <VaButton color="primary" @click="isEditing ? updateComplaint() : saveComplaint()">
           {{ isEditing ? 'Update Complaint' : 'Save Complaint' }}
         </VaButton>
       </div>
