@@ -209,7 +209,7 @@
           </div>
 
           <!-- Note display -->
-          <div v-if="order.note" class="ml-5 space-y-1">
+          <div v-if="order.note" class="ml-8 space-y-1">
             <div
               class="flex flex-col items-center text-sm text-center cursor-pointer"
               @click.stop="openNote(order._id, order.note)"
