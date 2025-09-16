@@ -201,77 +201,7 @@
   </div>
 </div>
 
-<!-- Note display -->
-<div v-if="order.note" class="ml-8 space-y-1">
-            <div
-              class="flex flex-col items-center text-sm text-center cursor-pointer"
-              @click.stop="openNote(order._id, order.note)"
-            >
-              <span class="flex items-center justify-center text-blue-600">
-                <VaIcon name="note" size="24px" class="rounded-full" />
-              </span>
-              <span
-                class="font-semibold truncate"
-                style="
-                  max-width: 150px;
-                  display: inline-block;
-                  white-space: nowrap;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                "
-              >
-                Note
-              </span>
-            </div>
-          </div>
 
-          <div class="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition mr-5">
-            <span
-              v-if="!order.complaint || order.complaint === ''"
-              class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer"
-              style="background-color: #f4f4f6"
-              @click.stop="openComplaint(order._id)"
-            >
-              <VaIcon name="warning" color="danger" size="small" /> Add Complaint
-            </span>
-
-            <span
-              v-if="!order.note || order.note === ''"
-              size="small"
-              class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer"
-              style="background-color: #f4f4f6"
-              @click.stop="openNote(order._id, order.note)"
-            >
-              <VaIcon name="note" size="small" /> Add Note
-            </span>
-
-            <span
-              size="small"
-              class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer"
-              style="background-color: #f4f4f6"
-              @click.stop="openConfirm('repeat', order._id)"
-            >
-              <VaIcon name="notes" size="small" /> Repeat Order
-            </span>
-
-            <span
-              size="small"
-              class="flex items-center gap-1 rounded-full text-white px-2 py-1.5 font-semibold text-xs cursor-pointer"
-              style="background-color: #2d5d2a"
-              @click.stop="openConfirm('add', order._id)"
-            >
-              <VaIcon name="add" size="small" /> Add Items
-            </span>
-
-            <span
-              size="small"
-              class="flex items-center gap-1 rounded-full text-white px-2 py-1.5 font-semibold text-xs cursor-pointer"
-              style="background-color: #de1a22"
-              @click.stop="openConfirm('cancel', order._id)"
-            >
-              <VaIcon name="cancel" size="small" /> Cancel Order
-            </span>
-          </div>
 
 <div class="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition mr-5">
   <span
