@@ -10,7 +10,7 @@
   >
     <!-- HEADER -->
     <h3 class="w-full bg-gray-900 text-white p-6">
-  <div class="flex flex-col md:flex-row md:items-center gap-8 w-full">
+  <div class="flex flex-col md:flex-row md:items-center gap-16 w-full">
     <!-- LEFT: Title + Customer -->
     <div class="flex flex-col flex-shrink-0">
       <span class="text-sm uppercase tracking-wider text-gray-400 pb-1 border-b-2 border-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
@@ -240,12 +240,12 @@
   </span>
 
   <span
-    size="small"
-    class="flex items-center gap-1 rounded-full text-black px-2 py-2 font-semibold text-xs cursor-pointer bg-gray-200 hover:bg-gray-300 transition-colors"
-    @click.stop="openNote(order._id, order.note)"
-  >
-    <NotepadText class="w-4 h-4" /> Add Note
-  </span>
+  v-if="!order.note || order.note === ''"
+  class="flex items-center gap-1 rounded-full text-black px-2 py-2 font-semibold text-xs cursor-pointer bg-gray-200 hover:bg-gray-300 transition-colors"
+  @click.stop="openNote(order._id, order.note)"
+>
+  <NotepadText class="w-4 h-4" /> Add Note
+</span>
 
   <span
     size="small"
