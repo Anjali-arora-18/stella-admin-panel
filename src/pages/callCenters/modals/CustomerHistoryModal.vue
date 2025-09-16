@@ -84,10 +84,13 @@
   </span>
 </div>
 
-          <div class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition">
-            <span class="text-sm font-bold mb-1 text-yellow-400">Promo Codes:</span>
-            <span class="text-lg font-semibold">0 <span class="text-xs text-gray-400">(0%)</span></span>
-          </div>
+<div class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition">
+  <span class="text-sm font-bold mb-1 text-yellow-400">Promo Codes:</span>
+  <span class="text-lg font-semibold">
+    {{ promoStats.count }} 
+    <span class="text-xs text-gray-400">({{ promoStats.percent }}%)</span>
+  </span>
+</div>
           <div class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition">
   <span class="text-sm font-bold mb-1 text-red-500">Complaints:</span>
   <span class="text-lg font-semibold">
@@ -125,12 +128,12 @@
           <span>Order</span>
         </div>
         <div
-          class="flex justify-between items-center p-4 cursor-pointer transition group"
-          :class="{
-            'bg-gray-200': expandedIndex === index,
-          }"
-          @click="toggleOrder(index)"
-        >
+  class="flex justify-between items-center p-4 cursor-pointer transition group hover:bg-gray-100"
+  :class="{
+    'bg-gray-100': expandedIndex === index,
+  }"
+  @click="toggleOrder(index)"
+>
           <!-- LEFT DETAILS -->
           <div class="flex items-center gap-8 font-semibold">
             <div>
@@ -180,11 +183,11 @@
           <div v-if="order.complaint" class="ml-10">
   <div
     class="flex flex-col items-center justify-center text-sm text-center cursor-pointer 
-           rounded-lg transition-colors duration-200 group hover:bg-gray-200 p-2 w-34"
+           rounded-lg transition-colors duration-200 group hover:bg-gray-200 p-2 w-24 "
     @click.stop="editComplaint(order._id, order.complaint)"
   >
     <span class="flex items-center justify-center">
-      <TriangleAlert class="w-9 h-9 fill-red-600 stroke-white" />
+      <TriangleAlert class="w-9 h-9 text-red-500" />
     </span>
     <span
       class="font-semibold truncate"
@@ -202,81 +205,35 @@
 </div>
 
 <!-- Note display -->
-<div v-if="order.note" class="ml-8 space-y-1">
-            <div
-              class="flex flex-col items-center text-sm text-center cursor-pointer"
-              @click.stop="openNote(order._id, order.note)"
-            >
-              <span class="flex items-center justify-center text-blue-600">
-                <VaIcon name="note" size="24px" class="rounded-full" />
-              </span>
-              <span
-                class="font-semibold truncate"
-                style="
-                  max-width: 150px;
-                  display: inline-block;
-                  white-space: nowrap;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                "
-              >
-                Note
-              </span>
-            </div>
-          </div>
+<div v-if="order.note" class="ml-2">
+  <div
+    class="flex flex-col items-center justify-center text-sm text-center cursor-pointer 
+           rounded-lg transition-colors duration-200 group hover:bg-gray-200 p-2 w-24 gap-1"
+    @click.stop="openNote(order._id, order.note)"
+  >
+    <span class="flex items-center justify-center">
+      <NotepadText class="w-8 h-8 text-black" />
+    </span>
+    <span
+      class="font-semibold truncate"
+      style="
+        max-width: 150px;
+        display: inline-block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      "
+    >
+      Note
+    </span>
+  </div>
+</div>
 
-          <div class="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition mr-5">
-            <span
-              v-if="!order.complaint || order.complaint === ''"
-              class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer"
-              style="background-color: #f4f4f6"
-              @click.stop="openComplaint(order._id)"
-            >
-              <VaIcon name="warning" color="danger" size="small" /> Add Complaint
-            </span>
-
-            <span
-              v-if="!order.note || order.note === ''"
-              size="small"
-              class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer"
-              style="background-color: #f4f4f6"
-              @click.stop="openNote(order._id, order.note)"
-            >
-              <VaIcon name="note" size="small" /> Add Note
-            </span>
-
-            <span
-              size="small"
-              class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer"
-              style="background-color: #f4f4f6"
-              @click.stop="openConfirm('repeat', order._id)"
-            >
-              <VaIcon name="notes" size="small" /> Repeat Order
-            </span>
-
-            <span
-              size="small"
-              class="flex items-center gap-1 rounded-full text-white px-2 py-1.5 font-semibold text-xs cursor-pointer"
-              style="background-color: #2d5d2a"
-              @click.stop="openConfirm('add', order._id)"
-            >
-              <VaIcon name="add" size="small" /> Add Items
-            </span>
-
-            <span
-              size="small"
-              class="flex items-center gap-1 rounded-full text-white px-2 py-1.5 font-semibold text-xs cursor-pointer"
-              style="background-color: #de1a22"
-              @click.stop="openConfirm('cancel', order._id)"
-            >
-              <VaIcon name="cancel" size="small" /> Cancel Order
-            </span>
-          </div>
 
 <div class="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition mr-5">
   <span
     v-if="!order.complaint || order.complaint === ''"
-    class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer bg-gray-100 hover:bg-gray-300 transition-colors"
+    class="flex items-center gap-1 rounded-full text-black px-2 py-2 font-semibold text-xs cursor-pointer bg-gray-200 hover:bg-gray-300 transition-colors"
     @click.stop="openComplaint(order._id)"
   >
     <TriangleAlert class="w-4 h-4 text-red-600" /> Add Complaint
@@ -284,7 +241,7 @@
 
   <span
     size="small"
-    class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer bg-gray-100 hover:bg-gray-300 transition-colors"
+    class="flex items-center gap-1 rounded-full text-black px-2 py-2 font-semibold text-xs cursor-pointer bg-gray-200 hover:bg-gray-300 transition-colors"
     @click.stop="openNote(order._id, order.note)"
   >
     <NotepadText class="w-4 h-4" /> Add Note
@@ -292,7 +249,7 @@
 
   <span
     size="small"
-    class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer bg-gray-100 hover:bg-gray-300 transition-colors"
+    class="flex items-center gap-1 rounded-full text-black px-2 py-2 font-semibold text-xs cursor-pointer bg-gray-200 hover:bg-gray-300 transition-colors"
     @click.stop="openConfirm('repeat', order._id)"
   >
     <CopyPlus class="w-4 h-4" /> Repeat Order
@@ -300,7 +257,7 @@
 
   <span
     size="small"
-    class="flex items-center gap-1 rounded-full text-white px-2 py-1.5 font-semibold text-xs cursor-pointer bg-green-700 hover:bg-green-900 transition-colors"
+    class="flex items-center gap-1 rounded-full text-white px-2 py-2 font-semibold text-xs cursor-pointer bg-green-600 hover:bg-green-700 transition-colors"
     @click.stop="openConfirm('add', order._id)"
   >
     <Plus class="w-4 h-4" /> Add Items
@@ -308,7 +265,7 @@
 
   <span
     size="small"
-    class="flex items-center gap-1 rounded-full text-white px-2 py-1.5 font-semibold text-xs cursor-pointer bg-red-600 hover:bg-red-800 transition-colors"
+    class="flex items-center gap-1 rounded-full text-white px-2 py-2 font-semibold text-xs cursor-pointer bg-red-600 hover:bg-red-700 transition-colors"
     @click.stop="openConfirm('cancel', order._id)"
   >
     <X class="w-4 h-4" /> Cancel Order
@@ -316,7 +273,7 @@
 </div>
 
 <span
-  class="px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide flex items-center gap-1 transition-colors"
+  class="px-3 py-2 rounded-full text-xs font-semibold tracking-wide flex items-center gap-1 transition-colors"
   :class="{
     'bg-green-600 text-white': order.status === 'Completed',
     'bg-yellow-500 text-white': order.status === 'In Progress',
@@ -936,7 +893,7 @@ const getDeliveryZoneName = (deliveryZoneId) => {
 const showAll = ref(false)
 
 const ordersToShow = computed(() => {
-  return showAll.value ? orders.value : orders.value.slice(0, 7)
+  return showAll.value ? orders.value : orders.value.slice(0, 5)
 })
 
 const url = import.meta.env.VITE_API_BASE_URL
@@ -1136,8 +1093,10 @@ const averageOrder = computed(() => {
 
 // Promo Codes
 const promoStats = computed(() => {
-  const count = filteredOrders.value.filter(o => o.promoCodeApplied).length
-  const percent = filteredOrders.value.length ? Math.round((count / filteredOrders.value.length) * 100) : 0
+  const count = filteredOrders.value.filter(o => o.discount && o.discount > 0).length
+  const percent = filteredOrders.value.length
+    ? Math.round((count / filteredOrders.value.length) * 100)
+    : 0
   return { count, percent }
 })
 
