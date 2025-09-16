@@ -177,85 +177,93 @@
           </div>
 
           <!-- Complaints list -->
-          <div v-if="order.complaint" class="ml-5 space-y-1">
-            <div
-              class="flex flex-col items-center text-sm text-center cursor-pointer"
-              @click.stop="editComplaint(order._id, order.complaint)"
-            >
-              <span class="flex items-center justify-center" style="color: #de1a22">
-                <VaIcon name="warning" size="24px" class="rounded-full" />
-              </span>
-              <span
-                class="font-semibold truncate"
-                style="
-                  max-width: 150px;
-                  display: inline-block;
-                  white-space: nowrap;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                "
-                >Complaint</span
-              >
-            </div>
-          </div>
+          <div v-if="order.complaint" class="ml-10">
+  <div
+    class="flex flex-col items-center justify-center text-sm text-center cursor-pointer 
+           rounded-lg transition-colors duration-200 group hover:bg-gray-200 p-2 w-34"
+    @click.stop="editComplaint(order._id, order.complaint)"
+  >
+    <span class="flex items-center justify-center">
+      <TriangleAlert class="w-9 h-9 fill-red-600 stroke-white" />
+    </span>
+    <span
+      class="font-semibold truncate"
+      style="
+        max-width: 150px;
+        display: inline-block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      "
+    >
+      Complaint
+    </span>
+  </div>
+</div>
 
-          <div class="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition mr-5">
-            <span
-              v-if="!order.complaint || order.complaint === ''"
-              class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer"
-              style="background-color: #f4f4f6"
-              @click.stop="openComplaint(order._id)"
-            >
-              <VaIcon name="warning" color="danger" size="small" /> Add Complaint
-            </span>
 
-            <span
-              size="small"
-              class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer"
-              style="background-color: #f4f4f6"
-              @click.stop="openNote(order._id, order.note)"
-            >
-              <VaIcon name="note" size="small" /> Add Note
-            </span>
 
-            <span
-              size="small"
-              class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer"
-              style="background-color: #f4f4f6"
-              @click.stop="openConfirm('repeat', order._id)"
-            >
-              <VaIcon name="notes" size="small" /> Repeat Order
-            </span>
+<div class="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition mr-5">
+  <span
+    v-if="!order.complaint || order.complaint === ''"
+    class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer bg-gray-100 hover:bg-gray-300 transition-colors"
+    @click.stop="openComplaint(order._id)"
+  >
+    <TriangleAlert class="w-4 h-4 text-red-600" /> Add Complaint
+  </span>
 
-            <span
-              size="small"
-              class="flex items-center gap-1 rounded-full text-white px-2 py-1.5 font-semibold text-xs cursor-pointer"
-              style="background-color: #2d5d2a"
-              @click.stop="openConfirm('add', order._id)"
-            >
-              <VaIcon name="add" size="small" /> Add Items
-            </span>
+  <span
+    size="small"
+    class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer bg-gray-100 hover:bg-gray-300 transition-colors"
+    @click.stop="openNote(order._id, order.note)"
+  >
+    <NotepadText class="w-4 h-4" /> Add Note
+  </span>
 
-            <span
-              size="small"
-              class="flex items-center gap-1 rounded-full text-white px-2 py-1.5 font-semibold text-xs cursor-pointer"
-              style="background-color: #de1a22"
-              @click.stop="openConfirm('cancel', order._id)"
-            >
-              <VaIcon name="cancel" size="small" /> Cancel Order
-            </span>
-          </div>
+  <span
+    size="small"
+    class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer bg-gray-100 hover:bg-gray-300 transition-colors"
+    @click.stop="openConfirm('repeat', order._id)"
+  >
+    <CopyPlus class="w-4 h-4" /> Repeat Order
+  </span>
 
-          <span
-            class="px-2 py-1 rounded shadow font-semibold"
-            :class="{
-              'bg-green-100 text-green-700': order.status === 'Completed',
-              'bg-yellow-100 text-yellow-700': order.status === 'In Progress',
-              'bg-red-100 text-red-700': order.status === 'Cancelled',
-            }"
-          >
-            {{ order.status }}
-          </span>
+  <span
+    size="small"
+    class="flex items-center gap-1 rounded-full text-white px-2 py-1.5 font-semibold text-xs cursor-pointer bg-green-700 hover:bg-green-900 transition-colors"
+    @click.stop="openConfirm('add', order._id)"
+  >
+    <Plus class="w-4 h-4" /> Add Items
+  </span>
+
+  <span
+    size="small"
+    class="flex items-center gap-1 rounded-full text-white px-2 py-1.5 font-semibold text-xs cursor-pointer bg-red-600 hover:bg-red-800 transition-colors"
+    @click.stop="openConfirm('cancel', order._id)"
+  >
+    <X class="w-4 h-4" /> Cancel Order
+  </span>
+</div>
+
+<span
+  class="px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide flex items-center gap-1 transition-colors"
+  :class="{
+    'bg-green-600 text-white': order.status === 'Completed',
+    'bg-yellow-500 text-white': order.status === 'In Progress',
+    'bg-red-600 text-white': order.status === 'Cancelled',
+  }"
+>
+  <template v-if="order.status === 'Completed'">
+    <CheckCircle class="w-3.5 h-3.5" />
+  </template>
+  <template v-else-if="order.status === 'In Progress'">
+    <Loader2 class="w-3.5 h-3.5 animate-spin-slow" />
+  </template>
+  <template v-else-if="order.status === 'Cancelled'">
+    <XCircle class="w-3.5 h-3.5" />
+  </template>
+  {{ order.status }}
+</span>
         </div>
 
         <!-- EXPANDABLE ARTICLE LIST -->
@@ -449,6 +457,7 @@
 
 <script setup>
 import { ref, onMounted, reactive, computed } from 'vue'
+import { CopyPlus, NotepadText, TriangleAlert, X, Plus, CheckCircle, Loader2, XCircle } from 'lucide-vue-next'
 import axios from 'axios'
 import { useUsersStore } from '@/stores/users.ts'
 import { useMenuStore } from '@/stores/getMenu'
