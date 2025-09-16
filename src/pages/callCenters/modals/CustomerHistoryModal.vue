@@ -10,97 +10,106 @@
   >
     <!-- HEADER -->
     <h3 class="w-full bg-gray-900 text-white p-6">
-  <div class="flex flex-col md:flex-row md:items-center gap-8 w-full">
-    <!-- LEFT: Title + Customer -->
-    <div class="flex flex-col flex-shrink-0">
-      <span class="text-sm uppercase tracking-wider text-gray-400 pb-1 border-b-2 border-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
-        Order History
-      </span>
+      <div class="flex flex-col md:flex-row md:items-center gap-8 w-full">
+        <!-- LEFT: Title + Customer -->
+        <div class="flex flex-col flex-shrink-0">
+          <span
+            class="text-sm uppercase tracking-wider text-gray-400 pb-1 border-b-2 border-gradient-to-r from-blue-400 via-purple-500 to-pink-500"
+          >
+            Order History
+          </span>
 
-      <span class="text-4xl font-extrabold text-white mt-2 tracking-tight drop-shadow-lg">
-        {{ customer?.Name || 'Unknown' }}
-      </span>
+          <span class="text-4xl font-extrabold text-white mt-2 tracking-tight drop-shadow-lg">
+            {{ customer?.Name || 'Unknown' }}
+          </span>
 
-      <span
-        v-if="customer?.Phone"
-        class="text-2xl text-gray-300 font-bold mt-1">
-        {{ customer.Phone }}
-      </span>
-    </div>
-
-    <!-- CENTER: buttons & stats -->
-    <div class="flex-1 flex items-center justify-center">
-      <div class="flex items-center gap-16 w-full">
-        <!-- Time Period Buttons (2x2) -->
-        <div class="grid grid-cols-2 gap-3">
-          <button
-  v-for="period in ['1 Month', '6 Months', '12 Months', 'All Time']"
-  :key="period"
-  @click="selectedPeriod = period"
-  :class="[
-    'px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300',
-    selectedPeriod === period
-      ? 'bg-gray-300 text-black'
-      : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
-  ]"
->
-  {{ period }}
-</button>
-
+          <span v-if="customer?.Phone" class="text-2xl text-gray-300 font-bold mt-1">
+            {{ customer.Phone }}
+          </span>
         </div>
 
-        <!-- Stats grid -->
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-6 text-gray-300 w-full">
-          <div class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition">
-  <span class="text-sm font-bold mb-1 text-blue-400">Last Ordered:</span>
-  <span class="text-lg font-semibold">
-    {{ lastOrdered.daysAgo }}
-    <span class="text-xs text-gray-400">{{ lastOrdered.fullDate }}</span>
-  </span>
-</div>  
-<div class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition">
-  <span class="text-sm font-bold mb-1 text-purple-400">Total:</span>
-  <span class="text-lg font-semibold">
-    € {{ totalStats.total.toFixed(2) }}
-    <span class="text-xs text-gray-400">({{ totalStats.count }} Orders)</span>
-  </span>
-</div>
+        <!-- CENTER: buttons & stats -->
+        <div class="flex-1 flex items-center justify-center">
+          <div class="flex items-center gap-16 w-full">
+            <!-- Time Period Buttons (2x2) -->
+            <div class="grid grid-cols-2 gap-3">
+              <button
+                v-for="period in ['1 Month', '6 Months', '12 Months', 'All Time']"
+                :key="period"
+                :class="[
+                  'px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300',
+                  selectedPeriod === period
+                    ? 'bg-gray-300 text-black'
+                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white',
+                ]"
+                @click="selectedPeriod = period"
+              >
+                {{ period }}
+              </button>
+            </div>
 
-<div class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition">
-  <span class="text-sm font-bold mb-1 text-pink-400">Average Order:</span>
-  <span class="text-lg font-semibold">
-    € {{ averageOrder.average.toFixed(2) }}
-    <span class="text-xs text-gray-400">({{ averageOrder.avgItems.toFixed(0) }} Items)</span>
-  </span>
-</div>
-          <div class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition">
-  <span class="text-sm font-bold mb-1 text-green-400">Type:</span>
-  <span class="text-lg font-semibold">
-    Takeaway: {{ orderTypes.takeaway }}
-    <span class="text-xs text-gray-400">({{ orderTypes.takeawayPercent }}%)</span>
-    /
-    Delivery: {{ orderTypes.delivery }}
-    <span class="text-xs text-gray-400">({{ orderTypes.deliveryPercent }}%)</span>
-  </span>
-</div>
+            <!-- Stats grid -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-6 text-gray-300 w-full">
+              <div
+                class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition"
+              >
+                <span class="text-sm font-bold mb-1 text-blue-400">Last Ordered:</span>
+                <span class="text-lg font-semibold">
+                  {{ lastOrdered.daysAgo }}
+                  <span class="text-xs text-gray-400">{{ lastOrdered.fullDate }}</span>
+                </span>
+              </div>
+              <div
+                class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition"
+              >
+                <span class="text-sm font-bold mb-1 text-purple-400">Total:</span>
+                <span class="text-lg font-semibold">
+                  € {{ totalStats.total.toFixed(2) }}
+                  <span class="text-xs text-gray-400">({{ totalStats.count }} Orders)</span>
+                </span>
+              </div>
 
-          <div class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition">
-            <span class="text-sm font-bold mb-1 text-yellow-400">Promo Codes:</span>
-            <span class="text-lg font-semibold">0 <span class="text-xs text-gray-400">(0%)</span></span>
+              <div
+                class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition"
+              >
+                <span class="text-sm font-bold mb-1 text-pink-400">Average Order:</span>
+                <span class="text-lg font-semibold">
+                  € {{ averageOrder.average.toFixed(2) }}
+                  <span class="text-xs text-gray-400">({{ averageOrder.avgItems.toFixed(0) }} Items)</span>
+                </span>
+              </div>
+              <div
+                class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition"
+              >
+                <span class="text-sm font-bold mb-1 text-green-400">Type:</span>
+                <span class="text-lg font-semibold">
+                  Takeaway: {{ orderTypes.takeaway }}
+                  <span class="text-xs text-gray-400">({{ orderTypes.takeawayPercent }}%)</span>
+                  / Delivery: {{ orderTypes.delivery }}
+                  <span class="text-xs text-gray-400">({{ orderTypes.deliveryPercent }}%)</span>
+                </span>
+              </div>
+
+              <div
+                class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition"
+              >
+                <span class="text-sm font-bold mb-1 text-yellow-400">Promo Codes:</span>
+                <span class="text-lg font-semibold">0 <span class="text-xs text-gray-400">(0%)</span></span>
+              </div>
+              <div
+                class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition"
+              >
+                <span class="text-sm font-bold mb-1 text-red-500">Complaints:</span>
+                <span class="text-lg font-semibold">
+                  {{ complaintStats.count }}
+                  <span class="text-xs text-gray-400">({{ complaintStats.percent }}%)</span>
+                </span>
+              </div>
+            </div>
           </div>
-          <div class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition">
-  <span class="text-sm font-bold mb-1 text-red-500">Complaints:</span>
-  <span class="text-lg font-semibold">
-    {{ complaintStats.count }}
-    <span class="text-xs text-gray-400">({{ complaintStats.percent }}%)</span>
-  </span>
-</div>
-
         </div>
       </div>
-    </div>
-  </div>
-</h3>
+    </h3>
 
     <div v-if="isLoading" class="flex justify-center items-center py-8">
       <VaSpinner size="large" color="primary" />
@@ -199,6 +208,30 @@
             </div>
           </div>
 
+          <!-- Note display -->
+          <div v-if="order.note" class="ml-5 space-y-1">
+            <div
+              class="flex flex-col items-center text-sm text-center cursor-pointer"
+              @click.stop="openNote(order._id, order.note)"
+            >
+              <span class="flex items-center justify-center text-blue-600">
+                <VaIcon name="note" size="24px" class="rounded-full" />
+              </span>
+              <span
+                class="font-semibold truncate"
+                style="
+                  max-width: 150px;
+                  display: inline-block;
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                "
+              >
+                Note
+              </span>
+            </div>
+          </div>
+
           <div class="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition mr-5">
             <span
               v-if="!order.complaint || order.complaint === ''"
@@ -210,6 +243,7 @@
             </span>
 
             <span
+              v-if="!order.note || order.note === ''"
               size="small"
               class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer"
               style="background-color: #f4f4f6"
@@ -510,7 +544,6 @@ const expandedIndex = ref(null)
 const isLoading = ref(true)
 const selectedItems = reactive({})
 const selectedPeriod = ref('1 Month')
-
 
 const isConfirmOpen = ref(false)
 const confirmAction = ref(null)
@@ -993,16 +1026,14 @@ const filteredOrders = computed(() => {
   if (!orders.value || !orders.value.length) return []
 
   const startDate = periodStartDate.value
-  return orders.value.filter(o => o.status === 'Completed' && new Date(o.createdAt) >= startDate)
+  return orders.value.filter((o) => o.status === 'Completed' && new Date(o.createdAt) >= startDate)
 })
 
 // Last Ordered
 const lastOrdered = computed(() => {
   if (!filteredOrders.value.length) return { daysAgo: 'No Orders', fullDate: '' }
 
-  const sorted = [...filteredOrders.value].sort(
-    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-  )
+  const sorted = [...filteredOrders.value].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   const last = sorted[0]
 
   const lastDate = new Date(last.createdAt)
@@ -1011,8 +1042,7 @@ const lastOrdered = computed(() => {
   today.setHours(0, 0, 0, 0)
 
   const diffDays = Math.round((today - lastDate) / (1000 * 60 * 60 * 24))
-  const daysAgoText =
-    diffDays === 0 ? 'Today' : diffDays === 1 ? '1 day ago' : `${diffDays} days ago`
+  const daysAgoText = diffDays === 0 ? 'Today' : diffDays === 1 ? '1 day ago' : `${diffDays} days ago`
 
   return {
     daysAgo: daysAgoText,
@@ -1029,8 +1059,8 @@ const totalStats = computed(() => {
 
 // Type
 const orderTypes = computed(() => {
-  const takeaway = filteredOrders.value.filter(o => o.orderType?.toLowerCase() === 'takeaway').length
-  const delivery = filteredOrders.value.filter(o => o.orderType?.toLowerCase() === 'delivery').length
+  const takeaway = filteredOrders.value.filter((o) => o.orderType?.toLowerCase() === 'takeaway').length
+  const delivery = filteredOrders.value.filter((o) => o.orderType?.toLowerCase() === 'delivery').length
   const total = takeaway + delivery
 
   return {
@@ -1055,19 +1085,17 @@ const averageOrder = computed(() => {
 
 // Promo Codes
 const promoStats = computed(() => {
-  const count = filteredOrders.value.filter(o => o.promoCodeApplied).length
+  const count = filteredOrders.value.filter((o) => o.promoCodeApplied).length
   const percent = filteredOrders.value.length ? Math.round((count / filteredOrders.value.length) * 100) : 0
   return { count, percent }
 })
 
 // Complaints
 const complaintStats = computed(() => {
-  const count = filteredOrders.value.filter(o => o.complaint && o.complaint.trim() !== '').length
+  const count = filteredOrders.value.filter((o) => o.complaint && o.complaint.trim() !== '').length
   const percent = filteredOrders.value.length ? Math.round((count / filteredOrders.value.length) * 100) : 0
   return { count, percent }
 })
-
-
 
 onMounted(() => {
   fetchUsers()
