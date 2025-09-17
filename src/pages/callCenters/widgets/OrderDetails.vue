@@ -205,7 +205,7 @@
         <div class="flex justify-between font-bold text-xs pt-1 border-t">
           <span v-if="orderStore.editOrder"
             >Total:
-            <span class="text-green-600">PAID AMOUNT: €{{ orderStore.editOrder.total.toFixed(2) }}</span>
+            <span class="text-green-600">PAID AMOUNT: €{{ orderStore.editOrder.editOrderTotal.toFixed(2) }}</span>
           </span>
           <span v-else>Total:</span>
           <span v-if="orderStore.editOrder">Balance €{{ getTotalPrice }}</span>
@@ -308,9 +308,9 @@ const formattedLabel = (sel) => {
 const getTotalPrice = computed(() => {
   if (orderStore.editOrder) {
     if (promoTotal.value) {
-      return (promoTotal.value.updatedTotal - orderStore.editOrder.total).toFixed(2) || 0
+      return (promoTotal.value.updatedTotal - orderStore.editOrder.editOrderTotal).toFixed(2) || 0
     } else {
-      return (total.value - orderStore.editOrder.total).toFixed(2) || 0
+      return (total.value - orderStore.editOrder.editOrderTotal).toFixed(2) || 0
     }
   }
   return total.value.toFixed(2)

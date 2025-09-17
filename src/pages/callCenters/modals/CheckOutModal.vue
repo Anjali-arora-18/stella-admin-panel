@@ -90,7 +90,7 @@
             <div class="total-row total-final">
               <span v-if="orderStore.editOrder"
                 >Total:
-                <span class="text-green-600">PAID AMOUNT: €{{ orderStore.editOrder.total.toFixed(2) }}</span>
+                <span class="text-green-600">PAID AMOUNT: €{{ orderStore.editOrder.editOrderTotal.toFixed(2) }}</span>
               </span>
               <span v-else>Total:</span>
               <span v-if="orderStore.editOrder">Balance €{{ getTotalPrice }}</span>
@@ -217,9 +217,9 @@ const getTotalPrice = computed(() => {
   const total = totalAmount.value + props.deliveryFee
   if (orderStore.editOrder) {
     if (promoTotal.value) {
-      return (promoTotal.value.updatedTotal - orderStore.editOrder.total).toFixed(2) || 0
+      return (promoTotal.value.updatedTotal - orderStore.editOrder.editOrderTotal).toFixed(2) || 0
     } else {
-      return (total - orderStore.editOrder.total).toFixed(2) || 0
+      return (total - orderStore.editOrder.editOrderTotal).toFixed(2) || 0
     }
   }
   return total.toFixed(2)
@@ -337,6 +337,26 @@ async function checkPaymentStatus(requestId, paymentId) {
 async function updateOrder() {
   const url = import.meta.env.VITE_API_BASE_URL
   const userStore = useUsersStore()
+  const existingMenuItems = []
+  orderStore.editOrder.menuItems.forEach((item) => {
+    if (orderStore.cartItems.find((a) => a.itemId === item._id)) {
+      existingMenuItems.push(item._id)
+    }
+  })
+
+  await Promise.all(
+    existingMenuItems.map((item) => {
+      const data = {
+        menuItems: [
+          {
+            menuItem: item,
+          },
+        ],
+      }
+      return applyOrderEdit(orderStore.editOrder._id, 'delete', orderStore.editOrder.tableNumber, data)
+    }),
+  )
+
   try {
     const res = await axios.post(
       `${url}/order-edits/${orderStore.editOrder._id}/apply`,
@@ -373,6 +393,37 @@ async function updateOrder() {
     orderStore.editOrder = null
     orderStore.cartItems = []
     window.location.reload()
+    return res.data
+  } catch (err) {
+    console.error('Order edit failed:', err)
+    init({ message: err.response.data.message, color: 'danger' })
+    throw err
+  }
+}
+
+const applyOrderEdit = async (orderId, action, tableNumber, payload = {}) => {
+  const userStore = useUsersStore()
+  try {
+    const res = await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/order-edits/${orderId}/apply`,
+      {
+        action,
+        tableNumber,
+        ...payload,
+      },
+      {
+        params: {
+          orderId,
+          tableNumber,
+          posUser: userStore.userDetails.posCreds.posId || 'STELLA',
+          posPass: userStore.userDetails.posCreds.posPassword || 'St3ll@',
+        },
+      },
+    )
+    init({
+      message: res.data.message,
+      color: res.data.status !== 'Failed' ? 'success' : 'danger',
+    })
     return res.data
   } catch (err) {
     console.error('Order edit failed:', err)

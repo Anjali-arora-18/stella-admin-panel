@@ -696,12 +696,12 @@ const editSelected = async (orderId) => {
   const order = orders.value.find((o) => o._id === orderId)
   if (!order) return
 
-  // const items = (selectedItems[orderId] || []).map((i) => order.menuItems[i])
-  // if (!items.length) return
+  const items = (selectedItems[orderId] || []).map((i) => order.menuItems[i])
+  if (!items.length) return
 
   // console.log('Edit items:', items)
 
-  const data = order.menuItems.map((menuItem) => {
+  const data = items.map((menuItem) => {
     return {
       orderId: orderId,
       itemId: menuItem._id,
@@ -737,15 +737,20 @@ const editSelected = async (orderId) => {
           }
         }),
     }
+    selectedItems[orderId] = []
   })
 
   const orderStore = useOrderStore()
-  orderStore.addEditOrder(order)
+
   data.map((e) => {
     orderStore.addItemToCart(e)
     const newIndex = orderStore.cartItems.length - 1
     orderStore.calculateItemTotal(newIndex)
   })
+
+  const total = orderStore.cartItems.reduce((sum, item) => sum + item.totalPrice, 0)
+  order.editOrderTotal = total
+  orderStore.addEditOrder(order)
 
   emits('close')
 }
@@ -820,7 +825,6 @@ const cancelOrder = async (orderId) => {
   fetchOrders()
 }
 const buildOfferMenuItemsPayload = (items) => {
-  // Group items by offerId (because one order can have multiple offers)
   const menuItems = []
 
   items.forEach((item) => {
