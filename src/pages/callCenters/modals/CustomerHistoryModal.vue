@@ -1034,8 +1034,12 @@ const getTheEmployeeName = (employeeId) => {
   return [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username
 }
 const getTotalPrice = (item) => {
-  if (!item.options.length) return item.price.toFixed(2)
-  const total = item.options.reduce((sum, opt) => sum + (opt.price || 0), 0)
+  if (!item.articlesOptionsGroup.flatMap((a) => a.articlesOptions).filter((a) => a.selected).length)
+    return item.price.toFixed(2)
+  const total = item.articlesOptionsGroup
+    .flatMap((a) => a.articlesOptions)
+    .filter((a) => a.selected)
+    .reduce((sum, opt) => sum + (opt.price || 0), 0)
   return (total + item.price).toFixed(2)
 }
 
