@@ -682,6 +682,11 @@ const removeSelected = async (orderId) => {
         menuItems: [
           {
             menuItem: item.menuItem,
+            quantity: item.quantity,
+            options: (item.options || []).map((opt) => ({
+              option: opt.option,
+              quantity: opt.quantity || 1,
+            })),
           },
         ],
       }
@@ -811,7 +816,7 @@ const addItemsToOrder = async (orderId) => {
   const items = (selectedItems[orderId] || []).map((i) => order.menuItems[i])
   if (!items.length) return
 
-  const payload = buildOfferMenuItemsPayload(items, '687e0a484e996f117b336b39') // pass actual offerId
+  const payload = buildOfferMenuItemsPayload(items) // pass actual offerId
 
   await applyOrderEdit(orderId, 'add', order.tableNumber, payload)
   fetchOrders()
@@ -833,7 +838,7 @@ const buildOfferMenuItemsPayload = (items) => {
       quantity: item.quantity,
       isFree: !!item.isFree,
       options: (item.options || []).map((opt) => ({
-        option: opt._id,
+        option: opt.option,
         quantity: opt.quantity || 1,
       })),
     })

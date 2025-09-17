@@ -340,6 +340,7 @@ async function updateOrder() {
   const existingMenuItems = []
   orderStore.editOrder.menuItems.forEach((item) => {
     if (orderStore.cartItems.find((a) => a.itemId === item._id)) {
+      console.log(item)
       existingMenuItems.push(item._id)
     }
   })
@@ -350,6 +351,8 @@ async function updateOrder() {
         menuItems: [
           {
             menuItem: item,
+            quantity: 1,
+            options: [],
           },
         ],
       }
