@@ -498,12 +498,12 @@ import { useOrderStore } from '@/stores/order-store.ts'
 import HistoryAddNoteModal from './HistoryAddNoteModal.vue'
 import HistoryComplaintModal from './HistoryComplaintModal.vue'
 import { useToast } from 'vuestic-ui'
-import { useServiceStore } from '@/stores/services.ts'
+// import { useServiceStore } from '@/stores/services.ts'
 const { init } = useToast()
 const props = defineProps({
   customer: { type: Object, required: true },
   outlet: { type: Object, required: true },
-  selectedUser: { type: Object, required: true },
+  // selectedUser: { type: Object, required: true },
   deliveryZoneOptions: {
     type: Array,
     default: () => [],
@@ -905,27 +905,26 @@ const ordersToShow = computed(() => {
 
 const url = import.meta.env.VITE_API_BASE_URL
 
-const fetchOrderStatus = async () => {
-  const users = useUsersStore()
-  const outlet = useServiceStore()
-  try {
-    const res = await axios.post('https://coord.restuspos.com/Api.aspx/GetOrderStatusByMobile', {
-      request: {
-        ApiKey: '1234567890',
-        Mobile: props.selectedUser.MobilePhone,
-        W4CompanyCode: outlet.restDetails.winmaxConfig.company,
-      },
-    })
-    if (res.data?.status === 'Success') {
-      orderStatuses.value = res.data.data || []
-    } else {
-      orderStatuses.value = []
-    }
-  } catch (error) {
-    console.error('Error fetching order statuses:', error)
-    orderStatuses.value = []
-  }
-}
+// const fetchOrderStatus = async () => {
+//   const users = useUsersStore()
+//   const outlet = useServiceStore()
+//   try {
+//     const res = await axios.post('https://coord.restuspos.com/Api.aspx/GetOrderStatusByMobile', {
+//       request: {
+//         ApiKey: '1234567890',
+//         Mobile: props.selectedUser.MobilePhone,
+//         W4CompanyCode: outlet.restDetails.winmaxConfig.company,
+//       },
+//     })
+//     if (res.data?.status === 'Success') {
+//       orderStatuses.value = res.data.data || []
+//     } else {
+//       orderStatuses.value = []
+//     }
+//   } catch (error) {
+//     orderStatuses.value = []
+//   }
+// }
 
 const fetchOrders = async () => {
   const menuItems = useMenuStore()
@@ -1131,10 +1130,11 @@ const complaintStats = computed(() => {
   return { count, percent }
 })
 
-onMounted(async () => {
+onMounted(() => {
   fetchUsers()
-  await fetchOrderStatus()
-  await fetchOrders()
+  fetchOrders()
+  // await fetchOrderStatus()
+  // await fetchOrders()
 })
 </script>
 <style scoped>
@@ -1176,4 +1176,3 @@ onMounted(async () => {
   background-color: #f9f9f9;
 }
 </style>
-,,. lṁō,0kjl,m
