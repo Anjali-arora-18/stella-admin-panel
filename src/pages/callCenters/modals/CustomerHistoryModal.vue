@@ -925,12 +925,12 @@ const fetchOrderStatus = async () => {
       },
     })
     if (res.data?.status === 'Success') {
-      orderStatuses.value = res.data.data || []
+      // orderStatuses.value = res.data.data || []
     } else {
-      orderStatuses.value = []
+      // orderStatuses.value = []
     }
   } catch (error) {
-    orderStatuses.value = []
+    // orderStatuses.value = []
   }
 }
 
