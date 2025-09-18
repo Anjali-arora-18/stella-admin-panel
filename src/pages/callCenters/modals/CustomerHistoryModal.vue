@@ -270,6 +270,7 @@
             </span>
 
             <span
+              v-if="index === 0"
               size="small"
               class="flex items-center gap-1 rounded-full text-white px-2 py-2 font-semibold text-xs cursor-pointer bg-red-600 hover:bg-red-700 transition-colors"
               @click.stop="openConfirm('cancel', order._id)"
@@ -746,7 +747,8 @@ const editSelected = async (orderId) => {
   })
 
   const orderStore = useOrderStore()
-
+  orderStore.resetEditOrder()
+  orderStore.setCartItems([])
   data.map((e) => {
     orderStore.addItemToCart(e)
     const newIndex = orderStore.cartItems.length - 1
@@ -812,14 +814,11 @@ const repeatOrder = async (orderId) => {
 const addItemsToOrder = async (orderId) => {
   const order = orders.value.find((o) => o._id === orderId)
   if (!order) return
-
-  const items = (selectedItems[orderId] || []).map((i) => order.menuItems[i])
-  if (!items.length) return
-
-  const payload = buildOfferMenuItemsPayload(items) // pass actual offerId
-
-  await applyOrderEdit(orderId, 'add', order.tableNumber, payload)
-  fetchOrders()
+  const orderStore = useOrderStore()
+  orderStore.resetEditOrder()
+  orderStore.setCartItems([])
+  orderStore.addEditOrder({ ...order, editOrderTotal: 0 })
+  emits('close')
 }
 
 const cancelOrder = async (orderId) => {

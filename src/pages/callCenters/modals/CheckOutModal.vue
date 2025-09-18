@@ -345,20 +345,22 @@ async function updateOrder() {
     }
   })
 
-  await Promise.all(
-    existingMenuItems.map((item) => {
-      const data = {
-        menuItems: [
-          {
-            menuItem: item,
-            quantity: 1,
-            options: [],
-          },
-        ],
-      }
-      return applyOrderEdit(orderStore.editOrder._id, 'delete', orderStore.editOrder.tableNumber, data)
-    }),
-  )
+  if (existingMenuItems.length) {
+    await Promise.all(
+      existingMenuItems.map((item) => {
+        const data = {
+          menuItems: [
+            {
+              menuItem: item,
+              quantity: 1,
+              options: [],
+            },
+          ],
+        }
+        return applyOrderEdit(orderStore.editOrder._id, 'delete', orderStore.editOrder.tableNumber, data)
+      }),
+    )
+  }
 
   try {
     const res = await axios.post(

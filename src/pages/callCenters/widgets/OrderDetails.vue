@@ -2,6 +2,15 @@
   <div class="w-full">
     <h2 class="font-semibold text-md text-gray-800 border-b pb-1">
       Order Details {{ orderStore.editOrder ? '(Edit - ' + orderStore.editOrder.tableNumber + ')' : '' }}
+      <VaButton
+        v-if="orderStore.editOrder"
+        size="small"
+        color="danger"
+        class="text-white px-1 rounded-md text-xs shadow-md"
+        @click="orderStore.resetEditOrder(), orderStore.setCartItems([])"
+      >
+        Remove Edit Order
+      </VaButton>
     </h2>
     <template v-if="items.length || offersItems.length">
       <!-- Promo Code with Button -->
@@ -269,7 +278,7 @@
 </template>
 
 <script setup>
-import { ref, computed, useTemplateRef, watch } from 'vue'
+import { ref, computed, useTemplateRef } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useOrderStore } from '@/stores/order-store'
 import { useServiceStore } from '@/stores/services.ts'
@@ -659,16 +668,6 @@ function closeOfferModal() {
 function closePromotionModal() {
   showPromotionModal.value = false
 }
-
-watch(
-  () => orderStore.editOrder,
-  () => {
-    // Reset promo code and validity when order type changes
-    if (!orderStore.cartItems.length) {
-      orderStore.resetEditOrder()
-    }
-  },
-)
 </script>
 <style>
 .original-price {
