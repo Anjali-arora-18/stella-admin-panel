@@ -139,7 +139,7 @@
           <!-- Take X Pay Y -->
           <section v-if="formData.promotionType === 'Take X pay Y' && !isUpdating">
             <h2 class="text-md font-semibold mb-2">Take X pay Y Configuration</h2>
-            <div class="grid md:grid-cols-3 gap-4 items-end">
+            <div class="grid md:grid-cols-4 gap-4 items-end">
               <VaInput
                 v-model="formData.takeQuantity"
                 label="Take"
@@ -156,6 +156,7 @@
                 required-mark
                 :rules="[validators.required]"
               />
+              <VaInput v-model="formData.unitPrice" label="Unit Price (€)" type="number" />
               <div class="flex gap-2">
                 <VaButton @click="openArticlesModal">Articles</VaButton>
                 <VaButton @click="openOptionsModal">Options</VaButton>
@@ -418,12 +419,11 @@ const formData = ref({
   discountPercentage: null,
   fixedPrice: null,
   affect: '',
-  // automatic: false,
-  codeType: 'SINGLE', // 'SINGLE' | 'MULTI' | 'AUTO'
-  codes: [], // For Single Code input
-  startFrom: 1, // For Multi Code input
-  endAt: 10, // For Multi Code input
-  codePrefix: '', // For Multi Code input
+  codeType: 'SINGLE',
+  codes: [],
+  startFrom: 1,
+  endAt: 10,
+  codePrefix: '',
   quantity: 1,
   prefix: '',
   startDate: '',
@@ -438,6 +438,7 @@ const formData = ref({
   minimumOrder: null,
   takeQuantity: null,
   payQuantity: null,
+  unitPrice: null,
   assetId: '',
   isActive: true,
 })
@@ -452,8 +453,7 @@ const resetForm = () => {
     discountPercentage: null,
     fixedPrice: null,
     affect: '',
-    // automatic: false,
-    codeType: 'SINGLE', // 'SINGLE' | 'MULTI' | 'AUTO'
+    codeType: 'SINGLE',
     quantity: 1,
     prefix: '',
     startDate: '',
@@ -468,6 +468,7 @@ const resetForm = () => {
     minimumOrder: null,
     takeQuantity: null,
     payQuantity: null,
+    unitPrice: null,
     assetId: '',
     isActive: true,
   }
@@ -544,9 +545,6 @@ function populateFormData(promotion) {
     codeType: promotion.automatic ? 'AUTO' : promotion.quantity > 1 ? 'MULTI' : 'SINGLE',
     quantity: promotion.codeType === 'MULTI' ? promotion.quantity : 1,
     prefix: promotion.codeType === 'MULTI' ? promotion.prefix || '' : '',
-    // codes: promotion.codes || [],
-    // quantity: promotion.quantity ?? 1,
-    // prefix: promotion.prefix || '',
     startDate: toInputDate(promotion.dateRange?.startDate),
     endDate: toInputDate(promotion.dateRange?.endDate),
     startTime,
@@ -561,6 +559,7 @@ function populateFormData(promotion) {
     minimumOrder: promotion.minimumOrder ?? null,
     takeQuantity: promotion.takeQuantity || null,
     payQuantity: promotion.payQuantity || null,
+    unitPrice: promotion.txpy?.unitPrice ?? null,
     assetId: promotion.assetId || '',
     codes: promotion.codes || [],
     isActive: promotion.isActive ?? true,
@@ -695,15 +694,17 @@ const submit = async () => {
     discountValue: raw.discountValue,
     discountPercentage: raw.discountPercentage,
     fixedPrice: raw.fixedPrice,
-    // automatic: raw.automatic,
     automatic: raw.codeType === 'AUTO',
     quantity: raw.codeType === 'MULTI' ? raw.quantity : 1,
     prefix: raw.codeType === 'MULTI' ? raw.prefix : '',
     availableAtCC: raw.availableAtCC,
-    availableWithOffers: raw.affectOffers, // FIXED key name
+    availableWithOffers: raw.affectOffers,
     minimumOrder: raw.minimumOrder,
     takeQuantity: raw.takeQuantity,
     payQuantity: raw.payQuantity,
+    txpy: {
+      unitPrice: raw.unitPrice,
+    },
     promotionType: promotionTypeMap[raw.promotionType],
     affect: affectMap[raw.affect],
     usage: usageTypeMap[raw.usageType],
