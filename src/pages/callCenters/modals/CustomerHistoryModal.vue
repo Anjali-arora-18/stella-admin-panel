@@ -262,6 +262,7 @@
             </span>
 
             <span
+              v-if="!['Completed', 'Cancelled'].includes(order.status)"
               size="small"
               class="flex items-center gap-1 rounded-full text-white px-2 py-2 font-semibold text-xs cursor-pointer bg-green-600 hover:bg-green-700 transition-colors"
               @click.stop="openConfirm('add', order._id)"
@@ -270,7 +271,7 @@
             </span>
 
             <span
-              v-if="index === 0"
+              v-if="index === 0 && !['Cancelled'].includes(order.status)"
               size="small"
               class="flex items-center gap-1 rounded-full text-white px-2 py-2 font-semibold text-xs cursor-pointer bg-red-600 hover:bg-red-700 transition-colors"
               @click.stop="openConfirm('cancel', order._id)"
@@ -305,14 +306,20 @@
           <div
             v-for="(item, idx) in order.menuItems || []"
             :key="idx"
-            class="flex justify-between items-start py-2 border-b last:border-none cursor-pointer relative"
+            class="flex justify-between items-start py-2 border-b last:border-none relative"
             :class="{
               'bg-gray-50': isItemSelected(order._id, idx),
-              'hover:bg-gray-50': true,
+              'hover:bg-gray-50 cursor-pointer': !['Completed', 'Cancelled'].includes(order.status),
+              'opacity-60 cursor-not-allowed': ['Completed', 'Cancelled'].includes(order.status),
             }"
-            @click="toggleItemSelect(order._id, idx)"
+            @click="!['Completed', 'Cancelled'].includes(order.status) && toggleItemSelect(order._id, idx)"
           >
-            <!-- Checkbox only when selected -->
+            <div
+              v-if="['Completed', 'Cancelled'].includes(order.status)"
+              class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
+            >
+              <Ban class="w-4 h-4" />
+            </div>
             <div v-if="isItemSelected(order._id, idx)" class="absolute left-2 top-1/2 -translate-y-1/2">
               <VaCheckbox
                 :model-value="true"
@@ -394,7 +401,7 @@
           <div class="flex gap-2">
             <button
               class="px-3 py-1 rounded-full bg-red-500 text-white font-semibold text-xs transition disabled:opacity-40 disabled:cursor-not-allowed"
-              :disabled="!hasSelectedForOrder(order._id)"
+              :disabled="!hasSelectedForOrder(order._id) || ['Completed', 'Cancelled'].includes(order.status)"
               @click="openConfirm('remove', order._id)"
             >
               Remove
@@ -402,7 +409,7 @@
 
             <button
               class="px-3 py-1 rounded-full bg-yellow-400 text-xs text-white font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed"
-              :disabled="!hasSelectedForOrder(order._id)"
+              :disabled="!hasSelectedForOrder(order._id) || ['Completed', 'Cancelled'].includes(order.status)"
               @click="openConfirm('edit', order._id)"
             >
               Edit
