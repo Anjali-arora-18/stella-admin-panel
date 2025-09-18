@@ -21,7 +21,18 @@
                   <div class="item-qty-name">{{ item.quantity }}x {{ item.itemName }}</div>
                   <div class="item-base-price">Base price: €{{ item.basePrice.toFixed(2) }} each</div>
                 </div>
-                <div class="item-total-price">€{{ item.totalPrice.toFixed(2) }}</div>
+                <div class="item-total-price">
+                  <div v-if="promoTotal && promoMenuItemPrice(item) !== item.totalPrice.toFixed(2)">
+                    <span class="original-price"> €{{ item.totalPrice.toFixed(2) }} </span>
+                    <span v-if="promoMenuItemPrice(item) >= 0" class="updated-price">
+                      €{{ promoMenuItemPrice(item) ? promoMenuItemPrice(item) : 0 }}
+                    </span>
+                  </div>
+
+                  <div v-else>
+                    <span class="font-semibold text-green-800"> €{{ item.totalPrice.toFixed(2) }} </span>
+                  </div>
+                </div>
               </div>
 
               <div v-if="item.selectedOptions.length" class="item-extras">
@@ -549,6 +560,14 @@ async function createOrder() {
     apiLoading.value = false
   }
 }
+const promoMenuItemPrice = function (item) {
+  if (!promoTotal.value || !item) return 0
+  const promoMenuItem = promoTotal.value.menuItems.find((a) => a.menuItemId === item.itemId)
+  if (!promoMenuItem) return item.totalPrice
+  else {
+    return promoMenuItem.updatedPrice ? promoMenuItem.updatedPrice.toFixed(2) : promoMenuItem.updatedPrice
+  }
+}
 </script>
 
 <style scoped>
@@ -675,7 +694,6 @@ async function createOrder() {
   color: #2d5d2a;
   margin-bottom: 24px;
   text-align: left !important;
-  /* margin-left: 396px; */
 }
 
 .header-container {
@@ -694,7 +712,6 @@ async function createOrder() {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  /* margin-left: 380px; */
 }
 
 .payment-section {
@@ -702,15 +719,12 @@ async function createOrder() {
 }
 
 .payment-options {
-  /* display: grid;
-    grid-template-columns: 1fr 1fr; */
   gap: 20px;
   margin-bottom: 32px;
   margin-top: 0;
 }
 
 .card-form {
-  /* display: none; */
   animation: slideDown 0.3s ease-out;
 }
 
@@ -905,7 +919,6 @@ async function createOrder() {
   flex-direction: column;
   height: 100%;
   max-height: 100vh;
-  /* ensure modal does not exceed viewport */
 }
 
 .action-container {
@@ -915,12 +928,7 @@ async function createOrder() {
   display: flex;
   justify-content: center;
   flex-shrink: 0;
-  /* z-index: 10; */
 }
-
-/* .form-input {
-    @apply border border-gray-300 rounded-md px-3 py-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-green-500;
-} */
 
 .va-modal__close {
   background: #f8f9fa;
