@@ -261,6 +261,7 @@
       v-if="showHistoryModal"
       :customer="selectedUser"
       :outlet="outlet"
+      :selected-user="selectedUser"
       :delivery-zone-options="deliveryZoneOptions"
       :takeaway-promise-time="selectedZoneDetails?.takeawayPromiseTime || 0"
       :delivery-promise-time="selectedZoneDetails?.deliveryPromiseTime || 0"
