@@ -266,7 +266,7 @@
                 index === 0 &&
                 (orderStatuses === 'KDS' ||
                   orderStatuses.toLowerCase() === 'preparing' ||
-                  orderStatuses.toLowerCase() === 'on rack')
+                  orderStatuses.toLowerCase() === 'onrack')
               "
               size="small"
               class="flex items-center gap-1 rounded-full text-white px-2 py-2 font-semibold text-xs cursor-pointer bg-green-600 hover:bg-green-700 transition-colors"
@@ -280,7 +280,7 @@
                 index === 0 &&
                 (orderStatuses === 'KDS' ||
                   orderStatuses.toLowerCase() === 'preparing' ||
-                  orderStatuses.toLowerCase() === 'on rack')
+                  orderStatuses.toLowerCase() === 'onrack')
               "
               size="small"
               class="flex items-center gap-1 rounded-full text-white px-2 py-2 font-semibold text-xs cursor-pointer bg-red-600 hover:bg-red-700 transition-colors"
@@ -295,7 +295,7 @@
               index === 0 &&
               (orderStatuses === 'KDS' ||
                 orderStatuses.toLowerCase() === 'preparing' ||
-                orderStatuses.toLowerCase() === 'on rack')
+                orderStatuses.toLowerCase() === 'onrack')
             "
             class="px-3 py-2 rounded-full text-xs font-semibold tracking-wide flex items-center gap-1 transition-colors"
             :class="{
@@ -303,7 +303,7 @@
             }"
           >
             <Loader2 class="w-3.5 h-3.5 animate-spin-slow" />
-            {{ orderStatuses }}
+            {{ orderStatuses?.toLowerCase() === 'onrack' ? 'On Rack' : orderStatuses }}
           </span>
 
           <span
