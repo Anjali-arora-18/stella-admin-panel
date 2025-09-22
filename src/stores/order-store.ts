@@ -4,6 +4,7 @@ export const useOrderStore = defineStore('order', {
   state: () => ({
     cartItems: [],
     editOrder: null,
+    offers: [],
     offerItems: [],
     cartTotal: null,
     paymentId: '',
