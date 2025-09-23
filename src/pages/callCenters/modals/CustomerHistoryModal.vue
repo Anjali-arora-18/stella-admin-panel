@@ -288,7 +288,7 @@
             v-if="
               index === 0 && (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack')
             "
-            class="px-3 py-2 rounded-full text-xs font-semibold tracking-wide flex items-center gap-1 transition-colors"
+            class="px-3 py-2 rounded-full text-xs font-semibold tracking-wide flex items-center gap-1 transition-colors capitalize"
             :class="{
               'bg-yellow-500 text-white': true,
             }"
@@ -331,7 +331,7 @@
                 index === 0 && (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack'),
               'opacity-60 cursor-not-allowed':
                 index !== 0 ||
-                !(orderStatuses === 'kds' && orderStatuses === 'preparing' && orderStatuses === 'onrack'),
+                !(orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack'),
             }"
             @click="
               index === 0 &&
@@ -403,7 +403,7 @@
                 index === 0 && (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack'),
               'opacity-60 cursor-not-allowed':
                 index !== 0 ||
-                !(orderStatuses === 'kds' && orderStatuses === 'preparing' && orderStatuses === 'onrack'),
+                !(orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack'),
             }"
             @click="
               index === 0 &&
