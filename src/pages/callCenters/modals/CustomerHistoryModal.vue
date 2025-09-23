@@ -326,14 +326,24 @@
             :key="idx"
             class="flex flex-col justify-between py-2 border-b last:border-none relative"
             :class="{
-              'bg-gray-50': isOfferSelected(order._id, idx),
-              'hover:bg-gray-50 cursor-pointer': !['Completed', 'Cancelled'].includes(order.status),
-              'opacity-60 cursor-not-allowed': ['Completed', 'Cancelled'].includes(order.status),
+              'bg-gray-50 text-black': isOfferSelected(order._id, idx),
+              'hover:bg-gray-50 cursor-pointer':
+                index === 0 && (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack'),
+              'opacity-60 cursor-not-allowed':
+                index !== 0 ||
+                !(orderStatuses === 'kds' && orderStatuses === 'preparing' && orderStatuses === 'onrack'),
             }"
-            @click="!['Completed', 'Cancelled'].includes(order.status) && toggleOfferSelection(order._id, idx)"
+            @click="
+              index === 0 &&
+                (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack') &&
+                toggleOfferSelection(order._id, idx)
+            "
           >
             <div
-              v-if="!['Completed', 'Cancelled'].includes(order.status)"
+              v-if="
+                !orderStatuses &&
+                !(orderStatuses === 'kds' && orderStatuses === 'preparing' && orderStatuses === 'onrack')
+              "
               class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
             >
               <Ban class="w-4 h-4" />
@@ -388,14 +398,24 @@
             :key="idx"
             class="flex justify-between items-start py-2 border-b last:border-none relative"
             :class="{
-              'bg-gray-50': isItemSelected(order._id, idx),
-              'hover:bg-gray-50 cursor-pointer': !['Completed', 'Cancelled'].includes(order.status),
-              'opacity-60 cursor-not-allowed': ['Completed', 'Cancelled'].includes(order.status),
+              'bg-gray-50 text-black': isItemSelected(order._id, idx),
+              'hover:bg-gray-50 cursor-pointer':
+                index === 0 && (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack'),
+              'opacity-60 cursor-not-allowed':
+                index !== 0 ||
+                !(orderStatuses === 'kds' && orderStatuses === 'preparing' && orderStatuses === 'onrack'),
             }"
-            @click="!['Completed', 'Cancelled'].includes(order.status) && toggleItemSelect(order._id, idx)"
+            @click="
+              index === 0 &&
+                (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack') &&
+                toggleItemSelect(order._id, idx)
+            "
           >
             <div
-              v-if="['Completed', 'Cancelled'].includes(order.status)"
+              v-if="
+                !orderStatuses &&
+                !(orderStatuses === 'kds' && orderStatuses === 'preparing' && orderStatuses === 'onrack')
+              "
               class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
             >
               <Ban class="w-4 h-4" />
