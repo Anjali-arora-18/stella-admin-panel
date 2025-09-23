@@ -3,6 +3,8 @@ import axios from 'axios'
 export const useOrderStore = defineStore('order', {
   state: () => ({
     cartItems: [],
+    editOrder: null,
+    offers: [],
     offerItems: [],
     cartTotal: null,
     paymentId: '',
@@ -18,6 +20,9 @@ export const useOrderStore = defineStore('order', {
     },
     setOrderFor(payload) {
       this.orderFor = payload
+    },
+    resetEditOrder() {
+      this.editOrder = null
     },
     setCartItems(payload) {
       this.cartItems = payload
@@ -50,6 +55,9 @@ export const useOrderStore = defineStore('order', {
     },
     removeOffersAdded(index: number) {
       this.offerItems.splice(index, 1)
+    },
+    addEditOrder(item: any) {
+      this.editOrder = item
     },
     calculateItemTotal(itemIndex: number) {
       const item = this.cartItems[itemIndex]

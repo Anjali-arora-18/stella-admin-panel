@@ -21,7 +21,18 @@
                   <div class="item-qty-name">{{ item.quantity }}x {{ item.itemName }}</div>
                   <div class="item-base-price">Base price: €{{ item.basePrice.toFixed(2) }} each</div>
                 </div>
-                <div class="item-total-price">€{{ item.totalPrice.toFixed(2) }}</div>
+                <div class="item-total-price">
+                  <div v-if="promoTotal && promoMenuItemPrice(item) !== item.totalPrice.toFixed(2)">
+                    <span class="original-price"> €{{ item.totalPrice.toFixed(2) }} </span>
+                    <span v-if="promoMenuItemPrice(item) >= 0" class="updated-price">
+                      €{{ promoMenuItemPrice(item) ? promoMenuItemPrice(item) : 0 }}
+                    </span>
+                  </div>
+
+                  <div v-else>
+                    <span class="font-semibold text-green-800"> €{{ item.totalPrice.toFixed(2) }} </span>
+                  </div>
+                </div>
               </div>
 
               <div v-if="item.selectedOptions.length" class="item-extras">
@@ -83,14 +94,19 @@
               <span>Delivery Fee:</span>
               <span>€{{ deliveryFee.toFixed(2) }}</span>
             </div>
-            <div v-if="promotTotal" class="total-row">
+            <div v-if="promoTotal" class="total-row">
               <span>Total Discount:</span>
-              <span>- €{{ (promotTotal.originalTotal - promotTotal.updatedTotal).toFixed(2) }}</span>
+              <span>- €{{ (promoTotal.originalTotal - promoTotal.updatedTotal).toFixed(2) }}</span>
             </div>
             <div class="total-row total-final">
-              <span>Total Amount:</span>
-              <span v-if="!promotTotal">€{{ (totalAmount + deliveryFee).toFixed(2) }}</span>
-              <span v-else>€{{ promotTotal.updatedTotal.toFixed(2) }}</span>
+              <span v-if="orderStore.editOrder"
+                >Total:
+                <span class="text-green-600">PAID AMOUNT: €{{ orderStore.editOrder.editOrderTotal.toFixed(2) }}</span>
+              </span>
+              <span v-else>Total:</span>
+              <span v-if="orderStore.editOrder">Balance €{{ getTotalPrice }}</span>
+              <span v-else-if="!promoTotal">€{{ (totalAmount + deliveryFee).toFixed(2) }}</span>
+              <span v-else>€{{ promoTotal.updatedTotal.toFixed(2) }}</span>
             </div>
           </div>
         </div>
@@ -124,7 +140,7 @@
             id="confirmBtn"
             :disabled="apiLoading || !selectedPayment"
             class="btn btn-primary"
-            @click="createOrder"
+            @click="orderStore.editOrder ? updateOrder() : createOrder()"
           >
             <span v-if="!apiLoading" id="btnText">
               {{ orderId && selectedPayment === 'Card' ? 'Retry Payment' : 'Payment' }}</span
@@ -208,6 +224,18 @@ const etaTime = computed(() => {
   }
 })
 
+const getTotalPrice = computed(() => {
+  const total = totalAmount.value + props.deliveryFee
+  if (orderStore.editOrder) {
+    if (promoTotal.value) {
+      return (promoTotal.value.updatedTotal - orderStore.editOrder.editOrderTotal).toFixed(2) || 0
+    } else {
+      return (total - orderStore.editOrder.editOrderTotal).toFixed(2) || 0
+    }
+  }
+  return total.toFixed(2)
+})
+
 onMounted(() => {
   if (serviceStore.selectedRest) {
     getPaymentOptions()
@@ -272,7 +300,7 @@ const subtotal = computed(() => {
   )
 })
 
-const promotTotal = computed(() => {
+const promoTotal = computed(() => {
   return orderStore.cartTotal !== null ? orderStore.cartTotal : null
 })
 
@@ -314,6 +342,158 @@ async function checkPaymentStatus(requestId, paymentId) {
       message: response.data.message,
     })
     orderStore.setPaymentLink('')
+  }
+}
+
+async function updateOrder() {
+  const url = import.meta.env.VITE_API_BASE_URL
+  const userStore = useUsersStore()
+  const existingMenuItems = []
+  const existingOffers = []
+  orderStore.editOrder.menuItems.forEach((item) => {
+    if (orderStore.cartItems.find((a) => a.itemId === item._id)) {
+      existingMenuItems.push(item._id)
+    }
+  })
+
+  orderStore.editOrder.offerDetails.forEach((item) => {
+    if (orderStore.offerItems.find((a) => a._id === item.offerId)) {
+      existingOffers.push(item)
+    }
+  })
+
+  if (existingMenuItems.length) {
+    await Promise.all(
+      existingMenuItems.map((item) => {
+        const data = {
+          menuItems: [
+            {
+              menuItem: item,
+              quantity: 1,
+              options: [],
+            },
+          ],
+        }
+        return applyOrderEdit(orderStore.editOrder._id, 'delete', orderStore.editOrder.tableNumber, data)
+      }),
+    )
+  }
+
+  if (existingOffers.length) {
+    await Promise.all(
+      existingOffers.map((offer) => {
+        const data = {
+          offerMenuItems: [
+            {
+              offerId: offer.offerId,
+              menuItems: offer.offerItems.map((item) => {
+                return {
+                  menuItem: item.menuItem,
+                  quantity: item.quantity,
+                  options: (item.options || []).map((opt) => ({
+                    option: opt.option,
+                    quantity: opt.quantity || 1,
+                  })),
+                }
+              }),
+            },
+          ],
+        }
+        return applyOrderEdit(orderStore.editOrder._id, 'delete', orderStore.editOrder.tableNumber, data)
+      }),
+    )
+  }
+
+  const offerMenuItems = orderStore.offerItems.map((offer) => ({
+    offerId: offer.offerId,
+    menuItems: offer.selections.flatMap((selection) =>
+      selection.addedItems.map((item) => ({
+        menuItem: item.itemId,
+        quantity: item.quantity || 1,
+        options:
+          item.selectedOptions?.flatMap((group) =>
+            group.selected.map((option) => ({
+              option: option.optionId,
+              quantity: option.quantity,
+            })),
+          ) || [],
+      })),
+    ),
+  }))
+
+  try {
+    const res = await axios.post(
+      `${url}/order-edits/${orderStore.editOrder._id}/apply`,
+      {
+        action: 'edit',
+        tableNumber: orderStore.editOrder.tableNumber,
+
+        menuItems: orderStore.cartItems.map((e) => {
+          return {
+            menuItem: e.itemId,
+            quantity: e.quantity,
+            options: e.selectedOptions.flatMap((group) =>
+              group.selected.map((option) => ({
+                option: option.optionId,
+                quantity: option.quantity,
+              })),
+            ),
+          }
+        }),
+        offerMenuItems,
+      },
+      {
+        params: {
+          orderId: orderStore.editOrder._id,
+          tableNumber: orderStore.editOrder.tableNumber,
+          posUser: userStore.userDetails.posCreds.posId || 'STELLA',
+          posPass: userStore.userDetails.posCreds.posPassword || 'St3ll@',
+        },
+      },
+    )
+    init({
+      message: res.data.message,
+      color: res.data.status !== 'Failed' ? 'success' : 'danger',
+    })
+    orderStore.editOrder = null
+    orderStore.cartItems = []
+    window.location.reload()
+    return res.data
+  } catch (err) {
+    console.error('Order edit failed:', err)
+    init({ message: err.response.data.message, color: 'danger' })
+    throw err
+  }
+}
+
+const applyOrderEdit = async (orderId, action, tableNumber, payload = {}) => {
+  const userStore = useUsersStore()
+  try {
+    const res = await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/order-edits/${orderId}/apply`,
+      {
+        action,
+        tableNumber,
+        ...payload,
+      },
+      {
+        params: {
+          orderId,
+          tableNumber,
+          posUser: userStore.userDetails.posCreds.posId || 'STELLA',
+          posPass: userStore.userDetails.posCreds.posPassword || 'St3ll@',
+        },
+      },
+    )
+    init({
+      message: res.data.message,
+      color: res.data.status !== 'Failed' ? 'success' : 'danger',
+    })
+    return res.data
+  } catch (err) {
+    console.error('Order edit failed:', err)
+    init({ message: err.response.data.message, color: 'danger' })
+    throw err
   }
 }
 
@@ -427,6 +607,14 @@ async function createOrder() {
     orderStore.setPaymentLink('')
   } finally {
     apiLoading.value = false
+  }
+}
+const promoMenuItemPrice = function (item) {
+  if (!promoTotal.value || !item) return 0
+  const promoMenuItem = promoTotal.value.menuItems.find((a) => a.menuItemId === item.itemId)
+  if (!promoMenuItem) return item.totalPrice
+  else {
+    return promoMenuItem.updatedPrice ? promoMenuItem.updatedPrice.toFixed(2) : promoMenuItem.updatedPrice
   }
 }
 </script>
@@ -555,7 +743,6 @@ async function createOrder() {
   color: #2d5d2a;
   margin-bottom: 24px;
   text-align: left !important;
-  /* margin-left: 396px; */
 }
 
 .header-container {
@@ -574,7 +761,6 @@ async function createOrder() {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  /* margin-left: 380px; */
 }
 
 .payment-section {
@@ -582,15 +768,12 @@ async function createOrder() {
 }
 
 .payment-options {
-  /* display: grid;
-    grid-template-columns: 1fr 1fr; */
   gap: 20px;
   margin-bottom: 32px;
   margin-top: 0;
 }
 
 .card-form {
-  /* display: none; */
   animation: slideDown 0.3s ease-out;
 }
 
@@ -785,7 +968,6 @@ async function createOrder() {
   flex-direction: column;
   height: 100%;
   max-height: 100vh;
-  /* ensure modal does not exceed viewport */
 }
 
 .action-container {
@@ -795,12 +977,7 @@ async function createOrder() {
   display: flex;
   justify-content: center;
   flex-shrink: 0;
-  /* z-index: 10; */
 }
-
-/* .form-input {
-    @apply border border-gray-300 rounded-md px-3 py-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-green-500;
-} */
 
 .va-modal__close {
   background: #f8f9fa;

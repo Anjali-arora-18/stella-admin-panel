@@ -155,6 +155,7 @@ async function selectCode(code, hideToast = false) {
       init({ message: `PromoCode invalid`, color: 'danger' })
     }
   } catch (err) {
+    init({ message: err.response.data.message, color: 'danger' })
     console.log(err)
   } finally {
     apiLoading.value = false

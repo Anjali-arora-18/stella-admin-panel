@@ -10,109 +10,97 @@
   >
     <!-- HEADER -->
     <h3 class="w-full bg-gray-900 text-white p-6">
-      <div class="flex flex-col md:flex-row md:items-center gap-16 w-full">
-        <!-- LEFT: Title + Customer -->
-        <div class="flex flex-col flex-shrink-0">
-          <span
-            class="text-sm uppercase tracking-wider text-gray-400 pb-1 border-b-2 border-gradient-to-r from-blue-400 via-purple-500 to-pink-500"
-          >
-            Order History
-          </span>
+  <div class="flex flex-col md:flex-row md:items-center gap-8 w-full">
+    <!-- LEFT: Title + Customer -->
+    <div class="flex flex-col flex-shrink-0">
+      <span class="text-sm uppercase tracking-wider text-gray-400 pb-1 border-b-2 border-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
+        Order History
+      </span>
 
-          <span class="text-4xl font-extrabold text-white mt-2 tracking-tight drop-shadow-lg">
-            {{ customer?.Name || 'Unknown' }}
-          </span>
+      <span class="text-4xl font-extrabold text-white mt-2 tracking-tight drop-shadow-lg">
+        {{ customer?.Name || 'Unknown' }}
+      </span>
 
-          <span v-if="customer?.Phone" class="text-2xl text-gray-300 font-bold mt-1">
-            {{ customer.Phone }}
-          </span>
+      <span
+        v-if="customer?.Phone"
+        class="text-2xl text-gray-300 font-bold mt-1">
+        {{ customer.Phone }}
+      </span>
+    </div>
+
+    <!-- CENTER: buttons & stats -->
+    <div class="flex-1 flex items-center justify-center">
+      <div class="flex items-center gap-16 w-full">
+        <!-- Time Period Buttons (2x2) -->
+        <div class="grid grid-cols-2 gap-3">
+          <button
+  v-for="period in ['1 Month', '6 Months', '12 Months', 'All Time']"
+  :key="period"
+  @click="selectedPeriod = period"
+  :class="[
+    'px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300',
+    selectedPeriod === period
+      ? 'bg-gray-300 text-black'
+      : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
+  ]"
+>
+  {{ period }}
+</button>
+
         </div>
 
-        <!-- CENTER: buttons & stats -->
-        <div class="flex-1 flex items-center justify-center">
-          <div class="flex items-center gap-16 w-full">
-            <!-- Time Period Buttons (2x2) -->
-            <div class="grid grid-cols-2 gap-3">
-              <button
-                v-for="period in ['1 Month', '6 Months', '12 Months', 'All Time']"
-                :key="period"
-                :class="[
-                  'px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300',
-                  selectedPeriod === period
-                    ? 'bg-gray-300 text-black'
-                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white',
-                ]"
-                @click="selectedPeriod = period"
-              >
-                {{ period }}
-              </button>
-            </div>
+        <!-- Stats grid -->
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-6 text-gray-300 w-full">
+          <div class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition">
+  <span class="text-sm font-bold mb-1 text-blue-400">Last Ordered:</span>
+  <span class="text-lg font-semibold">
+    {{ lastOrdered.daysAgo }}
+    <span class="text-xs text-gray-400">{{ lastOrdered.fullDate }}</span>
+  </span>
+</div>  
+<div class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition">
+  <span class="text-sm font-bold mb-1 text-purple-400">Total:</span>
+  <span class="text-lg font-semibold">
+    € {{ totalStats.total.toFixed(2) }}
+    <span class="text-xs text-gray-400">({{ totalStats.count }} Orders)</span>
+  </span>
+</div>
 
-            <!-- Stats grid -->
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-6 text-gray-300 w-full">
-              <div
-                class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition"
-              >
-                <span class="text-sm font-bold mb-1 text-blue-400">Last Ordered:</span>
-                <span class="text-lg font-semibold">
-                  {{ lastOrdered.daysAgo }}
-                  <span class="text-xs text-gray-400">{{ lastOrdered.fullDate }}</span>
-                </span>
-              </div>
-              <div
-                class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition"
-              >
-                <span class="text-sm font-bold mb-1 text-purple-400">Total:</span>
-                <span class="text-lg font-semibold">
-                  € {{ totalStats.total.toFixed(2) }}
-                  <span class="text-xs text-gray-400">({{ totalStats.count }} Orders)</span>
-                </span>
-              </div>
+<div class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition">
+  <span class="text-sm font-bold mb-1 text-pink-400">Average Order:</span>
+  <span class="text-lg font-semibold">
+    € {{ averageOrder.average.toFixed(2) }}
+    <span class="text-xs text-gray-400">({{ averageOrder.avgItems.toFixed(0) }} Items)</span>
+  </span>
+</div>
+          <div class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition">
+  <span class="text-sm font-bold mb-1 text-green-400">Type:</span>
+  <span class="text-lg font-semibold">
+    Takeaway: {{ orderTypes.takeaway }}
+    <span class="text-xs text-gray-400">({{ orderTypes.takeawayPercent }}%)</span>
+    /
+    Delivery: {{ orderTypes.delivery }}
+    <span class="text-xs text-gray-400">({{ orderTypes.deliveryPercent }}%)</span>
+  </span>
+</div>
 
-              <div
-                class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition"
-              >
-                <span class="text-sm font-bold mb-1 text-pink-400">Average Order:</span>
-                <span class="text-lg font-semibold">
-                  € {{ averageOrder.average.toFixed(2) }}
-                  <span class="text-xs text-gray-400">({{ averageOrder.avgItems.toFixed(0) }} Items)</span>
-                </span>
-              </div>
-              <div
-                class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition"
-              >
-                <span class="text-sm font-bold mb-1 text-green-400">Type:</span>
-                <span class="text-lg font-semibold">
-                  Takeaway: {{ orderTypes.takeaway }}
-                  <span class="text-xs text-gray-400">({{ orderTypes.takeawayPercent }}%)</span>
-                  / Delivery: {{ orderTypes.delivery }}
-                  <span class="text-xs text-gray-400">({{ orderTypes.deliveryPercent }}%)</span>
-                </span>
-              </div>
-
-              <div
-                class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition"
-              >
-                <span class="text-sm font-bold mb-1 text-yellow-400">Promo Codes:</span>
-                <span class="text-lg font-semibold">
-                  {{ promoStats.count }}
-                  <span class="text-xs text-gray-400">({{ promoStats.percent }}%)</span>
-                </span>
-              </div>
-              <div
-                class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition"
-              >
-                <span class="text-sm font-bold mb-1 text-red-500">Complaints:</span>
-                <span class="text-lg font-semibold">
-                  {{ complaintStats.count }}
-                  <span class="text-xs text-gray-400">({{ complaintStats.percent }}%)</span>
-                </span>
-              </div>
-            </div>
+          <div class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition">
+            <span class="text-sm font-bold mb-1 text-yellow-400">Promo Codes:</span>
+            <span class="text-lg font-semibold">0 <span class="text-xs text-gray-400">(0%)</span></span>
           </div>
+          <div class="bg-gray-800 bg-opacity-30 rounded-xl p-3 flex flex-col items-start hover:shadow-neon transition">
+  <span class="text-sm font-bold mb-1 text-red-500">Complaints:</span>
+  <span class="text-lg font-semibold">
+    {{ complaintStats.count }}
+    <span class="text-xs text-gray-400">({{ complaintStats.percent }}%)</span>
+  </span>
+</div>
+
         </div>
       </div>
-    </h3>
+    </div>
+  </div>
+</h3>
 
     <div v-if="isLoading" class="flex justify-center items-center py-8">
       <VaSpinner size="large" color="primary" />
@@ -137,9 +125,9 @@
           <span>Order</span>
         </div>
         <div
-          class="flex justify-between items-center p-4 cursor-pointer transition group hover:bg-gray-100"
+          class="flex justify-between items-center p-4 cursor-pointer transition group"
           :class="{
-            'bg-gray-100': expandedIndex === index,
+            'bg-gray-200': expandedIndex === index,
           }"
           @click="toggleOrder(index)"
         >
@@ -190,219 +178,107 @@
 
           <!-- Complaints list -->
           <div v-if="order.complaint" class="ml-10">
-            <div
-              class="flex flex-col items-center justify-center text-sm text-center cursor-pointer rounded-lg transition-colors duration-200 group hover:bg-gray-200 p-2 w-24"
-              @click.stop="editComplaint(order._id, order.complaint)"
-            >
-              <span class="flex items-center justify-center">
-                <TriangleAlert class="w-9 h-9 text-red-500" />
-              </span>
-              <span
-                class="font-semibold truncate"
-                style="
-                  max-width: 150px;
-                  display: inline-block;
-                  white-space: nowrap;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                "
-              >
-                Complaint
-              </span>
-            </div>
-          </div>
+  <div
+    class="flex flex-col items-center justify-center text-sm text-center cursor-pointer 
+           rounded-lg transition-colors duration-200 group hover:bg-gray-200 p-2 w-34"
+    @click.stop="editComplaint(order._id, order.complaint)"
+  >
+    <span class="flex items-center justify-center">
+      <TriangleAlert class="w-9 h-9 fill-red-600 stroke-white" />
+    </span>
+    <span
+      class="font-semibold truncate"
+      style="
+        max-width: 150px;
+        display: inline-block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      "
+    >
+      Complaint
+    </span>
+  </div>
+</div>
 
-          <!-- Note display -->
-          <div v-if="order.note" class="ml-2">
-            <div
-              class="flex flex-col items-center justify-center text-sm text-center cursor-pointer rounded-lg transition-colors duration-200 group hover:bg-gray-200 p-2 w-24 gap-1"
-              @click.stop="openNote(order._id, order.note)"
-            >
-              <span class="flex items-center justify-center">
-                <NotepadText class="w-8 h-8 text-black" />
-              </span>
-              <span
-                class="font-semibold truncate"
-                style="
-                  max-width: 150px;
-                  display: inline-block;
-                  white-space: nowrap;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                "
-              >
-                Note
-              </span>
-            </div>
-          </div>
 
-          <div class="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition mr-5">
-            <span
-              v-if="!order.complaint || order.complaint === ''"
-              class="flex items-center gap-1 rounded-full text-black px-2 py-2 font-semibold text-xs cursor-pointer bg-gray-200 hover:bg-gray-300 transition-colors"
-              @click.stop="openComplaint(order._id)"
-            >
-              <TriangleAlert class="w-4 h-4 text-red-600" /> Add Complaint
-            </span>
 
-            <span
-              v-if="!order.note || order.note === ''"
-              class="flex items-center gap-1 rounded-full text-black px-2 py-2 font-semibold text-xs cursor-pointer bg-gray-200 hover:bg-gray-300 transition-colors"
-              @click.stop="openNote(order._id, order.note)"
-            >
-              <NotepadText class="w-4 h-4" /> Add Note
-            </span>
+<div class="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition mr-5">
+  <span
+    v-if="!order.complaint || order.complaint === ''"
+    class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer bg-gray-100 hover:bg-gray-300 transition-colors"
+    @click.stop="openComplaint(order._id)"
+  >
+    <TriangleAlert class="w-4 h-4 text-red-600" /> Add Complaint
+  </span>
 
-            <span
-              size="small"
-              class="flex items-center gap-1 rounded-full text-black px-2 py-2 font-semibold text-xs cursor-pointer bg-gray-200 hover:bg-gray-300 transition-colors"
-              @click.stop="openConfirm('repeat', order._id)"
-            >
-              <CopyPlus class="w-4 h-4" /> Repeat Order
-            </span>
+  <span
+    size="small"
+    class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer bg-gray-100 hover:bg-gray-300 transition-colors"
+    @click.stop="openNote(order._id, order.note)"
+  >
+    <NotepadText class="w-4 h-4" /> Add Note
+  </span>
 
-            <span
-              v-if="
-                index === 0 && (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack')
-              "
-              size="small"
-              class="flex items-center gap-1 rounded-full text-white px-2 py-2 font-semibold text-xs cursor-pointer bg-green-600 hover:bg-green-700 transition-colors"
-              @click.stop="openConfirm('add', order._id)"
-            >
-              <Plus class="w-4 h-4" /> Add Items
-            </span>
+  <span
+    size="small"
+    class="flex items-center gap-1 rounded-full text-black px-2 py-1.5 font-semibold text-xs cursor-pointer bg-gray-100 hover:bg-gray-300 transition-colors"
+    @click.stop="openConfirm('repeat', order._id)"
+  >
+    <CopyPlus class="w-4 h-4" /> Repeat Order
+  </span>
 
-            <span
-              v-if="
-                index === 0 && (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack')
-              "
-              size="small"
-              class="flex items-center gap-1 rounded-full text-white px-2 py-2 font-semibold text-xs cursor-pointer bg-red-600 hover:bg-red-700 transition-colors"
-              @click.stop="openConfirm('cancel', order._id)"
-            >
-              <X class="w-4 h-4" /> Cancel Order
-            </span>
-          </div>
+  <span
+    size="small"
+    class="flex items-center gap-1 rounded-full text-white px-2 py-1.5 font-semibold text-xs cursor-pointer bg-green-700 hover:bg-green-900 transition-colors"
+    @click.stop="openConfirm('add', order._id)"
+  >
+    <Plus class="w-4 h-4" /> Add Items
+  </span>
 
-          <span
-            v-if="
-              index === 0 && (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack')
-            "
-            class="px-3 py-2 rounded-full text-xs font-semibold tracking-wide flex items-center gap-1 transition-colors"
-            :class="{
-              'bg-yellow-500 text-white': true,
-            }"
-          >
-            <Loader2 class="w-3.5 h-3.5 animate-spin-slow" />
-            {{ orderStatuses === 'onrack' ? 'On Rack' : orderStatuses }}
-          </span>
+  <span
+    size="small"
+    class="flex items-center gap-1 rounded-full text-white px-2 py-1.5 font-semibold text-xs cursor-pointer bg-red-600 hover:bg-red-800 transition-colors"
+    @click.stop="openConfirm('cancel', order._id)"
+  >
+    <X class="w-4 h-4" /> Cancel Order
+  </span>
+</div>
 
-          <span
-            v-else
-            class="px-3 py-2 rounded-full text-xs font-semibold tracking-wide flex items-center gap-1 transition-colors"
-            :class="{
-              'bg-green-600 text-white': order.status === 'Completed',
-              'bg-yellow-500 text-white': order.status === 'In Progress',
-              'bg-red-600 text-white': order.status === 'Cancelled',
-            }"
-          >
-            <template v-if="order.status === 'Completed'">
-              <CheckCircle class="w-3.5 h-3.5" />
-            </template>
-            <template v-else-if="order.status === 'In Progress'">
-              <Loader2 class="w-3.5 h-3.5 animate-spin-slow" />
-            </template>
-            <template v-else-if="order.status === 'Cancelled'">
-              <XCircle class="w-3.5 h-3.5" />
-            </template>
-            {{ order.status }}
-          </span>
+<span
+  class="px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide flex items-center gap-1 transition-colors"
+  :class="{
+    'bg-green-600 text-white': order.status === 'Completed',
+    'bg-yellow-500 text-white': order.status === 'In Progress',
+    'bg-red-600 text-white': order.status === 'Cancelled',
+  }"
+>
+  <template v-if="order.status === 'Completed'">
+    <CheckCircle class="w-3.5 h-3.5" />
+  </template>
+  <template v-else-if="order.status === 'In Progress'">
+    <Loader2 class="w-3.5 h-3.5 animate-spin-slow" />
+  </template>
+  <template v-else-if="order.status === 'Cancelled'">
+    <XCircle class="w-3.5 h-3.5" />
+  </template>
+  {{ order.status }}
+</span>
         </div>
 
         <!-- EXPANDABLE ARTICLE LIST -->
         <div v-if="expandedIndex === index" class="bg-white px-6 pb-4 border-t border-gray-200">
           <div
-            v-for="(offer, idx) in order.offerDetails || []"
-            :key="idx"
-            class="flex flex-col justify-between py-2 border-b last:border-none relative"
-            :class="{
-              'bg-gray-50': isOfferSelected(order._id, idx),
-              'hover:bg-gray-50 cursor-pointer': !['Completed', 'Cancelled'].includes(order.status),
-              'opacity-60 cursor-not-allowed': ['Completed', 'Cancelled'].includes(order.status),
-            }"
-            @click="!['Completed', 'Cancelled'].includes(order.status) && toggleOfferSelection(order._id, idx)"
-          >
-            <div
-              v-if="!['Completed', 'Cancelled'].includes(order.status)"
-              class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
-            >
-              <Ban class="w-4 h-4" />
-            </div>
-            <div
-              v-if="isOfferSelected(order._id, idx) && !['Completed', 'Cancelled'].includes(order.status)"
-              class="absolute left-2 top-1/2 -translate-y-1/2"
-            >
-              <VaCheckbox
-                :model-value="true"
-                color="primary"
-                :readonly="true"
-                class="pointer-events-none"
-                @click.stop
-              />
-            </div>
-            <span class="pl-10">{{ offer.offerName }}</span>
-            <div v-for="item in offer.offerItems" :key="item._id" class="flex flex-row justify-between">
-              <div
-                class="flex flex-wrap items-center gap-2 pl-10"
-                :class="isOfferSelected(order._id, idx) ? 'pl-10' : 'pl-12'"
-              >
-                <p class="font-semibold text-xs">
-                  {{ item.quantity }} x {{ item.name }}
-                  <span
-                    v-if="item.extra"
-                    class="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-normal"
-                  >
-                    {{ item.extra }}</span
-                  >
-                </p>
-
-                <div class="flex flex-wrap gap-1 text-xs">
-                  <span
-                    v-for="addon in item.options || []"
-                    :key="addon.name"
-                    class="px-2 py-0.5 rounded-full"
-                    :class="{
-                      'bg-green-100 text-green-700': addon.type.toLowerCase() === 'extra',
-                      'bg-blue-100 text-blue-700': addon.type.toLowerCase() === 'article',
-                      'bg-red-100 text-red-700': addon.type.toLowerCase() === 'hold',
-                      'bg-amber-100 text-amber-700': addon.type.toLowerCase() === 'modifier',
-                    }"
-                  >
-                    {{ addon.name }}
-                    <span v-if="addon.price > 0">(€{{ addon.price.toFixed(2) }})</span>
-                  </span>
-                </div>
-              </div>
-              <span class="font-bold">€ {{ offer.totalPrice.toFixed(2) }}</span>
-            </div>
-          </div>
-          <div
             v-for="(item, idx) in order.menuItems || []"
             :key="idx"
-            class="flex justify-between items-start py-2 border-b last:border-none relative"
+            class="flex justify-between items-start py-2 border-b last:border-none cursor-pointer relative"
             :class="{
               'bg-gray-50': isItemSelected(order._id, idx),
-              'hover:bg-gray-50 cursor-pointer': !['Completed', 'Cancelled'].includes(order.status),
-              'opacity-60 cursor-not-allowed': ['Completed', 'Cancelled'].includes(order.status),
+              'hover:bg-gray-50': true,
             }"
-            @click="!['Completed', 'Cancelled'].includes(order.status) && toggleItemSelect(order._id, idx)"
+            @click="toggleItemSelect(order._id, idx)"
           >
-            <div
-              v-if="['Completed', 'Cancelled'].includes(order.status)"
-              class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
-            >
-              <Ban class="w-4 h-4" />
-            </div>
+            <!-- Checkbox only when selected -->
             <div v-if="isItemSelected(order._id, idx)" class="absolute left-2 top-1/2 -translate-y-1/2">
               <VaCheckbox
                 :model-value="true"
@@ -484,7 +360,7 @@
           <div class="flex gap-2">
             <button
               class="px-3 py-1 rounded-full bg-red-500 text-white font-semibold text-xs transition disabled:opacity-40 disabled:cursor-not-allowed"
-              :disabled="!hasSelectedForOrder(order._id) || !['Completed', 'Cancelled'].includes(order.status)"
+              :disabled="!hasSelectedForOrder(order._id)"
               @click="openConfirm('remove', order._id)"
             >
               Remove
@@ -492,7 +368,7 @@
 
             <button
               class="px-3 py-1 rounded-full bg-yellow-400 text-xs text-white font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed"
-              :disabled="!hasSelectedForOrder(order._id) || !['Completed', 'Cancelled'].includes(order.status)"
+              :disabled="!hasSelectedForOrder(order._id)"
               @click="openConfirm('edit', order._id)"
             >
               Edit
@@ -589,12 +465,10 @@ import { useOrderStore } from '@/stores/order-store.ts'
 import HistoryAddNoteModal from './HistoryAddNoteModal.vue'
 import HistoryComplaintModal from './HistoryComplaintModal.vue'
 import { useToast } from 'vuestic-ui'
-import { useServiceStore } from '@/stores/services.ts'
 const { init } = useToast()
 const props = defineProps({
   customer: { type: Object, required: true },
   outlet: { type: Object, required: true },
-  selectedUser: { type: Object, required: true },
   deliveryZoneOptions: {
     type: Array,
     default: () => [],
@@ -644,8 +518,8 @@ const users = ref([])
 const expandedIndex = ref(null)
 const isLoading = ref(true)
 const selectedItems = reactive({})
-const selectedOfferItems = reactive({})
 const selectedPeriod = ref('1 Month')
+
 
 const isConfirmOpen = ref(false)
 const confirmAction = ref(null)
@@ -749,31 +623,12 @@ const toggleItemSelect = (orderId, idx) => {
   }
 }
 
-const toggleOfferSelection = (orderId, idx) => {
-  if (!selectedOfferItems[orderId]) {
-    selectedOfferItems[orderId] = []
-  }
-  const pos = selectedOfferItems[orderId].indexOf(idx)
-  if (pos > -1) {
-    selectedOfferItems[orderId].splice(pos, 1)
-  } else {
-    selectedOfferItems[orderId].push(idx)
-  }
-}
-
 const isItemSelected = (orderId, idx) => {
   return Array.isArray(selectedItems[orderId]) && selectedItems[orderId].includes(idx)
 }
 
-const isOfferSelected = (orderId, idx) => {
-  return Array.isArray(selectedOfferItems[orderId]) && selectedOfferItems[orderId].includes(idx)
-}
-
 const hasSelectedForOrder = (orderId) => {
-  return (
-    (Array.isArray(selectedItems[orderId]) && selectedItems[orderId].length > 0) ||
-    (selectedOfferItems[orderId] && selectedOfferItems[orderId].length)
-  )
+  return Array.isArray(selectedItems[orderId]) && selectedItems[orderId].length > 0
 }
 
 const removeSelected = async (orderId) => {
@@ -781,47 +636,18 @@ const removeSelected = async (orderId) => {
   if (!order) return
 
   const items = (selectedItems[orderId] || []).map((i) => order.menuItems[i])
+  if (!items.length) return
 
-  const offersItems = (selectedOfferItems[orderId] || []).map((i) => order.offerDetails[i])
-  if (!items.length && !offersItems.length) return
+  const payload = buildOfferMenuItemsPayload(items)
+  console.log(payload)
 
-  const payload = buildOrderMenuItemsPayload(items)
-  const offerPayload = buildOfferMenuItemsPayload(offersItems)
-
+  // Await all API calls in parallel and wait for all to finish
   await Promise.all(
     payload.menuItems.map((item) => {
       const data = {
         menuItems: [
           {
             menuItem: item.menuItem,
-            quantity: item.quantity,
-            options: (item.options || []).map((opt) => ({
-              option: opt.option,
-              quantity: opt.quantity || 1,
-            })),
-          },
-        ],
-      }
-      return applyOrderEdit(orderId, 'delete', order.tableNumber, data)
-    }),
-  )
-
-  await Promise.all(
-    offerPayload.menuItems.map((item) => {
-      const data = {
-        offerMenuItems: [
-          {
-            offerId: item.offerId,
-            menuItems: [
-              {
-                menuItem: item.menuItem,
-                quantity: item.quantity,
-                options: (item.options || []).map((opt) => ({
-                  option: opt.option,
-                  quantity: opt.quantity || 1,
-                })),
-              },
-            ],
           },
         ],
       }
@@ -836,11 +662,12 @@ const editSelected = async (orderId) => {
   const order = orders.value.find((o) => o._id === orderId)
   if (!order) return
 
-  const items = (selectedItems[orderId] || []).map((i) => order.menuItems[i])
-  const offersItems = (selectedOfferItems[orderId] || []).map((i) => order.offerDetails[i])
-  if (!items.length && !offersItems.length) return
+  // const items = (selectedItems[orderId] || []).map((i) => order.menuItems[i])
+  // if (!items.length) return
 
-  const data = items.map((menuItem) => {
+  // console.log('Edit items:', items)
+
+  const data = order.menuItems.map((menuItem) => {
     return {
       orderId: orderId,
       itemId: menuItem._id,
@@ -876,50 +703,15 @@ const editSelected = async (orderId) => {
           }
         }),
     }
-    selectedItems[orderId] = []
   })
 
   const orderStore = useOrderStore()
-  orderStore.resetEditOrder()
-  orderStore.setCartItems([])
+  orderStore.addEditOrder(order)
   data.map((e) => {
     orderStore.addItemToCart(e)
     const newIndex = orderStore.cartItems.length - 1
     orderStore.calculateItemTotal(newIndex)
   })
-
-  if (offersItems.length) {
-    offersItems.map((e) => {
-      let selectionTotal = 0
-      e.structuredOffer.selections.forEach((item) => {
-        item.addedItems.forEach((addedItem) => {
-          selectionTotal += addedItem.basePrice * addedItem.quantity
-          addedItem.selectedOptions.forEach((group) => {
-            group.selected.forEach((selection) => {
-              selectionTotal += selection.price * selection.quantity
-            })
-          })
-        })
-      })
-      orderStore.offersAdded({
-        ...e.structuredOffer,
-        _id: e.offerId,
-        offerId: e.offerId,
-        basePrice: e.structuredOffer.price,
-        selectionTotalPrice: selectionTotal,
-        totalPrice: e.structuredOffer.price + selectionTotal,
-        quantity: 1,
-      })
-    })
-  }
-
-  // selectedOfferItems[orderId] = []
-
-  const total =
-    orderStore.cartItems.reduce((sum, item) => sum + item.totalPrice, 0) +
-    orderStore.offerItems.reduce((sum, item) => sum + item.totalPrice, 0)
-  order.editOrderTotal = total
-  orderStore.addEditOrder(order)
 
   emits('close')
 }
@@ -976,11 +768,14 @@ const repeatOrder = async (orderId) => {
 const addItemsToOrder = async (orderId) => {
   const order = orders.value.find((o) => o._id === orderId)
   if (!order) return
-  const orderStore = useOrderStore()
-  orderStore.resetEditOrder()
-  orderStore.setCartItems([])
-  orderStore.addEditOrder({ ...order, editOrderTotal: 0 })
-  emits('close')
+
+  const items = (selectedItems[orderId] || []).map((i) => order.menuItems[i])
+  if (!items.length) return
+
+  const payload = buildOfferMenuItemsPayload(items, '687e0a484e996f117b336b39') // pass actual offerId
+
+  await applyOrderEdit(orderId, 'add', order.tableNumber, payload)
+  fetchOrders()
 }
 
 const cancelOrder = async (orderId) => {
@@ -990,7 +785,8 @@ const cancelOrder = async (orderId) => {
   await applyOrderEdit(orderId, 'cancel', order.tableNumber)
   fetchOrders()
 }
-const buildOrderMenuItemsPayload = (items) => {
+const buildOfferMenuItemsPayload = (items) => {
+  // Group items by offerId (because one order can have multiple offers)
   const menuItems = []
 
   items.forEach((item) => {
@@ -999,31 +795,9 @@ const buildOrderMenuItemsPayload = (items) => {
       quantity: item.quantity,
       isFree: !!item.isFree,
       options: (item.options || []).map((opt) => ({
-        option: opt.option,
+        option: opt._id,
         quantity: opt.quantity || 1,
       })),
-    })
-  })
-
-  // Transform into offerMenuItems array
-  return {
-    menuItems,
-  }
-}
-
-const buildOfferMenuItemsPayload = (items) => {
-  const menuItems = []
-  items.forEach((offer) => {
-    offer.offerItems.forEach((item) => {
-      menuItems.push({
-        offerId: offer.offerId,
-        menuItem: item.menuItem,
-        quantity: item.quantity,
-        options: (item.options || []).map((opt) => ({
-          option: opt.option,
-          quantity: opt.quantity || 1,
-        })),
-      })
     })
   })
 
@@ -1092,128 +866,19 @@ const getDeliveryZoneName = (deliveryZoneId) => {
 const showAll = ref(false)
 
 const ordersToShow = computed(() => {
-  return showAll.value ? orders.value : orders.value.slice(0, 5)
+  return showAll.value ? orders.value : orders.value.slice(0, 7)
 })
-
-const orderStatuses = ref(null)
 
 const url = import.meta.env.VITE_API_BASE_URL
 
-const fetchOrderStatus = async () => {
-  const users = useUsersStore()
-  const outlet = useServiceStore()
-  const orderStore = useOrderStore()
-  const offers = orderStore.offers
-  try {
-    const res = await axios.get('https://coord.restuspos.com/CoordApi/v1/Stella/GetOrderStatusByMobile', {
-      params: {
-        mobile: props.selectedUser.MobilePhone,
-        w4CompanyCode: outlet.restDetails.winmaxConfig.company.toLowerCase(),
-      },
-      headers: {
-        'X-API-Key': '1234567890',
-      },
-      transformRequest: [
-        (data, headers) => {
-          if (headers && headers.hasOwnProperty('Authorization')) {
-            delete headers['Authorization']
-          }
-          return data
-        },
-      ],
-    })
-    if (res.data?.statusCode) {
-      orderStatuses.value = res.data.statusCode.toLowerCase()
-    } else {
-      orderStatuses.value = null
-    }
-  } catch (error) {
-    orderStatuses.value = null
-  }
-}
-
-const mapOfferDetailsToSelections = (offerDetailsResponse, detailedOfferPayload) => {
-  const detailedSelections = JSON.parse(JSON.stringify(detailedOfferPayload.selections)) // deep clone
-
-  // Flatten offerItems from the first offerDetails
-  const offerItems = offerDetailsResponse.offerItems || []
-
-  offerItems.forEach((item) => {
-    detailedSelections.forEach((selection) => {
-      // find menuItem match in this selection
-      const matchedMenuItem = selection.menuItems.find((mi) => mi.menuItemId === item.menuItem)
-
-      if (matchedMenuItem) {
-        // Initialize addedItems array if not already
-        if (!selection.addedItems) selection.addedItems = []
-
-        // Only push if max not reached
-        if (selection.addedItems.length < selection.max) {
-          selection.addedItems.push({
-            itemId: item.menuItem, // or item._id
-            quantity: item.quantity,
-            imageUrl: item.imageUrl,
-            itemDescription: item.itemDescription,
-            basePrice: item.price.toFixed(2),
-            itemName: item.name,
-            code: item.code,
-            // also map options if you want:
-            selectedOptions: [
-              {
-                ...selection.selectedOptions,
-                selected: item.options?.map((opt) => ({
-                  optionId: opt.option,
-                  name: opt.name,
-                  quantity: opt.quantity,
-                  price: opt.price,
-                  type: opt.type,
-                })),
-              },
-            ],
-          })
-        }
-      }
-    })
-  })
-
-  return {
-    ...detailedOfferPayload,
-    selections: detailedSelections,
-  }
-}
-
 const fetchOrders = async () => {
   const menuItems = useMenuStore()
-  const orderStore = useOrderStore()
   try {
     const res = await axios.get(
       `${url}/orders/history?phone=${props.customer?.Phone}&page=1&limit=500&from=2025-01-01&status=Completed`,
     )
     if (res.data?.status === 'Success') {
       orders.value = res.data.data.items.map((order) => {
-        const detailedOfferItems = (order.offerDetails || [])
-          .map((offer) => {
-            const offerItem = orderStore.offers.find((a) => a._id === offer.offerId)
-
-            let mappedData = ''
-            if (offerItem) {
-              mappedData = mapOfferDetailsToSelections(offer, offerItem)
-            }
-            if (offerItem) {
-              return { orderOffer: offer, offerData: mappedData }
-            } else {
-              return ''
-            }
-          })
-          .filter((offer) => offer)
-          .map((offer) => {
-            return {
-              ...offer.orderOffer,
-              structuredOffer: {
-                ...offer.offerData,
-              },
-            }
-          })
         const detailedItems = (order.menuItems || []).map((item) => {
           const menuItem = menuItems.unFilteredMenuItems.find((mi) => mi._id === item.menuItem)
 
@@ -1238,14 +903,14 @@ const fetchOrders = async () => {
         return {
           ...order,
           menuItems: detailedItems,
-          offerDetails: detailedOfferItems,
         }
       })
+      console.log(orders.value)
     } else {
       orders.value = []
     }
   } catch (error) {
-    console.log(error)
+    console.error('Error fetching order history:', error)
     orders.value = []
   } finally {
     isLoading.value = false
@@ -1293,6 +958,7 @@ const applyOrderEdit = async (orderId, action, tableNumber, payload = {}) => {
     })
     return res.data
   } catch (err) {
+    console.error('Order edit failed:', err)
     init({ message: err.response.data.message, color: 'danger' })
     throw err
   }
@@ -1304,12 +970,8 @@ const getTheEmployeeName = (employeeId) => {
   return [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username
 }
 const getTotalPrice = (item) => {
-  if (!item.articlesOptionsGroup.flatMap((a) => a.articlesOptions).filter((a) => a.selected).length)
-    return item.price.toFixed(2)
-  const total = item.articlesOptionsGroup
-    .flatMap((a) => a.articlesOptions)
-    .filter((a) => a.selected)
-    .reduce((sum, opt) => sum + (opt.price || 0), 0)
+  if (!item.options.length) return item.price.toFixed(2)
+  const total = item.options.reduce((sum, opt) => sum + (opt.price || 0), 0)
   return (total + item.price).toFixed(2)
 }
 
@@ -1342,14 +1004,16 @@ const filteredOrders = computed(() => {
   if (!orders.value || !orders.value.length) return []
 
   const startDate = periodStartDate.value
-  return orders.value.filter((o) => o.status === 'Completed' && new Date(o.createdAt) >= startDate)
+  return orders.value.filter(o => o.status === 'Completed' && new Date(o.createdAt) >= startDate)
 })
 
 // Last Ordered
 const lastOrdered = computed(() => {
   if (!filteredOrders.value.length) return { daysAgo: 'No Orders', fullDate: '' }
 
-  const sorted = [...filteredOrders.value].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  const sorted = [...filteredOrders.value].sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  )
   const last = sorted[0]
 
   const lastDate = new Date(last.createdAt)
@@ -1358,7 +1022,8 @@ const lastOrdered = computed(() => {
   today.setHours(0, 0, 0, 0)
 
   const diffDays = Math.round((today - lastDate) / (1000 * 60 * 60 * 24))
-  const daysAgoText = diffDays === 0 ? 'Today' : diffDays === 1 ? '1 day ago' : `${diffDays} days ago`
+  const daysAgoText =
+    diffDays === 0 ? 'Today' : diffDays === 1 ? '1 day ago' : `${diffDays} days ago`
 
   return {
     daysAgo: daysAgoText,
@@ -1375,8 +1040,8 @@ const totalStats = computed(() => {
 
 // Type
 const orderTypes = computed(() => {
-  const takeaway = filteredOrders.value.filter((o) => o.orderType?.toLowerCase() === 'takeaway').length
-  const delivery = filteredOrders.value.filter((o) => o.orderType?.toLowerCase() === 'delivery').length
+  const takeaway = filteredOrders.value.filter(o => o.orderType?.toLowerCase() === 'takeaway').length
+  const delivery = filteredOrders.value.filter(o => o.orderType?.toLowerCase() === 'delivery').length
   const total = takeaway + delivery
 
   return {
@@ -1401,23 +1066,23 @@ const averageOrder = computed(() => {
 
 // Promo Codes
 const promoStats = computed(() => {
-  const count = filteredOrders.value.filter((o) => o.discount && o.discount > 0).length
+  const count = filteredOrders.value.filter(o => o.promoCodeApplied).length
   const percent = filteredOrders.value.length ? Math.round((count / filteredOrders.value.length) * 100) : 0
   return { count, percent }
 })
 
 // Complaints
 const complaintStats = computed(() => {
-  const count = filteredOrders.value.filter((o) => o.complaint && o.complaint.trim() !== '').length
+  const count = filteredOrders.value.filter(o => o.complaint && o.complaint.trim() !== '').length
   const percent = filteredOrders.value.length ? Math.round((count / filteredOrders.value.length) * 100) : 0
   return { count, percent }
 })
 
-onMounted(async () => {
+
+
+onMounted(() => {
   fetchUsers()
-  // fetchOrders()
-  await fetchOrderStatus()
-  await fetchOrders()
+  fetchOrders()
 })
 </script>
 <style scoped>
