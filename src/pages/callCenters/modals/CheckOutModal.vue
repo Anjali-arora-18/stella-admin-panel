@@ -349,10 +349,16 @@ async function updateOrder() {
   const url = import.meta.env.VITE_API_BASE_URL
   const userStore = useUsersStore()
   const existingMenuItems = []
+  const existingOffers = []
   orderStore.editOrder.menuItems.forEach((item) => {
     if (orderStore.cartItems.find((a) => a.itemId === item._id)) {
-      console.log(item)
       existingMenuItems.push(item._id)
+    }
+  })
+
+  orderStore.editOrder.offerDetails.forEach((item) => {
+    if (orderStore.offerItems.find((a) => a._id === item.offerId)) {
+      existingOffers.push(item)
     }
   })
 
@@ -373,6 +379,48 @@ async function updateOrder() {
     )
   }
 
+  if (existingOffers.length) {
+    await Promise.all(
+      existingOffers.map((offer) => {
+        const data = {
+          offerMenuItems: [
+            {
+              offerId: offer.offerId,
+              menuItems: offer.offerItems.map((item) => {
+                return {
+                  menuItem: item.menuItem,
+                  quantity: item.quantity,
+                  options: (item.options || []).map((opt) => ({
+                    option: opt.option,
+                    quantity: opt.quantity || 1,
+                  })),
+                }
+              }),
+            },
+          ],
+        }
+        return applyOrderEdit(orderStore.editOrder._id, 'delete', orderStore.editOrder.tableNumber, data)
+      }),
+    )
+  }
+
+  const offerMenuItems = orderStore.offerItems.map((offer) => ({
+    offerId: offer.offerId,
+    menuItems: offer.selections.flatMap((selection) =>
+      selection.addedItems.map((item) => ({
+        menuItem: item.itemId,
+        quantity: item.quantity || 1,
+        options:
+          item.selectedOptions?.flatMap((group) =>
+            group.selected.map((option) => ({
+              option: option.optionId,
+              quantity: option.quantity,
+            })),
+          ) || [],
+      })),
+    ),
+  }))
+
   try {
     const res = await axios.post(
       `${url}/order-edits/${orderStore.editOrder._id}/apply`,
@@ -392,6 +440,7 @@ async function updateOrder() {
             ),
           }
         }),
+        offerMenuItems,
       },
       {
         params: {
