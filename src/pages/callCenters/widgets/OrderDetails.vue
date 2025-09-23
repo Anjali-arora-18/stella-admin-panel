@@ -503,7 +503,7 @@ const { init } = useToast()
 async function openPromotionModal() {
   const url = import.meta.env.VITE_API_BASE_URL
   try {
-    const { data } = await axios.get(`${url}/promotions?outletId=${serviceStore.selectedRest}`)
+    const { data } = await axios.get(`${url}/cc/promotions?outletId=${serviceStore.selectedRest}`)
     console.log('Promotion Data:', data)
 
     const validPromotions = data.data.filter((promo) => promo.availableAtCC)
