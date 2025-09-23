@@ -338,10 +338,7 @@
             >
               <Ban class="w-4 h-4" />
             </div>
-            <div
-              v-if="isOfferSelected(order._id, idx) && !['Completed', 'Cancelled'].includes(order.status)"
-              class="absolute left-2 top-1/2 -translate-y-1/2"
-            >
+            <div v-if="isOfferSelected(order._id, idx)" class="absolute left-2 top-1/2 -translate-y-1/2">
               <VaCheckbox
                 :model-value="true"
                 color="primary"
