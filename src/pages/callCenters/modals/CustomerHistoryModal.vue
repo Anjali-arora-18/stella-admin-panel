@@ -357,10 +357,10 @@
                 @click.stop
               />
             </div>
-            <span class="pl-10">{{ offer.offerName }}</span>
+            <span class="pl-8">{{ offer.offerName }}</span>
             <div v-for="item in offer.offerItems" :key="item._id" class="flex flex-row justify-between">
               <div
-                class="flex flex-wrap items-center gap-2 pl-10"
+                class="flex flex-wrap items-center gap-2 pt-1 pl-10"
                 :class="isOfferSelected(order._id, idx) ? 'pl-10' : 'pl-12'"
               >
                 <p class="font-semibold text-xs">
@@ -390,6 +390,8 @@
                   </span>
                 </div>
               </div>
+            </div>
+            <div class="flex items-center justify-end pr-0">
               <span class="font-bold">€ {{ offer.totalPrice.toFixed(2) }}</span>
             </div>
           </div>
@@ -463,7 +465,6 @@
                 </span>
               </div>
             </div>
-
             <span class="font-bold">€ {{ getTotalPrice(item) }}</span>
           </div>
 
