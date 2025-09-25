@@ -982,6 +982,30 @@ const repeatOrder = async (orderId) => {
     }
   })
   const orderStore = useOrderStore()
+
+  order.offerDetails.map((e) => {
+    let selectionTotal = 0
+    e.structuredOffer.selections.forEach((item) => {
+      item.addedItems.forEach((addedItem) => {
+        selectionTotal += addedItem.basePrice * addedItem.quantity
+        addedItem.selectedOptions.forEach((group) => {
+          group.selected.forEach((selection) => {
+            selectionTotal += selection.price * selection.quantity
+          })
+        })
+      })
+    })
+    orderStore.offersAdded({
+      ...e.structuredOffer,
+      _id: e.offerId,
+      offerId: e.offerId,
+      basePrice: e.structuredOffer.price,
+      selectionTotalPrice: selectionTotal,
+      totalPrice: e.structuredOffer.price + selectionTotal,
+      quantity: 1,
+    })
+  })
+
   data.map((e) => {
     orderStore.addItemToCart(e)
     const newIndex = orderStore.cartItems.length - 1
