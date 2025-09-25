@@ -383,20 +383,20 @@ async function updateOrder() {
     await Promise.all(
       existingOffers.map((offer) => {
         const data = {
+          offerId: offer.offerId,
           offerMenuItems: [
-            {
-              offerId: offer.offerId,
-              menuItems: offer.offerItems.map((item) => {
-                return {
-                  menuItem: item.menuItem,
-                  quantity: item.quantity,
-                  options: (item.options || []).map((opt) => ({
-                    option: opt.option,
-                    quantity: opt.quantity || 1,
-                  })),
-                }
-              }),
-            },
+            // {
+            //   menuItems: offer.offerItems.map((item) => {
+            //     return {
+            //       menuItem: item.menuItem,
+            //       quantity: item.quantity,
+            //       options: (item.options || []).map((opt) => ({
+            //         option: opt.option,
+            //         quantity: opt.quantity || 1,
+            //       })),
+            //     }
+            //   }),
+            // },
           ],
         }
         return applyOrderEdit(orderStore.editOrder._id, 'delete', orderStore.editOrder.tableNumber, data)
