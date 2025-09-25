@@ -949,6 +949,7 @@ const repeatOrder = async (orderId) => {
     return {
       itemId: menuItem._id,
       itemName: menuItem.menuItem,
+      description: menuItem.description,
       basePrice: parseFloat(menuItem.price) || 0,
       totalPrice: 0,
       imageUrl: menuItem.imageUrl || '',
@@ -1180,39 +1181,51 @@ const mapOfferDetailsToSelections = (offerDetailsResponse, detailedOfferPayload)
   // Flatten offerItems from the first offerDetails
   const offerItems = offerDetailsResponse.offerItems || []
 
+  const storeMenuItems = useMenuStore().categories.flatMap((a) => a.menuItems)
+
   offerItems.forEach((item) => {
     detailedSelections.forEach((selection) => {
       // find menuItem match in this selection
       const matchedMenuItem = selection.menuItems.find((mi) => mi.menuItemId === item.menuItem)
 
       if (matchedMenuItem) {
+        const storeMenu = storeMenuItems.find((a) => a._id === item.menuItem)
+
         // Initialize addedItems array if not already
         if (!selection.addedItems) selection.addedItems = []
 
-        // Only push if max not reached
+        const optionIds = (item.options || []).map((a) => a.option)
+        const articleOptionsGroup = storeMenu.articlesOptionsGroup.filter((group) =>
+          group.articlesOptions.some((opt) => optionIds.includes(opt.id)),
+        )
         if (selection.addedItems.length < selection.max) {
           selection.addedItems.push({
+            articlesOptionsGroups: storeMenu.articlesOptionsGroup,
             itemId: item.menuItem, // or item._id
             quantity: item.quantity,
-            imageUrl: item.imageUrl,
-            itemDescription: item.itemDescription,
+            imageUrl: storeMenu.imageUrl,
+            itemDescription: storeMenu.description,
             basePrice: item.price.toFixed(2),
             itemName: item.name,
             code: item.code,
             // also map options if you want:
-            selectedOptions: [
-              {
-                ...selection.selectedOptions,
-                selected: item.options?.map((opt) => ({
-                  optionId: opt.option,
-                  name: opt.name,
-                  quantity: opt.quantity,
-                  price: opt.price,
-                  type: opt.type,
-                })),
-              },
-            ],
+            selectedOptions: articleOptionsGroup.map((group) => {
+              return {
+                groupId: group._id,
+                groupName: group?.name,
+                selected: item.options
+                  ?.filter((opt) => group.articlesOptions.some((gOpt) => gOpt._id === opt.option))
+                  .map((opt) => ({
+                    optionId: opt.option,
+                    name: opt.name,
+                    quantity: opt.quantity,
+                    price: opt.price,
+                    type: opt.type,
+                  })),
+              }
+            }),
           })
+          console.log(selection.addedItems)
         }
       }
     })
