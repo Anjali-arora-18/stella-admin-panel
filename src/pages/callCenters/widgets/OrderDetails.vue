@@ -120,8 +120,6 @@
                   €{{ promoMenuItemPrice(item) ? promoMenuItemPrice(item) : 0 }}
                 </span>
               </template>
-
-              <!-- Show normal price if no promo -->
               <template v-else>
                 <span class="font-semibold text-green-800"> €{{ item.total.toFixed(2) }} </span>
               </template>
@@ -192,8 +190,17 @@
               </p>
             </div>
 
-            <!-- Item Total -->
-            <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
+            <div class="flex flex-col items-end">
+              <template v-if="promoOfferItemPrice(item) !== null">
+                <span class="original-price">€{{ item.total.toFixed(2) }}</span>
+                <span v-if="promoOfferItemPrice(item) >= 0" class="updated-price"
+                  >€{{ promoOfferItemPrice(item).toFixed(2) }}</span
+                >
+              </template>
+              <template v-else>
+                <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
+              </template>
+            </div>
           </div>
         </div>
       </div>
@@ -341,7 +348,7 @@ const orderItemsStyle = computed(() => {
     }
   }
   if (promoTotal.value) {
-    height.height = `calc(${height.height} - 20px)` // Adjust for discounted price row
+    height.height = `calc(${height.height} - 20px)`
   }
   return height
 })
@@ -383,6 +390,7 @@ const items = computed(() =>
 
     return {
       id: item.itemId || index,
+      menuItemId: menuItemId || item.itemId,
       name: item.itemName,
       quantity: item.quantity,
       basePrice: item.basePrice,
@@ -413,6 +421,7 @@ const offersItems = computed(() =>
 
     return {
       id: item.itemId || index,
+      offerId: item.offerId,
       name: item.name,
       quantity: item.quantity,
       basePrice: item.price,
@@ -420,7 +429,8 @@ const offersItems = computed(() =>
       items,
       unitTotal: totalPrice,
       total: totalPrice * item.quantity,
-      fullItem: item,
+      fullItem: { ...item, offerId: item.offerId },
+      // fullItem: item,
     }
   }),
 )
@@ -452,6 +462,20 @@ const promoMenuItemPrice = function (item) {
   else {
     return promoMenuItem.updatedPrice ? promoMenuItem.updatedPrice.toFixed(2) : promoMenuItem.updatedPrice
   }
+}
+
+const promoOfferItemPrice = (item) => {
+  if (!promoTotal.value || !item) return null
+
+  const promoOffers = promoTotal.value.offerDetails || []
+
+  const offerId = item.offerId || item.fullItem?.offerId
+
+  const promo = promoOffers.find((a) => a.offerId === offerId || String(a.offerId) === String(offerId))
+  if (!promo) return null
+
+  const updated = Number(promo.totalPrice)
+  return Number(updated.toFixed(2))
 }
 
 const increaseQty = (item) => {
