@@ -55,7 +55,17 @@
                     Base price: €{{ item.price.toFixed(2) }} + €{{ item.selectionTotalPrice.toFixed(2) }} for addons
                   </div>
                 </div>
-                <div class="item-total-price">€{{ item.totalPrice.toFixed(2) }}</div>
+                <div class="item-total-price">
+                  <template v-if="promoOfferItemPrice(item) !== null">
+                    <span class="original-price">€{{ item.totalPrice.toFixed(2) }}</span>
+                    <span v-if="promoOfferItemPrice(item) >= 0" class="updated-price"
+                      >€{{ promoOfferItemPrice(item).toFixed(2) }}</span
+                    >
+                  </template>
+                  <template v-else>
+                    <span class="font-semibold text-green-800">€{{ item.totalPrice.toFixed(2) }}</span>
+                  </template>
+                </div>
               </div>
 
               <!-- Show selected items inside each offer -->
@@ -616,6 +626,19 @@ const promoMenuItemPrice = function (item) {
   else {
     return promoMenuItem.updatedPrice ? promoMenuItem.updatedPrice.toFixed(2) : promoMenuItem.updatedPrice
   }
+}
+const promoOfferItemPrice = (item) => {
+  if (!promoTotal.value || !item) return null
+
+  const promoOffers = promoTotal.value.offerDetails || []
+
+  const offerId = item.offerId || item.fullItem?.offerId
+
+  const promo = promoOffers.find((a) => a.offerId === offerId || String(a.offerId) === String(offerId))
+  if (!promo) return null
+
+  const updated = Number(promo.totalPrice)
+  return Number(updated.toFixed(2))
 }
 </script>
 
