@@ -126,7 +126,7 @@
             </div>
           </div>
         </div>
-        <div v-for="item in offersItems" :key="item.id" class="mb-3 border-b pb-2 last:border-none">
+        <div v-for="(item, index) in offersItems" :key="item.id" class="mb-3 border-b pb-2 last:border-none">
           <div class="flex items-start justify-between">
             <!-- Quantity Controls -->
             <div class="flex items-center gap-2">
@@ -149,7 +149,7 @@
                   name="edit"
                   size="small"
                   class="text-yellow-600 cursor-pointer"
-                  @click="getOfferItems(item.fullItem)"
+                  @click="getOfferItems({ ...item.fullItem, index: index })"
                 />
               </div>
 
