@@ -201,36 +201,46 @@ const orderFor = computed(() => orderStore.orderFor)
 
 const etaTime = computed(() => {
   const now = new Date()
+
   const selectedDate = new Date(props.dateSelected)
+
   const promiseTime =
     props.orderType === 'delivery'
       ? orderStore.deliveryZone?.deliveryPromiseTime
-      : orderStore.deliveryZone.takeawayPromiseTime
+      : orderStore.deliveryZone?.takeawayPromiseTime
 
   const etaDate = new Date(selectedDate)
-  etaDate.setMinutes(etaDate.getMinutes() + promiseTime)
+
+  etaDate.setMinutes(etaDate.getMinutes() + (promiseTime || 0))
 
   const timeString = etaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
 
   const isFutureOrder = selectedDate.getTime() > now.getTime() + 30 * 60 * 1000
 
+  const zoneName = orderStore.deliveryZone?.name ? `${orderStore.deliveryZone.name} - ` : ''
+
   if (isFutureOrder) {
     const dateString = selectedDate.toLocaleDateString([], {
       day: 'numeric',
+
       month: 'short',
+
       year: 'numeric',
     })
+
     const scheduledTimeString = selectedDate.toLocaleTimeString([], {
       hour: '2-digit',
+
       minute: '2-digit',
+
       hour12: false,
     })
 
-    return `${
+    return `${zoneName}${
       props.orderType === 'delivery' ? 'Delivery' : 'Takeaway'
     } - Scheduled for ${dateString} at ${scheduledTimeString}`
   } else {
-    return props.orderType === 'delivery' ? `Delivery - ETA ${timeString}` : `Takeaway - Ready at ${timeString}`
+    return `${zoneName}${props.orderType === 'delivery' ? 'Delivery - ETA' : 'Takeaway - Ready at'} ${timeString}`
   }
 })
 
