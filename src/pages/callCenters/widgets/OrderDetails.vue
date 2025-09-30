@@ -457,10 +457,15 @@ const orderFor = computed(() => orderStore.orderFor)
 
 const promoMenuItemPrice = function (item) {
   if (!promoTotal.value || !item) return 0
-  const promoMenuItem = promoTotal.value.menuItems.find((a) => a.menuItemId === item.id)
-  if (!promoMenuItem) return item.total
+  const promoMenuItem = promoTotal.value.menuItems.filter((a) => a.menuItemId === item.id)
+  if (!promoMenuItem.length) return item.total
   else {
-    return promoMenuItem.updatedPrice ? promoMenuItem.updatedPrice.toFixed(2) : promoMenuItem.updatedPrice
+    const miniMumPrice = Math.min(...items.value.map((p) => Number(p.total)))
+    if (item.total === miniMumPrice) {
+      return promoMenuItem[0].updatedPrice ? promoMenuItem[0].updatedPrice.toFixed(2) : promoMenuItem[0].updatedPrice
+    } else {
+      return item.total.toFixed(2)
+    }
   }
 }
 
@@ -471,11 +476,15 @@ const promoOfferItemPrice = (item) => {
 
   const offerId = item.offerId || item.fullItem?.offerId
 
-  const promo = promoOffers.find((a) => a.offerId === offerId || String(a.offerId) === String(offerId))
-  if (!promo) return null
-
-  const updated = Number(promo.totalPrice)
-  return Number(updated.toFixed(2))
+  const promo = promoOffers.filter((a) => a.offerId === offerId)
+  // Get the minimum totalPrice from the list of promo
+  const miniMumPrice = Math.min(...offerItems.value.map((p) => Number(p.totalPrice)))
+  if (!promo.length) return null
+  const updated = Number(promo[0].totalPrice)
+  if (item.totalPrice === miniMumPrice) {
+    return Number(updated.toFixed(2))
+  }
+  return null
 }
 
 const increaseQty = (item) => {
