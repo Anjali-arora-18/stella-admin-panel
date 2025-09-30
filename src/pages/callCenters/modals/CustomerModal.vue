@@ -476,6 +476,7 @@ async function addOrUpdateCustomerDetails() {
     notifications: notifications.value,
     customerNote: '',
     addressNote: '',
+    optOutDataSaving: !isTick.value,
   }
   try {
     let response
