@@ -597,14 +597,15 @@ const filteredAddresses = computed(() => {
         }
       })
     }
-    selectedZoneDetails.value.meetingPointAddress
-      .filter((a) => a !== '')
-      .forEach((meetingPoint) => {
-        addresses.push({
-          text: `Meeting Point - ${meetingPoint}`,
-          value: meetingPoint,
-        })
-      })
+    // commmented the metting point zone for now.
+    // selectedZoneDetails.value.meetingPointAddress
+    //   .filter((a) => a !== '')
+    //   .forEach((meetingPoint) => {
+    //     addresses.push({
+    //       text: `Meeting Point - ${meetingPoint}`,
+    //       value: meetingPoint,
+    //     })
+    //   })
     return addresses
   } else {
     return []

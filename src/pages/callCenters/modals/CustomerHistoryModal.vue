@@ -392,8 +392,15 @@
               </div>
             </div>
             <div class="flex items-center justify-end pr-0">
-              <span class="font-bold">€ {{ offer.totalPrice.toFixed(2) }}</span>
+              <template v-if="!offer.overrideUnitPrice">
+                <span class="font-bold">€ {{ offer.totalPrice.toFixed(2) }}</span>
+              </template>
+              <template v-else>
+                <span class="font-bold line-through">€ {{ offer.totalPrice.toFixed(2) }}</span>
+                <span class="font-bold text-red-700">€ {{ offer.overrideUnitPrice.toFixed(2) }}</span>
+              </template>
             </div>
+            <div v-if="offer.overrideUnitPrice">{{ offer.overrideUnitPrice }}</div>
           </div>
           <div
             v-for="(item, idx) in order.menuItems || []"
@@ -465,7 +472,11 @@
                 </span>
               </div>
             </div>
-            <span class="font-bold">€ {{ getTotalPrice(item) }}</span>
+            <span v-if="!item.overrideUnitPrice" class="font-bold">€ {{ getTotalPrice(item) }}</span>
+            <div v-if="item.overrideUnitPrice" class="space-x-2">
+              <span class="font-bold line-through">€ {{ getTotalPrice(item) }}</span>
+              <span class="font-bold text-red-700">€ {{ item.overrideUnitPrice }}</span>
+            </div>
           </div>
 
           <!-- Totals -->
