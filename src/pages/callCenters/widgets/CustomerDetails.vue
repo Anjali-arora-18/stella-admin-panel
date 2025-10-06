@@ -171,7 +171,7 @@
 
           <div class="flex flex-wrap md:flex-nowrap items-center gap-1 relative w-full">
             <template v-if="selectedTab === 'takeaway'">
-              <input
+              <!-- <input
                 type="text"
                 :value="selectedZone || 'No Zone Selected'"
                 disabled
@@ -184,7 +184,58 @@
                 @click="showDeliveryDropdown = true"
               >
                 {{ serviceZoneId || 'N/A' }}
-              </VaButton>
+              </VaButton> -->
+
+              <!-- LOCATION FIELD (Takeaway Tab) -->
+              <div class="relative flex items-center gap-1 w-full">
+                <!-- Input-like clickable field -->
+                <div
+                  class="border rounded w-full px-2 py-[5px] text-xs bg-white cursor-pointer hover:bg-gray-50 flex items-center justify-between"
+                  @click="showDeliveryDropdown = !showDeliveryDropdown"
+                >
+                  <span>{{ selectedZone || 'Select Location' }}</span>
+                  <!-- Unfilled / outlined arrow icon -->
+                  <svg
+                    class="w-3 h-3 text-gray-600 ml-1"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+                  </svg>
+                </div>
+
+                <!-- Disabled number button (aligned inline) -->
+                <VaButton
+                  class="text-white h-[28px] w-[28px] rounded-md flex items-center justify-center opacity-60 cursor-not-allowed"
+                  size="small"
+                  :style="{ '--va-background-color': outlet.primaryColor }"
+                  disabled
+                >
+                  {{ serviceZoneId || 'N/A' }}
+                </VaButton>
+
+                <!-- Dropdown -->
+                <div
+                  v-if="showDeliveryDropdown"
+                  class="absolute left-0 top-full max-h-[300px] overflow-y-auto mt-1 w-full text-left bg-white border rounded shadow z-10"
+                >
+                  <ul ref="deliveryList" class="text-xs">
+                    <li
+                      v-for="(zone, index) in deliveryZoneOptions"
+                      :key="index"
+                      class="px-3 py-2 hover:bg-gray-100 cursor-pointer border border-b-1"
+                      :class="{
+                        'text-primary font-bold': selectedZone === zone.name,
+                      }"
+                      @click="selectDeliveryZone(zone)"
+                    >
+                      {{ zone.serviceZoneId }} - {{ zone.name }}
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </template>
 
             <template v-else>
