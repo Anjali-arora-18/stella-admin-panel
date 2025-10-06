@@ -124,7 +124,9 @@
                     class="p-2 cursor-pointer hover:bg-primary-500"
                     @click="setAddress(street)"
                   >
-                    <span v-if="street.Designation.includes('Meeting')">{{ street.Designation }}</span>
+                    <span v-if="street.Designation && street.Designation.includes('Meeting')">
+                      {{ street.Designation }}
+                    </span>
                     <span v-else>{{ street['Postal Code'] }} &nbsp; - &nbsp;{{ street['Street Name'] }}</span>
                   </li>
                 </ul>
@@ -361,15 +363,16 @@ function handleSearch() {
 
 function setAddress(address) {
   addressSet.value = address
-  if (address.Designation.includes('Meeting Point')) {
+
+  if (address.Designation && address.Designation.includes('Meeting Point')) {
     designation.value = address.Designation
-    postCode.value = address['Postal Code']
+    postCode.value = address['Postal Code'] || ''
     streetList.value = []
   } else {
-    streetAddress.value = address['Street Name']
-    district.value = address['District']
-    postCode.value = address['Postal Code']
-    muncipality.value = address['Municipality / Community']
+    streetAddress.value = address['Street Name'] || ''
+    district.value = address['District'] || ''
+    postCode.value = address['Postal Code'] || ''
+    muncipality.value = address['Municipality / Community'] || ''
     streetList.value = []
   }
 }
