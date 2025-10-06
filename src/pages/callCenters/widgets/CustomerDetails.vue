@@ -463,7 +463,12 @@ async function fetchCustomerDetails(setUser = false) {
 function setNewUser(payload) {
   phoneNumber.value = payload.phoneNumber
   name.value = payload.name
-  fetchCustomerDetails(true)
+  if (payload.isTick) {
+    fetchCustomerDetails(true)
+  } else {
+    selectedUser.value = { ...payload }
+    emits('setCustomerDetailsId', payload._id)
+  }
 }
 
 function selectUser(user) {
