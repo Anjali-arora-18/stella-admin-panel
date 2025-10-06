@@ -462,7 +462,7 @@ async function fetchCustomerDetails(setUser = false) {
 
 function setNewUser(payload) {
   phoneNumber.value = payload.phoneNumber
-  name.value = payload.name
+  name.value = payload.name || payload.customerName
   if (payload.isTick) {
     fetchCustomerDetails(true)
   } else {
