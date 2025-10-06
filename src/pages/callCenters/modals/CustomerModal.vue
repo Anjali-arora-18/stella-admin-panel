@@ -53,6 +53,7 @@
                     </span>
                   </div>
                   <div v-else>
+                    <span v-if="addr.designation" class="font-bold uppercase">{{ addr.designation }} - </span>
                     <span v-if="addr.aptNo">{{ addr.aptNo }},</span>
                     <span v-if="addr.floor">{{ addr.floor }},</span>
                     <span v-if="addr.streetName || addr.streetNo">{{ addr.streetName }} {{ addr.streetNo }},</span>
@@ -366,15 +367,13 @@ function setAddress(address) {
 
   if (address.Designation && address.Designation.includes('Meeting Point')) {
     designation.value = address.Designation
-    postCode.value = address['Postal Code'] || ''
-    streetList.value = []
-  } else {
-    streetAddress.value = address['Street Name'] || ''
-    district.value = address['District'] || ''
-    postCode.value = address['Postal Code'] || ''
-    muncipality.value = address['Municipality / Community'] || ''
-    streetList.value = []
   }
+
+  streetAddress.value = address['Street Name'] || ''
+  district.value = address['District'] || ''
+  postCode.value = address['Postal Code'] || ''
+  muncipality.value = address['Municipality / Community'] || ''
+  streetList.value = []
 }
 
 async function addAddress() {
@@ -384,7 +383,10 @@ async function addAddress() {
     return
   }
 
-  if (editAddress.value === -1) {
+  if (
+    editAddress.value === -1 &&
+    (!addressSet.value.Designation || !addressSet.value.Designation.includes('Meeting'))
+  ) {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/postalcodes/streets`, {
         params: {
@@ -486,7 +488,7 @@ async function fetchStreetName() {
 
 async function addOrUpdateCustomerDetails() {
   const servicesStore = useServiceStore()
-  const payload = {
+  let payload: any = {
     name: name.value,
     phone: phoneNumber.value,
     address: address.value,
@@ -498,10 +500,23 @@ async function addOrUpdateCustomerDetails() {
   }
   try {
     if (props.selectedUser) {
-      payload['id'] = props.selectedUser._id
       const method = !isTick.value ? 'patch' : 'put'
       const url = !isTick.value ? 'customers/' : 'winmax/entities/'
-      const id = !isTick.value ? props.selectedUser['ID'] : props.selectedUser._id
+      const id = !isTick.value ? props.selectedUser._id : props.selectedUser['ID']
+
+      delete payload.isPresent
+      if (isTick.value) {
+        payload['id'] = props.selectedUser._id
+      } else {
+        payload = {
+          ...payload,
+          addreswholeObj: payload.address,
+          ID: props.selectedUser.ID,
+          Code: props.selectedUser.Code,
+          outletId: servicesStore.selectedRest,
+        }
+      }
+      delete payload.address
       await axios[method](
         `${import.meta.env.VITE_API_BASE_URL}/${url}${id}?outletId=${servicesStore.selectedRest}`,
         payload,

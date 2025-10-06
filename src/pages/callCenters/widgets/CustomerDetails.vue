@@ -608,7 +608,7 @@ async function handleDeliveryZoneFetch() {
     } else {
       if (selectedAddress.value) {
         const addressArray = selectedAddress.value?.text
-        const addressSplit = addressArray.split(',').length ? addressArray.split(',') : [addressArray]
+        const addressSplit = addressArray.split(',')
         if (addressSplit.length) {
           postalCode = addressSplit[addressSplit.length - 1].trim()
           const firstZone = response.data.data.find((a) => a.postalCodes.includes(postalCode))
@@ -683,9 +683,16 @@ const filteredAddresses = computed(() => {
         return selectedZoneDetails.value.postalCodes.includes(postalCode)
       })
       addresses = OtherAddresses.map((e) => {
-        return {
-          text: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
-          value: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
+        if (e.Designation && e.Designation.includes('Meeting')) {
+          return {
+            text: `${e.Designation ? e.Designation + ' - ' : ''} , ${e.ZipCode}`,
+            value: `${e.Designation ? e.Designation + ' - ' : ''}, ${e.ZipCode}`,
+          }
+        } else {
+          return {
+            text: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
+            value: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
+          }
         }
       })
     }
@@ -720,13 +727,20 @@ watch(
       const otherAddresses = selectedUser.value['OtherAddresses']
       if (Array.isArray(otherAddresses) && otherAddresses.length > 0) {
         const firstAddress = otherAddresses[0]
-        selectedAddress.value = {
-          text: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}${getParsedAddress(
-            firstAddress.Address,
-          )}`,
-          value: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}${getParsedAddress(
-            firstAddress.Address,
-          )}`,
+        if (firstAddress.Designation && firstAddress.Designation.includes('Meeting')) {
+          selectedAddress.value = {
+            text: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''} , ${firstAddress.ZipCode}`,
+            value: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}, ${firstAddress.ZipCode}`,
+          }
+        } else {
+          selectedAddress.value = {
+            text: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}${getParsedAddress(
+              firstAddress.Address,
+            )}`,
+            value: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}${getParsedAddress(
+              firstAddress.Address,
+            )}`,
+          }
         }
       } else {
         selectedAddress.value = ''
