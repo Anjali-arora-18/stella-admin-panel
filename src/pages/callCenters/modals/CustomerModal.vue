@@ -340,6 +340,20 @@ if (props.selectedUser) {
   name.value = props.userName
   phoneNumber.value = props.userNumber
   isTick.value = null
+  if (!props.selectedUser.isTick) {
+    props.selectedUser.address.forEach((e) => {
+      address.value.push({
+        designation: e.designation,
+        floor: e.floor,
+        aptNo: e.aptNo,
+        streetName: e.streetName,
+        streetNo: e.streetNo,
+        district: e.district,
+        city: e.city,
+        postCode: e.postalCode,
+      })
+    })
+  }
 }
 
 const isEdit = computed(() => {
@@ -510,8 +524,14 @@ async function addOrUpdateCustomerDetails() {
       } else {
         payload = {
           ...payload,
-          addreswholeObj: payload.address,
+          addreswholeObj: payload.address.map((e) => {
+            return {
+              ...e,
+              postalCode: e.postCode,
+            }
+          }),
           ID: props.selectedUser.ID,
+          id: props.selectedUser._id,
           Code: props.selectedUser.Code,
           outletId: servicesStore.selectedRest,
         }
