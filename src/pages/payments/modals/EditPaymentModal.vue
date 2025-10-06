@@ -20,7 +20,6 @@
           value-by="value"
           label="Payment Gateway"
           :options="paymentGateway"
-          :rules="[validators.required]"
         />
         <div v-if="formData.paymentGateway" class="grid md:grid-cols-1 gap-3">
           <div
@@ -124,22 +123,18 @@ const getPaymentconfig = () => {
 }
 
 const submit = async () => {
-  const selectedGateway = paymentOptions.value.find((a) => a.paymentMethodName === formData.value.paymentGateway)
-
-  if (!selectedGateway) {
-    init({ message: 'Please select a valid payment gateway', color: 'danger' })
-    return
-  }
-
-  const selectedPaymentGatewayInputKeys = selectedGateway.inputConfig
-
   if (validate()) {
+    let selectedGateway = null
+    if (formData.value.paymentGateway) {
+      selectedGateway = paymentOptions.value.find((a) => a.paymentMethodName === formData.value.paymentGateway)
+    }
+
     let data = JSON.parse(JSON.stringify(formData.value))
     data = {
       ...data,
-      paymentGatewayConfig: {
-        ...Object.fromEntries(selectedPaymentGatewayInputKeys.map((input) => [input.name, input.value])),
-      },
+      paymentGatewayConfig: selectedGateway
+        ? Object.fromEntries(selectedGateway.inputConfig.map((input) => [input.name, input.value]))
+        : {},
     }
 
     data.outletId = servicesStore.selectedRest
@@ -148,7 +143,8 @@ const submit = async () => {
     delete data.updatedAt
     delete data.__v
     delete data.updating
-    const url: any = import.meta.env.VITE_API_BASE_URL
+
+    const url = import.meta.env.VITE_API_BASE_URL
 
     try {
       if (props.selectedPayment && data._id) {
@@ -159,14 +155,14 @@ const submit = async () => {
         await axios.post(`${url}/payments`, data)
         init({ message: "You've successfully created a payment", color: 'success' })
       }
-
       emits('cancel')
-    } catch (err: any) {
+    } catch (err) {
       const message = err?.response?.data?.message || 'Something went wrong'
       init({ message, color: 'danger' })
     }
   }
 }
+
 getPaymentconfig()
 </script>
 <style scoped>
