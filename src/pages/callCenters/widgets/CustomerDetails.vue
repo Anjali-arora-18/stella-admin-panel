@@ -446,7 +446,19 @@ async function fetchCustomerDetails(setUser = false) {
       .then((response) => {
         if (response.status === 200) {
           if (!setUser) {
-            userResults.value = response.data.data
+            if (response.data.source === 'local') {
+              userResults.value = response.data.data.map((e) => {
+                return {
+                  ...e,
+                  Name: e.customerName,
+                  OtherAddresses: e.address,
+                  Phone: e.phoneNo,
+                  MobilePhone: e.phoneNo,
+                }
+              })
+            } else {
+              userResults.value = response.data.data
+            }
           } else {
             selectUser(response.data.data[0])
           }
@@ -477,7 +489,6 @@ function selectUser(user) {
 const deliveryZoneOptions = ref([])
 
 function selectDeliveryZone(zone) {
-  console.log(zone)
   if (zone) {
     emits('setDeliveryFee', selectedTab.value === 'takeaway' ? 0 : zone.deliveryCharge)
     emits('setDeliveryZone', true)
