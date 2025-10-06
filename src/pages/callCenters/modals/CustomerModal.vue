@@ -124,7 +124,8 @@
                     class="p-2 cursor-pointer hover:bg-primary-500"
                     @click="setAddress(street)"
                   >
-                    {{ street['Postal Code'] }} &nbsp; - &nbsp;{{ street['Street Name'] }}
+                    <span v-if="street.Designation.includes('Meeting')">{{ street.Designation }}</span>
+                    <span v-else>{{ street['Postal Code'] }} &nbsp; - &nbsp;{{ street['Street Name'] }}</span>
                   </li>
                 </ul>
               </div>
