@@ -461,7 +461,7 @@ async function fetchCustomerDetails(setUser = false) {
 }
 
 function setNewUser(payload) {
-  phoneNumber.value = payload.phoneNumber
+  phoneNumber.value = payload.phoneNumber || payload.phoneNo
   name.value = payload.name || payload.customerName
   if (payload.isTick) {
     fetchCustomerDetails(true)
