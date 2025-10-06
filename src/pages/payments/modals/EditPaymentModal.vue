@@ -46,7 +46,7 @@
       </div>
 
       <div class="flex justify-end mt-3">
-        <VaButton type="submit">{{ isUpdating ? 'Update' : 'Add' }}</VaButton>
+        <VaButton type="submit" :disabled="isSubmitDisabled">{{ isUpdating ? 'Update' : 'Add' }}</VaButton>
       </div>
     </VaForm>
   </VaModal>
@@ -121,6 +121,15 @@ const getPaymentconfig = () => {
     }
   })
 }
+
+const isSubmitDisabled = computed(() => {
+  if (!formData.value.name?.trim()) return true
+  if (!formData.value.paymentGateway) return false
+  const selectedGateway = paymentOptions.value.find((a) => a.paymentMethodName === formData.value.paymentGateway)
+  if (!selectedGateway) return false
+  const hasEmptyRequiredField = selectedGateway.inputConfig.some((input) => input.required && !input.value?.trim())
+  return hasEmptyRequiredField
+})
 
 const submit = async () => {
   if (validate()) {
