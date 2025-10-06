@@ -495,9 +495,7 @@ async function addOrUpdateCustomerDetails() {
       )
     }
 
-    emits('setUser', response.data.data)
-
-    // sessionStorage.setItem('customer', response.data.data)
+    emits('setUser', { phoneNumber: phoneNumber.value, name: name.value })
   } catch (error) {
     let message = 'Something went wrong.'
 

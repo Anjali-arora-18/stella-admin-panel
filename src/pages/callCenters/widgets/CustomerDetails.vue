@@ -443,7 +443,7 @@ async function fetchCustomerDetails(setUser = false) {
           ...(name.value && { Name: name.value }),
         },
       })
-      .then((response) => {
+      .then(async (response) => {
         if (response.status === 200) {
           if (!setUser) {
             userResults.value = response.data.data
@@ -452,8 +452,50 @@ async function fetchCustomerDetails(setUser = false) {
           }
         }
       })
-      .catch(() => {
-        openCustomerModal()
+      .catch(async () => {
+        await axios
+          .get(`${import.meta.env.VITE_API_BASE_URL}/customers/search`, {
+            params: {
+              outletId: servicesStore.selectedRest,
+              ...(phoneNumber.value && { phoneNo: phoneNumber.value }),
+              ...(name.value && { customerName: name.value }),
+            },
+          })
+          .then((response) => {
+            userResults.value = response.data.data.map((e) => {
+              return {
+                ...e,
+                Name: e.customerName,
+                MobilePhone: e.phoneNo,
+                OtherAddresses: e.address.map((address) => {
+                  return {
+                    Designation: address.designation,
+                    Address: [
+                      address.aptNo,
+                      address.floor,
+                      address.streetName,
+                      address.streetNo,
+                      address.district,
+                      address.city,
+                      address.postalCode,
+                    ].join(','),
+                    ZipCode: address.postalCode,
+                    Phone: '',
+                    Fax: '',
+                    Location: '',
+                    CountryCode: '',
+                  }
+                }),
+              }
+            })
+          })
+        if (!userResults.value.length) {
+          openCustomerModal()
+        } else {
+          if (setUser) {
+            selectUser(userResults.value[0])
+          }
+        }
       })
 
     isUserLoading.value = false
@@ -461,14 +503,9 @@ async function fetchCustomerDetails(setUser = false) {
 }
 
 function setNewUser(payload) {
-  phoneNumber.value = payload.phoneNumber || payload.phoneNo
-  name.value = payload.name || payload.customerName
-  if (payload.isTick) {
-    fetchCustomerDetails(true)
-  } else {
-    selectedUser.value = { ...payload }
-    emits('setCustomerDetailsId', payload._id)
-  }
+  phoneNumber.value = payload.phoneNumber
+  name.value = payload.name
+  fetchCustomerDetails(true)
 }
 
 function selectUser(user) {
