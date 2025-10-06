@@ -519,7 +519,6 @@ function selectUser(user) {
 const deliveryZoneOptions = ref([])
 
 function selectDeliveryZone(zone) {
-  console.log(zone)
   if (zone) {
     emits('setDeliveryFee', selectedTab.value === 'takeaway' ? 0 : zone.deliveryCharge)
     emits('setDeliveryZone', true)
@@ -556,9 +555,9 @@ async function handleDeliveryZoneFetch() {
         message: 'No delivery zones found for selected address.',
       })
     } else {
-      if (selectedAddress.value && !selectedAddress.value.text.includes('Meeting Point')) {
+      if (selectedAddress.value) {
         const addressArray = selectedAddress.value?.text
-        const addressSplit = addressArray.split(',')
+        const addressSplit = addressArray.split(',').length ? addressArray.split(',') : [addressArray]
         if (addressSplit.length) {
           postalCode = addressSplit[addressSplit.length - 1].trim()
           const firstZone = response.data.data.find((a) => a.postalCodes.includes(postalCode))
@@ -612,8 +611,8 @@ function getParsedAddress(payload) {
   if (add[6]) {
     address += add[6]
   }
-
-  return address
+  if (address.includes(',')) return address
+  else return ',' + address
 }
 
 const outlet = computed(() => {

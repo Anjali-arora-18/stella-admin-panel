@@ -47,10 +47,12 @@
                     editAddress === index ? 'bg-yellow-100 border-yellow-500' : 'bg-[#f8f9fa]',
                   ]"
                 >
-                  <div>
-                    <span v-if="addr.designation">
-                      <strong>{{ addr.designation }}</strong> -
+                  <div v-if="addr.designation && addr.designation.startsWith('Meet')">
+                    <span>
+                      <strong>{{ addr.designation }}</strong>
                     </span>
+                  </div>
+                  <div v-else>
                     <span v-if="addr.aptNo">{{ addr.aptNo }},</span>
                     <span v-if="addr.floor">{{ addr.floor }},</span>
                     <span v-if="addr.streetName || addr.streetNo">{{ addr.streetName }} {{ addr.streetNo }},</span>
@@ -261,6 +263,7 @@ const props = defineProps<{
   outlet: Record<string, any>
 }>()
 const addressListRef = ref(null)
+const addressSet = ref(null)
 const addressItems = ref([])
 const dropdownRef = ref(null)
 const dropdownContainer = ref(null)
@@ -292,6 +295,9 @@ watch(showCustomerModal, (val) => {
 })
 
 const isAddressValid = computed(() => {
+  if (designation.value.trim().startsWith('Meet')) {
+    return designation.value.trim() !== ''
+  }
   return (
     postCode.value.trim() !== '' &&
     streetAddress.value.trim() !== '' &&
@@ -353,16 +359,24 @@ function handleSearch() {
 }
 
 function setAddress(address) {
-  streetAddress.value = address['Street Name']
-  district.value = address['District']
-  postCode.value = address['Postal Code']
-  muncipality.value = address['Municipality / Community']
-  streetList.value = []
+  addressSet.value = address
+  if (address.Designation.includes('Meeting Point')) {
+    designation.value = address.Designation
+    postCode.value = address['Postal Code']
+    streetList.value = []
+  } else {
+    streetAddress.value = address['Street Name']
+    district.value = address['District']
+    postCode.value = address['Postal Code']
+    muncipality.value = address['Municipality / Community']
+    streetList.value = []
+  }
 }
 
 async function addAddress() {
   if (!isAddressValid.value) {
     init({ color: 'danger', message: 'Please fill all required address fields.' })
+    addressSet.value = null
     return
   }
 
@@ -479,17 +493,17 @@ async function addOrUpdateCustomerDetails() {
     isPresent: isTick.value,
   }
   try {
-    let response
     if (props.selectedUser) {
       payload['id'] = props.selectedUser._id
-      response = await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/winmax/entities/${props.selectedUser['ID']}?outletId=${
-          servicesStore.selectedRest
-        }`,
+      const method = !isTick.value ? 'patch' : 'put'
+      const url = !isTick.value ? 'customers/' : 'winmax/entities/'
+      const id = !isTick.value ? props.selectedUser['ID'] : props.selectedUser._id
+      await axios[method](
+        `${import.meta.env.VITE_API_BASE_URL}/${url}${id}?outletId=${servicesStore.selectedRest}`,
         payload,
       )
     } else {
-      response = await axios.post(
+      await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/winmax/entities?outletId=${servicesStore.selectedRest}`,
         payload,
       )
