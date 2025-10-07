@@ -583,12 +583,8 @@ function selectDeliveryZone(zone) {
 
 async function handleDeliveryZoneFetch() {
   deliveryZoneOptions.value = []
-  let postalCode = ''
   const servicesStore = useServiceStore()
-  // let payloadPostCode = postalCode
-  // if (selectedTab.value === 'takeaway') {
-  //   payloadPostCode = ''
-  // }
+
   try {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/deliveryZones/${servicesStore.selectedRest}`)
 
@@ -603,27 +599,8 @@ async function handleDeliveryZoneFetch() {
       }
       init({
         color: 'danger',
-        message: 'No delivery zones found for selected address.',
+        message: 'No delivery zones found.',
       })
-    } else {
-      if (selectedAddress.value) {
-        const addressArray = selectedAddress.value?.text
-        const addressSplit = addressArray.split(',')
-        if (addressSplit.length) {
-          postalCode = addressSplit[addressSplit.length - 1].trim()
-
-          const firstZone = response.data.data.find((a) => a.postalCodes.includes(postalCode))
-          serviceZoneId.value = firstZone.serviceZoneId
-          if (firstZone) {
-            selectDeliveryZone(firstZone)
-          } else {
-            init({
-              color: 'danger',
-              message: 'No delivery zones mapped with this postal code.',
-            })
-          }
-        }
-      }
     }
   } catch (err) {
     console.log(err)
@@ -672,45 +649,33 @@ const outlet = computed(() => {
   return servicesStore.restDetails || {}
 })
 
+// Replace the existing filteredAddresses computed property
 const filteredAddresses = computed(() => {
-  let OtherAddresses = []
   let addresses = []
-  if (selectedZoneDetails.value) {
-    if (selectedUser.value['OtherAddresses'] && selectedUser.value['OtherAddresses'].length) {
-      OtherAddresses = selectedUser.value['OtherAddresses'].filter((address) => {
-        const adrs = address.Address.split(',')
-        const postalCode = adrs[adrs.length - 1].trim().toString()
-
-        return selectedZoneDetails.value.postalCodes.includes(postalCode)
-      })
-      addresses = OtherAddresses.map((e) => {
-        if (e.Designation && e.Designation.includes('Meeting')) {
-          return {
-            text: `${e.Designation ? e.Designation + ' - ' : ''} , ${e.ZipCode}`,
-            value: `${e.Designation ? e.Designation + ' - ' : ''}, ${e.ZipCode}`,
-          }
-        } else {
-          return {
-            text: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
-            value: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
-          }
+  if (selectedUser.value && selectedUser.value['OtherAddresses']) {
+    // Show all addresses without filtering by postal code
+    addresses = selectedUser.value['OtherAddresses'].map((e) => {
+      if (e.Designation && e.Designation.includes('Meeting')) {
+        return {
+          text: `${e.Designation ? e.Designation + ' - ' : ''} , ${e.ZipCode}`,
+          value: `${e.Designation ? e.Designation + ' - ' : ''}, ${e.ZipCode}`,
+          postalCode: e.ZipCode,
         }
-      })
-    }
-    // commmented the metting point zone for now.
-    // selectedZoneDetails.value.meetingPointAddress
-    //   .filter((a) => a !== '')
-    //   .forEach((meetingPoint) => {
-    //     addresses.push({
-    //       text: `Meeting Point - ${meetingPoint}`,
-    //       value: meetingPoint,
-    //     })
-    //   })
-    return addresses
-  } else {
-    return []
+      } else {
+        const addressArray = e.Address.split(',')
+        const postalCode = addressArray[addressArray.length - 1].trim()
+        return {
+          text: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
+          value: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
+          postalCode: postalCode,
+        }
+      }
+    })
   }
+  return addresses
 })
+
+// Update handleDeliveryZoneFetch to remove postal code filtering
 
 watch(
   () => selectedZoneDetails.value,
@@ -760,6 +725,10 @@ watch(
   () => {
     emits('setOrderType', selectedTab.value)
     emits('setTab', selectedTab.value)
+    selectedZone.value = ''
+    serviceZoneId.value = ''
+    selectedZoneDetails.value = null
+    selectedAddress.value = null
 
     if (selectedUser.value) {
       handleDeliveryZoneFetch()
@@ -768,14 +737,38 @@ watch(
   },
 )
 
+// Replace the watch for selectedAddress
 watch(
   () => selectedAddress.value,
-  () => {
-    if (selectedZoneDetails.value) {
-      selectDeliveryZone(selectedZoneDetails.value)
-      orderStore.setDeliveryZone(selectedZoneDetails.value)
-      emits('setDeliveryZone', true)
-      orderStore.setAddress(selectedAddress.value.text)
+  async (newAddress) => {
+    if (newAddress) {
+      const postalCode = newAddress.postalCode
+
+      // Fetch delivery zones if not already loaded
+      if (!deliveryZoneOptions.value.length) {
+        await handleDeliveryZoneFetch()
+      }
+
+      // Find matching zone based on postal code
+      const matchingZone = deliveryZoneOptions.value.find((zone) => zone.postalCodes.includes(postalCode))
+      console.log(selectedAddress.value.text)
+      if (matchingZone) {
+        selectDeliveryZone(matchingZone)
+        orderStore.setDeliveryZone(matchingZone)
+        emits('setDeliveryZone', true)
+        orderStore.setAddress(newAddress.text)
+      } else {
+        if (!selectedAddress.value.text.includes('Meeting') && selectedTab.value === 'delivery') {
+          init({
+            color: 'danger',
+            message: 'No delivery zones available for this address postal code.',
+          })
+        }
+        // Reset zone selection
+        selectedZone.value = ''
+        serviceZoneId.value = ''
+        selectedZoneDetails.value = null
+      }
     }
   },
 )

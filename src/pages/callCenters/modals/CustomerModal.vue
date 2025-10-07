@@ -399,15 +399,14 @@ async function addAddress() {
     return
   }
 
-  if (editAddress.value === -1) {
+  const isMeetingPoint = designation.value?.toLowerCase().includes('meeting')
+
+  if (!isMeetingPoint && editAddress.value === -1) {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/postalcodes/streets`, {
         params: {
           postalCode: postCode.value,
-          streetName:
-            !addressSet.value.Designation || !addressSet.value.Designation.includes('Meeting')
-              ? streetAddress.value
-              : '',
+          streetName: streetAddress.value,
         },
       })
 
