@@ -120,15 +120,13 @@
                   €{{ promoMenuItemPrice(item) ? promoMenuItemPrice(item) : 0 }}
                 </span>
               </template>
-
-              <!-- Show normal price if no promo -->
               <template v-else>
                 <span class="font-semibold text-green-800"> €{{ item.total.toFixed(2) }} </span>
               </template>
             </div>
           </div>
         </div>
-        <div v-for="item in offersItems" :key="item.id" class="mb-3 border-b pb-2 last:border-none">
+        <div v-for="(item, index) in offersItems" :key="item.id" class="mb-3 border-b pb-2 last:border-none">
           <div class="flex items-start justify-between">
             <!-- Quantity Controls -->
             <div class="flex items-center gap-2">
@@ -151,7 +149,7 @@
                   name="edit"
                   size="small"
                   class="text-yellow-600 cursor-pointer"
-                  @click="getOfferItems(item.fullItem)"
+                  @click="getOfferItems({ ...item.fullItem, index: index })"
                 />
               </div>
 
@@ -192,8 +190,17 @@
               </p>
             </div>
 
-            <!-- Item Total -->
-            <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
+            <div class="flex flex-col items-end">
+              <template v-if="promoOfferItemPrice(item) !== null">
+                <span class="original-price">€{{ item.total.toFixed(2) }}</span>
+                <span v-if="promoOfferItemPrice(item) >= 0" class="updated-price"
+                  >€{{ promoOfferItemPrice(item).toFixed(2) }}</span
+                >
+              </template>
+              <template v-else>
+                <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
+              </template>
+            </div>
           </div>
         </div>
       </div>
@@ -341,7 +348,7 @@ const orderItemsStyle = computed(() => {
     }
   }
   if (promoTotal.value) {
-    height.height = `calc(${height.height} - 20px)` // Adjust for discounted price row
+    height.height = `calc(${height.height} - 20px)`
   }
   return height
 })
@@ -383,6 +390,7 @@ const items = computed(() =>
 
     return {
       id: item.itemId || index,
+      menuItemId: menuItemId || item.itemId,
       name: item.itemName,
       quantity: item.quantity,
       basePrice: item.basePrice,
@@ -413,6 +421,7 @@ const offersItems = computed(() =>
 
     return {
       id: item.itemId || index,
+      offerId: item.offerId,
       name: item.name,
       quantity: item.quantity,
       basePrice: item.price,
@@ -420,7 +429,8 @@ const offersItems = computed(() =>
       items,
       unitTotal: totalPrice,
       total: totalPrice * item.quantity,
-      fullItem: item,
+      fullItem: { ...item, offerId: item.offerId },
+      // fullItem: item,
     }
   }),
 )
@@ -447,11 +457,34 @@ const orderFor = computed(() => orderStore.orderFor)
 
 const promoMenuItemPrice = function (item) {
   if (!promoTotal.value || !item) return 0
-  const promoMenuItem = promoTotal.value.menuItems.find((a) => a.menuItemId === item.id)
-  if (!promoMenuItem) return item.total
+  const promoMenuItem = promoTotal.value.menuItems.filter((a) => a.menuItemId === item.id)
+  if (!promoMenuItem.length) return item.total
   else {
-    return promoMenuItem.updatedPrice ? promoMenuItem.updatedPrice.toFixed(2) : promoMenuItem.updatedPrice
+    const miniMumPrice = Math.min(...items.value.map((p) => Number(p.total)))
+    if (item.total === miniMumPrice) {
+      return promoMenuItem[0].updatedPrice ? promoMenuItem[0].updatedPrice.toFixed(2) : promoMenuItem[0].updatedPrice
+    } else {
+      return item.total.toFixed(2)
+    }
   }
+}
+
+const promoOfferItemPrice = (item) => {
+  if (!promoTotal.value || !item) return null
+
+  const promoOffers = promoTotal.value.offerDetails || []
+
+  const offerId = item.offerId || item.fullItem?.offerId
+
+  const promo = promoOffers.filter((a) => a.offerId === offerId)
+  // Get the minimum totalPrice from the list of promo
+  const miniMumPrice = Math.min(...offerItems.value.map((p) => Number(p.totalPrice)))
+  if (!promo.length) return null
+  const updated = Number(promo[0].totalPrice)
+  if (item.totalPrice === miniMumPrice) {
+    return Number(updated.toFixed(2))
+  }
+  return null
 }
 
 const increaseQty = (item) => {

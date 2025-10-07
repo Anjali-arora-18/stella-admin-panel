@@ -125,7 +125,7 @@
             <ul ref="userList" class="divide divide-y-2 bg-white border rounded shadow w-full z-10">
               <li
                 v-for="user in userResults"
-                :key="user.ID"
+                :key="user._id || user.id || user.ID || index"
                 class="p-2 cursor-pointer hover:bg-blue-100"
                 @click="selectUser(user)"
               >
@@ -171,7 +171,7 @@
 
           <div class="flex flex-wrap md:flex-nowrap items-center gap-1 relative w-full">
             <template v-if="selectedTab === 'takeaway'">
-              <input
+              <!-- <input
                 type="text"
                 :value="selectedZone || 'No Zone Selected'"
                 disabled
@@ -184,7 +184,58 @@
                 @click="showDeliveryDropdown = true"
               >
                 {{ serviceZoneId || 'N/A' }}
-              </VaButton>
+              </VaButton> -->
+
+              <!-- LOCATION FIELD (Takeaway Tab) -->
+              <div class="relative flex items-center gap-1 w-full">
+                <!-- Input-like clickable field -->
+                <div
+                  class="border rounded w-full px-2 py-[5px] text-xs bg-white cursor-pointer hover:bg-gray-50 flex items-center justify-between"
+                  @click="showDeliveryDropdown = !showDeliveryDropdown"
+                >
+                  <span>{{ selectedZone || 'Select Location' }}</span>
+                  <!-- Unfilled / outlined arrow icon -->
+                  <svg
+                    class="w-3 h-3 text-gray-600 ml-1"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+                  </svg>
+                </div>
+
+                <!-- Disabled number button (aligned inline) -->
+                <VaButton
+                  class="text-white h-[28px] w-[28px] rounded-md flex items-center justify-center opacity-60 cursor-not-allowed"
+                  size="small"
+                  :style="{ '--va-background-color': outlet.primaryColor }"
+                  disabled
+                >
+                  {{ serviceZoneId || 'N/A' }}
+                </VaButton>
+
+                <!-- Dropdown -->
+                <div
+                  v-if="showDeliveryDropdown"
+                  class="absolute left-0 top-full max-h-[300px] overflow-y-auto mt-1 w-full text-left bg-white border rounded shadow z-10"
+                >
+                  <ul ref="deliveryList" class="text-xs">
+                    <li
+                      v-for="(zone, index) in deliveryZoneOptions"
+                      :key="index"
+                      class="px-3 py-2 hover:bg-gray-100 cursor-pointer border border-b-1"
+                      :class="{
+                        'text-primary font-bold': selectedZone === zone.name,
+                      }"
+                      @click.prevent.stop="selectDeliveryZone(zone)"
+                    >
+                      {{ zone.serviceZoneId }} - {{ zone.name }}
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </template>
 
             <template v-else>
@@ -222,7 +273,7 @@
                   :class="{
                     'text-primary font-bold': selectedZone === zone.name,
                   }"
-                  @click="selectDeliveryZone(zone)"
+                  @click.prevent.stop="selectDeliveryZone(zone)"
                 >
                   {{ zone.serviceZoneId }} - {{ zone.name }}
                 </li>
@@ -422,10 +473,10 @@ function openCustomerModal() {
 function closeCustomerModal() {
   showCustomerModal.value = false
 }
-
 async function fetchCustomerDetails(setUser = false) {
   userResults.value = []
   isUserLoading.value = true
+
   if (!phoneNumber.value && !name.value) {
     init({
       color: 'danger',
@@ -435,6 +486,7 @@ async function fetchCustomerDetails(setUser = false) {
     return
   } else {
     const servicesStore = useServiceStore()
+
     await axios
       .get(`${import.meta.env.VITE_API_BASE_URL}/winmax/entities`, {
         params: {
@@ -443,20 +495,128 @@ async function fetchCustomerDetails(setUser = false) {
           ...(name.value && { Name: name.value }),
         },
       })
-      .then((response) => {
+      .then(async (response) => {
         if (response.status === 200) {
-          if (!setUser) {
-            userResults.value = response.data.data
+          const wm = response.data
+          const wmList = Array.isArray(wm?.data) ? wm.data : []
+          const winmaxNotFound = /not\s*found/i.test(String(wm?.message || '')) || wmList.length === 0
+
+          if (!winmaxNotFound) {
+            // Winmax HAS a match → use it
+            if (!setUser) {
+              userResults.value = wmList.map((user) => ({
+                ...user,
+                OtherAddresses: Array.isArray(user.OtherAddresses)
+                  ? user.OtherAddresses.map((add) => ({
+                      ...add,
+                      ZipCode:
+                      typeof add.Address === 'string' && add.Address.split(',').length
+                        ? add.Address.split(',')[add.Address.split(',').length - 1].trim()
+                        : '',
+                    }))
+                  : [],
+              }))
+            } else {
+              selectUser(wmList[0])
+            }
+            return
+          }
+
+          // Winmax returned 200 + "Entity not found..." OR empty data → query Stella
+          const stellaRes = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/customers/search`, {
+            params: {
+              outletId: servicesStore.selectedRest,
+              ...(phoneNumber.value && { phoneNo: phoneNumber.value }),
+              ...(name.value && { customerName: name.value }),
+            },
+          })
+
+          const hits = Array.isArray(stellaRes?.data?.data) ? stellaRes.data.data : []
+          if (hits.length) {
+            userResults.value = hits.map((e) => ({
+              ...e,
+              Name: e.customerName,
+              MobilePhone: e.phoneNo,
+              OtherAddresses: (Array.isArray(e?.address) ? e.address : []).map((address) => ({
+                Designation: address.designation,
+                Address: [
+                  address.aptNo,
+                  address.floor,
+                  address.streetName,
+                  address.streetNo,
+                  address.district,
+                  address.city,
+                  address.postalCode,
+                ].join(','),
+                ZipCode: address.postalCode,
+                Phone: '',
+                Fax: '',
+                Location: '',
+                CountryCode: '',
+              })),
+            }))
+
+            // If we need to auto-pick, prefer exact phone match
+            if (setUser && userResults.value.length) {
+              const norm = (s) => String(s || '').replace(/\D+/g, '')
+              const wanted = norm(phoneNumber.value)
+              const exact = userResults.value.find((u) => norm(u.MobilePhone || u.Phone) === wanted)
+              selectUser(exact || userResults.value[0])
+            }
           } else {
-            selectUser(response.data.data[0])
+            // Neither Winmax nor Stella → open create modal
+            openCustomerModal()
           }
         }
       })
-      .catch(() => {
-        openCustomerModal()
-      })
+      .catch(async () => {
+        // If Winmax call errored (non-200), try Stella
+        await axios
+          .get(`${import.meta.env.VITE_API_BASE_URL}/customers/search`, {
+            params: {
+              outletId: servicesStore.selectedRest,
+              ...(phoneNumber.value && { phoneNo: phoneNumber.value }),
+              ...(name.value && { customerName: name.value }),
+            },
+          })
+          .then((response) => {
+            const arr = Array.isArray(response?.data?.data) ? response.data.data : []
+            userResults.value = arr.map((e) => ({
+              ...e,
+              Name: e.customerName,
+              MobilePhone: e.phoneNo,
+              OtherAddresses: (Array.isArray(e?.address) ? e.address : []).map((address) => ({
+                Designation: address.designation,
+                Address: [
+                  address.aptNo,
+                  address.floor,
+                  address.streetName,
+                  address.streetNo,
+                  address.district,
+                  address.city,
+                  address.postalCode,
+                ].join(','),
+                ZipCode: address.postalCode,
+                Phone: '',
+                Fax: '',
+                Location: '',
+                CountryCode: '',
+              })),
+            }))
+          })
 
-    isUserLoading.value = false
+        if (!userResults.value.length) {
+          openCustomerModal()
+        } else if (setUser) {
+          const norm = (s) => String(s || '').replace(/\D+/g, '')
+          const wanted = norm(phoneNumber.value)
+          const exact = userResults.value.find((u) => norm(u.MobilePhone || u.Phone) === wanted)
+          selectUser(exact || userResults.value[0])
+        }
+      })
+      .finally(() => {
+        isUserLoading.value = false
+      })
   }
 }
 
@@ -477,7 +637,6 @@ function selectUser(user) {
 const deliveryZoneOptions = ref([])
 
 function selectDeliveryZone(zone) {
-  console.log(zone)
   if (zone) {
     emits('setDeliveryFee', selectedTab.value === 'takeaway' ? 0 : zone.deliveryCharge)
     emits('setDeliveryZone', true)
@@ -490,13 +649,10 @@ function selectDeliveryZone(zone) {
 }
 
 async function handleDeliveryZoneFetch() {
-  deliveryZoneOptions.value = []
-  let postalCode = ''
   const servicesStore = useServiceStore()
-  // let payloadPostCode = postalCode
-  // if (selectedTab.value === 'takeaway') {
-  //   payloadPostCode = ''
-  // }
+  if (deliveryZoneOptions.value.length) {
+    return
+  }
   try {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/deliveryZones/${servicesStore.selectedRest}`)
 
@@ -511,26 +667,8 @@ async function handleDeliveryZoneFetch() {
       }
       init({
         color: 'danger',
-        message: 'No delivery zones found for selected address.',
+        message: 'No delivery zones found.',
       })
-    } else {
-      if (selectedAddress.value && !selectedAddress.value.text.includes('Meeting Point')) {
-        const addressArray = selectedAddress.value?.text
-        const addressSplit = addressArray.split(',')
-        if (addressSplit.length) {
-          postalCode = addressSplit[addressSplit.length - 1].trim()
-          const firstZone = response.data.data.find((a) => a.postalCodes.includes(postalCode))
-          serviceZoneId.value = firstZone.serviceZoneId
-          if (firstZone) {
-            selectDeliveryZone(firstZone)
-          } else {
-            init({
-              color: 'danger',
-              message: 'No delivery zones mapped with this postal code.',
-            })
-          }
-        }
-      }
     }
   } catch (err) {
     console.log(err)
@@ -570,8 +708,8 @@ function getParsedAddress(payload) {
   if (add[6]) {
     address += add[6]
   }
-
-  return address
+  if (address.includes(',')) return address
+  else return ',' + address
 }
 
 const outlet = computed(() => {
@@ -580,60 +718,69 @@ const outlet = computed(() => {
 })
 
 const filteredAddresses = computed(() => {
-  let OtherAddresses = []
   let addresses = []
-  if (selectedZoneDetails.value) {
-    if (selectedUser.value['OtherAddresses'] && selectedUser.value['OtherAddresses'].length) {
-      OtherAddresses = selectedUser.value['OtherAddresses'].filter((address) => {
-        const adrs = address.Address.split(',')
-        const postalCode = adrs[adrs.length - 1].trim().toString()
-
-        return selectedZoneDetails.value.postalCodes.includes(postalCode)
-      })
-      addresses = OtherAddresses.map((e) => {
+  if (selectedUser.value && selectedUser.value['OtherAddresses']) {
+    addresses = selectedUser.value['OtherAddresses'].map((e) => {
+      if (e.Designation && e.Designation.includes('Meeting')) {
+        return {
+          text: `${e.Designation ? e.Designation + ' - ' : ''} , ${e.ZipCode}`,
+          value: `${e.Designation ? e.Designation + ' - ' : ''}, ${e.ZipCode}`,
+          postalCode: e.ZipCode,
+          fullAddress: e.Address || '',
+        }
+      } else {
+        const addressArray = e.Address.split(',')
+        const postalCode = addressArray[addressArray.length - 1].trim()
         return {
           text: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
           value: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
+          postalCode: postalCode,
+          fullAddress: e.Address,
         }
-      })
-    }
-    selectedZoneDetails.value.meetingPointAddress
-      .filter((a) => a !== '')
-      .forEach((meetingPoint) => {
-        addresses.push({
-          text: `Meeting Point - ${meetingPoint}`,
-          value: meetingPoint,
-        })
-      })
-    return addresses
-  } else {
-    return []
+      }
+    })
   }
+  return addresses.filter((a) => !a.text.includes('00000'))
 })
+
+// Update handleDeliveryZoneFetch to remove postal code filtering
 
 watch(
   () => selectedZoneDetails.value,
   (newVal, oldVal) => {
-    if (newVal && oldVal) {
+    if (newVal && oldVal && !selectedAddress.value) {
       selectedAddress.value = filteredAddresses.value.length ? filteredAddresses.value[0] : ''
     }
   },
 )
-
+// REPLACE just the part inside your watch(() => selectedUser.value, ...) that sets first address:
 watch(
   () => selectedUser.value,
   () => {
     if (selectedUser.value) {
-      const otherAddresses = selectedUser.value['OtherAddresses']
-      if (Array.isArray(otherAddresses) && otherAddresses.length > 0) {
-        const firstAddress = otherAddresses[0]
-        selectedAddress.value = {
-          text: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}${getParsedAddress(
-            firstAddress.Address,
-          )}`,
-          value: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}${getParsedAddress(
-            firstAddress.Address,
-          )}`,
+      const otherAddresses = selectedUser.value['OtherAddresses'] || []
+
+      // Prefer Meeting Point; else first non-00000; else fallback to first
+      const prefer =
+        otherAddresses.find((a) => String(a.Designation || '').includes('Meeting')) ||
+        otherAddresses.find((a) => {
+          const parts = String(a.Address || '').split(',')
+          const pc = parts[parts.length - 1]?.trim() || String(a.ZipCode || '')
+          return pc && pc !== '00000'
+        }) ||
+        otherAddresses[0]
+
+      if (prefer) {
+        if (String(prefer.Designation || '').includes('Meeting')) {
+          selectedAddress.value = {
+            text: `${prefer.Designation ? prefer.Designation + ' - ' : ''} , ${prefer.ZipCode}`,
+            value: `${prefer.Designation ? prefer.Designation + ' - ' : ''}, ${prefer.ZipCode}`,
+          }
+        } else {
+          selectedAddress.value = {
+            text: `${prefer.Designation ? prefer.Designation + ' - ' : ''}${getParsedAddress(prefer.Address)}`,
+            value: `${prefer.Designation ? prefer.Designation + ' - ' : ''}${getParsedAddress(prefer.Address)}`,
+          }
         }
       } else {
         selectedAddress.value = ''
@@ -641,7 +788,7 @@ watch(
 
       emits('setOrderType', selectedTab.value)
       handleDeliveryZoneFetch()
-      emits('setCustomerDetailsId', selectedUser.value._id)
+      emits('setCustomerDetailsId', selectedUser.value._id || selectedUser.value.id)
       userResults.value = []
     }
   },
@@ -652,22 +799,71 @@ watch(
   () => {
     emits('setOrderType', selectedTab.value)
     emits('setTab', selectedTab.value)
+    selectedZone.value = ''
+    serviceZoneId.value = ''
+    selectedZoneDetails.value = null
+    selectedAddress.value = null
 
     if (selectedUser.value) {
       handleDeliveryZoneFetch()
     }
-    emits('setCustomerDetailsId', selectedUser.value._id)
+    emits('setCustomerDetailsId', selectedUser.value._id || selectedUser.value.id)
   },
 )
 
 watch(
   () => selectedAddress.value,
-  () => {
-    if (selectedZoneDetails.value) {
-      selectDeliveryZone(selectedZoneDetails.value)
-      orderStore.setDeliveryZone(selectedZoneDetails.value)
-      emits('setDeliveryZone', true)
-      orderStore.setAddress(selectedAddress.value.text)
+  async (newAddress) => {
+    if (newAddress) {
+      const postalCode = newAddress.postalCode
+      const currentText = newAddress.text
+      const fullAddress = newAddress.fullAddress
+
+      // Always fetch fresh delivery zones to ensure latest data
+      await handleDeliveryZoneFetch()
+
+      // Find matching zone based on postal code
+      const matchingZone = deliveryZoneOptions.value.find((zone) =>
+        zone.postalCodes.some((zoneCode) => String(zoneCode).trim() === String(postalCode).trim()),
+      )
+      // Check for meeting point match first
+      const meetingPoints = deliveryZoneOptions.value
+        .map((zone) => zone.meetingPoints?.find((mp) => currentText.includes(mp.designation)))
+        .filter(Boolean)
+
+      if (selectedTab.value === 'delivery') {
+        if (meetingPoints.length && currentText.includes('Meeting Point')) {
+          // Find the zone containing the meeting point
+          const zoneWithMeetingPoint = deliveryZoneOptions.value.find((zone) =>
+            zone.meetingPoints?.some((mp) => currentText.includes(mp.designation)),
+          )
+          if (zoneWithMeetingPoint) {
+            selectDeliveryZone(zoneWithMeetingPoint)
+            orderStore.setDeliveryZone(zoneWithMeetingPoint)
+            emits('setDeliveryZone', true)
+            orderStore.setAddress(fullAddress || currentText)
+            return
+          }
+        }
+
+        if (matchingZone) {
+          selectDeliveryZone(matchingZone)
+          orderStore.setDeliveryZone(matchingZone)
+          emits('setDeliveryZone', true)
+          orderStore.setAddress(fullAddress || currentText)
+        } else {
+          if (!currentText.includes('Meeting') && selectedTab.value === 'delivery') {
+            init({
+              color: 'danger',
+              message: `No delivery zone found for postal code: ${postalCode}`,
+            })
+          }
+          selectedZone.value = ''
+          serviceZoneId.value = ''
+          selectedZoneDetails.value = null
+          emits('setDeliveryZone', false)
+        }
+      }
     }
   },
 )

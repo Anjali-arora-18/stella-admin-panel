@@ -422,6 +422,7 @@ function addToBasket(item: any) {
   const productEntry = {
     itemId: props.isEdit ? item.itemId : item._id,
     itemName: props.isEdit ? item.itemName : item.name,
+    description: item.description,
     basePrice: props.isEdit ? item.basePrice : parseFloat(item.price),
     imageUrl: item.imageUrl,
     quantity: props.isEdit ? item.quantity : 1,

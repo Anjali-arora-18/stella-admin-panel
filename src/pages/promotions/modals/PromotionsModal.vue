@@ -253,7 +253,7 @@
             </div>
             <div class="flex items-center gap-6 mt-3">
               <VaCheckbox v-model="formData.availableAtCC" label="Available at CC" />
-              <VaCheckbox v-model="formData.affectOffers" label="Affect Offers" disabled="true" />
+              <VaCheckbox v-model="formData.affectOffers" label="Affect Offers" />
             </div>
           </section>
         </div>

@@ -18,8 +18,47 @@
             <div v-for="(item, index) in orderStore.cartItems" :key="item.itemId" class="order-item">
               <div class="item-main">
                 <div class="item-details">
-                  <div class="item-qty-name">{{ item.quantity }}x {{ item.itemName }}</div>
-                  <div class="item-base-price">Base price: €{{ item.basePrice.toFixed(2) }} each</div>
+                  <div class="flex-1 px-2">
+                    <div class="flex justify-between items-center">
+                      <span class="item-qty-name">{{ item.quantity }}x {{ item.itemName }}</span>
+                    </div>
+
+                    <!-- Options -->
+                    <div class="flex flex-wrap gap-1 mt-1 text-xs">
+                      <span
+                        v-for="article in item.articleType"
+                        :key="article"
+                        class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full"
+                      >
+                        {{ article }}
+                      </span>
+                      <div v-for="group in item.selectedOptions" :key="group.groupId">
+                        <span
+                          v-for="option in group.selected"
+                          :key="option.optionId"
+                          class="px-2 py-0.5 rounded-full"
+                          :class="{
+                            'bg-green-100 text-green-700': option.type.toLowerCase() === 'extra',
+                            'bg-blue-100 text-blue-700': option.type.toLowerCase() === 'article',
+                            'bg-red-100 text-red-700': option.type.toLowerCase() === 'hold',
+                            'bg-amber-100 text-amber-700': option.type.toLowerCase() === 'modifier',
+                          }"
+                        >
+                          {{ option.name }}
+                          <span v-if="option.price">+€{{ (option.price * option.quantity).toFixed(2) }}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Base Info -->
+                    <p class="text-[11px] text-gray-500 mt-1 italic">
+                      Base: €{{ item.basePrice.toFixed(2) }} + €{{ item.selectionTotalPrice.toFixed(2) }} * = €{{
+                        item.totalPrice.toFixed(2) / item.quantity
+                      }}
+                      each
+                    </p>
+                    <!-- <div class="item-base-price pt-1">Base price: €{{ item.basePrice.toFixed(2) }} each</div> -->
+                  </div>
                 </div>
                 <div class="item-total-price">
                   <div v-if="promoTotal && promoMenuItemPrice(item) !== item.totalPrice.toFixed(2)">
@@ -34,54 +73,62 @@
                   </div>
                 </div>
               </div>
-
-              <div v-if="item.selectedOptions.length" class="item-extras">
-                <div v-for="group in item.selectedOptions" :key="group.groupId">
-                  <span v-for="extra in group.selected" :key="extra.optionId">
-                    <div class="extra-item">
-                      <span class="extra-name">+ {{ extra.name }}</span>
-                      <span class="extra-price">+€{{ (extra.price * extra.quantity).toFixed(2) }}</span>
-                    </div>
-                  </span>
-                </div>
-              </div>
             </div>
 
             <div v-for="(item, index) in orderStore.offerItems" :key="item.itemId" class="order-item">
               <div class="item-main">
                 <div class="item-details">
                   <div class="item-qty-name">{{ item.name }}</div>
-                  <div class="item-base-price">
-                    Base price: €{{ item.price.toFixed(2) }} + €{{ item.selectionTotalPrice.toFixed(2) }} for addons
-                  </div>
-                </div>
-                <div class="item-total-price">€{{ item.totalPrice.toFixed(2) }}</div>
-              </div>
-
-              <!-- Show selected items inside each offer -->
-              <div v-if="item.selections?.length" class="item-extras">
-                <div v-for="(selection, sIndex) in item.selections" :key="sIndex" class="selection-group">
-                  <div
-                    v-for="(addedItem, aIndex) in selection.addedItems"
-                    :key="`${addedItem.itemId}-${aIndex}`"
-                    class="extra-item"
-                  >
-                    <div class="extra-name font-medium text-gray-800">+ {{ addedItem.itemName }}</div>
-                    <div v-if="addedItem.selectedOptions?.length" class="pl-4 pt-1 text-sm text-gray-600">
-                      <div v-for="group in addedItem.selectedOptions" :key="group.groupId">
+                  <div v-if="item.selections?.length" class="item-extras">
+                    <div v-for="(selection, sIndex) in item.selections" :key="sIndex" class="selection-group">
+                      <div
+                        v-for="(addedItem, aIndex) in selection.addedItems"
+                        :key="`${addedItem.itemId}-${aIndex}`"
+                        class="extra-item"
+                      >
+                        <div class="extra-name font-medium text-gray-800">+ {{ addedItem.itemName }}</div>
                         <div
-                          v-for="option in group.selected"
-                          :key="option.optionId"
-                          class="flex justify-between text-sm"
+                          v-if="addedItem.selectedOptions?.length"
+                          class="pl-4 pt-1 text-xs text-gray-600 flex flex-wrap gap-1"
                         >
-                          <span>↳ {{ option.name }}</span>
-                          <span>+€{{ (option.price * option.quantity).toFixed(2) }}</span>
+                          <div v-for="group in addedItem.selectedOptions" :key="group.groupId">
+                            <span
+                              v-for="option in group.selected"
+                              :key="option.optionId"
+                              class="px-2 py-0.5 rounded-full"
+                              :class="{
+                                'bg-green-100 text-green-700': option.type.toLowerCase() === 'extra',
+                                'bg-blue-100 text-blue-700': option.type.toLowerCase() === 'article',
+                                'bg-red-100 text-red-700': option.type.toLowerCase() === 'hold',
+                                'bg-amber-100 text-amber-700': option.type.toLowerCase() === 'modifier',
+                              }"
+                            >
+                              {{ option.name }}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
+
+                  <div class="item-base-price">
+                    Base price: €{{ item.price.toFixed(2) }} + €{{ item.selectionTotalPrice.toFixed(2) }} for addons
+                  </div>
+                </div>
+                <div class="item-total-price">
+                  <template v-if="promoOfferItemPrice(item) !== null">
+                    <span class="original-price">€{{ item.totalPrice.toFixed(2) }}</span>
+                    <span v-if="promoOfferItemPrice(item) >= 0" class="updated-price"
+                      >€{{ promoOfferItemPrice(item).toFixed(2) }}</span
+                    >
+                  </template>
+                  <template v-else>
+                    <span class="font-semibold text-green-800">€{{ item.totalPrice.toFixed(2) }}</span>
+                  </template>
                 </div>
               </div>
+
+              <!-- Show selected items inside each offer -->
             </div>
           </div>
 
@@ -143,8 +190,8 @@
             @click="orderStore.editOrder ? updateOrder() : createOrder()"
           >
             <span v-if="!apiLoading" id="btnText">
-              {{ orderId && selectedPayment === 'Card' ? 'Retry Payment' : 'Payment' }}</span
-            >
+              {{ orderId && selectedPayment?.name.includes('Card') ? 'Retry Payment' : 'Payment' }}
+            </span>
             <div v-if="apiLoading" id="loadingSpinner" class="loading-spinner animate-spin"></div>
           </button>
         </div>
@@ -191,36 +238,46 @@ const orderFor = computed(() => orderStore.orderFor)
 
 const etaTime = computed(() => {
   const now = new Date()
+
   const selectedDate = new Date(props.dateSelected)
+
   const promiseTime =
     props.orderType === 'delivery'
       ? orderStore.deliveryZone?.deliveryPromiseTime
-      : orderStore.deliveryZone.takeawayPromiseTime
+      : orderStore.deliveryZone?.takeawayPromiseTime
 
   const etaDate = new Date(selectedDate)
-  etaDate.setMinutes(etaDate.getMinutes() + promiseTime)
+
+  etaDate.setMinutes(etaDate.getMinutes() + (promiseTime || 0))
 
   const timeString = etaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
 
   const isFutureOrder = selectedDate.getTime() > now.getTime() + 30 * 60 * 1000
 
+  const zoneName = orderStore.deliveryZone?.name ? `${orderStore.deliveryZone.name} - ` : ''
+
   if (isFutureOrder) {
     const dateString = selectedDate.toLocaleDateString([], {
       day: 'numeric',
+
       month: 'short',
+
       year: 'numeric',
     })
+
     const scheduledTimeString = selectedDate.toLocaleTimeString([], {
       hour: '2-digit',
+
       minute: '2-digit',
+
       hour12: false,
     })
 
-    return `${
+    return `${zoneName}${
       props.orderType === 'delivery' ? 'Delivery' : 'Takeaway'
     } - Scheduled for ${dateString} at ${scheduledTimeString}`
   } else {
-    return props.orderType === 'delivery' ? `Delivery - ETA ${timeString}` : `Takeaway - Ready at ${timeString}`
+    return `${zoneName}${props.orderType === 'delivery' ? 'Delivery - ETA' : 'Takeaway - Ready at'} ${timeString}`
   }
 })
 
@@ -383,20 +440,20 @@ async function updateOrder() {
     await Promise.all(
       existingOffers.map((offer) => {
         const data = {
+          offerId: offer.offerId,
           offerMenuItems: [
-            {
-              offerId: offer.offerId,
-              menuItems: offer.offerItems.map((item) => {
-                return {
-                  menuItem: item.menuItem,
-                  quantity: item.quantity,
-                  options: (item.options || []).map((opt) => ({
-                    option: opt.option,
-                    quantity: opt.quantity || 1,
-                  })),
-                }
-              }),
-            },
+            // {
+            //   menuItems: offer.offerItems.map((item) => {
+            //     return {
+            //       menuItem: item.menuItem,
+            //       quantity: item.quantity,
+            //       options: (item.options || []).map((opt) => ({
+            //         option: opt.option,
+            //         quantity: opt.quantity || 1,
+            //       })),
+            //     }
+            //   }),
+            // },
           ],
         }
         return applyOrderEdit(orderStore.editOrder._id, 'delete', orderStore.editOrder.tableNumber, data)
@@ -552,7 +609,6 @@ async function createOrder() {
       response = await orderStore.retryPayment(orderId.value)
     } else {
       orderResponse.value = await orderStore.createOrder(payload)
-      console.log(selectedPayment.value)
       response = await orderStore.createPayment({
         orderId: orderResponse.value.data.data._id,
         paymentTypeId: selectedPayment.value?.paymentTypeId,
@@ -609,13 +665,37 @@ async function createOrder() {
     apiLoading.value = false
   }
 }
+
 const promoMenuItemPrice = function (item) {
   if (!promoTotal.value || !item) return 0
-  const promoMenuItem = promoTotal.value.menuItems.find((a) => a.menuItemId === item.itemId)
-  if (!promoMenuItem) return item.totalPrice
+  const promoMenuItem = promoTotal.value.menuItems.filter((a) => a.menuItemId === item.itemId)
+  if (!promoMenuItem.length) return item.totalPrice
   else {
-    return promoMenuItem.updatedPrice ? promoMenuItem.updatedPrice.toFixed(2) : promoMenuItem.updatedPrice
+    const miniMumPrice = Math.min(...orderStore.cartItems.map((p) => Number(p.totalPrice)))
+    if (item.totalPrice === miniMumPrice) {
+      return promoMenuItem[0].updatedPrice ? promoMenuItem[0].updatedPrice.toFixed(2) : promoMenuItem[0].updatedPrice
+    } else {
+      return item.totalPrice.toFixed(2)
+    }
   }
+}
+
+const promoOfferItemPrice = (item) => {
+  if (!promoTotal.value || !item) return null
+
+  const promoOffers = promoTotal.value.offerDetails || []
+
+  const offerId = item.offerId || item.fullItem?.offerId
+
+  const promo = promoOffers.filter((a) => a.offerId === offerId)
+  // Get the minimum totalPrice from the list of promo
+  const miniMumPrice = Math.min(...orderStore.offerItems.map((p) => Number(p.totalPrice)))
+  if (!promo.length) return null
+  const updated = Number(promo[0].totalPrice)
+  if (item.totalPrice === miniMumPrice) {
+    return Number(updated.toFixed(2))
+  }
+  return null
 }
 </script>
 
@@ -652,11 +732,11 @@ const promoMenuItemPrice = function (item) {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 12px;
+  /* margin-bottom: 12px; */
 }
 
 .item-extras {
-  border-top: 1px solid #f3f4f6;
+  /* border-top: 1px solid #f3f4f6; */
   padding-top: 6px;
 }
 
@@ -672,9 +752,9 @@ const promoMenuItemPrice = function (item) {
 }
 
 .item-base-price {
-  font-size: 14px;
+  font-size: 12px;
   color: #6b7280;
-  margin-bottom: 8px;
+  /* margin-bottom: 8px; */
 }
 
 .item-total-price {
@@ -685,8 +765,8 @@ const promoMenuItemPrice = function (item) {
 
 .extra-item {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  align-items: start;
   padding: 3px 0;
   font-size: 14px;
 }

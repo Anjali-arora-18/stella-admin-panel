@@ -288,7 +288,7 @@
             v-if="
               index === 0 && (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack')
             "
-            class="px-3 py-2 rounded-full text-xs font-semibold tracking-wide flex items-center gap-1 transition-colors"
+            class="px-3 py-2 rounded-full text-xs font-semibold tracking-wide flex items-center gap-1 transition-colors capitalize"
             :class="{
               'bg-yellow-500 text-white': true,
             }"
@@ -331,7 +331,7 @@
                 index === 0 && (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack'),
               'opacity-60 cursor-not-allowed':
                 index !== 0 ||
-                !(orderStatuses === 'kds' && orderStatuses === 'preparing' && orderStatuses === 'onrack'),
+                !(orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack'),
             }"
             @click="
               index === 0 &&
@@ -357,10 +357,10 @@
                 @click.stop
               />
             </div>
-            <span class="pl-10">{{ offer.offerName }}</span>
+            <span class="pl-8">{{ offer.offerName }}</span>
             <div v-for="item in offer.offerItems" :key="item._id" class="flex flex-row justify-between">
               <div
-                class="flex flex-wrap items-center gap-2 pl-10"
+                class="flex flex-wrap items-center gap-2 pt-1 pl-10"
                 :class="isOfferSelected(order._id, idx) ? 'pl-10' : 'pl-12'"
               >
                 <p class="font-semibold text-xs">
@@ -390,8 +390,17 @@
                   </span>
                 </div>
               </div>
-              <span class="font-bold">€ {{ offer.totalPrice.toFixed(2) }}</span>
             </div>
+            <div class="flex items-center justify-end pr-0">
+              <template v-if="!offer.overrideUnitPrice">
+                <span class="font-bold">€ {{ offer.totalPrice.toFixed(2) }}</span>
+              </template>
+              <template v-else>
+                <span class="font-bold line-through">€ {{ offer.totalPrice.toFixed(2) }}</span>
+                <span class="font-bold text-red-700">€ {{ offer.overrideUnitPrice.toFixed(2) }}</span>
+              </template>
+            </div>
+            <div v-if="offer.overrideUnitPrice">{{ offer.overrideUnitPrice }}</div>
           </div>
           <div
             v-for="(item, idx) in order.menuItems || []"
@@ -403,7 +412,7 @@
                 index === 0 && (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack'),
               'opacity-60 cursor-not-allowed':
                 index !== 0 ||
-                !(orderStatuses === 'kds' && orderStatuses === 'preparing' && orderStatuses === 'onrack'),
+                !(orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack'),
             }"
             @click="
               index === 0 &&
@@ -463,8 +472,11 @@
                 </span>
               </div>
             </div>
-
-            <span class="font-bold">€ {{ getTotalPrice(item) }}</span>
+            <span v-if="!item.overrideUnitPrice" class="font-bold">€ {{ getTotalPrice(item) }}</span>
+            <div v-if="item.overrideUnitPrice" class="space-x-2">
+              <span class="font-bold line-through">€ {{ getTotalPrice(item) }}</span>
+              <span class="font-bold text-red-700">€ {{ item.overrideUnitPrice }}</span>
+            </div>
           </div>
 
           <!-- Totals -->
@@ -948,6 +960,7 @@ const repeatOrder = async (orderId) => {
     return {
       itemId: menuItem._id,
       itemName: menuItem.menuItem,
+      description: menuItem.description,
       basePrice: parseFloat(menuItem.price) || 0,
       totalPrice: 0,
       imageUrl: menuItem.imageUrl || '',
@@ -981,6 +994,30 @@ const repeatOrder = async (orderId) => {
     }
   })
   const orderStore = useOrderStore()
+
+  order.offerDetails.map((e) => {
+    let selectionTotal = 0
+    e.structuredOffer.selections.forEach((item) => {
+      item.addedItems.forEach((addedItem) => {
+        selectionTotal += addedItem.basePrice * addedItem.quantity
+        addedItem.selectedOptions.forEach((group) => {
+          group.selected.forEach((selection) => {
+            selectionTotal += selection.price * selection.quantity
+          })
+        })
+      })
+    })
+    orderStore.offersAdded({
+      ...e.structuredOffer,
+      _id: e.offerId,
+      offerId: e.offerId,
+      basePrice: e.structuredOffer.price,
+      selectionTotalPrice: selectionTotal,
+      totalPrice: e.structuredOffer.price + selectionTotal,
+      quantity: 1,
+    })
+  })
+
   data.map((e) => {
     orderStore.addItemToCart(e)
     const newIndex = orderStore.cartItems.length - 1
@@ -1155,39 +1192,51 @@ const mapOfferDetailsToSelections = (offerDetailsResponse, detailedOfferPayload)
   // Flatten offerItems from the first offerDetails
   const offerItems = offerDetailsResponse.offerItems || []
 
+  const storeMenuItems = useMenuStore().categories.flatMap((a) => a.menuItems)
+
   offerItems.forEach((item) => {
     detailedSelections.forEach((selection) => {
       // find menuItem match in this selection
       const matchedMenuItem = selection.menuItems.find((mi) => mi.menuItemId === item.menuItem)
 
       if (matchedMenuItem) {
+        const storeMenu = storeMenuItems.find((a) => a._id === item.menuItem)
+
         // Initialize addedItems array if not already
         if (!selection.addedItems) selection.addedItems = []
 
-        // Only push if max not reached
+        const optionIds = (item.options || []).map((a) => a.option)
+        const articleOptionsGroup = storeMenu.articlesOptionsGroup.filter((group) =>
+          group.articlesOptions.some((opt) => optionIds.includes(opt.id)),
+        )
         if (selection.addedItems.length < selection.max) {
           selection.addedItems.push({
+            articlesOptionsGroups: storeMenu.articlesOptionsGroup,
             itemId: item.menuItem, // or item._id
             quantity: item.quantity,
-            imageUrl: item.imageUrl,
-            itemDescription: item.itemDescription,
+            imageUrl: storeMenu.imageUrl,
+            itemDescription: storeMenu.description,
             basePrice: item.price.toFixed(2),
             itemName: item.name,
             code: item.code,
             // also map options if you want:
-            selectedOptions: [
-              {
-                ...selection.selectedOptions,
-                selected: item.options?.map((opt) => ({
-                  optionId: opt.option,
-                  name: opt.name,
-                  quantity: opt.quantity,
-                  price: opt.price,
-                  type: opt.type,
-                })),
-              },
-            ],
+            selectedOptions: articleOptionsGroup.map((group) => {
+              return {
+                groupId: group._id,
+                groupName: group?.name,
+                selected: item.options
+                  ?.filter((opt) => group.articlesOptions.some((gOpt) => gOpt._id === opt.option))
+                  .map((opt) => ({
+                    optionId: opt.option,
+                    name: opt.name,
+                    quantity: opt.quantity,
+                    price: opt.price,
+                    type: opt.type,
+                  })),
+              }
+            }),
           })
+          console.log(selection.addedItems)
         }
       }
     })
