@@ -125,7 +125,7 @@
             <ul ref="userList" class="divide divide-y-2 bg-white border rounded shadow w-full z-10">
               <li
                 v-for="user in userResults"
-                :key="user.ID"
+                :key="user._id || user.id || user.ID || index"
                 class="p-2 cursor-pointer hover:bg-blue-100"
                 @click="selectUser(user)"
               >
@@ -473,10 +473,10 @@ function openCustomerModal() {
 function closeCustomerModal() {
   showCustomerModal.value = false
 }
-
 async function fetchCustomerDetails(setUser = false) {
   userResults.value = []
   isUserLoading.value = true
+
   if (!phoneNumber.value && !name.value) {
     init({
       color: 'danger',
@@ -486,6 +486,7 @@ async function fetchCustomerDetails(setUser = false) {
     return
   } else {
     const servicesStore = useServiceStore()
+
     await axios
       .get(`${import.meta.env.VITE_API_BASE_URL}/winmax/entities`, {
         params: {
@@ -496,14 +497,77 @@ async function fetchCustomerDetails(setUser = false) {
       })
       .then(async (response) => {
         if (response.status === 200) {
-          if (!setUser) {
-            userResults.value = response.data.data
+          const wm = response.data
+          const wmList = Array.isArray(wm?.data) ? wm.data : []
+          const winmaxNotFound =
+            /not\s*found/i.test(String(wm?.message || '')) || wmList.length === 0
+
+          if (!winmaxNotFound) {
+            // Winmax HAS a match → use it
+            if (!setUser) {
+              userResults.value = wmList
+            } else {
+              selectUser(wmList[0])
+            }
+            return
+          }
+
+          // Winmax returned 200 + "Entity not found..." OR empty data → query Stella
+          const stellaRes = await axios.get(
+            `${import.meta.env.VITE_API_BASE_URL}/customers/search`,
+            {
+              params: {
+                outletId: servicesStore.selectedRest,
+                ...(phoneNumber.value && { phoneNo: phoneNumber.value }),
+                ...(name.value && { customerName: name.value }),
+              },
+            },
+          )
+
+          const hits = Array.isArray(stellaRes?.data?.data) ? stellaRes.data.data : []
+          if (hits.length) {
+            userResults.value = hits.map((e) => ({
+              ...e,
+              Name: e.customerName,
+              MobilePhone: e.phoneNo,
+              OtherAddresses: (Array.isArray(e?.address) ? e.address : []).map(
+                (address) => ({
+                  Designation: address.designation,
+                  Address: [
+                    address.aptNo,
+                    address.floor,
+                    address.streetName,
+                    address.streetNo,
+                    address.district,
+                    address.city,
+                    address.postalCode,
+                  ].join(','),
+                  ZipCode: address.postalCode,
+                  Phone: '',
+                  Fax: '',
+                  Location: '',
+                  CountryCode: '',
+                }),
+              ),
+            }))
+
+            // If we need to auto-pick, prefer exact phone match
+            if (setUser && userResults.value.length) {
+              const norm = (s) => String(s || '').replace(/\D+/g, '')
+              const wanted = norm(phoneNumber.value)
+              const exact = userResults.value.find(
+                (u) => norm(u.MobilePhone || u.Phone) === wanted,
+              )
+              selectUser(exact || userResults.value[0])
+            }
           } else {
-            selectUser(response.data.data[0])
+            // Neither Winmax nor Stella → open create modal
+            openCustomerModal()
           }
         }
       })
       .catch(async () => {
+        // If Winmax call errored (non-200), try Stella
         await axios
           .get(`${import.meta.env.VITE_API_BASE_URL}/customers/search`, {
             params: {
@@ -513,45 +577,52 @@ async function fetchCustomerDetails(setUser = false) {
             },
           })
           .then((response) => {
-            userResults.value = response.data.data.map((e) => {
-              return {
-                ...e,
-                Name: e.customerName,
-                MobilePhone: e.phoneNo,
-                OtherAddresses: e.address.map((address) => {
-                  return {
-                    Designation: address.designation,
-                    Address: [
-                      address.aptNo,
-                      address.floor,
-                      address.streetName,
-                      address.streetNo,
-                      address.district,
-                      address.city,
-                      address.postalCode,
-                    ].join(','),
-                    ZipCode: address.postalCode,
-                    Phone: '',
-                    Fax: '',
-                    Location: '',
-                    CountryCode: '',
-                  }
+            const arr = Array.isArray(response?.data?.data)
+              ? response.data.data
+              : []
+            userResults.value = arr.map((e) => ({
+              ...e,
+              Name: e.customerName,
+              MobilePhone: e.phoneNo,
+              OtherAddresses: (Array.isArray(e?.address) ? e.address : []).map(
+                (address) => ({
+                  Designation: address.designation,
+                  Address: [
+                    address.aptNo,
+                    address.floor,
+                    address.streetName,
+                    address.streetNo,
+                    address.district,
+                    address.city,
+                    address.postalCode,
+                  ].join(','),
+                  ZipCode: address.postalCode,
+                  Phone: '',
+                  Fax: '',
+                  Location: '',
+                  CountryCode: '',
                 }),
-              }
-            })
+              ),
+            }))
           })
+
         if (!userResults.value.length) {
           openCustomerModal()
-        } else {
-          if (setUser) {
-            selectUser(userResults.value[0])
-          }
+        } else if (setUser) {
+          const norm = (s) => String(s || '').replace(/\D+/g, '')
+          const wanted = norm(phoneNumber.value)
+          const exact = userResults.value.find(
+            (u) => norm(u.MobilePhone || u.Phone) === wanted,
+          )
+          selectUser(exact || userResults.value[0])
         }
       })
-
-    isUserLoading.value = false
+      .finally(() => {
+        isUserLoading.value = false
+      })
   }
 }
+
 
 function setNewUser(payload) {
   phoneNumber.value = payload.phoneNumber
@@ -613,8 +684,8 @@ async function handleDeliveryZoneFetch() {
           postalCode = addressSplit[addressSplit.length - 1].trim()
 
           const firstZone = response.data.data.find((a) => a.postalCodes.includes(postalCode))
-          serviceZoneId.value = firstZone.serviceZoneId
           if (firstZone) {
+            serviceZoneId.value = firstZone.serviceZoneId
             selectDeliveryZone(firstZone)
           } else {
             init({
@@ -672,45 +743,47 @@ const outlet = computed(() => {
   return servicesStore.restDetails || {}
 })
 
+// REPLACE your `filteredAddresses` computed with this:
 const filteredAddresses = computed(() => {
-  let OtherAddresses = []
-  let addresses = []
-  if (selectedZoneDetails.value) {
-    if (selectedUser.value['OtherAddresses'] && selectedUser.value['OtherAddresses'].length) {
-      OtherAddresses = selectedUser.value['OtherAddresses'].filter((address) => {
-        const adrs = address.Address.split(',')
-        const postalCode = adrs[adrs.length - 1].trim().toString()
+  if (!selectedZoneDetails.value || !selectedUser.value) return []
 
-        return selectedZoneDetails.value.postalCodes.includes(postalCode)
-      })
-      addresses = OtherAddresses.map((e) => {
-        if (e.Designation && e.Designation.includes('Meeting')) {
-          return {
-            text: `${e.Designation ? e.Designation + ' - ' : ''} , ${e.ZipCode}`,
-            value: `${e.Designation ? e.Designation + ' - ' : ''}, ${e.ZipCode}`,
-          }
-        } else {
-          return {
-            text: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
-            value: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
-          }
-        }
-      })
+  const addrs = Array.isArray(selectedUser.value['OtherAddresses'])
+    ? selectedUser.value['OtherAddresses']
+    : []
+
+  const zonePCs = Array.isArray(selectedZoneDetails.value.postalCodes)
+    ? selectedZoneDetails.value.postalCodes
+    : []
+
+  const keep = addrs.filter((a) => {
+    const isMeeting = String(a.Designation || '').includes('Meeting')
+    // Always keep Meeting Points
+    if (isMeeting) return true
+
+    // Parse postal code from the "Address" field
+    const parts = String(a.Address || '').split(',')
+    const pc = parts[parts.length - 1]?.trim() || String(a.ZipCode || '')
+    // Hide obvious placeholders like 00000
+    if (pc === '00000') return false
+
+    return zonePCs.includes(pc)
+  })
+
+  return keep.map((e) => {
+    const isMeeting = String(e.Designation || '').includes('Meeting')
+    if (isMeeting) {
+      return {
+        text: `${e.Designation ? e.Designation + ' - ' : ''} , ${e.ZipCode}`,
+        value: `${e.Designation ? e.Designation + ' - ' : ''}, ${e.ZipCode}`,
+      }
     }
-    // commmented the metting point zone for now.
-    // selectedZoneDetails.value.meetingPointAddress
-    //   .filter((a) => a !== '')
-    //   .forEach((meetingPoint) => {
-    //     addresses.push({
-    //       text: `Meeting Point - ${meetingPoint}`,
-    //       value: meetingPoint,
-    //     })
-    //   })
-    return addresses
-  } else {
-    return []
-  }
+    return {
+      text: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
+      value: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
+    }
+  })
 })
+
 
 watch(
   () => selectedZoneDetails.value,
@@ -720,27 +793,33 @@ watch(
     }
   },
 )
-
+// REPLACE just the part inside your watch(() => selectedUser.value, ...) that sets first address:
 watch(
   () => selectedUser.value,
   () => {
     if (selectedUser.value) {
-      const otherAddresses = selectedUser.value['OtherAddresses']
-      if (Array.isArray(otherAddresses) && otherAddresses.length > 0) {
-        const firstAddress = otherAddresses[0]
-        if (firstAddress.Designation && firstAddress.Designation.includes('Meeting')) {
+      const otherAddresses = selectedUser.value['OtherAddresses'] || []
+
+      // Prefer Meeting Point; else first non-00000; else fallback to first
+      const prefer =
+        otherAddresses.find((a) => String(a.Designation || '').includes('Meeting')) ||
+        otherAddresses.find((a) => {
+          const parts = String(a.Address || '').split(',')
+          const pc = parts[parts.length - 1]?.trim() || String(a.ZipCode || '')
+          return pc && pc !== '00000'
+        }) ||
+        otherAddresses[0]
+
+      if (prefer) {
+        if (String(prefer.Designation || '').includes('Meeting')) {
           selectedAddress.value = {
-            text: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''} , ${firstAddress.ZipCode}`,
-            value: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}, ${firstAddress.ZipCode}`,
+            text: `${prefer.Designation ? prefer.Designation + ' - ' : ''} , ${prefer.ZipCode}`,
+            value: `${prefer.Designation ? prefer.Designation + ' - ' : ''}, ${prefer.ZipCode}`,
           }
         } else {
           selectedAddress.value = {
-            text: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}${getParsedAddress(
-              firstAddress.Address,
-            )}`,
-            value: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}${getParsedAddress(
-              firstAddress.Address,
-            )}`,
+            text: `${prefer.Designation ? prefer.Designation + ' - ' : ''}${getParsedAddress(prefer.Address)}`,
+            value: `${prefer.Designation ? prefer.Designation + ' - ' : ''}${getParsedAddress(prefer.Address)}`,
           }
         }
       } else {
@@ -749,11 +828,12 @@ watch(
 
       emits('setOrderType', selectedTab.value)
       handleDeliveryZoneFetch()
-      emits('setCustomerDetailsId', selectedUser.value._id)
+      emits('setCustomerDetailsId', selectedUser.value._id || selectedUser.value.id)
       userResults.value = []
     }
   },
 )
+
 
 watch(
   () => selectedTab.value,
@@ -764,7 +844,7 @@ watch(
     if (selectedUser.value) {
       handleDeliveryZoneFetch()
     }
-    emits('setCustomerDetailsId', selectedUser.value._id)
+    emits('setCustomerDetailsId', selectedUser.value._id || selectedUser.value.id)
   },
 )
 
