@@ -640,7 +640,9 @@ function selectDeliveryZone(zone) {
 async function handleDeliveryZoneFetch() {
   deliveryZoneOptions.value = []
   const servicesStore = useServiceStore()
-
+  if (deliveryZoneOptions.value.length) {
+    return
+  }
   try {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/deliveryZones/${servicesStore.selectedRest}`)
 
