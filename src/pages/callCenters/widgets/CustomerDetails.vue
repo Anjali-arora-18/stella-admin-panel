@@ -740,7 +740,7 @@ const filteredAddresses = computed(() => {
       }
     })
   }
-  return addresses
+  return addresses.filter((a) => !a.text.includes('00000'))
 })
 
 // Update handleDeliveryZoneFetch to remove postal code filtering
