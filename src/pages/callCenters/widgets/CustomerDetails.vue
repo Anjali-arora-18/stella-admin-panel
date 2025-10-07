@@ -705,17 +705,16 @@ const outlet = computed(() => {
   return servicesStore.restDetails || {}
 })
 
-// Replace the existing filteredAddresses computed property
 const filteredAddresses = computed(() => {
   let addresses = []
   if (selectedUser.value && selectedUser.value['OtherAddresses']) {
-    // Show all addresses without filtering by postal code
     addresses = selectedUser.value['OtherAddresses'].map((e) => {
       if (e.Designation && e.Designation.includes('Meeting')) {
         return {
           text: `${e.Designation ? e.Designation + ' - ' : ''} , ${e.ZipCode}`,
           value: `${e.Designation ? e.Designation + ' - ' : ''}, ${e.ZipCode}`,
           postalCode: e.ZipCode,
+          fullAddress: e.Address || '',
         }
       } else {
         const addressArray = e.Address.split(',')
@@ -724,6 +723,7 @@ const filteredAddresses = computed(() => {
           text: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
           value: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
           postalCode: postalCode,
+          fullAddress: e.Address,
         }
       }
     })
@@ -799,43 +799,38 @@ watch(
   },
 )
 
-// Replace the watch for selectedAddress
 watch(
   () => selectedAddress.value,
   async (newAddress) => {
     if (newAddress) {
       const postalCode = newAddress.postalCode
       const currentText = newAddress.text
+      const fullAddress = newAddress.fullAddress
 
-      // Fetch delivery zones if not already loaded
-      if (!deliveryZoneOptions.value.length) {
-        await handleDeliveryZoneFetch()
-      }
+      // Always fetch fresh delivery zones to ensure latest data
+      await handleDeliveryZoneFetch()
 
       // Find matching zone based on postal code
-      const matchingZone = deliveryZoneOptions.value.find((zone) => zone.postalCodes.includes(postalCode))
+      const matchingZone = deliveryZoneOptions.value.find((zone) =>
+        zone.postalCodes.some((zoneCode) => String(zoneCode).trim() === String(postalCode).trim()),
+      )
 
       if (matchingZone) {
-        // Only update if the address text has actually changed
-        if (currentText !== selectedAddress.value?.text) {
-          selectDeliveryZone(matchingZone)
-          orderStore.setDeliveryZone(matchingZone)
-          emits('setDeliveryZone', true)
-          orderStore.setAddress(currentText)
-        }
+        selectDeliveryZone(matchingZone)
+        orderStore.setDeliveryZone(matchingZone)
+        emits('setDeliveryZone', true)
+        orderStore.setAddress(fullAddress || currentText)
       } else {
         if (!currentText.includes('Meeting') && selectedTab.value === 'delivery') {
           init({
             color: 'danger',
-            message: 'No delivery zones available for this address postal code.',
+            message: `No delivery zone found for postal code: ${postalCode}`,
           })
         }
-        // Reset zone selection only if the address has actually changed
-        if (currentText !== selectedAddress.value?.text) {
-          selectedZone.value = ''
-          serviceZoneId.value = ''
-          selectedZoneDetails.value = null
-        }
+        selectedZone.value = ''
+        serviceZoneId.value = ''
+        selectedZoneDetails.value = null
+        emits('setDeliveryZone', false)
       }
     }
   },
