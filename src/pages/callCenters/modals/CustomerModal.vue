@@ -341,18 +341,20 @@ if (props.selectedUser) {
   phoneNumber.value = props.userNumber
   isTick.value = null
   if (!props.selectedUser.isTick) {
-    props.selectedUser.address.forEach((e) => {
-      address.value.push({
-        designation: e.designation,
-        floor: e.floor,
-        aptNo: e.aptNo,
-        streetName: e.streetName,
-        streetNo: e.streetNo,
-        district: e.district,
-        city: e.city,
-        postCode: e.postalCode,
+    if (props.selectedUser.address) {
+      props.selectedUser.address.forEach((e) => {
+        address.value.push({
+          designation: e.designation,
+          floor: e.floor,
+          aptNo: e.aptNo,
+          streetName: e.streetName,
+          streetNo: e.streetNo,
+          district: e.district,
+          city: e.city,
+          postCode: e.postalCode,
+        })
       })
-    })
+    }
   }
 }
 
@@ -397,15 +399,15 @@ async function addAddress() {
     return
   }
 
-  if (
-    editAddress.value === -1 &&
-    (!addressSet.value.Designation || !addressSet.value.Designation.includes('Meeting'))
-  ) {
+  if (editAddress.value === -1) {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/postalcodes/streets`, {
         params: {
           postalCode: postCode.value,
-          streetName: streetAddress.value,
+          streetName:
+            !addressSet.value.Designation || !addressSet.value.Designation.includes('Meeting')
+              ? streetAddress.value
+              : '',
         },
       })
 
@@ -535,8 +537,9 @@ async function addOrUpdateCustomerDetails() {
           Code: props.selectedUser.Code,
           outletId: servicesStore.selectedRest,
         }
+        delete payload.address
       }
-      delete payload.address
+
       await axios[method](
         `${import.meta.env.VITE_API_BASE_URL}/${url}${id}?outletId=${servicesStore.selectedRest}`,
         payload,

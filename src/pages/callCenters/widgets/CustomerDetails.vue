@@ -611,6 +611,7 @@ async function handleDeliveryZoneFetch() {
         const addressSplit = addressArray.split(',')
         if (addressSplit.length) {
           postalCode = addressSplit[addressSplit.length - 1].trim()
+
           const firstZone = response.data.data.find((a) => a.postalCodes.includes(postalCode))
           serviceZoneId.value = firstZone.serviceZoneId
           if (firstZone) {
