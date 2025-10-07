@@ -680,7 +680,7 @@ const filteredAddresses = computed(() => {
 watch(
   () => selectedZoneDetails.value,
   (newVal, oldVal) => {
-    if (newVal && oldVal) {
+    if (newVal && oldVal && !selectedAddress.value) {
       selectedAddress.value = filteredAddresses.value.length ? filteredAddresses.value[0] : ''
     }
   },
@@ -743,6 +743,7 @@ watch(
   async (newAddress) => {
     if (newAddress) {
       const postalCode = newAddress.postalCode
+      const currentText = newAddress.text
 
       // Fetch delivery zones if not already loaded
       if (!deliveryZoneOptions.value.length) {
@@ -751,23 +752,28 @@ watch(
 
       // Find matching zone based on postal code
       const matchingZone = deliveryZoneOptions.value.find((zone) => zone.postalCodes.includes(postalCode))
-      console.log(selectedAddress.value.text)
+
       if (matchingZone) {
-        selectDeliveryZone(matchingZone)
-        orderStore.setDeliveryZone(matchingZone)
-        emits('setDeliveryZone', true)
-        orderStore.setAddress(newAddress.text)
+        // Only update if the address text has actually changed
+        if (currentText !== selectedAddress.value?.text) {
+          selectDeliveryZone(matchingZone)
+          orderStore.setDeliveryZone(matchingZone)
+          emits('setDeliveryZone', true)
+          orderStore.setAddress(currentText)
+        }
       } else {
-        if (!selectedAddress.value.text.includes('Meeting') && selectedTab.value === 'delivery') {
+        if (!currentText.includes('Meeting') && selectedTab.value === 'delivery') {
           init({
             color: 'danger',
             message: 'No delivery zones available for this address postal code.',
           })
         }
-        // Reset zone selection
-        selectedZone.value = ''
-        serviceZoneId.value = ''
-        selectedZoneDetails.value = null
+        // Reset zone selection only if the address has actually changed
+        if (currentText !== selectedAddress.value?.text) {
+          selectedZone.value = ''
+          serviceZoneId.value = ''
+          selectedZoneDetails.value = null
+        }
       }
     }
   },
