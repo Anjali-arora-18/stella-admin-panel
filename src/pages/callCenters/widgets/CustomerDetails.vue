@@ -229,7 +229,7 @@
                       :class="{
                         'text-primary font-bold': selectedZone === zone.name,
                       }"
-                      @click="selectDeliveryZone(zone)"
+                      @click.prevent.stop="selectDeliveryZone(zone)"
                     >
                       {{ zone.serviceZoneId }} - {{ zone.name }}
                     </li>
@@ -273,7 +273,7 @@
                   :class="{
                     'text-primary font-bold': selectedZone === zone.name,
                   }"
-                  @click="selectDeliveryZone(zone)"
+                  @click.prevent.stop="selectDeliveryZone(zone)"
                 >
                   {{ zone.serviceZoneId }} - {{ zone.name }}
                 </li>
@@ -626,6 +626,7 @@ function selectUser(user) {
 const deliveryZoneOptions = ref([])
 
 function selectDeliveryZone(zone) {
+  console.log(zone)
   if (zone) {
     emits('setDeliveryFee', selectedTab.value === 'takeaway' ? 0 : zone.deliveryCharge)
     emits('setDeliveryZone', true)
@@ -638,7 +639,6 @@ function selectDeliveryZone(zone) {
 }
 
 async function handleDeliveryZoneFetch() {
-  deliveryZoneOptions.value = []
   const servicesStore = useServiceStore()
   if (deliveryZoneOptions.value.length) {
     return
@@ -816,23 +816,24 @@ watch(
       const matchingZone = deliveryZoneOptions.value.find((zone) =>
         zone.postalCodes.some((zoneCode) => String(zoneCode).trim() === String(postalCode).trim()),
       )
-
-      if (matchingZone) {
-        selectDeliveryZone(matchingZone)
-        orderStore.setDeliveryZone(matchingZone)
-        emits('setDeliveryZone', true)
-        orderStore.setAddress(fullAddress || currentText)
-      } else {
-        if (!currentText.includes('Meeting') && selectedTab.value === 'delivery') {
-          init({
-            color: 'danger',
-            message: `No delivery zone found for postal code: ${postalCode}`,
-          })
+      if (selectedTab.value === 'delivery') {
+        if (matchingZone) {
+          selectDeliveryZone(matchingZone)
+          orderStore.setDeliveryZone(matchingZone)
+          emits('setDeliveryZone', true)
+          orderStore.setAddress(fullAddress || currentText)
+        } else {
+          if (!currentText.includes('Meeting') && selectedTab.value === 'delivery') {
+            init({
+              color: 'danger',
+              message: `No delivery zone found for postal code: ${postalCode}`,
+            })
+          }
+          selectedZone.value = ''
+          serviceZoneId.value = ''
+          selectedZoneDetails.value = null
+          emits('setDeliveryZone', false)
         }
-        selectedZone.value = ''
-        serviceZoneId.value = ''
-        selectedZoneDetails.value = null
-        emits('setDeliveryZone', false)
       }
     }
   },
