@@ -491,7 +491,22 @@ async function fetchStreetName() {
     })
 
     if (response.status === 200 && response.data.data.length > 0) {
-      streetList.value = response.data.data
+      streetList.value = response.data.data.sort((a, b) => {
+        const aDesignation = a.Designation || ''
+        const bDesignation = b.Designation || ''
+        const aIsMeeting = aDesignation.includes('Meeting')
+        const bIsMeeting = bDesignation.includes('Meeting')
+
+        if (aIsMeeting && bIsMeeting) {
+          return aDesignation.localeCompare(bDesignation)
+        } else if (aIsMeeting) {
+          return -1
+        } else if (bIsMeeting) {
+          return 1
+        } else {
+          return (a['Street Name'] || '').localeCompare(b['Street Name'] || '')
+        }
+      })
     } else {
       streetList.value = []
       init({ color: 'danger', message: 'Address not available for Delivery' })
