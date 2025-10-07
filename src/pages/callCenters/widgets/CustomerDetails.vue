@@ -504,7 +504,18 @@ async function fetchCustomerDetails(setUser = false) {
           if (!winmaxNotFound) {
             // Winmax HAS a match → use it
             if (!setUser) {
-              userResults.value = wmList
+              userResults.value = wmList.map((user) => ({
+                ...user,
+                OtherAddresses: Array.isArray(user.OtherAddresses)
+                  ? user.OtherAddresses.map((add) => ({
+                      ...add,
+                      ZipCode:
+                      typeof add.Address === 'string' && add.Address.split(',').length
+                        ? add.Address.split(',')[add.Address.split(',').length - 1].trim()
+                        : '',
+                    }))
+                  : [],
+              }))
             } else {
               selectUser(wmList[0])
             }
@@ -626,7 +637,6 @@ function selectUser(user) {
 const deliveryZoneOptions = ref([])
 
 function selectDeliveryZone(zone) {
-  console.log(zone)
   if (zone) {
     emits('setDeliveryFee', selectedTab.value === 'takeaway' ? 0 : zone.deliveryCharge)
     emits('setDeliveryZone', true)
@@ -816,7 +826,26 @@ watch(
       const matchingZone = deliveryZoneOptions.value.find((zone) =>
         zone.postalCodes.some((zoneCode) => String(zoneCode).trim() === String(postalCode).trim()),
       )
+      // Check for meeting point match first
+      const meetingPoints = deliveryZoneOptions.value
+        .map((zone) => zone.meetingPoints?.find((mp) => currentText.includes(mp.designation)))
+        .filter(Boolean)
+
       if (selectedTab.value === 'delivery') {
+        if (meetingPoints.length && currentText.includes('Meeting Point')) {
+          // Find the zone containing the meeting point
+          const zoneWithMeetingPoint = deliveryZoneOptions.value.find((zone) =>
+            zone.meetingPoints?.some((mp) => currentText.includes(mp.designation)),
+          )
+          if (zoneWithMeetingPoint) {
+            selectDeliveryZone(zoneWithMeetingPoint)
+            orderStore.setDeliveryZone(zoneWithMeetingPoint)
+            emits('setDeliveryZone', true)
+            orderStore.setAddress(fullAddress || currentText)
+            return
+          }
+        }
+
         if (matchingZone) {
           selectDeliveryZone(matchingZone)
           orderStore.setDeliveryZone(matchingZone)
