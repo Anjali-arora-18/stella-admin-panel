@@ -124,15 +124,25 @@
           <div v-if="userResults.length" id="userResults" class="user-results w-full absolute top-full left-0 mt-2">
             <ul ref="userList" class="divide divide-y-2 bg-white border rounded shadow w-full z-10">
               <li
-                v-for="user in userResults"
+                v-for="(user, index) in userResults"
                 :key="user._id || user.id || user.ID || index"
                 class="p-2 cursor-pointer hover:bg-blue-100"
                 @click="selectUser(user)"
               >
-                {{ user['Name'] }}
+                {{
+                  user.Name ||
+                  user.customerName ||
+                  user.name ||
+                  user.MobilePhone ||
+                  user.Phone ||
+                  user.phoneNo ||
+                  user.phone ||
+                  'Anonymous'
+                }}
               </li>
             </ul>
           </div>
+
         </div>
 
         <div v-if="selectedTab && selectedUser" class="flex items-center gap-1 w-full">
@@ -155,12 +165,13 @@
             </button>
           </div>
 
-          <input
-            v-model="localDateTime"
-            type="datetime-local"
-            class="text-xs border rounded px-1 py-1 w-[40%]"
-            :disabled="orderFor === 'current'"
-          />
+        <input
+          v-model="localDateTime"
+          type="datetime-local"
+          class="text-xs border rounded px-1 py-1 w-[40%]"
+          :disabled="orderFor === 'current'"
+        />
+
         </div>
 
         <!-- Address -->
@@ -341,6 +352,7 @@ const emits = defineEmits([
   'setCustomerDetailsId',
   'setDeliveryFee',
   'setDeliveryZone',
+  'setDateSelected', 
 ])
 const target = ref('userList')
 const deliveryTarget = ref('deliveryList')
@@ -413,23 +425,127 @@ const getLocalDateTime = () => {
 const updateTimeOnly = () => {
   localDateTime.value = getLocalDateTime()
 }
+// --- opening hours helpers ---
+const dayNames = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
 
+function parseHHmm(hhmm) {
+  // "11:00" -> {h:11,m:0}; tolerate "", null
+  if (!hhmm || typeof hhmm !== 'string' || !hhmm.includes(':')) return null
+  const [h, m] = hhmm.split(':').map((x) => Number(x))
+  if (Number.isNaN(h) || Number.isNaN(m)) return null
+  return { h, m }
+}
+
+function dateAtHM(baseDate, h, m) {
+  const d = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), h, m, 0, 0)
+  return d
+}
+
+// in Customer Details
+const FALLBACK_OPEN = { h: 11, m: 0 }
+const FALLBACK_CLOSE = { h: 23, m: 0 }
+
+function getOpenCloseFor(dt) {
+  const ot = outlet.value?.openingTimes
+  let opensStr = '', closesStr = ''
+
+  if (ot) {
+    if (ot.is24h) {
+      const open = new Date(dt); open.setHours(0,0,0,0)
+      const close = new Date(open); close.setDate(close.getDate() + 1)
+      return { open, close }
+    }
+    if (ot.selected === 'byDay') {
+      const key = dayNames[dt.getDay()]
+      const rec = ot.byDay?.[key] || {}
+      opensStr = rec.opens || ''
+      closesStr = rec.closes || ''
+    } else {
+      opensStr = ot.daily?.opens || ''
+      closesStr = ot.daily?.closes || ''
+    }
+  }
+
+  const o = parseHHmm(opensStr) || FALLBACK_OPEN
+  const c = parseHHmm(closesStr) || FALLBACK_CLOSE
+
+  const open = dateAtHM(dt, o.h, o.m)
+  let close = dateAtHM(dt, c.h, c.m)
+  if (close <= open) { close = new Date(close.getTime()); close.setDate(close.getDate() + 1) }
+  return { open, close }
+}
+
+
+function fmtForInput(d) {
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+/** Clamp a target date to a given {open, close} window */
+function clampToWindow(target, { open, close }) {
+  if (target < open) return new Date(open)
+  if (target > close) return new Date(close)
+  return target
+}
+const dayMin = ref(null)
+const dayMax = ref(null)
+
+// 1) Let users pick ANY date/time; just emit + optional warning
 watch(
   localDateTime,
-  (newVal) => {
-    if (newVal && newVal.length >= 16) {
-      const [datePart, timePart] = newVal.split('T')
-      if (datePart && timePart) {
-        const [year, month, day] = datePart.split('-').map(Number)
-        const [hour, minute] = timePart.split(':').map(Number)
-        selectedDate.value = new Date(year, month - 1, day, hour, minute)
-        emits('setDateSelected', selectedDate.value)
+  (val) => {
+    if (!val || val.length < 16) return
+
+    // Parse YYYY-MM-DDTHH:mm
+    const [datePart, timePart] = val.split('T')
+    const [y, m, d] = datePart.split('-').map(Number)
+    const [hh, mm] = timePart.split(':').map(Number)
+    const chosen = new Date(y, m - 1, d, hh, mm, 0, 0)
+
+    // Set + emit immediately (do not modify the user's choice)
+    selectedDate.value = chosen
+    emits('setDateSelected', chosen)
+
+    // For future orders, show a soft warning if outside opening hours
+    if (orderFor.value === 'future') {
+      const win = getOpenCloseFor(chosen)
+      if (win) {
+        const normalized = new Date(
+          chosen.getFullYear(),
+          chosen.getMonth(),
+          chosen.getDate(),
+          chosen.getHours(),
+          chosen.getMinutes(),
+          0, 0
+        )
+        const inWindow = normalized >= win.open && normalized < win.close
+        
       }
     }
   },
-  { immediate: true },
+  { immediate: false }
 )
+
+
 let timeInterval = null
+const futureMin = computed(() => {
+  if (orderFor.value !== 'future') return null
+  const dt = selectedDate.value ?? new Date()
+  const win = getOpenCloseFor(dt)
+  if (!win) return null
+  // If selecting today and we’re already past open, min should be now
+  const now = new Date()
+  const min = (dt.toDateString() === now.toDateString()) ? new Date(Math.max(now.getTime(), win.open.getTime())) : win.open
+  return fmtForInput(min)
+})
+
+const futureMax = computed(() => {
+  if (orderFor.value !== 'future') return null
+  const dt = selectedDate.value ?? new Date()
+  const win = getOpenCloseFor(dt)
+  if (!win) return null
+  return fmtForInput(win.close)
+})
 
 const startAutoUpdateTime = () => {
   stopAutoUpdateTime()
@@ -447,13 +563,30 @@ const stopAutoUpdateTime = () => {
     timeInterval = null
   }
 }
-watch(orderFor, (newVal) => {
-  if (newVal === 'current') {
-    startAutoUpdateTime()
-  } else {
-    stopAutoUpdateTime()
+
+watch(orderFor, (mode) => {
+  orderStore.setOrderFor(mode)
+
+  if (mode !== 'future') return
+
+  // If outlet not loaded yet, don't clamp or flip back
+  const ot = outlet.value && outlet.value.openingTimes
+  if (!ot) return
+
+  const dt = selectedDate.value ?? new Date()
+  const win = getOpenCloseFor(dt)
+
+  if (!win) {
+    init({ color: 'danger', message: 'Selected day is closed. Please choose another day.' })
+    return // don't force back to current; let user pick another date
   }
+
+  const clamped = clampToWindow(dt, win)
+  selectedDate.value = clamped
+  localDateTime.value = fmtForInput(clamped)
 })
+
+
 onMounted(() => {
   if (orderFor.value === 'current') {
     startAutoUpdateTime()
@@ -627,12 +760,52 @@ function setNewUser(payload) {
 }
 
 function selectUser(user) {
-  selectedUser.value = user
-  name.value = user['Name']
-  phoneNumber.value = user['MobilePhone'] || user['Phone']
+  // normalize different payload shapes
+  const normName =
+    user['Name'] ??
+    user['customerName'] ??
+    user['name'] ??
+    ''
+  const normPhone =
+    user['MobilePhone'] ??
+    user['Phone'] ??
+    user['phoneNo'] ??
+    user['phone'] ??
+    ''
+
+  name.value = String(normName)
+  phoneNumber.value = String(normPhone)
+
+  selectedUser.value = {
+    ...user,
+    Name: normName,
+    MobilePhone: normPhone,
+    OtherAddresses: Array.isArray(user.OtherAddresses)
+      ? user.OtherAddresses
+      : Array.isArray(user.address)
+        ? user.address.map((addr) => ({
+            Designation: addr.designation,
+            Address: [
+              addr.aptNo,
+              addr.floor,
+              addr.streetName,
+              addr.streetNo,
+              addr.district,
+              addr.city,
+              addr.postalCode,
+            ].join(','),
+            ZipCode: addr.postalCode,
+            Phone: '',
+            Fax: '',
+            Location: '',
+            CountryCode: '',
+          }))
+        : [],
+  }
 
   userResults.value = []
 }
+
 
 const deliveryZoneOptions = ref([])
 
