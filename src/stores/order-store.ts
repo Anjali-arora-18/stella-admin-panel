@@ -94,7 +94,9 @@ export const useOrderStore = defineStore('order', {
     },
     async createPayment({ orderId: orderId, paymentTypeId: paymentTypeId }) {
       const url = import.meta.env.VITE_API_BASE_URL
-      return await axios.post(`${url}/payments/${orderId}?paymentTypeId=${paymentTypeId}`)
+      const next = window.location.href
+
+      return await axios.post(`${url}/payments/${orderId}?paymentTypeId=${paymentTypeId}`, { next })
     },
     async sendOrderToWinmax(orderId, orderFor) {
       const url = import.meta.env.VITE_API_BASE_URL
@@ -105,7 +107,9 @@ export const useOrderStore = defineStore('order', {
     },
     async retryPayment(orderId) {
       const url = import.meta.env.VITE_API_BASE_URL
-      return await axios.post(`${url}/payments/retry/${orderId}`)
+        const next = window.location.href
+
+      return await axios.post(`${url}/payments/retry/${orderId}`, { next })
     },
   },
 })
