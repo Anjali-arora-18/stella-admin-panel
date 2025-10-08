@@ -208,24 +208,18 @@
           />
         </div>
 
-        <VaButtonToggle
-          v-model="isTick"
-          :toggle-color="outlet.primaryColor"
-          color="#65667c"
-          :options="[
-            {
-              label: 'Save Data',
-              value: true,
-              icon: 'va-check',
-            },
-            {
-              label: `Don't Save`,
-              value: false,
-              icon: 'va-close',
-            },
-          ]"
-          icon-color="warning"
-        />
+<VaButtonToggle
+  v-model="isTick"
+  :disabled="lockTick"
+  :toggle-color="outlet.primaryColor"
+  color="#65667c"
+  :options="[
+    { label: 'Save Data', value: true, icon: 'va-check' },
+    { label: `Don't Save`, value: false, icon: 'va-close' },
+  ]"
+  icon-color="warning"
+/>
+
 
         <VaButton
           preset="secondary"
@@ -345,7 +339,6 @@ if (props.selectedUser) {
     })
   }
 } else {
-  // Creating new / no pre-selected user
   name.value = props.userName || ''
   phoneNumber.value = String(props.userNumber ?? '').trim()
   isTick.value = null
@@ -373,7 +366,14 @@ function setAddress(addr: any) {
   addressSet.value = addr
 
   if (addr.Designation && addr.Designation.includes('Meeting Point')) {
-    designation.value = addr.Designation
+    const d = addr?.Designation ?? "";
+
+    designation.value = d.includes("Meeting Point")
+      ? d.replace(
+          /(Meeting\s*Point)(\s*-\s*)([^-]+)(.*)/i,
+          (_, _mp, sep, mid, rest) => `M.P${sep}${mid.trim().slice(0, 4)}${rest}`
+        ).trim()
+      : d;
   }
 
   streetAddress.value = addr['Street Name'] || ''
@@ -390,9 +390,9 @@ async function addAddress() {
     return
   }
 
-  const isMeetingPoint = designation.value?.toLowerCase().includes('meeting')
+  const isMeetingPoint = designation.value.includes("M.P")
 
-  if (!isMeetingPoint && editAddress.value === -1) {
+  if (!isMeetingPoint /*&& editAddress.value === -1*/) {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/postalcodes/streets`, {
         params: {
@@ -602,6 +602,10 @@ async function winmaxCreateOrUpdate(base: any, outletId: string, selected?: any)
     return meta
   }
 }
+const lockTick = computed(() => {
+  // Lock only when editing an existing customer AND their isTick is true
+  return !!(props.selectedUser && (props.selectedUser as any).isTick);
+});
 
 async function addOrUpdateCustomerDetails() {
   const servicesStore = useServiceStore()

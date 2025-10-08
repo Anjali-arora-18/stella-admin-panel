@@ -320,6 +320,57 @@ const formattedLabel = (sel) => {
   const totalPrice = sel.price * sel.quantity
   return totalPrice > 0 ? `${sel.name} (+€${totalPrice.toFixed(2)})` : sel.name
 }
+function isBetween11to23(dt) {
+  // 11:00 inclusive, 23:00 exclusive
+  const mins = dt.getHours() * 60 + dt.getMinutes()
+  return mins >= 11 * 60 && mins < 23 * 60
+}
+
+const selectedDt = computed(() => parseSelectedDate(props.dateSelected))
+
+const isFutureTimeAllowed = computed(() => {
+  if (orderFor.value !== 'future') return true
+  if (!selectedDt.value) return false
+  return isBetween11to23(selectedDt.value)
+})
+
+
+function openCheckoutModal() {
+  if (!isFutureTimeAllowed.value) {
+    const msg = 'Future orders must be between 11:00–23:00.'
+    init({ color: 'danger', message: msg })
+    return
+  }
+  showCheckoutModal.value = true
+}
+
+function parseSelectedDate(v) {
+  // Pass-through if it’s already a Date
+  if (v instanceof Date && !Number.isNaN(v.getTime())) return v
+  if (typeof v !== 'string' || !v) return null
+
+  // Accept: 2025-10-08T16:54, 2025-10-08T16:54:00, 2025-10-08T16:54:00.000, with/without trailing Z
+  const m = v.match(
+    /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?(?:\.(\d{1,3}))?(Z)?$/
+  )
+  if (m) {
+    const [, Y, M, D, h, m2, s = '0', ms = '0'] = m
+    // Build as **local** time (ignore trailing Z so we don’t shift)
+    return new Date(
+      Number(Y),
+      Number(M) - 1,
+      Number(D),
+      Number(h),
+      Number(m2),
+      Number(s),
+      Number(ms)
+    )
+  }
+
+  // Fallback: try native, but this may shift or be invalid if timezone suffixes exist
+  const d = new Date(v)
+  return Number.isNaN(d.getTime()) ? null : d
+}
 
 const getTotalPrice = computed(() => {
   if (orderStore.editOrder) {
@@ -517,9 +568,7 @@ const decreaseQty = (item) => {
 // -----------------TO OPEN THE CHECKOUT MODAL---------------------
 const showCheckoutModal = ref(false)
 
-function openCheckoutModal() {
-  showCheckoutModal.value = true
-}
+
 
 function closeCheckoutModal() {
   showCheckoutModal.value = false
