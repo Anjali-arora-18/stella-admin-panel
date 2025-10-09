@@ -427,7 +427,12 @@ async function updateOrder() {
             {
               menuItem: item,
               quantity: 1,
-              options: [],
+              options: (
+                orderStore.editOrder.menuItems.find((m: any) => m._id === item)?.options || []
+              ).map((op: any) => ({
+                option: typeof op.option === 'string' ? op.option : String(op.option?._id),
+                quantity: Number(op.quantity ?? 1),
+              }))
             },
           ],
         }
