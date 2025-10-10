@@ -51,7 +51,7 @@
             inputmode="numeric"
             class="border rounded px-2 py-1 text-xs outline-none focus:outline-none focus:ring-1 focus:ring-gray-200 focus:border-gray-300 w-full md:w-[120px]"
             @input="phoneNumber = phoneNumber.replace(/\D/g, '')"
-            @keyup.enter="fetchCustomerDetails(false)"
+            @keyup.enter="fetchCustomerDetails(true)"
           />
 
           <!-- Customer Name -->
@@ -61,7 +61,7 @@
             :disabled="selectedUser !== ''"
             placeholder="Customer Name"
             class="border rounded px-2 py-1 text-xs outline-none focus:outline-none focus:ring-1 focus:ring-gray-200 focus:border-gray-300 flex-1 min-w-0"
-            @keyup.enter="fetchCustomerDetails(false)"
+            @keyup.enter="fetchCustomerDetails(true)"
           />
 
           <!-- Search Button -->
