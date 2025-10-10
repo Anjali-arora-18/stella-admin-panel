@@ -51,7 +51,7 @@
             inputmode="numeric"
             class="border rounded px-2 py-1 text-xs outline-none focus:outline-none focus:ring-1 focus:ring-gray-200 focus:border-gray-300 w-full md:w-[120px]"
             @input="phoneNumber = phoneNumber.replace(/\D/g, '')"
-            @keyup.enter="fetchCustomerDetails(false)"
+            @keyup.enter="fetchCustomerDetails(true)"
           />
 
           <!-- Customer Name -->
@@ -61,7 +61,7 @@
             :disabled="selectedUser !== ''"
             placeholder="Customer Name"
             class="border rounded px-2 py-1 text-xs outline-none focus:outline-none focus:ring-1 focus:ring-gray-200 focus:border-gray-300 flex-1 min-w-0"
-            @keyup.enter="fetchCustomerDetails(false)"
+            @keyup.enter="fetchCustomerDetails(true)"
           />
 
           <!-- Search Button -->
@@ -257,10 +257,11 @@
                 track-by="value"
                 searchable
                 highlight-matched-text
+                placeholder="Select address..."
+                clearable
                 class="h-[24px] w-[24px] min-w-[32px] flex items-center justify-center rounded-md p-0 text-xs mt-1"
                 style="--va-select-dropdown-max-height: 100px"
               />
-
               <VaButton
                 class="hover:bg-blue-600 text-white h-[24px] w-[24px] rounded-md flex items-center justify-center"
                 size="small"
@@ -884,6 +885,50 @@ function getParsedAddress(payload) {
   if (address.includes(',')) return address
   else return ',' + address
 }
+function fromEditOrder(order) {
+  if (!order) return
+  // open & switch tab based on type (adjust keys if yours differ)
+  isOpen.value = true
+  selectedTab.value = /takeaway/i.test(order.orderType || order.type) ? 'takeaway' : 'delivery'
+
+  // set identity
+  phoneNumber.value = order.customerPhone || order.phone || ''
+  name.value = order.customerName || order.name || ''
+
+  // build a minimal Winmax-like "OtherAddresses" array so filteredAddresses works unchanged
+  const fullAddr =
+    order.deliveryAddress || order.address || order.delivery_address || '' // pick what you store
+  const postal =
+    order.postalCode || order.postCode || ''                               // optional, used for zone match
+  const designation = order.addressDesignation || 'From order'
+
+  selectedUser.value = {
+    _id: order.customerDetailsId || order.customerId || undefined,
+    customerName: name.value,
+    phoneNo: phoneNumber.value,
+    OtherAddresses: [
+      {
+        Designation: designation,
+        Address: fullAddr,
+        ZipCode: postal,
+      },
+    ],
+  }
+
+  // ensure the dropdown has a value right away
+  // filteredAddresses already converts OtherAddresses -> {text,value,postalCode,fullAddress}
+  // nextTick in case computed needs a tick
+  setTimeout(() => {
+    selectedAddress.value = filteredAddresses.value[0] || null
+  })
+
+  // set zone id label if you show it on the button
+  serviceZoneId.value = order.deliveryZoneId || order.serviceZoneId || ''
+
+  // emit to parent like the rest of your watchers do
+  emits('setOrderType', selectedTab.value)
+  emits('setCustomerDetailsId', selectedUser.value._id)
+}
 
 const outlet = computed(() => {
   const servicesStore = useServiceStore()
@@ -916,8 +961,6 @@ const filteredAddresses = computed(() => {
   return addresses.filter((a) => !a.text.includes('00000'))
 })
 
-// Update handleDeliveryZoneFetch to remove postal code filtering
-
 watch(
   () => selectedZoneDetails.value,
   (newVal, oldVal) => {
@@ -926,46 +969,22 @@ watch(
     }
   },
 )
-// REPLACE just the part inside your watch(() => selectedUser.value, ...) that sets first address:
+
 watch(
   () => selectedUser.value,
   () => {
     if (selectedUser.value) {
-      const otherAddresses = selectedUser.value['OtherAddresses'] || []
-
-      // Prefer Meeting Point; else first non-00000; else fallback to first
-      const prefer =
-        otherAddresses.find((a) => String(a.Designation || '').includes('Meeting')) ||
-        otherAddresses.find((a) => {
-          const parts = String(a.Address || '').split(',')
-          const pc = parts[parts.length - 1]?.trim() || String(a.ZipCode || '')
-          return pc && pc !== '00000'
-        }) ||
-        otherAddresses[0]
-
-      if (prefer) {
-        if (String(prefer.Designation || '').includes('Meeting')) {
-          selectedAddress.value = {
-            text: `${prefer.Designation ? prefer.Designation + ' - ' : ''} , ${prefer.ZipCode}`,
-            value: `${prefer.Designation ? prefer.Designation + ' - ' : ''}, ${prefer.ZipCode}`,
-          }
-        } else {
-          selectedAddress.value = {
-            text: `${prefer.Designation ? prefer.Designation + ' - ' : ''}${getParsedAddress(prefer.Address)}`,
-            value: `${prefer.Designation ? prefer.Designation + ' - ' : ''}${getParsedAddress(prefer.Address)}`,
-          }
-        }
-      } else {
-        selectedAddress.value = ''
-      }
-
+      selectedAddress.value = null
       emits('setOrderType', selectedTab.value)
       handleDeliveryZoneFetch()
       emits('setCustomerDetailsId', selectedUser.value._id || selectedUser.value.id)
       userResults.value = []
+    } else {
+      selectedAddress.value = null
     }
   },
 )
+
 
 watch(
   () => selectedTab.value,
@@ -1072,6 +1091,8 @@ watch(orderFor, (newVal) => {
 
 defineExpose({
   isOpen,
+  fromEditOrder,
+
 })
 </script>
 

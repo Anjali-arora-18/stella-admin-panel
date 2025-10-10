@@ -619,6 +619,8 @@ import HistoryAddNoteModal from './HistoryAddNoteModal.vue'
 import HistoryComplaintModal from './HistoryComplaintModal.vue'
 import { useToast } from 'vuestic-ui'
 import { useServiceStore } from '@/stores/services.ts'
+
+
 const { init } = useToast()
 const props = defineProps({
   customer: { type: Object, required: true },
@@ -1152,6 +1154,7 @@ const ordersToShow = computed(() => {
 const orderStatuses = ref(null)
 
 const url = import.meta.env.VITE_API_BASE_URL
+const coordurl = import.meta.env.VITE_COORD_API_URL
 
 const fetchOrderStatus = async () => {
   const users = useUsersStore()
@@ -1159,7 +1162,9 @@ const fetchOrderStatus = async () => {
   const orderStore = useOrderStore()
   const offers = orderStore.offers
   try {
-    const res = await axios.get('https://coord.restuspos.com/CoordApi/v1/Stella/GetOrderStatusByMobile', {
+    const base = coordurl.replace(/\/+$/, '')
+    const urlC = `${base}/CoordApi/v1/Stella/GetOrderStatusByMobile`
+    const res = await axios.get(urlC, {
       params: {
         mobile: props.selectedUser.MobilePhone,
         w4CompanyCode: outlet.restDetails.winmaxConfig.company.toLowerCase(),
