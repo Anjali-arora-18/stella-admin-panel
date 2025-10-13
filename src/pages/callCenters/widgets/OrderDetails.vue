@@ -113,12 +113,15 @@
 
             <!-- Item Total -->
             <div class="flex flex-col items-end">
-              <!-- Show both prices if promo applied -->
-              <template v-if="promoTotal && promoMenuItemPrice(item) !== item.total.toFixed(2)">
-                <span class="original-price"> €{{ item.total.toFixed(2) }} </span>
-                <span v-if="promoMenuItemPrice(item) >= 0" class="updated-price">
-                  €{{ promoMenuItemPrice(item) ? promoMenuItemPrice(item) : 0 }}
-                </span>
+              <!-- Use validator response per-line (correct even for duplicates) -->
+              <template v-if="promoTotal">
+                <template v-if="linePromo(item).hasAnyEffect">
+                  <span class="original-price"> €{{ linePromo(item).lineOriginal.toFixed(2) }} </span>
+                  <span class="updated-price"> €{{ linePromo(item).lineUpdated.toFixed(2) }} </span>
+                </template>
+                <template v-else>
+                  <span class="font-semibold text-green-800"> €{{ item.total.toFixed(2) }} </span>
+                </template>
               </template>
               <template v-else>
                 <span class="font-semibold text-green-800"> €{{ item.total.toFixed(2) }} </span>
@@ -268,8 +271,10 @@
       :customer-details-id="customerDetailsId"
       :order-type="orderType"
       :promo-code="promoCode"
+      :promo-codes="appliedPromoCodes"  
       @cancel="closeCheckoutModal"
     />
+
     <PromotionModal
       ref="promotionModal"
       v-model="showPromotionModal"
@@ -280,6 +285,7 @@
       :customer-details-id="customerDetailsId"
       @cancel="closePromotionModal"
       @selectCode="onCodeSelected"
+      @select-codes="onCodesSelected"    
     />
   </div>
 </template>
@@ -316,6 +322,8 @@ const isPromoValid = ref(false)
 const orderStore = useOrderStore()
 const { cartItems, offerItems } = storeToRefs(orderStore)
 
+const money = (n) => (typeof n === 'number' ? n.toFixed(2) : '0.00')
+
 const formattedLabel = (sel) => {
   const totalPrice = sel.price * sel.quantity
   return totalPrice > 0 ? `${sel.name} (+€${totalPrice.toFixed(2)})` : sel.name
@@ -334,6 +342,23 @@ const isFutureTimeAllowed = computed(() => {
   return isBetween11to23(selectedDt.value)
 })
 
+
+const appliedPromoCodes = ref([]) // NEW - JS only
+
+function onCodeSelected(code) {
+  promoCode.value = code
+  appliedPromoCodes.value = [code] // keep in sync
+  isPromoValid.value = true
+  showPromotionModal.value = false
+}
+
+function onCodesSelected(codes) { // NEW - JS only
+  appliedPromoCodes.value = codes
+  // keep single field for back-compat UIs / summaries
+  promoCode.value = codes.length === 1 ? codes[0] : ''
+  isPromoValid.value = codes.length > 0
+  showPromotionModal.value = false
+}
 
 function openCheckoutModal() {
   if (!isFutureTimeAllowed.value) {
@@ -450,6 +475,8 @@ const items = computed(() =>
       unitTotal,
       total: item.totalPrice,
       fullItem: { ...item, menuItemId, categoryId },
+      // for stable duplicate mapping:
+      __renderIndex: index,
     }
   }),
 )
@@ -506,17 +533,77 @@ const promoTotal = computed(() => {
 
 const orderFor = computed(() => orderStore.orderFor)
 
-const promoMenuItemPrice = function (item) {
-  if (!promoTotal.value || !item) return 0
-  const promoMenuItem = promoTotal.value.menuItems.filter((a) => a.menuItemId === item.id)
-  if (!promoMenuItem.length) return item.total
-  else {
-    const miniMumPrice = Math.min(...items.value.map((p) => Number(p.total)))
-    if (item.total === miniMumPrice) {
-      return promoMenuItem[0].updatedPrice ? promoMenuItem[0].updatedPrice.toFixed(2) : promoMenuItem[0].updatedPrice
-    } else {
-      return item.total.toFixed(2)
+
+const promoUnitsMap = computed(() => {
+  const map = new Map()
+  const resp = promoTotal.value
+  const lines = resp?.menuItems || []
+  for (const line of lines) {
+    const id = line.menuItemId
+    const arr = map.get(id) ?? []
+    const qty = Math.max(1, Number(line.quantity ?? 1))
+    for (let i = 0; i < qty; i++) {
+      arr.push({
+        originalPrice: Number(line.originalPrice ?? 0),
+        optionsPrice: Number(line.optionsPrice ?? 0),
+        updatedPrice: Number(line.updatedPrice ?? 0),
+        discount: Number(line.discount ?? 0),
+        isAffected: !!line.isAffected,
+      })
     }
+    map.set(id, arr)
+  }
+  return map
+})
+
+
+function linePromo(item) {
+  if (!promoTotal.value) {
+    return {
+      hasAnyEffect: false,
+      lineOriginal: item.total,
+      lineUpdated: item.total,
+      lineDiscount: 0,
+      units: [],
+    }
+  }
+
+  const id = item.menuItemId || item.id
+  const allUnits = promoUnitsMap.value.get(id) || []
+
+  let precedingUnits = 0
+  for (const it of items.value) {
+    if (it.__renderIndex >= item.__renderIndex) break
+    if ((it.menuItemId || it.id) === id) {
+      precedingUnits += Number(it.quantity || 1)
+    }
+  }
+
+  const start = precedingUnits
+  const end = Math.min(start + Number(item.quantity || 1), allUnits.length)
+  const units = allUnits.slice(start, end)
+
+  if (!units.length) {
+    return {
+      hasAnyEffect: false,
+      lineOriginal: item.total,
+      lineUpdated: item.total,
+      lineDiscount: 0,
+      units: [],
+    }
+  }
+
+  const lineOriginal = units.reduce((s, u) => s + (u.originalPrice + u.optionsPrice), 0)
+  const lineUpdated = units.reduce((s, u) => s + u.updatedPrice, 0)
+  const lineDiscount = units.reduce((s, u) => s + (u.isAffected ? u.discount : 0), 0)
+  const hasAnyEffect = units.some((u) => u.isAffected)
+
+  return {
+    hasAnyEffect,
+    lineOriginal,
+    lineUpdated,
+    lineDiscount,
+    units,
   }
 }
 
@@ -528,7 +615,6 @@ const promoOfferItemPrice = (item) => {
   const offerId = item.offerId || item.fullItem?.offerId
 
   const promo = promoOffers.filter((a) => a.offerId === offerId)
-  // Get the minimum totalPrice from the list of promo
   const miniMumPrice = Math.min(...offerItems.value.map((p) => Number(p.totalPrice)))
   if (!promo.length) return null
   const updated = Number(promo[0].totalPrice)
@@ -682,11 +768,7 @@ async function applyPromoCode() {
     init({ message: `PromoCode invalid`, color: 'danger' })
   }
 }
-function onCodeSelected(code) {
-  promoCode.value = code
-  isPromoValid.value = true
-  showPromotionModal.value = false
-}
+
 function clearPromoCode() {
   promoCode.value = ''
   isPromoValid.value = false

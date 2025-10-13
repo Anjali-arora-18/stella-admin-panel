@@ -57,20 +57,23 @@
                       }}
                       each
                     </p>
-                    <!-- <div class="item-base-price pt-1">Base price: €{{ item.basePrice.toFixed(2) }} each</div> -->
                   </div>
                 </div>
-                <div class="item-total-price">
-                  <div v-if="promoTotal && promoMenuItemPrice(item) !== item.totalPrice.toFixed(2)">
-                    <span class="original-price"> €{{ item.totalPrice.toFixed(2) }} </span>
-                    <span v-if="promoMenuItemPrice(item) >= 0" class="updated-price">
-                      €{{ promoMenuItemPrice(item) ? promoMenuItemPrice(item) : 0 }}
-                    </span>
-                  </div>
 
-                  <div v-else>
+                <!-- Line total (uses validator response; correct even for duplicates) -->
+                <div class="item-total-price">
+                  <template v-if="promoTotal">
+                    <template v-if="linePromoCart(item, index).hasAnyEffect">
+                      <span class="original-price"> €{{ item.totalPrice.toFixed(2) }} </span>
+                      <span class="updated-price"> €{{ linePromoCart(item, index).lineUpdated.toFixed(2) }} </span>
+                    </template>
+                    <template v-else>
+                      <span class="font-semibold text-green-800"> €{{ item.totalPrice.toFixed(2) }} </span>
+                    </template>
+                  </template>
+                  <template v-else>
                     <span class="font-semibold text-green-800"> €{{ item.totalPrice.toFixed(2) }} </span>
-                  </div>
+                  </template>
                 </div>
               </div>
             </div>
@@ -224,7 +227,9 @@ const props = defineProps<{
   orderType: string
   dateSelected: string
   promoCode: string
+  promoCodes?: string[]          
 }>()
+
 const orderStore = useOrderStore()
 const serviceStore = useServiceStore()
 const userStore = useUsersStore()
@@ -365,7 +370,91 @@ const totalAmount = computed(() => {
   return subtotal.value
 })
 
-async function checkPaymentStatus(requestId, paymentId) {
+/** ------------------ PER-LINE PROMO MAPPING (duplicates-safe) ------------------ */
+/**
+ * Expand validator response to per-unit arrays per menuItemId.
+ * Each unit contains originalPrice, optionsPrice, updatedPrice, discount, isAffected.
+ */
+const promoUnitsMap = computed(() => {
+  const map = new Map<string, Array<{ originalPrice: number; optionsPrice: number; updatedPrice: number; discount: number; isAffected: boolean }>>()
+  const resp = promoTotal.value
+  const lines = resp?.menuItems || []
+  for (const line of lines) {
+    const id = line.menuItemId as string
+    const arr = map.get(id) ?? []
+    const qty = Math.max(1, Number((line as any).quantity ?? 1))
+    for (let i = 0; i < qty; i++) {
+      arr.push({
+        originalPrice: Number((line as any).originalPrice ?? 0),
+        optionsPrice: Number((line as any).optionsPrice ?? 0),
+        updatedPrice: Number((line as any).updatedPrice ?? 0),
+        discount: Number((line as any).discount ?? 0),
+        isAffected: Boolean((line as any).isAffected),
+      })
+    }
+    map.set(id, arr)
+  }
+  return map
+})
+
+/**
+ * For a given cart line at render index `idx`, compute which units from the promo map belong to it.
+ * We sum quantities of same itemId before this index to find the correct slice (FIFO per itemId).
+ */
+function linePromoCart(item: any, idx: number) {
+  if (!promoTotal.value) {
+    return {
+      hasAnyEffect: false,
+      lineOriginal: item.totalPrice,
+      lineUpdated: item.totalPrice,
+      lineDiscount: 0,
+      units: [] as any[],
+    }
+  }
+
+  const id = (item.menuItemId as string) || (item.itemId as string)
+  const allUnits = promoUnitsMap.value.get(id) || []
+
+  // Count preceding units of the same itemId
+  let precedingUnits = 0
+  for (let i = 0; i < idx; i++) {
+    const it = orderStore.cartItems[i]
+    const itId = (it.menuItemId as string) || (it.itemId as string)
+    if (itId === id) {
+      precedingUnits += Number(it.quantity || 1)
+    }
+  }
+
+  const start = precedingUnits
+  const end = Math.min(start + Number(item.quantity || 1), allUnits.length)
+  const units = allUnits.slice(start, end)
+
+  if (!units.length) {
+    return {
+      hasAnyEffect: false,
+      lineOriginal: item.totalPrice,
+      lineUpdated: item.totalPrice,
+      lineDiscount: 0,
+      units,
+    }
+  }
+
+  const lineOriginal = units.reduce((s, u) => s + (u.originalPrice + u.optionsPrice), 0)
+  const lineUpdated = units.reduce((s, u) => s + u.updatedPrice, 0)
+  const lineDiscount = units.reduce((s, u) => s + (u.isAffected ? u.discount : 0), 0)
+  const hasAnyEffect = units.some((u) => u.isAffected)
+
+  return {
+    hasAnyEffect,
+    lineOriginal,
+    lineUpdated,
+    lineDiscount,
+    units,
+  }
+}
+/** ------------------------------------------------------------------------------ */
+
+async function checkPaymentStatus(requestId: string, paymentId: string) {
   const response = await orderStore.checkPaymentStatus(requestId, paymentId)
   if (response.data.data.status === 'Completed') {
     init({
@@ -383,7 +472,7 @@ async function checkPaymentStatus(requestId, paymentId) {
           orderStore.cartItems = []
           window.location.reload()
         }, 800)
-      } catch (err) {
+      } catch (err: any) {
         init({
           color: 'danger',
           message: err.response.data.error,
@@ -405,16 +494,16 @@ async function checkPaymentStatus(requestId, paymentId) {
 async function updateOrder() {
   const url = import.meta.env.VITE_API_BASE_URL
   const userStore = useUsersStore()
-  const existingMenuItems = []
-  const existingOffers = []
-  orderStore.editOrder.menuItems.forEach((item) => {
-    if (orderStore.cartItems.find((a) => a.itemId === item._id)) {
+  const existingMenuItems: any[] = []
+  const existingOffers: any[] = []
+  orderStore.editOrder.menuItems.forEach((item: any) => {
+    if (orderStore.cartItems.find((a: any) => a.itemId === item._id)) {
       existingMenuItems.push(item._id)
     }
   })
 
-  orderStore.editOrder.offerDetails.forEach((item) => {
-    if (orderStore.offerItems.find((a) => a._id === item.offerId)) {
+  orderStore.editOrder.offerDetails.forEach((item: any) => {
+    if (orderStore.offerItems.find((a: any) => a._id === item.offerId)) {
       existingOffers.push(item)
     }
   })
@@ -443,38 +532,25 @@ async function updateOrder() {
 
   if (existingOffers.length) {
     await Promise.all(
-      existingOffers.map((offer) => {
+      existingOffers.map((offer: any) => {
         const data = {
           offerId: offer.offerId,
-          offerMenuItems: [
-            // {
-            //   menuItems: offer.offerItems.map((item) => {
-            //     return {
-            //       menuItem: item.menuItem,
-            //       quantity: item.quantity,
-            //       options: (item.options || []).map((opt) => ({
-            //         option: opt.option,
-            //         quantity: opt.quantity || 1,
-            //       })),
-            //     }
-            //   }),
-            // },
-          ],
+          offerMenuItems: [],
         }
         return applyOrderEdit(orderStore.editOrder._id, 'delete', orderStore.editOrder.tableNumber, data)
       }),
     )
   }
 
-  const offerMenuItems = orderStore.offerItems.map((offer) => ({
+  const offerMenuItems = orderStore.offerItems.map((offer: any) => ({
     offerId: offer.offerId,
-    menuItems: offer.selections.flatMap((selection) =>
-      selection.addedItems.map((item) => ({
+    menuItems: offer.selections.flatMap((selection: any) =>
+      selection.addedItems.map((item: any) => ({
         menuItem: item.itemId,
         quantity: item.quantity || 1,
         options:
-          item.selectedOptions?.flatMap((group) =>
-            group.selected.map((option) => ({
+          item.selectedOptions?.flatMap((group: any) =>
+            group.selected.map((option: any) => ({
               option: option.optionId,
               quantity: option.quantity,
             })),
@@ -490,12 +566,12 @@ async function updateOrder() {
         action: 'edit',
         tableNumber: orderStore.editOrder.tableNumber,
 
-        menuItems: orderStore.cartItems.map((e) => {
+        menuItems: orderStore.cartItems.map((e: any) => {
           return {
             menuItem: e.itemId,
             quantity: e.quantity,
-            options: e.selectedOptions.flatMap((group) =>
-              group.selected.map((option) => ({
+            options: e.selectedOptions.flatMap((group: any) =>
+              group.selected.map((option: any) => ({
                 option: option.optionId,
                 quantity: option.quantity,
               })),
@@ -517,18 +593,18 @@ async function updateOrder() {
       message: res.data.message,
       color: res.data.status !== 'Failed' ? 'success' : 'danger',
     })
-    orderStore.editOrder = null
-    orderStore.cartItems = []
+    orderStore.editOrder = null as any
+    orderStore.cartItems = [] as any
     window.location.reload()
     return res.data
-  } catch (err) {
+  } catch (err: any) {
     console.error('Order edit failed:', err)
     init({ message: err.response.data.message, color: 'danger' })
     throw err
   }
 }
 
-const applyOrderEdit = async (orderId, action, tableNumber, payload = {}) => {
+const applyOrderEdit = async (orderId: string, action: string, tableNumber: string, payload: any = {}) => {
   const userStore = useUsersStore()
   try {
     const res = await axios.post(
@@ -552,7 +628,7 @@ const applyOrderEdit = async (orderId, action, tableNumber, payload = {}) => {
       color: res.data.status !== 'Failed' ? 'success' : 'danger',
     })
     return res.data
-  } catch (err) {
+  } catch (err: any) {
     console.error('Order edit failed:', err)
     init({ message: err.response.data.message, color: 'danger' })
     throw err
@@ -561,13 +637,13 @@ const applyOrderEdit = async (orderId, action, tableNumber, payload = {}) => {
 
 async function createOrder() {
   apiLoading.value = true
-  let menuItems = []
-  menuItems = orderStore.cartItems.map((e) => {
+  let menuItems: any[] = []
+  menuItems = orderStore.cartItems.map((e: any) => {
     return {
       menuItem: e.itemId,
       quantity: e.quantity,
-      options: e.selectedOptions.flatMap((group) =>
-        group.selected.map((option) => ({
+      options: e.selectedOptions.flatMap((group: any) =>
+        group.selected.map((option: any) => ({
           option: option.optionId,
           quantity: option.quantity,
         })),
@@ -575,15 +651,15 @@ async function createOrder() {
     }
   })
 
-  const offerMenuItems = orderStore.offerItems.map((offer) => ({
+  const offerMenuItems = orderStore.offerItems.map((offer: any) => ({
     offerId: offer.offerId,
-    menuItems: offer.selections.flatMap((selection) =>
-      selection.addedItems.map((item) => ({
+    menuItems: offer.selections.flatMap((selection: any) =>
+      selection.addedItems.map((item: any) => ({
         menuItem: item.itemId,
         quantity: item.quantity || 1,
         options:
-          item.selectedOptions?.flatMap((group) =>
-            group.selected.map((option) => ({
+          item.selectedOptions?.flatMap((group: any) =>
+            group.selected.map((option: any) => ({
               option: option.optionId,
               quantity: option.quantity,
             })),
@@ -606,8 +682,11 @@ async function createOrder() {
       outletId: serviceStore.selectedRest,
       orderDateTime: new Date(props.dateSelected).toISOString(),
       paymentMode: selectedPayment.value,
-      promoCode: props.promoCode || '',
+
+      promoCode: (props.promoCodes?.length === 1 ? props.promoCodes[0] : props.promoCode) || '',
+      promoCodes: props.promoCodes ?? [],   
     }
+
 
     let response: any = ''
     if (orderId.value) {
@@ -639,10 +718,10 @@ async function createOrder() {
             })
           }
           setTimeout(() => {
-            orderStore.cartItems = []
+            orderStore.cartItems = [] as any
             window.location.reload()
           }, 800)
-        } catch (err) {
+        } catch (err: any) {
           init({
             color: 'danger',
             message: err.response.data.message,
@@ -671,33 +750,19 @@ async function createOrder() {
   }
 }
 
-const promoMenuItemPrice = function (item) {
-  if (!promoTotal.value || !item) return 0
-  const promoMenuItem = promoTotal.value.menuItems.filter((a) => a.menuItemId === item.itemId)
-  if (!promoMenuItem.length) return item.totalPrice
-  else {
-    const miniMumPrice = Math.min(...orderStore.cartItems.map((p) => Number(p.totalPrice)))
-    if (item.totalPrice === miniMumPrice) {
-      return promoMenuItem[0].updatedPrice ? promoMenuItem[0].updatedPrice.toFixed(2) : promoMenuItem[0].updatedPrice
-    } else {
-      return item.totalPrice.toFixed(2)
-    }
-  }
-}
-
-const promoOfferItemPrice = (item) => {
+const promoOfferItemPrice = (item: any) => {
   if (!promoTotal.value || !item) return null
 
   const promoOffers = promoTotal.value.offerDetails || []
 
-  const offerId = item.offerId || item.fullItem?.offerId
+  const offerId = (item as any).offerId || (item as any).fullItem?.offerId
 
-  const promo = promoOffers.filter((a) => a.offerId === offerId)
+  const promo = promoOffers.filter((a: any) => a.offerId === offerId)
   // Get the minimum totalPrice from the list of promo
-  const miniMumPrice = Math.min(...orderStore.offerItems.map((p) => Number(p.totalPrice)))
+  const miniMumPrice = Math.min(...orderStore.offerItems.map((p: any) => Number(p.totalPrice)))
   if (!promo.length) return null
   const updated = Number(promo[0].totalPrice)
-  if (item.totalPrice === miniMumPrice) {
+  if ((item as any).totalPrice === miniMumPrice) {
     return Number(updated.toFixed(2))
   }
   return null
