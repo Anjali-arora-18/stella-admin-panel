@@ -163,11 +163,19 @@
                     </span>
                   </p>
 
-                  <div class="flex flex-wrap gap-1">
+                  <div class="flex flex-wrap gap-1 text-xs">
                     <span
-                      v-for="option in selectedArticle.selectedOptions.flatMap((a) => a.selected)"
+                      v-for="option in [...selectedArticle.selectedOptions]
+                        .sort((a, b) => {
+                          if (a.groupName === 'SIZE') return -1
+                          if (b.groupName === 'SIZE') return 1
+                          if (a.groupName === 'CRUST') return b.groupName === 'SIZE' ? 1 : -1
+                          if (b.groupName === 'CRUST') return a.groupName === 'SIZE' ? -1 : 1
+                          return 0
+                        })
+                        .flatMap((a) => a.selected)"
                       :key="option.name + option.type"
-                      class="px-2 py-0.5 rounded-full text-[0.75rem]"
+                      class="px-2 py-0.5 rounded-full"
                       :class="{
                         'bg-green-100 text-green-700': option.type.toLowerCase() === 'extra',
                         'bg-blue-100 text-blue-700': option.type.toLowerCase() === 'article',
@@ -334,7 +342,6 @@ const isFutureTimeAllowed = computed(() => {
   return isBetween11to23(selectedDt.value)
 })
 
-
 function openCheckoutModal() {
   if (!isFutureTimeAllowed.value) {
     const msg = 'Future orders must be between 11:00–23:00.'
@@ -350,21 +357,11 @@ function parseSelectedDate(v) {
   if (typeof v !== 'string' || !v) return null
 
   // Accept: 2025-10-08T16:54, 2025-10-08T16:54:00, 2025-10-08T16:54:00.000, with/without trailing Z
-  const m = v.match(
-    /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?(?:\.(\d{1,3}))?(Z)?$/
-  )
+  const m = v.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?(?:\.(\d{1,3}))?(Z)?$/)
   if (m) {
     const [, Y, M, D, h, m2, s = '0', ms = '0'] = m
     // Build as **local** time (ignore trailing Z so we don’t shift)
-    return new Date(
-      Number(Y),
-      Number(M) - 1,
-      Number(D),
-      Number(h),
-      Number(m2),
-      Number(s),
-      Number(ms)
-    )
+    return new Date(Number(Y), Number(M) - 1, Number(D), Number(h), Number(m2), Number(s), Number(ms))
   }
 
   // Fallback: try native, but this may shift or be invalid if timezone suffixes exist
@@ -567,8 +564,6 @@ const decreaseQty = (item) => {
 
 // -----------------TO OPEN THE CHECKOUT MODAL---------------------
 const showCheckoutModal = ref(false)
-
-
 
 function closeCheckoutModal() {
   showCheckoutModal.value = false

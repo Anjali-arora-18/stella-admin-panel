@@ -45,7 +45,7 @@
                           }"
                         >
                           {{ option.name }}
-                          <span v-if="option.price">+€{{ (option.price * option.quantity).toFixed(2) }}</span>
+                          <span v-if="option.price">(+€{{ (option.price * option.quantity).toFixed(2) }})</span>
                         </span>
                       </div>
                     </div>
@@ -57,7 +57,6 @@
                       }}
                       each
                     </p>
-                    <!-- <div class="item-base-price pt-1">Base price: €{{ item.basePrice.toFixed(2) }} each</div> -->
                   </div>
                 </div>
                 <div class="item-total-price">
@@ -91,7 +90,16 @@
                           v-if="addedItem.selectedOptions?.length"
                           class="pl-4 pt-1 text-xs text-gray-600 flex flex-wrap gap-1"
                         >
-                          <div v-for="group in addedItem.selectedOptions" :key="group.groupId">
+                          <div
+                            v-for="group in [...addedItem.selectedOptions].sort((a, b) => {
+                              if (a.groupName === 'SIZE') return -1
+                              if (b.groupName === 'SIZE') return 1
+                              if (a.groupName === 'CRUST') return b.groupName === 'SIZE' ? 1 : -1
+                              if (b.groupName === 'CRUST') return a.groupName === 'SIZE' ? -1 : 1
+                              return 0
+                            })"
+                            :key="group.groupId"
+                          >
                             <span
                               v-for="option in group.selected"
                               :key="option.optionId"
@@ -104,6 +112,7 @@
                               }"
                             >
                               {{ option.name }}
+                              <span v-if="option.price">(+€{{ (option.price * option.quantity).toFixed(2) }})</span>
                             </span>
                           </div>
                         </div>
@@ -427,7 +436,12 @@ async function updateOrder() {
             {
               menuItem: item,
               quantity: 1,
-              options: [],
+              options: (orderStore.editOrder.menuItems.find((m: any) => m._id === item)?.options || []).map(
+                (op: any) => ({
+                  option: typeof op.option === 'string' ? op.option : String(op.option?._id),
+                  quantity: Number(op.quantity ?? 1),
+                }),
+              ),
             },
           ],
         }
