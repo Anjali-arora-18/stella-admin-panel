@@ -60,19 +60,18 @@
                   </div>
                 </div>
 
-                <!-- Line total (uses validator response; correct even for duplicates) -->
                 <div class="item-total-price">
                   <template v-if="promoTotal">
-                    <template v-if="linePromoCart(item, index).hasAnyEffect">
-                      <span class="original-price"> €{{ item.totalPrice.toFixed(2) }} </span>
-                      <span class="updated-price"> €{{ linePromoCart(item, index).lineUpdated.toFixed(2) }} </span>
+                    <template v-if="cartItemPromoDisplay(item, index).affected">
+                      <span class="original-price">€{{ cartItemPromoDisplay(item, index).original.toFixed(2) }}</span>
+                      <span class="updated-price">€{{ cartItemPromoDisplay(item, index).updated.toFixed(2) }}</span>
                     </template>
                     <template v-else>
-                      <span class="font-semibold text-green-800"> €{{ item.totalPrice.toFixed(2) }} </span>
+                      <span class="font-semibold text-green-800">€{{ item.totalPrice.toFixed(2) }}</span>
                     </template>
                   </template>
                   <template v-else>
-                    <span class="font-semibold text-green-800"> €{{ item.totalPrice.toFixed(2) }} </span>
+                    <span class="font-semibold text-green-800">€{{ item.totalPrice.toFixed(2) }}</span>
                   </template>
                 </div>
               </div>
@@ -128,17 +127,15 @@
                     Base price: €{{ item.price.toFixed(2) }} + €{{ item.selectionTotalPrice.toFixed(2) }} for addons
                   </div>
                 </div>
-                <div class="item-total-price">
-                  <template v-if="promoOfferItemPrice(item) !== null">
-                    <span class="original-price">€{{ item.totalPrice.toFixed(2) }}</span>
-                    <span v-if="promoOfferItemPrice(item) >= 0" class="updated-price"
-                      >€{{ promoOfferItemPrice(item).toFixed(2) }}</span
-                    >
-                  </template>
-                  <template v-else>
-                    <span class="font-semibold text-green-800">€{{ item.totalPrice.toFixed(2) }}</span>
-                  </template>
-                </div>
+              <div class="item-total-price">
+                <template v-if="offerPromoDisplay(item).affected">
+                  <span class="original-price">€{{ offerPromoDisplay(item).original.toFixed(2) }}</span>
+                  <span class="updated-price">€{{ offerPromoDisplay(item).updated.toFixed(2) }}</span>
+                </template>
+                <template v-else>
+                  <span class="font-semibold text-green-800">€{{ item.totalPrice.toFixed(2) }}</span>
+                </template>
+              </div>
               </div>
 
               <!-- Show selected items inside each offer -->
@@ -667,6 +664,26 @@ const itemsAfterPromos = computed(() => {
   const n = v.menuItems.reduce((sum: number, it: any) => sum + Number(it.updatedPrice || 0), 0)
   return Number(n.toFixed(2))
 })
+// Treat numbers as equal within half a cent
+const moneyEq = (a: number, b: number) => Math.abs(Number(a) - Number(b)) < 0.005
+
+// Menu item (cart) display: use validator slice for this line
+function cartItemPromoDisplay(item: any, idx: number) {
+  const lp = promoTotal.value ? linePromoCart(item, idx) : null
+  const original = Number(lp?.lineOriginal ?? item.totalPrice ?? 0)
+  const updated  = Number(lp?.lineUpdated  ?? item.totalPrice ?? 0)
+  const affected = !moneyEq(original, updated)
+  return { affected, original, updated }
+}
+
+// Offer display: use promoOfferItemPrice(item) when it returns something different
+function offerPromoDisplay(item: any) {
+  const updatedMaybe = promoOfferItemPrice(item)
+  const original = Number(item.totalPrice ?? 0)
+  const updated  = updatedMaybe != null ? Number(updatedMaybe) : original
+  const affected = updatedMaybe != null && !moneyEq(original, updated)
+  return { affected, original, updated }
+}
 
 const offersAfterPromos = computed(() => {
   const v = promoTotal.value

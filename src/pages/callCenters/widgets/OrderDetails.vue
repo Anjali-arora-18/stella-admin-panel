@@ -111,16 +111,16 @@
             <!-- Item Total -->
             <div class="flex flex-col items-end">
               <template v-if="promoTotal">
-                <template v-if="linePromo(item).hasAnyEffect">
-                  <span class="original-price"> €{{ linePromo(item).lineOriginal.toFixed(2) }} </span>
-                  <span class="updated-price"> €{{ linePromo(item).lineUpdated.toFixed(2) }} </span>
+                <template v-if="menuItemPromo(item).affected">
+                  <span class="original-price">€{{ menuItemPromo(item).original.toFixed(2) }}</span>
+                  <span class="updated-price">€{{ menuItemPromo(item).updated.toFixed(2) }}</span>
                 </template>
                 <template v-else>
-                  <span class="font-semibold text-green-800"> €{{ item.total.toFixed(2) }} </span>
+                  <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
                 </template>
               </template>
               <template v-else>
-                <span class="font-semibold text-green-800"> €{{ item.total.toFixed(2) }} </span>
+                <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
               </template>
             </div>
           </div>
@@ -192,18 +192,22 @@
                 €{{ item.unitTotal.toFixed(2) }} each
               </p>
             </div>
+<!-- Offer line total -->
+<div class="flex flex-col items-end">
+  <template v-if="promoTotal">
+    <template v-if="offerPromo(item).affected">
+      <span class="original-price">€{{ offerPromo(item).original.toFixed(2) }}</span>
+      <span class="updated-price">€{{ offerPromo(item).updated.toFixed(2) }}</span>
+    </template>
+    <template v-else>
+      <span class="font-semibold text-green-800">€{{ offerPromo(item).original.toFixed(2) }}</span>
+    </template>
+  </template>
+  <template v-else>
+    <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
+  </template>
+</div>
 
-            <div class="flex flex-col items-end">
-              <template v-if="promoOfferItemPrice(item) !== null">
-                <span class="original-price">€{{ item.total.toFixed(2) }}</span>
-                <span v-if="promoOfferItemPrice(item) >= 0" class="updated-price">
-                  €{{ promoOfferItemPrice(item).toFixed(2) }}
-                </span>
-              </template>
-              <template v-else>
-                <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
-              </template>
-            </div>
           </div>
         </div>
       </div>
@@ -691,7 +695,28 @@ const promoOfferItemPrice = (item) => {
 
   return Number(updated.toFixed(2))
 }
+function offerPromo(item) {
+  const updated = promoOfferItemPrice(item) // number | null (your existing helper)
+  const original = Number(item.total || 0)
 
+  // If the promo engine didn’t return anything for this offer, it’s not affected.
+  if (updated === null) return { affected: false, original, updated: original }
+
+  // Consider it “affected” only if the value actually changes (with a tiny epsilon).
+  const affected = Math.abs(updated - original) > 0.005
+  return { affected, original, updated }
+}
+
+function menuItemPromo(item) {
+  // fallbacks keep UI stable when promo data is missing
+  const lp = promoTotal.value ? linePromo(item) : null
+  const original = Number(lp?.lineOriginal ?? item.total ?? 0)
+  const updated  = Number(lp?.lineUpdated  ?? item.total ?? 0)
+
+  // treat as affected only if the number actually changed
+  const affected = Math.abs(updated - original) > 0.005
+  return { affected, original, updated }
+}
 
 const increaseQty = (item) => {
   const index = cartItems.value.findIndex((i) => i.itemId === item.id)
