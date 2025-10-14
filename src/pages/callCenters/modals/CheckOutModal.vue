@@ -146,29 +146,29 @@
           </div>
 
           <div class="summary-totals flex-shrink-0">
-            <div class="total-row">
-              <span>Subtotal:</span>
-              <span>€{{ subtotal.toFixed(2) }}</span>
-            </div>
-            <div v-if="orderType === 'delivery'" class="total-row">
-              <span>Delivery Fee:</span>
-              <span>€{{ deliveryFee.toFixed(2) }}</span>
-            </div>
-            <div v-if="promoTotal" class="total-row">
-              <span>Total Discount:</span>
-              <span>- €{{ (promoTotal.originalTotal - promoTotal.updatedTotal).toFixed(2) }}</span>
-            </div>
-            <div class="total-row total-final">
-              <span v-if="orderStore.editOrder"
-                >Total:
-                <span class="text-green-600">PAID AMOUNT: €{{ orderStore.editOrder.editOrderTotal.toFixed(2) }}</span>
-              </span>
-              <span v-else>Total:</span>
-              <span v-if="orderStore.editOrder">Balance €{{ getTotalPrice }}</span>
-              <span v-else-if="!promoTotal">€{{ (totalAmount + deliveryFee).toFixed(2) }}</span>
-              <span v-else>€{{ promoTotal.updatedTotal.toFixed(2) }}</span>
-            </div>
-          </div>
+  <div class="total-row">
+    <span>Subtotal:</span>
+    <span>€{{ subtotal.toFixed(2) }}</span>
+  </div>
+  <div v-if="orderType === 'delivery'" class="total-row">
+    <span>Delivery Fee:</span>
+    <span>€{{ deliveryFee.toFixed(2) }}</span>
+  </div>
+  <div v-if="promoTotal" class="total-row">
+    <span>Total Discount:</span>
+    <span>- €{{ (promoTotal.originalTotal - promoTotal.updatedTotal).toFixed(2) }}</span>
+  </div>
+  <div class="total-row total-final">
+    <span v-if="orderStore.editOrder">Total:
+      <span class="text-green-600">PAID AMOUNT: €{{ orderStore.editOrder.editOrderTotal.toFixed(2) }}</span>
+    </span>
+    <span v-else>Total:</span>
+    <span v-if="orderStore.editOrder">Balance €{{ getTotalPrice }}</span>
+    <span v-else-if="!promoTotal">€{{ (totalAmount + deliveryFee).toFixed(2) }}</span>
+    <span v-else>€{{ promoTotal.updatedTotal.toFixed(2) }}</span>
+  </div>
+</div>
+
         </div>
       </div>
       <!-- Payment Section -->
@@ -644,6 +644,35 @@ const applyOrderEdit = async (orderId: string, action: string, tableNumber: stri
     throw err
   }
 }
+const promoOriginalItems = computed(() => {
+  const v = promoTotal.value
+  if (!v?.menuItems) return 0
+  const n = v.menuItems.reduce(
+    (sum: number, it: any) => sum + Number(it.originalPrice || 0) + Number(it.optionsPrice || 0),
+    0,
+  )
+  return Number(n.toFixed(2))
+})
+
+const promoOriginalOffers = computed(() => {
+  const v = promoTotal.value
+  if (!v?.offerDetails?.length) return 0
+  const n = v.offerDetails.reduce((sum: number, o: any) => sum + Number(o.basePrice || 0), 0)
+  return Number(n.toFixed(2))
+})
+
+const itemsAfterPromos = computed(() => {
+  const v = promoTotal.value
+  if (!v?.menuItems) return 0
+  const n = v.menuItems.reduce((sum: number, it: any) => sum + Number(it.updatedPrice || 0), 0)
+  return Number(n.toFixed(2))
+})
+
+const offersAfterPromos = computed(() => {
+  const v = promoTotal.value
+  const n = Number(v?.updatedOffersTotal || 0)
+  return Number(n.toFixed(2))
+})
 
 async function createOrder() {
   apiLoading.value = true

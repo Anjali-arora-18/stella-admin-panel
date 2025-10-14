@@ -12,10 +12,10 @@
         Remove Edit Order
       </VaButton>
     </h2>
+
     <template v-if="items.length || offersItems.length">
       <!-- Promo Code with Button -->
       <div class="flex flex-wrap items-center gap-1 mt-3 mb-3 w-full">
-        <!-- Promo Code Field -->
         <VaInput
           v-model="promoCode"
           placeholder="Promotion Code"
@@ -29,7 +29,6 @@
           </template>
         </VaInput>
 
-        <!-- Select Button -->
         <VaButton
           size="small"
           :style="{ '--va-background-color': outlet.primaryColor }"
@@ -40,12 +39,12 @@
         </VaButton>
       </div>
 
-      <!-- Order Items -->
-      <!-- <div :class="isCustomerOpen ? 'order-items-min-height' : 'order-items-height'"> -->
-      <div :style="orderItemsStyle">
+      <!-- Scroll container (ONLY items/offers). Extra bottom pad so footer never covers content -->
+      <div :style="orderItemsStyle" class="flex flex-col overflow-y-auto gap-2 pb-28">
+        <!-- Order Items -->
         <div v-for="item in items" :key="item.id" class="mb-2 border-b pb-2 last:border-none">
           <div class="flex items-start justify-between">
-            <!-- Quantity Controls -->
+            <!-- Qty controls -->
             <div class="flex items-center gap-2">
               <VaButton icon="mso-close" color="danger" size="small" class="rounded" @click="deleteItem(item)" />
               <VaButton
@@ -104,16 +103,13 @@
 
               <!-- Base Info -->
               <p class="text-[11px] text-gray-500 mt-1 italic">
-                Base: €{{ item.basePrice.toFixed(2) }} + €{{ item.selectionTotalPrice.toFixed(2) }} = €{{
-                  item.unitTotal.toFixed(2)
-                }}
-                each
+                Base: €{{ item.basePrice.toFixed(2) }} + €{{ item.selectionTotalPrice.toFixed(2) }} =
+                €{{ item.unitTotal.toFixed(2) }} each
               </p>
             </div>
 
             <!-- Item Total -->
             <div class="flex flex-col items-end">
-              <!-- Use validator response per-line (correct even for duplicates) -->
               <template v-if="promoTotal">
                 <template v-if="linePromo(item).hasAnyEffect">
                   <span class="original-price"> €{{ linePromo(item).lineOriginal.toFixed(2) }} </span>
@@ -129,18 +125,18 @@
             </div>
           </div>
         </div>
-        <div v-for="(item, index) in offersItems" :key="item.id" class="mb-3 border-b pb-2 last:border-none">
+
+        <!-- Offers -->
+        <div v-for="(item, index) in offersItems" :key="item.id" class="mb-2 border-b pb-2 last:border-none">
           <div class="flex items-start justify-between">
-            <!-- Quantity Controls -->
             <div class="flex items-center gap-2">
               <VaButton icon="mso-close" color="danger" size="small" class="rounded" @click="deleteOffer(item)" />
             </div>
 
-            <!-- Item Info -->
             <div class="flex-1 px-2">
               <div class="flex justify-between items-center">
-                <span class="font-medium text-gray-800"
-                  >{{ item.name }}
+                <span class="font-medium text-gray-800">
+                  {{ item.name }}
                   <span class="font-semibold text-gray-700 mb-1 mt-2">
                     <span v-if="Number(item.basePrice) > 0" class="text-xs font-normal text-gray-500">
                       (€{{ Number(item.basePrice).toFixed(2) }})
@@ -156,7 +152,6 @@
                 />
               </div>
 
-              <!-- Offer Options -->
               <div class="divide-y">
                 <div v-for="selectedArticle in item.items" :key="selectedArticle.itemName" class="mt-2 text-xs">
                   <p class="font-semibold text-gray-800 mt-1 flex items-center gap-2">
@@ -192,21 +187,18 @@
                 </div>
               </div>
 
-              <!-- Base Info -->
               <p class="text-[11px] text-gray-500 mt-1 italic">
-                Base: €{{ item.basePrice.toFixed(2) }} + €{{ item.selectionTotalPrice.toFixed(2) }} = €{{
-                  item.unitTotal.toFixed(2)
-                }}
-                each
+                Base: €{{ item.basePrice.toFixed(2) }} + €{{ item.selectionTotalPrice.toFixed(2) }} =
+                €{{ item.unitTotal.toFixed(2) }} each
               </p>
             </div>
 
             <div class="flex flex-col items-end">
               <template v-if="promoOfferItemPrice(item) !== null">
                 <span class="original-price">€{{ item.total.toFixed(2) }}</span>
-                <span v-if="promoOfferItemPrice(item) >= 0" class="updated-price"
-                  >€{{ promoOfferItemPrice(item).toFixed(2) }}</span
-                >
+                <span v-if="promoOfferItemPrice(item) >= 0" class="updated-price">
+                  €{{ promoOfferItemPrice(item).toFixed(2) }}
+                </span>
               </template>
               <template v-else>
                 <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
@@ -215,47 +207,85 @@
           </div>
         </div>
       </div>
-      <!-- Summary -->
-      <div class="text-xs space-y-1 bg-slate-50 mb-0 pl-1 pr-1">
-        <div class="flex justify-between">
-          <span class="text-gray-600">Subtotal:</span>
-          <span>€{{ subtotal.toFixed(2) }}</span>
+
+      <!-- STICKY FOOTER: summary + checkout button together -->
+<div class="sticky bottom-0 z-20 bg-white/95 backdrop-blur border-t -mx-4 -mb-4 rounded-b-lg overflow-hidden">
+  <div class="px-4 pt-2 text-xs space-y-1">
+          <!-- No promo -->
+          <template v-if="!promoTotal">
+            <div class="flex justify-between">
+              <span class="text-gray-600">Subtotal</span>
+              <span>€{{ subtotal.toFixed(2) }}</span>
+            </div>
+            <div v-if="orderType === 'delivery'" class="flex justify-between">
+              <span class="text-gray-600">Delivery Fee</span>
+              <span>€{{ deliveryFee.toFixed(2) }}</span>
+            </div>
+            <div class="flex justify-between font-bold text-xs pt-1 border-t">
+              <span v-if="orderStore.editOrder">
+                Total
+                <span class="text-green-600"> · PAID €{{ orderStore.editOrder.editOrderTotal.toFixed(2) }}</span>
+              </span>
+              <span v-else>Total</span>
+              <span v-if="orderStore.editOrder">€{{ getTotalPrice }}</span>
+              <span v-else>€{{ total.toFixed(2) }}</span>
+            </div>
+          </template>
+
+          <!-- Promo present -->
+          <template v-else>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Subtotal</span>
+              <span>€{{ (promoOriginalItems + promoOriginalOffers).toFixed(2) }}</span>
+            </div>
+            <div class="flex justify-between text-[10px] text-gray-500">
+              <span>Items + Offers</span>
+              <span>€{{ promoOriginalItems.toFixed(2) }} + €{{ promoOriginalOffers.toFixed(2) }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Discount</span>
+              <span>€{{ (promoTotal.originalTotal - promoTotal.updatedTotal).toFixed(2) }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Delivery Fee</span>
+              <span>€{{ Number(promoTotal.deliveryFee || 0).toFixed(2) }}</span>
+            </div>
+            <div class="flex justify-between font-bold text-xs pt-1 border-t">
+              <span v-if="orderStore.editOrder">
+                Total
+                <span class="text-green-600"> · PAID €{{ orderStore.editOrder.editOrderTotal.toFixed(2) }}</span>
+              </span>
+              <span v-else>Total</span>
+              <span v-if="orderStore.editOrder">€{{ getTotalPrice }}</span>
+              <span v-else>€{{ promoTotal.updatedTotal.toFixed(2) }}</span>
+            </div>
+          </template>
         </div>
-        <div v-if="orderType === 'delivery'" class="flex justify-between">
-          <span class="text-gray-600">Delivery Fee:</span>
-          <span>€{{ deliveryFee.toFixed(2) }}</span>
-        </div>
-        <div v-if="promoTotal" class="flex justify-between">
-          <span class="text-gray-600">Total Discount:</span>
-          <span>- €{{ (promoTotal.originalTotal - promoTotal.updatedTotal).toFixed(2) }}</span>
-        </div>
-        <div class="flex justify-between font-bold text-xs pt-1 border-t">
-          <span v-if="orderStore.editOrder"
-            >Total:
-            <span class="text-green-600">PAID AMOUNT: €{{ orderStore.editOrder.editOrderTotal.toFixed(2) }}</span>
-          </span>
-          <span v-else>Total:</span>
-          <span v-if="orderStore.editOrder">Balance €{{ getTotalPrice }}</span>
-          <span v-else-if="!promoTotal">€{{ total.toFixed(2) }}</span>
-          <span v-else>€{{ promoTotal.updatedTotal.toFixed(2) }}</span>
+
+  <div class="px-4 pb-4">
+          <VaButton
+            :disabled="
+              !customerDetailsId ||
+              !orderType ||
+              (orderType === 'delivery' && !props.isDeliveryZoneSelected) ||
+              (items.length === 0 && offersItems.length === 0)
+            "
+            class="w-full rounded-md"
+            color="success"
+            :style="{ '--va-background-color': outlet.primaryColor }"
+            size="medium"
+            @click="openCheckoutModal"
+          >
+            Checkout Order
+          </VaButton>
         </div>
       </div>
-
-      <!-- Checkout -->
-      <VaButton
-        :disabled="!customerDetailsId || !orderType || !props.isDeliveryZoneSelected || total === 0"
-        class="mt-1 w-full"
-        color="success"
-        :style="{ '--va-background-color': outlet.primaryColor }"
-        size="medium"
-        @click="openCheckoutModal"
-      >
-        Checkout Order
-      </VaButton>
     </template>
+
     <template v-else>
       <div class="mt-4 w-full">No Orders Selected</div>
     </template>
+
     <MenuModal
       v-if="showMenuModal"
       :item="selectedItemWithArticlesOptionsGroups"
@@ -279,10 +309,9 @@
       :customer-details-id="customerDetailsId"
       :order-type="orderType"
       :promo-code="promoCode"
-      :promo-codes="appliedPromoCodes"  
+      :promo-codes="appliedPromoCodes"
       @cancel="closeCheckoutModal"
     />
-
     <PromotionModal
       ref="promotionModal"
       v-model="showPromotionModal"
@@ -293,7 +322,7 @@
       :customer-details-id="customerDetailsId"
       @cancel="closePromotionModal"
       @selectCode="onCodeSelected"
-      @select-codes="onCodesSelected"    
+      @select-codes="onCodesSelected"
     />
   </div>
 </template>
@@ -350,6 +379,35 @@ const isFutureTimeAllowed = computed(() => {
   return isBetween11to23(selectedDt.value)
 })
 
+const promoOriginalItems = computed(() => {
+  const v = promoTotal.value
+  if (!v?.menuItems) return 0
+  const n = v.menuItems.reduce(
+    (sum, it) => sum + Number(it.originalPrice || 0) + Number(it.optionsPrice || 0),
+    0,
+  )
+  return Number(n.toFixed(2))
+})
+
+const promoOriginalOffers = computed(() => {
+  const v = promoTotal.value
+  if (!v?.offerDetails?.length) return 0
+  const n = v.offerDetails.reduce((sum, o) => sum + Number(o.basePrice || 0), 0)
+  return Number(n.toFixed(2))
+})
+
+const itemsAfterPromos = computed(() => {
+  const v = promoTotal.value
+  if (!v?.menuItems) return 0
+  const n = v.menuItems.reduce((sum, it) => sum + Number(it.updatedPrice || 0), 0)
+  return Number(n.toFixed(2))
+})
+
+const offersAfterPromos = computed(() => {
+  const v = promoTotal.value
+  const n = Number(v?.updatedOffersTotal || 0)
+  return Number(n.toFixed(2))
+})
 
 const appliedPromoCodes = ref([]) // NEW - JS only
 
@@ -606,21 +664,34 @@ function linePromo(item) {
 }
 
 const promoOfferItemPrice = (item) => {
-  if (!promoTotal.value || !item) return null
+  const v = promoTotal.value
+  if (!v || !v.offerDetails || !v.offerDetails.length || !item) return null
 
-  const promoOffers = promoTotal.value.offerDetails || []
+  const offerId = item.offerId || (item.fullItem && item.fullItem.offerId)
+  if (!offerId) return null
 
-  const offerId = item.offerId || item.fullItem?.offerId
+  // All validator entries for this offer type
+  const matches = v.offerDetails.filter((o) => o.offerId === offerId)
+  if (!matches.length) return null
 
-  const promo = promoOffers.filter((a) => a.offerId === offerId)
-  const miniMumPrice = Math.min(...offerItems.value.map((p) => Number(p.totalPrice)))
-  if (!promo.length) return null
-  const updated = Number(promo[0].totalPrice)
-  if (item.totalPrice === miniMumPrice) {
-    return Number(updated.toFixed(2))
+  // Determine which occurrence THIS UI item is among same-offer items
+  let seen = 0
+  let occ = 0
+  for (const it of orderStore.offerItems) {
+    const itOfferId = it.offerId || (it.fullItem && it.fullItem.offerId)
+    if (itOfferId === offerId) {
+      if (it === item) { occ = seen; break }
+      seen++
+    }
   }
-  return null
+
+  // Pick corresponding validator entry (fallback to last if fewer entries)
+  const picked = matches[Math.min(occ, matches.length - 1)]
+  const updated = Number((picked && picked.totalPrice) ? picked.totalPrice : 0)
+
+  return Number(updated.toFixed(2))
 }
+
 
 const increaseQty = (item) => {
   const index = cartItems.value.findIndex((i) => i.itemId === item.id)
