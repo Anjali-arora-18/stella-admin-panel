@@ -38,6 +38,19 @@
           Select
         </VaButton>
       </div>
+      <!-- Order Notes -->
+      <div class="flex flex-wrap items-center gap-1 mt-3 mb-3 w-full">
+        <VaTextarea
+          v-model="orderStore.orderNotes"
+          placeholder="Order notes (e.g., alergies)"
+          autosize
+          :min-rows="1"
+          :max-rows="4"
+          class="block !h-auto"
+          style="width: calc(100% - 32px);"
+          @input="autoGrow"
+        />
+      </div>
 
       <!-- Scroll container (ONLY items/offers). Extra bottom pad so footer never covers content -->
       <div :style="orderItemsStyle" class="flex flex-col overflow-y-auto gap-2 pb-28">
@@ -192,29 +205,28 @@
                 €{{ item.unitTotal.toFixed(2) }} each
               </p>
             </div>
-<!-- Offer line total -->
-<div class="flex flex-col items-end">
-  <template v-if="promoTotal">
-    <template v-if="offerPromo(item).affected">
-      <span class="original-price">€{{ offerPromo(item).original.toFixed(2) }}</span>
-      <span class="updated-price">€{{ offerPromo(item).updated.toFixed(2) }}</span>
-    </template>
-    <template v-else>
-      <span class="font-semibold text-green-800">€{{ offerPromo(item).original.toFixed(2) }}</span>
-    </template>
-  </template>
-  <template v-else>
-    <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
-  </template>
-</div>
-
+            <!-- Offer line total -->
+            <div class="flex flex-col items-end">
+              <template v-if="promoTotal">
+                <template v-if="offerPromo(item).affected">
+                  <span class="original-price">€{{ offerPromo(item).original.toFixed(2) }}</span>
+                  <span class="updated-price">€{{ offerPromo(item).updated.toFixed(2) }}</span>
+                </template>
+                <template v-else>
+                  <span class="font-semibold text-green-800">€{{ offerPromo(item).original.toFixed(2) }}</span>
+                </template>
+              </template>
+              <template v-else>
+                <span class="font-semibold text-green-800">€{{ item.total.toFixed(2) }}</span>
+              </template>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- STICKY FOOTER: summary + checkout button together -->
-<div class="sticky bottom-0 z-20 bg-white/95 backdrop-blur border-t -mx-4 -mb-4 rounded-b-lg overflow-hidden">
-  <div class="px-4 pt-2 text-xs space-y-1">
+      <div class="sticky bottom-0 z-20 bg-white/95 backdrop-blur border-t -mx-4 -mb-4 rounded-b-lg overflow-hidden">
+        <div class="px-4 pt-2 text-xs space-y-1">
           <!-- No promo -->
           <template v-if="!promoTotal">
             <div class="flex justify-between">
@@ -266,7 +278,7 @@
           </template>
         </div>
 
-  <div class="px-4 pb-4">
+        <div class="px-4 pb-4">
           <VaButton
             :disabled="
               !customerDetailsId ||
@@ -695,6 +707,7 @@ const promoOfferItemPrice = (item) => {
 
   return Number(updated.toFixed(2))
 }
+
 function offerPromo(item) {
   const updated = promoOfferItemPrice(item) // number | null (your existing helper)
   const original = Number(item.total || 0)
@@ -837,7 +850,7 @@ async function applyPromoCode() {
       address: orderStore.address,
       menuItems,
       offerMenuItems,
-      orderNotes: '',
+      orderNotes: orderStore.orderNotes || '', 
       deliveryFee: props.deliveryFee,
       outletId: serviceStore.selectedRest,
       orderDateTime: new Date(props.dateSelected).toISOString(),
