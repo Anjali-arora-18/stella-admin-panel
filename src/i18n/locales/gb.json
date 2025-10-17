@@ -39,6 +39,7 @@
   "menu": {
     "auth": "Auth",
     "stellaUsers": "Users",
+    "outletUsers": "Outlet Users",
     "areas": "Areas",
     "deletedArticles": "Deleted Articles",
     "payments": "Payments",

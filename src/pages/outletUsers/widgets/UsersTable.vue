@@ -107,7 +107,7 @@ watch(searchQuery, (search) => {
   <div>
     <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
       <div class="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
-        <h1 class="page-title">Users</h1>
+        <h1 class="page-title">Outlet Users</h1>
         <VaInput
           v-model="searchQuery"
           placeholder="Search..."
