@@ -61,7 +61,6 @@
             :disabled="selectedUser !== ''"
             placeholder="Customer Name"
             class="border rounded px-2 py-1 text-xs outline-none focus:outline-none focus:ring-1 focus:ring-gray-200 focus:border-gray-300 flex-1 min-w-0"
-            @keyup.enter="fetchCustomerDetails(true)"
           />
 
           <!-- Search Button -->
@@ -296,13 +295,16 @@
 
         <!-- Notes -->
         <div v-if="selectedTab">
-          <label class="text-xs text-gray-600 font-medium block mb-1">Notes</label>
-          <textarea
-            rows="1"
-            disabled
-            placeholder="Special instructions, allergies, delivery notes..."
-            class="w-full border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-          ></textarea>
+            <label class="text-xs text-gray-600 font-medium block mb-1">Notes</label>
+            <VaTextarea
+              v-model="orderStore.deliveryNotes"
+              placeholder="Delivery notes e.g call on arrival, gate code, or takeaway instructions"
+              autosize
+              :min-rows="1"
+              class="block !h-auto"
+              style="width: calc(100% - 32px);"
+              @input="autoGrow"
+            />
         </div>
       </div>
     </Transition>
@@ -805,6 +807,8 @@ function selectUser(user) {
   }
 
   userResults.value = []
+    prefillNotesFromUser(selectedUser.value)
+
 }
 
 
@@ -821,6 +825,7 @@ function selectDeliveryZone(zone) {
     showDeliveryDropdown.value = false
   }
 }
+
 
 async function handleDeliveryZoneFetch() {
   const servicesStore = useServiceStore()
@@ -856,7 +861,12 @@ async function handleDeliveryZoneFetch() {
     })
   }
 }
-
+function prefillNotesFromUser(user) {
+  const note = String(user?.customerNote || '').trim()
+  if (note && !String(orderStore.deliveryNotes || '').trim()) {
+    orderStore.deliveryNotes = note
+  }
+}
 function getParsedAddress(payload) {
   const add = payload.split(',')
 

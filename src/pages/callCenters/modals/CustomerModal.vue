@@ -177,7 +177,7 @@
             <div class="flex flex-col gap-1 mb-4">
               <label class="text-sm font-medium text-gray-500">Address Notes</label>
 
-              <VaTextarea placeholder="Delivery instructions, building access..." rows="3" />
+              <VaTextarea v-model="addressNote" placeholder="Delivery instructions, building access..." rows="3"/>
 
               <div class="mt-2 flex justify-end">
                 <VaButton
@@ -243,14 +243,16 @@
   </VaModal>
 </template>
 <script setup lang="ts">
+import { useOrderStore } from '@/stores/order-store'
 import { ref, watch, reactive, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useToast } from 'vuestic-ui'
 import axios from 'axios'
 import { useServiceStore } from '@/stores/services.ts'
 
 const { init } = useToast()
-
+const addressNote = ref('')
 const emits = defineEmits(['cancel', 'setUser', 'close'])
+const orderStore = useOrderStore()
 
 const props = defineProps<{
   selectedUser?: Record<string, string>
@@ -426,6 +428,10 @@ async function addAddress() {
   } else {
     address.value.push(payload)
   }
+  // Set the order’s delivery notes for this session only (not persisted in customer profile)
+ if (addressNote.value?.trim()) {
+   orderStore.deliveryNotes = addressNote.value.trim()
+ }
   floor.value = ''
   aptNumber.value = ''
   designation.value = ''

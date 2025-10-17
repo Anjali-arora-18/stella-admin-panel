@@ -13,6 +13,8 @@ export const useOrderStore = defineStore('order', {
     deliveryZone: '',
     address: '',
     orderFor: 'current',
+    orderNotes:'',
+    deliveryNotes: "",
 
     // ADDED — holds /orders/validate-promo response for UI breakdown (incl. updatedOffersTotal)
     validation: null as null | {
@@ -114,6 +116,12 @@ export const useOrderStore = defineStore('order', {
     },
     setAddress(payload) {
       this.address = payload
+    },
+    setOrderNotes(payload) {         
+      this.orderNotes = payload
+    },
+    setDeliveryNotes(v: string) { 
+      this.deliveryNotes = v ?? "" 
     },
     setPaymentLink(payload) {
       this.redirectUrl = payload
