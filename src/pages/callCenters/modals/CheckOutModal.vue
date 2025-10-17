@@ -610,6 +610,13 @@ async function updateOrder() {
     throw err
   }
 }
+function sanitizeAddress(raw?: string) {
+  return (raw || '')
+    .split(',')
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0)
+    .join(',')
+}
 
 const applyOrderEdit = async (orderId: string, action: string, tableNumber: string, payload: any = {}) => {
   const userStore = useUsersStore()
@@ -730,15 +737,15 @@ async function createOrder() {
       customerDetailId: props.customerDetailsId,
       orderType: props.orderType === 'takeaway' ? 'Takeaway' : 'Delivery',
       deliveryZoneId: orderStore.deliveryZone?._id,
-      address: orderStore.address,
       menuItems,
+      deliveryNotes: orderStore.deliveryNotes || '',
       offerMenuItems,
-      orderNotes: '',
+      orderNotes: orderStore.orderNotes,
       deliveryFee: props.deliveryFee,
       outletId: serviceStore.selectedRest,
       orderDateTime: new Date(props.dateSelected).toISOString(),
-      paymentMode: selectedPayment.value,
-
+      paymorderNotes: orderStore.orderNotes || '',
+      address: sanitizeAddress(orderStore.address),
       promoCode: (props.promoCodes?.length === 1 ? props.promoCodes[0] : props.promoCode) || '',
       promoCodes: props.promoCodes ?? [],   
     }
