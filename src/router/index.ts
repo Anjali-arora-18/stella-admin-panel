@@ -33,7 +33,7 @@ const routes: Array<RouteRecordRaw> = [
         name: 'outletUsers',
         path: 'outletUsers',
         component: () => import('../pages/outletUsers/index.vue'),
-        meta: { roles: ['admin'] },
+        meta: { roles: ['admin', 'super-admin'] },
       },
       {
         name: 'areas',
@@ -271,7 +271,7 @@ router.beforeEach((to, from, next) => {
     setToken()
 
     const allowedRoles = to.meta?.roles as string[] | undefined
-    if (Array.isArray(allowedRoles) && !userRole.includes(allowedRoles.join(' '))) {
+    if (Array.isArray(allowedRoles) && !allowedRoles.includes(userRole)) {
       return next('/403')
     }
 
