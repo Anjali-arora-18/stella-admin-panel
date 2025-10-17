@@ -44,15 +44,28 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="item in sortedList" :key="item._id" class="border-b hover:bg-orange-50">
-                  <td class="p-2">
-                    <VaCheckbox
-                      :model-value="isChecked(item._id)"
-                      :label="item.code + ' - ' + item.name + (props.type === 'options' ? ' - ' + item.posName : '')"
-                      @update:modelValue="toggleSelection(String(item._id))"
-                    />
-                  </td>
-                </tr>
+                <template v-if="!searchQuery">
+                  <tr v-for="item in sortedList" :key="item._id" class="border-b hover:bg-orange-50">
+                    <td class="p-2">
+                      <VaCheckbox
+                        :model-value="isChecked(item._id)"
+                        :label="item.code + ' - ' + item.name + (props.type === 'options' ? ' - ' + item.posName : '')"
+                        @update:modelValue="toggleSelection(String(item._id))"
+                      />
+                    </td>
+                  </tr>
+                </template>
+                <template v-else>
+                  <tr v-for="item in filteredList" :key="item._id" class="border-b hover:bg-orange-50">
+                    <td class="p-2">
+                      <VaCheckbox
+                        :model-value="isChecked(item._id)"
+                        :label="item.code + ' - ' + item.name + (props.type === 'options' ? ' - ' + item.posName : '')"
+                        @update:modelValue="toggleSelection(String(item._id))"
+                      />
+                    </td>
+                  </tr>
+                </template>
               </tbody>
             </table>
           </div>
@@ -115,22 +128,38 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr
-                    v-for="item in sortedList
-                      .filter((a) => a._id === selectedGroup || !selectedGroup)
-                      .flatMap((a) => a.computedOptions)
-                      .filter((a) => a.display)"
-                    :key="item._id"
-                    class="border-b hover:bg-orange-50"
-                  >
-                    <td class="p-2">
-                      <VaCheckbox
-                        :model-value="isChecked(item._id)"
-                        :label="item.code + ' - ' + item.name + (props.type === 'options' ? ' - ' + item.posName : '')"
-                        @update:modelValue="toggleSelection(String(item._id))"
-                      />
-                    </td>
-                  </tr>
+                  <template v-if="!searchQuery">
+                    <tr
+                      v-for="item in sortedList
+                        .filter((a) => a._id === selectedGroup || !selectedGroup)
+                        .flatMap((a) => a.computedOptions)"
+                      :key="item._id"
+                      class="border-b hover:bg-orange-50"
+                    >
+                      <td class="p-2">
+                        <VaCheckbox
+                          :model-value="isChecked(item._id)"
+                          :label="
+                            item.code + ' - ' + item.name + (props.type === 'options' ? ' - ' + item.posName : '')
+                          "
+                          @update:modelValue="toggleSelection(String(item._id))"
+                        />
+                      </td>
+                    </tr>
+                  </template>
+                  <template v-else>
+                    <tr v-for="item in filteredList" :key="item._id" class="border-b hover:bg-orange-50">
+                      <td class="p-2">
+                        <VaCheckbox
+                          :model-value="isChecked(item._id)"
+                          :label="
+                            item.code + ' - ' + item.name + (props.type === 'options' ? ' - ' + item.posName : '')
+                          "
+                          @update:modelValue="toggleSelection(String(item._id))"
+                        />
+                      </td>
+                    </tr>
+                  </template>
                 </tbody>
               </table>
             </div>
@@ -194,15 +223,71 @@ const selectAll = ref(false)
 /* Computed lists */
 const sourceList = computed(() => (props.type === 'options' ? groups.value : items.value))
 
+const filteredAndSortedList = (list: any[]) => {
+  const searchTerm = searchQuery.value.toLowerCase().trim()
+  return list.filter((item) => {
+    if (!item) return false
+    const name = (item.name || '').toLowerCase()
+    const code = (item.code || '').toLowerCase()
+    const posName = (item.posName || '').toLowerCase()
+    return searchTerm === '' || name.includes(searchTerm) || code.includes(searchTerm) || posName.includes(searchTerm)
+  })
+}
+
 const sortedList = computed(() => {
+  // Get base list excluding explicitly hidden items
   const list = sourceList.value.filter((item) => item.display !== false)
+
+  // Apply search filter
+  const filteredList =
+    props.type === 'options'
+      ? list.map((group) => ({
+        ...group,
+        computedOptions: filteredAndSortedList(group.computedOptions || []),
+      }))
+      : filteredAndSortedList(list)
+
+  // Sort by selection status
   const filterSelected = props.type === 'options' ? selectedArticles.value : selectedMenuItems.value
   const selected = filterSelected.filter((a: any) => props.pendingSelections.includes(a))
-  return list.sort((a, b) => {
+
+  return filteredList.sort((a, b) => {
     const aSelected = selected.includes(String(a._id)) ? -1 : 1
     const bSelected = selected.includes(String(b._id)) ? -1 : 1
     return aSelected - bSelected
   })
+})
+
+const filteredList = computed(() => {
+  // Get the search phrase and normalize it
+  const searchPhrase = searchQuery.value.toLowerCase().trim()
+  if (!searchPhrase) return []
+
+  const list = sourceList.value
+
+  const matchesAllTerms = (item: any) => {
+    if (!item) return false
+
+    // Create the same display text that's shown in the UI
+    const displayText = `${item.code} - ${item.name}${props.type === 'options' ? ' - ' + item.posName : ''}`
+      .toLowerCase()
+      .trim()
+
+    // Split search phrase into words
+    const searchWords = searchPhrase.split(/\s+/).filter((word) => word.length > 0)
+
+    // Split display text into words
+    const displayWords = displayText.split(/[\s,.-]+/).filter((word) => word.length > 0)
+
+    // Check that all search words match complete words in the display text
+    return searchWords.every((searchWord) => displayWords.some((displayWord) => displayWord === searchWord))
+  }
+
+  if (props.type === 'options') {
+    return list.flatMap((group) => group.computedOptions || []).filter(matchesAllTerms)
+  } else {
+    return list.filter(matchesAllTerms)
+  }
 })
 
 const selectedIds = computed(() => {
@@ -225,28 +310,22 @@ onBeforeUnmount(() => {
   selectedArticles.value = []
 })
 
-// Add watch on searchQuery to update display property
+// Reset display property when search is cleared
 watch(
   searchQuery,
-  (query) => {
-    const sList = props.type === 'options' ? sourceList.value.flatMap((a) => a.computedOptions) : sourceList.value
-    if (Array.isArray(sList)) {
-      sList.forEach((item) => {
-        const name = item.name?.toLowerCase() || ''
-        const code = item.code?.toLowerCase() || ''
-        const posName = item.posName?.toLowerCase() || ''
-        item.display =
-          name.includes(query.toLowerCase()) ||
-          code.includes(query.toLowerCase()) ||
-          posName.includes(query.toLowerCase())
-        const searchTerm = query.toLowerCase()
-        item.display =
-          name.includes(searchTerm) || code.includes(searchTerm) || posName.includes(searchTerm) || !searchTerm
-      })
-    }
+  () => {
+    sourceList.value.forEach((item: any) => {
+      if (props.type === 'options' && item.computedOptions) {
+        item.computedOptions.forEach((option: any) => {
+          option.display = true
+        })
+      }
+      item.display = true
+    })
   },
   { immediate: true },
 )
+
 watch(sourceList, () => {
   const visibleIds = sourceList.value.filter((item) => item.display !== false).map((item) => String(item._id))
   const targetList = props.type === 'options' ? selectedArticles.value : selectedMenuItems.value
