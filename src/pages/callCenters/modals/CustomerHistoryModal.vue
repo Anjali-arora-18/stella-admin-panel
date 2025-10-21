@@ -279,24 +279,24 @@
           </div>
 
           <span
-            class="px-3 py-2 rounded-full text-xs font-semibold tracking-wide flex items-center gap-1 transition-colors"
-            :class="{
-              'bg-green-600 text-white': order.status === 'Completed',
-              'bg-yellow-500 text-white': order.status === 'In Progress',
-              'bg-red-600 text-white': order.status === 'Cancelled',
-            }"
-          >
-            <template v-if="order.status === 'Completed'">
-              <CheckCircle class="w-3.5 h-3.5" />
-            </template>
-            <template v-else-if="order.status === 'In Progress'">
-              <Loader2 class="w-3.5 h-3.5 animate-spin-slow" />
-            </template>
-            <template v-else-if="order.status === 'Cancelled'">
-              <XCircle class="w-3.5 h-3.5" />
-            </template>
-            {{ order.status }}
-          </span>
+  class="px-3 py-2 rounded-full text-xs font-semibold tracking-wide flex items-center gap-1 transition-colors"
+  :class="{
+    'bg-green-600 text-white': getDisplayStatus(order, index) === 'Completed',
+    'bg-yellow-500 text-white': ['KDS', 'OnRack', 'Preparing'].includes(getDisplayStatus(order, index)),
+    'bg-red-600 text-white': getDisplayStatus(order, index) === 'Cancelled',
+  }"
+>
+  <template v-if="getDisplayStatus(order, index) === 'Completed'">
+    <CheckCircle class="w-3.5 h-3.5" />
+  </template>
+  <template v-else-if="['KDS', 'OnRack', 'Preparing'].includes(getDisplayStatus(order, index))">
+    <Loader2 class="w-3.5 h-3.5 animate-spin-slow" />
+  </template>
+  <template v-else-if="getDisplayStatus(order, index) === 'Cancelled'">
+    <XCircle class="w-3.5 h-3.5" />
+  </template>
+  {{ getDisplayStatus(order, index) }}
+</span>
         </div>
 
         <!-- EXPANDABLE ARTICLE LIST -->
@@ -498,12 +498,12 @@ import { useOrderStore } from '@/stores/order-store.ts'
 import HistoryAddNoteModal from './HistoryAddNoteModal.vue'
 import HistoryComplaintModal from './HistoryComplaintModal.vue'
 import { useToast } from 'vuestic-ui'
-// import { useServiceStore } from '@/stores/services.ts'
+import { useServiceStore } from '@/stores/services.ts'
 const { init } = useToast()
 const props = defineProps({
   customer: { type: Object, required: true },
   outlet: { type: Object, required: true },
-  // selectedUser: { type: Object, required: true },
+  selectedUser: { type: Object, required: true },
   deliveryZoneOptions: {
     type: Array,
     default: () => [],
@@ -513,6 +513,8 @@ const props = defineProps({
   deliveryFee: { type: Number, default: 0 },
   selectedTab: { type: String, default: '' },
 })
+
+const liveStatus = ref(null)
 
 const emits = defineEmits(['close'])
 
@@ -889,6 +891,14 @@ const getOrderSource = (source) => {
   return source === 'CC' ? 'Call Center' : source
 }
 
+const getDisplayStatus = (order, index) => {
+  // For the latest order, override with live status
+  if (index === 0 && liveStatus.value) {
+    return liveStatus.value
+  }
+  return order.status
+}
+
 const getDeliveryZoneName = (deliveryZoneId) => {
   if (!deliveryZoneId || !Array.isArray(props.deliveryZoneOptions)) {
     return ''
@@ -905,26 +915,30 @@ const ordersToShow = computed(() => {
 
 const url = import.meta.env.VITE_API_BASE_URL
 
-// const fetchOrderStatus = async () => {
-//   const users = useUsersStore()
-//   const outlet = useServiceStore()
-//   try {
-//     const res = await axios.post('https://coord.restuspos.com/Api.aspx/GetOrderStatusByMobile', {
-//       request: {
-//         ApiKey: '1234567890',
-//         Mobile: props.selectedUser.MobilePhone,
-//         W4CompanyCode: outlet.restDetails.winmaxConfig.company,
-//       },
-//     })
-//     if (res.data?.status === 'Success') {
-//       orderStatuses.value = res.data.data || []
-//     } else {
-//       orderStatuses.value = []
-//     }
-//   } catch (error) {
-//     orderStatuses.value = []
-//   }
-// }
+const fetchOrderStatus = async () => {
+  const outlet = useServiceStore()
+  try {
+    const res = await axios.get(
+      'https://coord.restuspos.com/CoordApi/v1/Stella/GetOrderStatusByMobile',
+      {
+        params: {
+          mobile: props.selectedUser.MobilePhone,
+          w4CompanyCode: outlet.restDetails.winmaxConfig.company,
+        },
+        headers: { 'X-API-Key': '1234567890' },
+      }
+    )
+
+    if (res.data?.statusCode) {
+      liveStatus.value = res.data.statusCode
+    } else {
+      liveStatus.value = null
+    }
+  } catch (error) {
+    liveStatus.value = null
+  }
+}
+ 
 
 const fetchOrders = async () => {
   const menuItems = useMenuStore()
@@ -1133,8 +1147,8 @@ const complaintStats = computed(() => {
 onMounted(() => {
   fetchUsers()
   fetchOrders()
-  // await fetchOrderStatus()
-  // await fetchOrders()
+  fetchOrderStatus()
+  fetchOrders() 
 })
 </script>
 <style scoped>

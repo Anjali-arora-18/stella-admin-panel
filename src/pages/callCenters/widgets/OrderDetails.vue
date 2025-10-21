@@ -476,6 +476,17 @@ const decreaseQty = (item) => {
 const showCheckoutModal = ref(false)
 
 function openCheckoutModal() {
+  futureTimeError.value = false
+
+  if (!isFutureTimeValid()) {
+    futureTimeError.value = true
+    init({
+      message: 'Future Order time must be between 11:00 AM and 11:00 PM',
+      color: 'danger'
+    })
+    return
+  }
+
   showCheckoutModal.value = true
 }
 
@@ -494,7 +505,7 @@ const { init } = useToast()
 async function openPromotionModal() {
   const url = import.meta.env.VITE_API_BASE_URL
   try {
-    const { data } = await axios.get(`${url}/promotions?outletId=${serviceStore.selectedRest}`)
+    const { data } = await axios.get(`${url}/cc/promotions?outletId=${serviceStore.selectedRest}`)
     console.log('Promotion Data:', data)
 
     const validPromotions = data.data.filter((promo) => promo.availableAtCC)
@@ -605,6 +616,8 @@ function clearPromoCode() {
   orderStore.setOrderTotal(null)
 }
 
+
+
 const getMenuOptions = async (selectedItem) => {
   const url = import.meta.env.VITE_API_BASE_URL
   isLoading.value = true
@@ -632,6 +645,26 @@ const getMenuOptions = async (selectedItem) => {
     isLoading.value = false
   }
 }
+
+const isFutureTimeValid = () => {
+  if (orderFor.value !== 'future') return true // only validate future orders
+  if (!props.dateSelected) return false
+
+  const dateTime = new Date(props.dateSelected)
+  const hour = dateTime.getHours()
+  const minute = dateTime.getMinutes()
+
+  // Only validate the **time** part
+  // Valid time: 11:00 to 23:00 (inclusive)
+  if (hour < 11 || hour > 23 || (hour === 23 && minute > 0)) {
+    return false
+  }
+
+  return true
+}
+
+const futureTimeError = ref(false)
+
 
 const getOfferItems = async (selectedItem) => {
   selectedItemWithArticlesOptionsGroups.value = selectedItem

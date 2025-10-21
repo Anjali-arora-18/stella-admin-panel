@@ -155,13 +155,20 @@
             </button>
           </div>
 
-          <input
-            v-model="localDateTime"
-            type="datetime-local"
-            class="text-xs border rounded px-1 py-1 w-[40%]"
-            :disabled="orderFor === 'current'"
-          />
-        </div>
+          <!-- DateTime Selector -->
+<div class="relative w-[40%]">
+  <input
+    v-model="localDateTime"
+    type="datetime-local"
+    class="text-xs border rounded px-1 py-1 w-full"
+    :class="{ 'border-red-500 ring-1 ring-red-400': isInvalidTime }"
+    :disabled="orderFor === 'current'"
+  />
+  <p v-if="isInvalidTime" class="absolute text-red-500 text-[10px] mt-1">
+    Time must be between 11:00 - 23:00
+  </p>
+</div>
+</div>
 
         <!-- Address -->
         <div v-if="selectedTab && selectedUser">
@@ -488,6 +495,27 @@ function selectDeliveryZone(zone) {
     showDeliveryDropdown.value = false
   }
 }
+
+const isInvalidTime = ref(false)
+
+watch(localDateTime, (newVal) => {
+  if (newVal && newVal.length >= 16) {
+    const [datePart, timePart] = newVal.split('T')
+    const [hour, minute] = timePart.split(':').map(Number)
+
+    // ✅ Check only time part
+    if (hour < 11 || hour > 23 || (hour === 23 && minute > 0)) {
+      isInvalidTime.value = true
+    } else {
+      isInvalidTime.value = false
+    }
+
+    // Keep your existing logic
+    const [year, month, day] = datePart.split('-').map(Number)
+    selectedDate.value = new Date(year, month - 1, day, hour, minute)
+    emits('setDateSelected', selectedDate.value)
+  }
+})
 
 async function handleDeliveryZoneFetch() {
   deliveryZoneOptions.value = []

@@ -1,604 +1,462 @@
-<script setup>
-import { ref, watch } from 'vue'
+<script setup lang="ts">
+import { ref, watch, computed } from 'vue'
 import { VueDraggableNext } from 'vue-draggable-next'
 import { useCategoryStore } from '../stores/categories'
 import { useServiceStore } from '@/stores/services'
 import { useToast } from 'vuestic-ui'
 import axios from 'axios'
+
 const serviceStore = useServiceStore()
 const categoriesStore = useCategoryStore()
-const isLoading = ref(true)
-const categories = ref([])
-const openedAccordian = ref([])
-const loading = ref(false)
 const { init } = useToast()
+const isLoading = ref(true)
+const loading = ref(false)
+const categories = ref([])
+const selectedCategory = ref(null)
+const selectedSubcategory = ref(null)
+const selectedArticle = ref(null)
+const selectedGroup = ref(null)
 
+// Track collapsed state of each column
+const collapsed = ref({
+  categories: false,
+  subcategories: false,
+  articles: false,
+  groups: false,
+  options: false,
+})
+
+// ----- API Calls -----
 const getArticles = async () => {
   loading.value = true
-  const url = import.meta.env.VITE_API_BASE_URL
-  const selectedCategoryIndex = openedAccordian.value.indexOf(true)
-  if (selectedCategoryIndex !== -1) {
-    axios
-      .get(`${url}/menuItemsvo?limit=100000`, {
-        params: {
-          outletId: serviceStore.selectedRest,
-          categoryId: categories.value[selectedCategoryIndex]._id,
-        },
-      })
-      .then((resp) => {
-        categories.value[selectedCategoryIndex].articles = resp.data.filter((a) => !a.subCategories.length)
-        categories.value[selectedCategoryIndex].subCategories = categories.value[
-          selectedCategoryIndex
-        ].subCategories.map((e) => {
-          return {
-            ...e,
-            articles: resp.data
-              .filter((a) => a.subCategories.find((a) => a.id === e._id))
-              .sort(
-                (a, b) =>
-                  (a.subCategories.find((a) => a.id === e._id).sortOrder || 0) -
-                  (b.subCategories.find((a) => a.id === e._id).sortOrder || 0),
-              ),
-          }
-        })
-        loading.value = false
-      })
-      .catch((err) => {
-        loading.value = false
-      })
-  } else {
+  if (!selectedCategory.value) {
     loading.value = false
+    return
   }
+
+  const selectedCategoryIndex = categories.value.findIndex(c => c._id === selectedCategory.value._id)
+  if (selectedCategoryIndex === -1) {
+    loading.value = false
+    return
+  }
+
+  const url = import.meta.env.VITE_API_BASE_URL
+  axios
+    .get(`${url}/menuitemsvo?limit=100000`, {
+      params: {
+        outletId: serviceStore.selectedRest,
+        categoryId: selectedCategory.value._id,
+      },
+    })
+    .then(resp => {
+      const cat = categories.value[selectedCategoryIndex]
+
+      cat.articles = resp.data.filter(a => !a.subCategories.length)
+      cat.subCategories = (cat.subCategories || []).map(sub => ({
+        ...sub,
+        articles: resp.data
+          .filter(a => a.subCategories.find(s => s.id === sub._id))
+          .sort(
+            (a, b) =>
+              (a.subCategories.find(s => s.id === sub._id).sortOrder || 0) -
+              (b.subCategories.find(s => s.id === sub._id).sortOrder || 0)
+          ),
+      }))
+      loading.value = false
+    })
+    .catch(() => { loading.value = false })
 }
 
 const getCategories = async (outletId) => {
   isLoading.value = true
-
   await categoriesStore.getAll(outletId)
-  const items = categoriesStore.items.map((item) => ({
+  const items = categoriesStore.items.map(item => ({
     _id: item._id || '',
     name: item.name || '',
     subCategories: item.subCategories || [],
     ...item,
   }))
-  if (!categories.value.length) {
-    openedAccordian.value = Array(categories.value.length).fill(false)
-  }
   categories.value = items
     .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
-    .map((category) => ({
-      ...category,
-      subCategories: (category.subCategories || []).sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)),
+    .map(cat => ({
+      ...cat,
+      subCategories: (cat.subCategories || []).sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)),
     }))
-  getArticles()
+  if (categories.value.length) selectedCategory.value = categories.value[0]
+  await getArticles()
   isLoading.value = false
 }
 
-const updateSortOrder = (payload) => {
+// ----- Drag & Drop Handlers -----
+const updateSortOrder = async (payload) => {
   const url = import.meta.env.VITE_API_BASE_URL
-
-  axios
-    .post(`${url}/organize-menu`, payload)
-    .then((response) => {
-      init({
-        message: 'Order updated.',
-        color: 'success',
-      })
-    })
-    .catch((err) => {
-      init({
-        message: err.response.data.error,
-        color: 'danger',
-      })
-      getCategories(serviceStore.selectedRest)
+  axios.post(`${url}/organize-menu`, payload)
+    .then(() => init({ message: 'Order updated.', color: 'success' }))
+    .catch(err => {
+      init({ message: err.response.data.error, color: 'danger' })
+      if (serviceStore.selectedRest) getCategories(serviceStore.selectedRest)
     })
 }
 
 const movedCategory = async ($event) => {
-  let category = JSON.parse(JSON.stringify(categories.value))
-  if ($event.moved) {
-    category = category.map((e, index) => {
-      return {
-        ...e,
-        sortOrder: index,
-      }
-    })
-  }
-  const data = {
-    resourceType: 'categories',
-    items: category.map((e) => {
-      return {
-        id: e._id,
-        sortOrder: e.sortOrder,
-      }
-    }),
-  }
-  await updateSortOrder(data)
+  if (!$event.moved) return
+  categories.value.forEach((c, idx) => c.sortOrder = idx)
+  const payload = { resourceType: 'categories', items: categories.value.map(c => ({ id: c._id, sortOrder: c.sortOrder })) }
+  await updateSortOrder(payload)
 }
 
 const movedSubCategory = async ($event, category) => {
-  const selectedCategory = JSON.parse(JSON.stringify(categories.value.find((a) => a._id === category._id)))
-  const subCategories = selectedCategory.subCategories.map((e, index) => {
-    return {
-      ...e,
-      sortOrder: index,
-    }
-  })
-  const data = {
+  const cat = categories.value.find(c => c._id === category._id)
+  cat.subCategories.forEach((s, idx) => s.sortOrder = idx)
+  const payload = {
     resourceType: 'subcategories',
-    categoryId: selectedCategory._id,
-    items: subCategories
-      .filter((a) => !a.isArticle)
-      .map((e) => {
-        return {
-          id: e._id,
-          sortOrder: e.sortOrder,
-        }
-      }),
+    categoryId: cat._id,
+    items: cat.subCategories.filter(s => !s.isArticle).map(s => ({ id: s._id, sortOrder: s.sortOrder })),
   }
-  await updateSortOrder(data)
+  await updateSortOrder(payload)
 }
 
 const movedArticle = async ($event, category, subcategory = null) => {
-  const selectedCategory = JSON.parse(JSON.stringify(categories.value.find((a) => a._id === category._id)))
-  let selectedSubCategory = []
-  let articles = []
-  if (subcategory) {
-    selectedSubCategory = selectedCategory.subCategories.find((a) => a._id === subcategory._id)
-    articles = selectedSubCategory.articles
-  } else {
-    articles = selectedCategory.articles
-  }
-  const data = {
+  const cat = categories.value.find(c => c._id === category._id)
+  let items = []
+  if (subcategory) items = cat.subCategories.find(s => s._id === subcategory._id).articles
+  else items = cat.articles
+
+  const payload = {
     resourceType: 'menuitems',
-    categoryId: selectedCategory._id,
-    items: articles.map((e, index) => {
-      return {
-        id: e._id,
-        sortOrder: index,
-      }
-    }),
+    categoryId: cat._id,
+    subcategoryId: subcategory?._id,
+    items: items.map((a, idx) => ({ id: a._id, sortOrder: idx })),
   }
-
-  if (subcategory) {
-    data.subcategoryId = selectedSubCategory._id
-  }
-  await updateSortOrder(data)
+  await updateSortOrder(payload)
 }
 
-const movedArticleGroup = async (payload) => {
-  let data = {}
-  const resourceType = 'articleoptionsgroups'
+const movedArticleGroup = async ($event) => {
+  if (!$event.moved) return;
 
-  if (payload.subCategory) {
-    data.subcategoryId = payload.subCategory._id
-  }
-  if (payload.category) {
-    data.categoryId = payload.category._id
-  }
-  if (payload.menuItems) {
-    data.menuitemId = payload.menuItems._id
-  }
-  const selectedCategory = JSON.parse(JSON.stringify(categories.value.find((a) => a._id === payload.category._id)))
-  let selectedSubCategory = []
-  let articlesOptionsGroup = []
-  if (payload.subCategory) {
-    selectedSubCategory = selectedCategory.subCategories.find((a) => a._id === payload.subCategory._id)
-    if (payload.menuItems) {
-      articlesOptionsGroup = payload.menuItems.articlesOptionsGroup
-    } else {
-      articlesOptionsGroup = selectedSubCategory.articlesOptionsGroup
-    }
-    articlesOptionsGroup = selectedSubCategory.articlesOptionsGroup
-  } else {
-    if (payload.menuItems) {
-      articlesOptionsGroup = payload.menuItems.articlesOptionsGroup
-    } else {
-      articlesOptionsGroup = selectedCategory.articlesOptionsGroup
-    }
-  }
-  data = {
-    ...data,
-    resourceType: resourceType,
-    items: articlesOptionsGroup.map((e, index) => {
-      return {
-        id: e.id,
-        sortOrder: index,
-      }
-    }),
-  }
-  await updateSortOrder(data)
+  const items = selectedSubcategory.value?.articlesOptionsGroup ||
+    selectedArticle.value?.articlesOptionsGroup ||
+    selectedCategory.value?.articlesOptionsGroup ||
+    [];
+
+  // Update sortOrder
+  items.forEach((grp, idx) => grp.sortOrder = idx);
+
+  const payload = {
+    resourceType: 'articleoptionsgroups',
+    categoryId: selectedCategory.value?._id,
+    subcategoryId: selectedSubcategory.value?._id,
+    menuitemId: selectedArticle.value?._id,
+    items: items.map(g => ({ id: g._id, sortOrder: g.sortOrder })),
+  };
+
+  await updateSortOrder(payload);
 }
 
-const movedArticleOption = async (payload) => {
-  let data = {}
+const movedArticleOption = async ($event) => {
+  if (!$event.moved) return;
 
-  if (payload.subCategory) {
-    data.subcategoryId = payload.subCategory._id
-  }
-  if (payload.category) {
-    data.categoryId = payload.category._id
-  }
-  if (payload.menuItems) {
-    data.menuitemId = payload.menuItems._id
-  }
-  const resourceType = 'articleoptions'
-  const selectedCategory = JSON.parse(JSON.stringify(categories.value.find((a) => a._id === payload.category._id)))
-  let selectedSubCategory = []
-  let articlesOptionsGroup = []
-  if (payload.subCategory) {
-    selectedSubCategory = selectedCategory.subCategories.find((a) => a._id === payload.subCategory._id)
-    if (payload.menuItems) {
-      articlesOptionsGroup = payload.menuItems.articlesOptionsGroup
-    } else {
-      articlesOptionsGroup = selectedSubCategory.articlesOptionsGroup
-    }
-    articlesOptionsGroup = selectedSubCategory.articlesOptionsGroup
-  } else {
-    if (payload.menuItems) {
-      articlesOptionsGroup = payload.menuItems.articlesOptionsGroup
-    } else {
-      articlesOptionsGroup = selectedCategory.articlesOptionsGroup
-    }
-  }
+  const updatedGroupId = selectedGroup.value?._id;
+  if (!updatedGroupId) return;
 
-  console.log('articlesOptionsGroup', articlesOptionsGroup, payload.articlesOptionsGroup)
+  // Recalculate sort order for current group's options
+  const items = selectedGroup.value?.articlesOptions || [];
+  items.forEach((opt, idx) => (opt.sortOrder = idx));
 
-  let articleOptions = []
+  // --- Collect all articles that share the same group ---
+  const affectedArticles: { cat: any; sub?: any; article: any }[] = [];
 
-  if (articlesOptionsGroup.length) {
-    articleOptions = articlesOptionsGroup.find((a) => a.id === payload.articlesOptionsGroup.id).articlesOptions
-  }
-  data = {
-    ...data,
-    articlesOptionsGroupId: payload.articlesOptionsGroup.id,
-    resourceType: resourceType,
-    items: articleOptions.map((e, index) => {
-      return {
-        id: e.id,
-        sortOrder: index,
+  categories.value.forEach(cat => {
+    cat.articles?.forEach(article => {
+      if (article.articlesOptionsGroup?.some(g => g._id === updatedGroupId)) {
+        affectedArticles.push({ cat, article });
       }
-    }),
-  }
-  await updateSortOrder(data)
-}
+    });
 
-watch(
-  () => serviceStore.selectedRest,
-  (newId) => {
-    if (newId) getCategories(newId)
-  },
-  { immediate: true },
-)
+    cat.subCategories?.forEach(sub => {
+      sub.articles?.forEach(article => {
+        if (article.articlesOptionsGroup?.some(g => g._id === updatedGroupId)) {
+          affectedArticles.push({ cat, sub, article });
+        }
+      });
+    });
+  });
+
+  // --- Send updates for all affected articles ---
+  const updatePromises = affectedArticles.map(({ cat, sub, article }) => {
+    const payload = {
+      resourceType: "articleoptions",
+      categoryId: cat._id,
+      subcategoryId: sub?._id,
+      menuitemId: article._id,
+      articlesOptionsGroupId: updatedGroupId,
+      items: items.map(o => ({ id: o._id, sortOrder: o.sortOrder })),
+    };
+    return axios.post(`${import.meta.env.VITE_API_BASE_URL}/organize-menu`, payload);
+  });
+
+  try {
+    await Promise.all(updatePromises);
+    init({ message: 'Order updated for all related articles.', color: 'success' });
+  } catch (err: any) {
+    init({ message: err.response?.data?.error || 'Update failed', color: 'danger' });
+    if (serviceStore.selectedRest) getCategories(serviceStore.selectedRest);
+  }
+};
+
+watch(() => serviceStore.selectedRest, (newId) => {
+  if (newId) getCategories(newId)
+}, { immediate: true })
+
+// ----- Filters -----
+const filteredSubcategories = computed(() => selectedCategory.value?.subCategories || [])
+const filteredArticles = computed(() => {
+  if (!selectedCategory.value) return []
+  if (selectedSubcategory.value) return selectedSubcategory.value.articles || []
+  return selectedCategory.value.articles || []
+})
+const filteredGroups = computed(() => selectedArticle.value?.articlesOptionsGroup || [])
+const filteredOptions = computed(() => selectedGroup.value?.articlesOptions || [])
+
+const sharedGroupNotice = computed(() => {
+  if (!selectedGroup.value || !selectedCategory.value) return null
+
+  // Count all articles in the current category that use the same group ID
+  let count = 0
+
+  categories.value.forEach(cat => {
+    const articlesToCheck = cat.articles || []
+    cat.subCategories?.forEach(sub => {
+      articlesToCheck.push(...(sub.articles || []))
+    })
+
+    articlesToCheck.forEach(art => {
+      const groupIds = (art.articlesOptionsGroup || []).map(g => g._id)
+      if (groupIds.includes(selectedGroup.value._id)) count++
+    })
+  })
+
+  // Remove the current article itself
+  count = Math.max(0, count - 1)
+
+  if (count > 0) return `This Group is used in ${count} other Article${count > 1 ? 's' : ''}. Updating the Options will reflect in all Articles. To see changes reflected in other Articles, please refresh the page.`
+
+  return null
+})
 </script>
 
 <template>
-  <div>
-    <h1 class="page-title">Organize Menu</h1>
-    <VaAccordion v-model="openedAccordian" @update:modelValue="getArticles">
-      <VueDraggableNext class="dragArea list-group w-full" :list="categories" @change="movedCategory">
-        <VaCollapse
-          v-for="category in categories"
-          :key="category._id"
-          :header="category.name"
-          color="secondary"
-          :class="['list-group-item bg-gray-300 m-1 rounded-md text-center']"
-        >
-          <div
-            v-if="
-              loading &&
-              !(category.subCategories && category.subCategories.length) &&
-              !(category.articles && category.articles.length)
-            "
-            class="flex justitfy-content-center"
-          >
-            <VaSkeleton variant="text" :lines="5" />
+  <div class="organize-menu flex gap-4 pt-4 pb-4 h-screen">
+    <!-- Categories -->
+    <div :class="['column border rounded bg-white flex flex-col transition-all duration-300',
+      collapsed.categories ? 'collapsed' : 'flex-1']">
+      <div class="header">
+        <h3 v-if="!collapsed.categories" class="title">Categories</h3>
+        <button class="toggle-btn" @click="collapsed.categories = !collapsed.categories">
+          {{ collapsed.categories ? '+' : '−' }}
+        </button>
+      </div>
+      <div v-if="!collapsed.categories" class="flex-1 overflow-y-auto p-2">
+        <VueDraggableNext :list="categories" @change="movedCategory">
+          <div v-for="cat in categories" :key="cat._id"
+            :class="['item-card', selectedCategory?._id === cat._id ? 'selected' : '']"
+            @click="selectedCategory = cat; selectedSubcategory = null; selectedArticle = null; selectedGroup = null; getArticles()">
+            <VaIcon name="drag_indicator" class="cursor-move text-slate-400" /> {{ cat.name }}
           </div>
-          <div
-            v-else-if="
-              !(category.subCategories && category.subCategories.length) &&
-              !(category.articles && category.articles.length)
-            "
-          >
-            No Item
+        </VueDraggableNext>
+      </div>
+      <div v-else class="collapsed-title">Categories</div>
+    </div>
+
+    <!-- Subcategories -->
+    <div :class="['column border rounded bg-white flex flex-col transition-all duration-300',
+      collapsed.subcategories ? 'collapsed' : 'flex-1']">
+      <div class="header">
+        <h3 v-if="!collapsed.subcategories" class="title">Sub-Categories</h3>
+        <button class="toggle-btn" @click="collapsed.subcategories = !collapsed.subcategories">
+          {{ collapsed.subcategories ? '+' : '−' }}
+        </button>
+      </div>
+      <div v-if="!collapsed.subcategories" class="flex-1 overflow-y-auto p-2">
+        <VueDraggableNext :list="filteredSubcategories" @change="cat => movedSubCategory(cat, selectedCategory)">
+          <div v-for="sub in filteredSubcategories" :key="sub._id"
+            :class="['item-card', selectedSubcategory?._id === sub._id ? 'selected' : '']"
+            @click="selectedSubcategory = sub; selectedArticle = null; selectedGroup = null; getArticles()">
+            <VaIcon name="drag_indicator" class="cursor-move text-slate-400" /> {{ sub.name }}
           </div>
+        </VueDraggableNext>
+      </div>
+      <div v-else class="collapsed-title">Sub-Categories</div>
+    </div>
 
-          <VaAccordion v-else>
-            <VueDraggableNext
-              v-if="category.subCategories && category.subCategories.length"
-              class="dragArea list-group w-full"
-              :list="category.subCategories"
-              @change="movedSubCategory($event, category)"
-            >
-              <VaCollapse
-                v-for="subcategory in category.subCategories"
-                :key="subcategory._id || subcategory.id"
-                :header="`${subcategory.name} - Sub Category`"
-                :class="{
-                  'no-arrow':
-                    !(subcategory.articles && subcategory.articles.length) &&
-                    !(subcategory.articlesOptionsGroup && subcategory.articlesOptionsGroup.length),
-                }"
-                color="#DEE5F2"
-                solid
-                class="list-group-item m-1 rounded-md text-center"
-              >
-                <VaAccordion v-if="subcategory.articles && subcategory.articles.length">
-                  <VueDraggableNext
-                    class="dragArea list-group w-full"
-                    :list="subcategory.articles"
-                    @change="movedArticle($event, category, subcategory)"
-                  >
-                    <VaCollapse
-                      v-for="article in subcategory.articles"
-                      :key="article._id || article.id"
-                      :header="`${article.name} - Article`"
-                      :class="{ 'no-arrow': !(article.articlesOptionsGroup && article.articlesOptionsGroup.length) }"
-                      color="#DEE5F2"
-                      solid
-                      class="list-group-item m-1 rounded-md text-center"
-                    >
-                      <VaAccordion v-if="article.articlesOptionsGroup && article.articlesOptionsGroup.length">
-                        <VueDraggableNext
-                          v-if="article.articlesOptionsGroup && article.articlesOptionsGroup.length"
-                          class="dragArea list-group w-full"
-                          :list="article.articlesOptionsGroup"
-                          @change="
-                            movedArticleGroup({
-                              is: 'articles',
-                              $event: $event,
-                              category: category,
-                              subCategory: subcategory,
-                              menuItems: article,
-                            })
-                          "
-                        >
-                          <VaCollapse
-                            v-for="articlesOptionsGroup in article.articlesOptionsGroup"
-                            :key="articlesOptionsGroup._id || articlesOptionsGroup.id"
-                            :header="`${articlesOptionsGroup.name} - Articles Options Group`"
-                            :class="{ 'no-arrow': !articlesOptionsGroup.articlesOptions.length }"
-                            color="#DEE5F2"
-                            solid
-                            class="list-group-item m-1 rounded-md text-center"
-                          >
-                            <VueDraggableNext
-                              v-if="articlesOptionsGroup.articlesOptions.length"
-                              class="dragArea list-group w-full"
-                              :list="articlesOptionsGroup.articlesOptions"
-                              :disabled="!articlesOptionsGroup.articlesOptions.length"
-                              @change="
-                                movedArticleOption({
-                                  is: 'articles',
-                                  $event: $event,
-                                  category: category,
-                                  subCategory: subcategory,
-                                  articlesOptionsGroup: articlesOptionsGroup,
-                                  menuItems: article,
-                                })
-                              "
-                            >
-                              <div
-                                v-for="articlesOptions in articlesOptionsGroup.articlesOptions"
-                                :key="articlesOptions._id || articlesOptions.id"
-                                class="list-group-item bg-gray-100 m-1 p-2 text-center cursor-pointer"
-                              >
-                                {{ articlesOptions.name }} - Article Option
-                              </div>
-                            </VueDraggableNext>
-                          </VaCollapse>
-                        </VueDraggableNext>
-                      </VaAccordion>
-                    </VaCollapse>
-                  </VueDraggableNext>
-                </VaAccordion>
+    <!-- Articles -->
+    <div :class="['column border rounded bg-white flex flex-col transition-all duration-300',
+      collapsed.articles ? 'collapsed' : 'flex-1']">
+      <div class="header">
+        <h3 v-if="!collapsed.articles" class="title">Articles</h3>
+        <button class="toggle-btn" @click="collapsed.articles = !collapsed.articles">
+          {{ collapsed.articles ? '+' : '−' }}
+        </button>
+      </div>
+      <div v-if="!collapsed.articles" class="flex-1 overflow-y-auto p-2">
+        <VueDraggableNext :list="filteredArticles"
+          @change="cat => movedArticle(cat, selectedCategory, selectedSubcategory)">
+          <div v-for="art in filteredArticles" :key="art._id"
+            :class="['item-card', selectedArticle?._id === art._id ? 'selected' : '']"
+            @click="selectedArticle = art; selectedGroup = null">
+            <VaIcon name="drag_indicator" class="cursor-move text-slate-400" /> {{ art.name }}
+          </div>
+        </VueDraggableNext>
+      </div>
+      <div v-else class="collapsed-title">Articles</div>
+    </div>
 
-                <VaAccordion v-if="subcategory.articlesOptionsGroup && subcategory.articlesOptionsGroup.length">
-                  <VueDraggableNext
-                    v-if="subcategory.articlesOptionsGroup && subcategory.articlesOptionsGroup.length"
-                    class="dragArea list-group w-full"
-                    :list="subcategory.articlesOptionsGroup"
-                    @change="
-                      movedArticleGroup({
-                        is: 'subCategory',
-                        $event: $event,
-                        category: category,
-                        subCategory: subcategory,
-                        menuItems: '',
-                      })
-                    "
-                  >
-                    <VaCollapse
-                      v-for="articlesOptionsGroup in subcategory.articlesOptionsGroup"
-                      :key="articlesOptionsGroup._id || articlesOptionsGroup.id"
-                      :header="`${articlesOptionsGroup.name} - Articles Options Group`"
-                      :class="{ 'no-arrow': !articlesOptionsGroup.articlesOptions.length }"
-                      color="#DEE5F2"
-                      solid
-                      class="list-group-item m-1 rounded-md text-center"
-                    >
-                      <VueDraggableNext
-                        v-if="articlesOptionsGroup.articlesOptions.length"
-                        class="dragArea list-group w-full"
-                        :list="articlesOptionsGroup.articlesOptions"
-                        :disabled="!articlesOptionsGroup.articlesOptions.length"
-                        @change="
-                          movedArticleOption({
-                            is: 'subCategory',
-                            $event: $event,
-                            category: category,
-                            subCategory: subcategory,
-                            menuItems: '',
-                            articlesOptionsGroup: articlesOptionsGroup,
-                          })
-                        "
-                      >
-                        <div
-                          v-for="articlesOptions in articlesOptionsGroup.articlesOptions"
-                          :key="articlesOptions._id || articlesOptions.id"
-                          class="list-group-item bg-gray-100 m-1 p-2 text-center cursor-pointer"
-                        >
-                          {{ articlesOptions.name }} - Article Option
-                        </div>
-                      </VueDraggableNext>
-                    </VaCollapse>
-                  </VueDraggableNext>
-                </VaAccordion>
-              </VaCollapse>
-            </VueDraggableNext>
-          </VaAccordion>
+    <!-- Groups -->
+    <div :class="['column border rounded bg-white flex flex-col transition-all duration-300',
+      collapsed.groups ? 'collapsed' : 'flex-1']">
+      <div class="header">
+        <h3 v-if="!collapsed.groups" class="title">Groups</h3>
+        <button class="toggle-btn" @click="collapsed.groups = !collapsed.groups">
+          {{ collapsed.groups ? '+' : '−' }}
+        </button>
+      </div>
+      <div v-if="!collapsed.groups" class="flex-1 overflow-y-auto p-2">
+        <VueDraggableNext :list="filteredGroups" @change="movedArticleGroup">
+          <div v-for="grp in filteredGroups" :key="grp._id"
+            :class="['item-card', selectedGroup?._id === grp._id ? 'selected' : '']" @click="selectedGroup = grp">
+            <VaIcon name="drag_indicator" class="cursor-move text-slate-400" /> {{ grp.name }}
+          </div>
+        </VueDraggableNext>
+      </div>
+      <div v-else class="collapsed-title">Groups</div>
+    </div>
 
-          <VaAccordion v-if="category.articles && category.articles.length">
-            <VueDraggableNext
-              class="dragArea list-group w-full"
-              :list="category.articles"
-              @change="movedArticle($event, category)"
-            >
-              <VaCollapse
-                v-for="article in category.articles"
-                :key="article._id || article.id"
-                :header="`${article.name} - Article`"
-                :class="{ 'no-arrow': !(article.articlesOptionsGroup && article.articlesOptionsGroup.length) }"
-                color="#DEE5F2"
-                solid
-                class="list-group-item m-1 rounded-md text-center"
-              >
-                <VaAccordion v-if="article.articlesOptionsGroup && article.articlesOptionsGroup.length">
-                  <VueDraggableNext
-                    v-if="article.articlesOptionsGroup && article.articlesOptionsGroup.length"
-                    class="dragArea list-group w-full"
-                    :list="article.articlesOptionsGroup"
-                    @change="
-                      movedArticleGroup({
-                        is: 'articles',
-                        $event: $event,
-                        category: category,
-                        subCategory: '',
-                        menuItems: article,
-                      })
-                    "
-                  >
-                    <VaCollapse
-                      v-for="articlesOptionsGroup in article.articlesOptionsGroup"
-                      :key="articlesOptionsGroup._id || articlesOptionsGroup.id"
-                      :header="`${articlesOptionsGroup.name} - Articles Options Group`"
-                      :class="{ 'no-arrow': !articlesOptionsGroup.articlesOptions.length }"
-                      color="#DEE5F2"
-                      solid
-                      class="list-group-item m-1 rounded-md text-center"
-                    >
-                      <VueDraggableNext
-                        v-if="articlesOptionsGroup.articlesOptions.length"
-                        class="dragArea list-group w-full"
-                        :list="articlesOptionsGroup.articlesOptions"
-                        :disabled="!articlesOptionsGroup.articlesOptions.length"
-                        @change="
-                          movedArticleOption({
-                            is: 'articles',
-                            $event: $event,
-                            category: category,
-                            subCategory: '',
-                            articlesOptionsGroup: articlesOptionsGroup,
-                            menuItems: article,
-                          })
-                        "
-                      >
-                        <div
-                          v-for="articlesOptions in articlesOptionsGroup.articlesOptions"
-                          :key="articlesOptions._id || articlesOptions.id"
-                          class="list-group-item bg-gray-100 m-1 p-2 text-center cursor-pointer"
-                        >
-                          {{ articlesOptions.name }} - Article Option
-                        </div>
-                      </VueDraggableNext>
-                    </VaCollapse>
-                  </VueDraggableNext>
-                </VaAccordion>
-              </VaCollapse>
-            </VueDraggableNext>
-          </VaAccordion>
+    <!-- Options -->
+    <div :class="['column border rounded bg-white flex flex-col transition-all duration-300',
+      collapsed.options ? 'collapsed' : 'flex-1']">
+      <div class="header">
+        <h3 v-if="!collapsed.options" class="title">Options</h3>
+        <button class="toggle-btn" @click="collapsed.options = !collapsed.options">
+          {{ collapsed.options ? '+' : '−' }}
+        </button>
+      </div>
+      <div v-if="!collapsed.options" class="flex-1 overflow-y-auto p-2">
+        <div v-if="sharedGroupNotice" class="shared-group-notice mb-2 text-sm text-gray-600 flex items-center gap-3">
+  <VaIcon name="info" class="text-blue-500 w-4 h-4" />
+  <span>{{ sharedGroupNotice }}</span>
+</div>
 
-          <VaAccordion v-if="category.articlesOptionsGroup && category.articlesOptionsGroup.length">
-            <VueDraggableNext
-              class="dragArea list-group w-full"
-              :list="category.articlesOptionsGroup"
-              @change="
-                movedArticleGroup({
-                  is: 'category',
-                  $event: $event,
-                  category: category,
-                  subCategory: '',
-                  menuItems: '',
-                })
-              "
-            >
-              <VaCollapse
-                v-for="articlesOptionsGroup in category.articlesOptionsGroup"
-                :key="articlesOptionsGroup._id || articlesOptionsGroup.id"
-                :header="`${articlesOptionsGroup.name} - Articles Options Group`"
-                :class="{ 'no-arrow': !articlesOptionsGroup.articlesOptions.length }"
-                color="#DEE5F2"
-                solid
-                class="list-group-item m-1 rounded-md text-center"
-              >
-                <VueDraggableNext
-                  v-if="articlesOptionsGroup.articlesOptions.length"
-                  class="dragArea list-group w-full"
-                  :list="articlesOptionsGroup.articlesOptions"
-                  :disabled="!articlesOptionsGroup.articlesOptions.length"
-                  @change="
-                    movedArticleOption({
-                      is: 'category',
-                      $event: $event,
-                      category: category,
-                      subCategory: subCategory,
-                      articlesOptionsGroup: articlesOptionsGroup,
-                      menuItems: '',
-                    })
-                  "
-                >
-                  <div
-                    v-for="articlesOptions in articlesOptionsGroup.articlesOptions"
-                    :key="articlesOptions._id || articlesOptions.id"
-                    class="list-group-item bg-gray-100 m-1 p-2 text-center cursor-pointer"
-                  >
-                    {{ articlesOptions.name }} - Article Option
-                  </div>
-                </VueDraggableNext>
-              </VaCollapse>
-            </VueDraggableNext>
-          </VaAccordion>
-        </VaCollapse>
-      </VueDraggableNext>
-    </VaAccordion>
+        <VueDraggableNext :list="filteredOptions" @change="movedArticleOption">
+          <div v-for="opt in filteredOptions" :key="opt._id" class="item-card">
+            <VaIcon name="drag_indicator" class="cursor-move text-slate-400" /> {{ opt.name }}
+          </div>
+        </VueDraggableNext>
+      </div>
+      <div v-else class="collapsed-title">Options</div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.category,
-.subcategory,
-.article {
-  padding: 6px;
-  margin: 4px 0;
-  background: #f5f5f5;
-  border: 1px solid #ccc;
+.organize-menu {
+  width: 100%;
+  height: calc(100vh - 6rem);
 }
-.drag-header {
-  cursor: grab;
-  background: #ddd;
-  padding: 4px;
+
+.column {
+  min-width: 220px;
+}
+
+.column.collapsed {
+  min-width: 46px;
+  max-width: 46px;
+  flex: none;
+  padding: 0rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+  padding: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.title {
+  flex: 1;
+  text-align: center;
   font-weight: bold;
 }
-.sortable-container {
-  margin-left: 20px;
+
+.toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 0.5rem;
+  background: #f8f9fa;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
-::v-deep(.va-collapse__body-wrapper--bordered) {
-  border-bottom: 0px !important;
+
+.toggle-btn:hover {
+  background: #f3f6f8;
+  color: #111827;
 }
-::v-deep(.no-arrow .va-icon) {
-  display: none !important;
+
+.toggle-btn:active {
+  transform: scale(0.95);
 }
-::v-deep(.no-arrow .va-collapse__header) {
-  cursor: default !important;
+
+.collapsed-title {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-weight: bold;
+  color: #374151;
+  margin: 0;
+  margin-top: 1rem;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+}
+
+.item-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  margin-bottom: 0.375rem;
+  border-radius: 0.5rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  transition: all 0.15s ease-in-out;
+  cursor: move;
+}
+
+.item-card:hover {
+  background: #f2f6f8;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.item-card.selected {
+  background: #f0f9ff;
+  border-color: #3b82f6;
+}
+
+.shared-group-notice {
+  font-style: italic;
+  font-size: small;
+  background: #f9fafb;
+  padding: 0.25rem 0.5rem;
+  border: 2px solid #3b82f6;
+  border-radius: 0.5rem;
 }
 </style>
