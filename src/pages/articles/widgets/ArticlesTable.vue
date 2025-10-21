@@ -393,7 +393,7 @@ function openFileModal(data) {
           buttons-preset="default"
           gapped
           :visible-pages="3"
-          class="sm:ml-4 justify-center"
+          class="sm:ml-4 justify-center theme-gradient"
         />
       </div>
     </div>
@@ -682,8 +682,7 @@ function openFileModal(data) {
                   'font-semibold text-slate-500 dark:text-slate-400': selectedCategoryFilter === null,
                   'font-normal': selectedCategoryFilter !== null,
                 }"
-               @click="selectedCategoryFilter = null; showCategoryFilterMenu = false"
-
+                @click="(selectedCategoryFilter = null), (showCategoryFilterMenu = false)"
               >
                 All Categories
               </button>
@@ -697,7 +696,7 @@ function openFileModal(data) {
                   'font-semibold text-slate-500 dark:text-slate-400': selectedCategoryFilter === (cat._id || cat.id),
                   'font-normal': selectedCategoryFilter !== (cat._id || cat.id),
                 }"
-                 @click="selectedCategoryFilter = cat._id || cat.id; showCategoryFilterMenu = false"
+                @click="(selectedCategoryFilter = cat._id || cat.id), (showCategoryFilterMenu = false)"
               >
                 {{ cat.name }}
               </button>

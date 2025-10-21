@@ -279,8 +279,17 @@ const filteredList = computed(() => {
     // Split display text into words
     const displayWords = displayText.split(/[\s,.-]+/).filter((word) => word.length > 0)
 
-    // Check that all search words match complete words in the display text
-    return searchWords.every((searchWord) => displayWords.some((displayWord) => displayWord === searchWord))
+    // Check that all search words match the beginning of words in the display text
+    return searchWords.every((searchWord) => {
+      return displayWords.some((displayWord) => {
+        // For shorter search terms (1-2 chars), require exact match
+        if (searchWord.length < 3) {
+          return displayWord === searchWord
+        }
+        // For longer search terms, allow partial matches from the start of the word
+        return displayWord.startsWith(searchWord)
+      })
+    })
   }
 
   if (props.type === 'options') {
@@ -290,10 +299,22 @@ const filteredList = computed(() => {
   }
 })
 
+const selectedItemsCount = computed(() => {
+  return props.type === 'options' ? selectedArticles.value.filter(a => a.isChecked).length : selectedMenuItems.value.filter(a => a.isChecked).length
+})
+
 const selectedIds = computed(() => {
+  // Get the correct list based on type
   const ids = props.type === 'options' ? selectedArticles.value : selectedMenuItems.value
-  console.log('[computed:selectedIds] Current selectedIds:', ids)
-  return ids
+
+  // Ensure we're working with an array and all IDs are strings
+  const normalizedIds = (Array.isArray(ids) ? ids : []).map(String)
+
+  // Remove any potential duplicates
+  const uniqueIds = [...new Set(normalizedIds)]
+
+  console.log('[computed:selectedIds] Current selectedIds:', uniqueIds)
+  return uniqueIds
 })
 
 if (props.type === 'options') {
@@ -375,28 +396,32 @@ watch([promotionData, items, articles], async ([promo]) => {
 })
 
 watch(selectAll, (value) => {
-  const sIds = sourceList.value.filter((a) => a.display)
-  const visibleIds =
-    props.type === 'options'
-      ? sIds
-          .filter((a) => a._id === selectedGroup.value || !selectedGroup.value)
-          .flatMap((a) => a.computedOptions)
-          .filter((a) => a.display)
-          .map((a) => String(a._id))
-      : sIds.map((item) => String(item._id))
-  const targetList: any = props.type === 'options' ? selectedArticles : selectedMenuItems
+  // Get the list of items based on whether we have a search query
+  let itemsToSelect = searchQuery.value ? filteredList.value : sourceList.value
+
+  // For options type, handle special case
+  if (props.type === 'options' && !searchQuery.value) {
+    itemsToSelect = sourceList.value
+      .filter((group) => group._id === selectedGroup.value || !selectedGroup.value)
+      .flatMap((group) => group.computedOptions || [])
+  }
+
+  // Get the IDs to work with
+  const itemIds = itemsToSelect.map((item) => String(item._id))
+
+  // Get reference to the correct target list
+  const targetList = props.type === 'options' ? selectedArticles : selectedMenuItems
 
   if (value) {
-    // Add all visible (filtered) IDs that are not already selected
-    visibleIds.forEach((id) => {
-      if (!targetList.value.includes(id)) targetList.value.push(id)
+    // Select all items - add new IDs that aren't already selected
+    itemIds.forEach((id) => {
+      if (!targetList.value.includes(id)) {
+        targetList.value.push(id)
+      }
     })
   } else {
-    // Remove only visible (filtered) IDs
-    for (const id of visibleIds) {
-      const index = targetList.value.indexOf(id)
-      if (index !== -1) targetList.value.splice(index, 1)
-    }
+    // Deselect items - only remove IDs that are in our current view
+    targetList.value = targetList.value.filter((id) => !itemIds.includes(id))
   }
 })
 

@@ -125,6 +125,7 @@ const totalPages = computed(() => Math.ceil(props.pagination.total / props.pagin
         :visible-pages="5"
         :boundary-links="false"
         :direction-links="false"
+        class="theme-gradient"
       />
     </div>
   </div>
