@@ -182,6 +182,7 @@ const formatProjectNames = (projects: Project['id'][]) => {
         :visible-pages="5"
         :boundary-links="false"
         :direction-links="false"
+        class="theme-gradient"
       />
     </div>
   </div>

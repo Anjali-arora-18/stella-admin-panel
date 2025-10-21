@@ -125,7 +125,7 @@ watch(searchQuery, (search) => {
           buttons-preset="default"
           gapped
           :visible-pages="3"
-          class="justify-center"
+          class="justify-center theme-gradient"
         />
       </div>
     </div>

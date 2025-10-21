@@ -72,7 +72,7 @@ const getArticles = async () => {
 const getCategories = async (outletId) => {
   isLoading.value = true
   await categoriesStore.getAll(outletId)
-  const items = categoriesStore.items.map((item) => ({
+  const items = categoriesStore.items.map(item => ({
     _id: item._id || '',
     name: item.name || '',
     subCategories: item.subCategories || [],
@@ -445,6 +445,12 @@ const sharedGroupNotice = computed(() => {
   flex: 1;
   text-align: center;
   font-weight: bold;
+  color: #374151;
+  margin: 0;
+  margin-top: 1rem;
+  align-items: center;
+  justify-content: center;
+  display: flex;
 }
 
 .toggle-btn {
@@ -511,7 +517,7 @@ const sharedGroupNotice = computed(() => {
   font-size: small;
   background: #f9fafb;
   padding: 0.25rem 0.5rem;
-  border: 2px solid #70a5fa;
+  border: 2px solid #3b82f6;
   border-radius: 0.5rem;
 }
 </style>

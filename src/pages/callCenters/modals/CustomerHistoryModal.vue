@@ -619,8 +619,6 @@ import HistoryAddNoteModal from './HistoryAddNoteModal.vue'
 import HistoryComplaintModal from './HistoryComplaintModal.vue'
 import { useToast } from 'vuestic-ui'
 import { useServiceStore } from '@/stores/services.ts'
-
-
 const { init } = useToast()
 const props = defineProps({
   customer: { type: Object, required: true },
@@ -635,6 +633,8 @@ const props = defineProps({
   deliveryFee: { type: Number, default: 0 },
   selectedTab: { type: String, default: '' },
 })
+
+const liveStatus = ref(null)
 
 const emits = defineEmits(['close'])
 
@@ -1135,6 +1135,14 @@ const getPromisedTime = (createdAt, orderType) => {
 const getOrderSource = (source) => {
   if (!source) return ''
   return source === 'CC' ? 'Call Center' : source
+}
+
+const getDisplayStatus = (order, index) => {
+  // For the latest order, override with live status
+  if (index === 0 && liveStatus.value) {
+    return liveStatus.value
+  }
+  return order.status
 }
 
 const getDeliveryZoneName = (deliveryZoneId) => {
