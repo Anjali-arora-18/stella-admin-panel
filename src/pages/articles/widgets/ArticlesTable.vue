@@ -415,8 +415,7 @@ function openFileModal(data) {
           buttons-preset="default"
           gapped
           :visible-pages="3"
-          class="sm:ml-4 justify-center"
-          
+          class="sm:ml-4 justify-center theme-gradient"
         />
       </div>
     </div>

@@ -144,13 +144,24 @@ const hasAtLeastOneSelection = computed(() => {
 const { addOnPrice } = storeToRefs(menuStore)
 
 function addToBasket() {
-  orderStore.offersAdded({
-    ...offer.value,
-    offerId: offer.value._id,
-    selectionTotalPrice: addOnPrice.value,
-    quantity: 1,
-    totalPrice: offer.value.price + addOnPrice.value,
-  })
+  if (!props.isEdit) {
+    orderStore.offersAdded({
+      ...offer.value,
+      offerId: offer.value._id,
+      selectionTotalPrice: addOnPrice.value,
+      quantity: 1,
+      totalPrice: offer.value.price + addOnPrice.value,
+    })
+  } else {
+    orderStore.offersUpdated({
+      ...offer.value,
+      offerId: offer.value._id,
+      selectionTotalPrice: addOnPrice.value,
+      quantity: 1,
+      totalPrice: offer.value.price + addOnPrice.value,
+      index: props.item.index,
+    })
+  }
   emits('cancel')
 }
 </script>

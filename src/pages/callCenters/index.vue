@@ -218,6 +218,7 @@ const getOffers = async () => {
   const url = import.meta.env.VITE_API_BASE_URL
 
   const response = await axios.get(url + '/offers?outletId=' + serviceStore.selectedRest)
+  orderStore.offers = response.data.data
   offers.value = response.data.data
 }
 
@@ -323,6 +324,16 @@ watch(
   },
   { deep: true },
 )
+
+// watch(
+//   () => orderStore.editOrder,
+//   (ord) => {
+//     if (ord && customerRef?.value?.fromEditOrder) {
+//       customerRef.value.fromEditOrder(ord)
+//     }
+//   },
+//   { immediate: true }
+// )
 
 watch(
   () => orderStore.offerItems,

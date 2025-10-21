@@ -220,9 +220,22 @@
             <RouterLink
               :class="[
                 'flex items-center py-1 rounded-lg transition mr-2 pl-2 -ml-2',
+                $route.name === 'outletUsers'
+                  ? 'bg-slate-100 text-slate-900 font-semibold'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-700',
+              ]"
+              to="/outletUsers"
+            >
+              <VaIcon name="people" class="mr-2" />
+              Outlet Users
+            </RouterLink>
+
+            <RouterLink
+              :class="[
+                'flex items-center py-1 rounded-lg transition mr-2 pl-2 -ml-2',
                 $route.name === 'areas'
                   ? 'bg-slate-100 text-slate-900 font-semibold'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-700'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-700',
               ]"
               to="/areas"
             >
@@ -256,14 +269,18 @@
               Payments
             </RouterLink>
 
-            <span class="flex items-center py-1 rounded-lg mr-2 pl-2 -ml-2 text-slate-400 cursor-not-allowed"
-  title="Coming Soon">
+            <span
+              class="flex items-center py-1 rounded-lg mr-2 pl-2 -ml-2 text-slate-400 cursor-not-allowed"
+              title="Coming Soon"
+            >
               <VaIcon name="qr_code_scanner" class="mr-2"></VaIcon>
               QR Codes
             </span>
 
-            <span class="flex items-center py-1 rounded-lg mr-2 pl-2 -ml-2 text-slate-400 cursor-not-allowed"
-  title="Coming Soon">
+            <span
+              class="flex items-center py-1 rounded-lg mr-2 pl-2 -ml-2 text-slate-400 cursor-not-allowed"
+              title="Coming Soon"
+            >
               <VaIcon name="mso-globe" class="mr-2"></VaIcon>
               Languages
             </span>

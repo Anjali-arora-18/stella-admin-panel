@@ -262,6 +262,9 @@
             </span>
 
             <span
+              v-if="
+                index === 0 && (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack')
+              "
               size="small"
               class="flex items-center gap-1 rounded-full text-white px-2 py-2 font-semibold text-xs cursor-pointer bg-green-600 hover:bg-green-700 transition-colors"
               @click.stop="openConfirm('add', order._id)"
@@ -270,6 +273,9 @@
             </span>
 
             <span
+              v-if="
+                index === 0 && (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack')
+              "
               size="small"
               class="flex items-center gap-1 rounded-full text-white px-2 py-2 font-semibold text-xs cursor-pointer bg-red-600 hover:bg-red-700 transition-colors"
               @click.stop="openConfirm('cancel', order._id)"
@@ -279,39 +285,150 @@
           </div>
 
           <span
-  class="px-3 py-2 rounded-full text-xs font-semibold tracking-wide flex items-center gap-1 transition-colors"
-  :class="{
-    'bg-green-600 text-white': getDisplayStatus(order, index) === 'Completed',
-    'bg-yellow-500 text-white': ['KDS', 'OnRack', 'Preparing'].includes(getDisplayStatus(order, index)),
-    'bg-red-600 text-white': getDisplayStatus(order, index) === 'Cancelled',
-  }"
->
-  <template v-if="getDisplayStatus(order, index) === 'Completed'">
-    <CheckCircle class="w-3.5 h-3.5" />
-  </template>
-  <template v-else-if="['KDS', 'OnRack', 'Preparing'].includes(getDisplayStatus(order, index))">
-    <Loader2 class="w-3.5 h-3.5 animate-spin-slow" />
-  </template>
-  <template v-else-if="getDisplayStatus(order, index) === 'Cancelled'">
-    <XCircle class="w-3.5 h-3.5" />
-  </template>
-  {{ getDisplayStatus(order, index) }}
-</span>
+            v-if="
+              index === 0 && (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack')
+            "
+            class="px-3 py-2 rounded-full text-xs font-semibold tracking-wide flex items-center gap-1 transition-colors capitalize"
+            :class="{
+              'bg-yellow-500 text-white': true,
+            }"
+          >
+            <Loader2 class="w-3.5 h-3.5 animate-spin-slow" />
+            {{ orderStatuses === 'onrack' ? 'On Rack' : orderStatuses }}
+          </span>
+
+          <span
+            v-else
+            class="px-3 py-2 rounded-full text-xs font-semibold tracking-wide flex items-center gap-1 transition-colors"
+            :class="{
+              'bg-green-600 text-white': order.status === 'Completed',
+              'bg-yellow-500 text-white': order.status === 'In Progress',
+              'bg-red-600 text-white': order.status === 'Cancelled',
+            }"
+          >
+            <template v-if="order.status === 'Completed'">
+              <CheckCircle class="w-3.5 h-3.5" />
+            </template>
+            <template v-else-if="order.status === 'In Progress'">
+              <Loader2 class="w-3.5 h-3.5 animate-spin-slow" />
+            </template>
+            <template v-else-if="order.status === 'Cancelled'">
+              <XCircle class="w-3.5 h-3.5" />
+            </template>
+            {{ order.status }}
+          </span>
         </div>
 
         <!-- EXPANDABLE ARTICLE LIST -->
         <div v-if="expandedIndex === index" class="bg-white px-6 pb-4 border-t border-gray-200">
           <div
+            v-for="(offer, idx) in order.offerDetails || []"
+            :key="idx"
+            class="flex flex-col justify-between py-2 border-b last:border-none relative"
+            :class="{
+              'bg-gray-50 text-black': isOfferSelected(order._id, idx),
+              'hover:bg-gray-50 cursor-pointer':
+                index === 0 && (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack'),
+              'opacity-60 cursor-not-allowed':
+                index !== 0 ||
+                !(orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack'),
+            }"
+            @click="
+              index === 0 &&
+                (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack') &&
+                toggleOfferSelection(order._id, idx)
+            "
+          >
+            <div
+              v-if="
+                !orderStatuses &&
+                !(orderStatuses === 'kds' && orderStatuses === 'preparing' && orderStatuses === 'onrack')
+              "
+              class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
+            >
+              <Ban class="w-4 h-4" />
+            </div>
+            <div v-if="isOfferSelected(order._id, idx)" class="absolute left-2 top-1/2 -translate-y-1/2">
+              <VaCheckbox
+                :model-value="true"
+                color="primary"
+                :readonly="true"
+                class="pointer-events-none"
+                @click.stop
+              />
+            </div>
+            <span class="pl-8">{{ offer.offerName }}</span>
+            <div v-for="item in offer.offerItems" :key="item._id" class="flex flex-row justify-between">
+              <div
+                class="flex flex-wrap items-center gap-2 pt-1 pl-10"
+                :class="isOfferSelected(order._id, idx) ? 'pl-10' : 'pl-12'"
+              >
+                <p class="font-semibold text-xs">
+                  {{ item.quantity }} x {{ item.name }}
+                  <span
+                    v-if="item.extra"
+                    class="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-normal"
+                  >
+                    {{ item.extra }}</span
+                  >
+                </p>
+
+                <div class="flex flex-wrap gap-1 text-xs">
+                  <span
+                    v-for="addon in item.options || []"
+                    :key="addon.name"
+                    class="px-2 py-0.5 rounded-full"
+                    :class="{
+                      'bg-green-100 text-green-700': addon.type.toLowerCase() === 'extra',
+                      'bg-blue-100 text-blue-700': addon.type.toLowerCase() === 'article',
+                      'bg-red-100 text-red-700': addon.type.toLowerCase() === 'hold',
+                      'bg-amber-100 text-amber-700': addon.type.toLowerCase() === 'modifier',
+                    }"
+                  >
+                    {{ addon.name }}
+                    <span v-if="addon.price > 0">(€{{ addon.price.toFixed(2) }})</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center justify-end pr-0">
+              <template v-if="!offer.overrideUnitPrice">
+                <span class="font-bold">€ {{ offer.totalPrice.toFixed(2) }}</span>
+              </template>
+              <template v-else>
+                <span class="font-bold line-through">€ {{ offer.totalPrice.toFixed(2) }}</span>
+                <span class="font-bold text-red-700">€ {{ offer.overrideUnitPrice.toFixed(2) }}</span>
+              </template>
+            </div>
+            <div v-if="offer.overrideUnitPrice">{{ offer.overrideUnitPrice }}</div>
+          </div>
+          <div
             v-for="(item, idx) in order.menuItems || []"
             :key="idx"
-            class="flex justify-between items-start py-2 border-b last:border-none cursor-pointer relative"
+            class="flex justify-between items-start py-2 border-b last:border-none relative"
             :class="{
-              'bg-gray-50': isItemSelected(order._id, idx),
-              'hover:bg-gray-50': true,
+              'bg-gray-50 text-black': isItemSelected(order._id, idx),
+              'hover:bg-gray-50 cursor-pointer':
+                index === 0 && (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack'),
+              'opacity-60 cursor-not-allowed':
+                index !== 0 ||
+                !(orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack'),
             }"
-            @click="toggleItemSelect(order._id, idx)"
+            @click="
+              index === 0 &&
+                (orderStatuses === 'kds' || orderStatuses === 'preparing' || orderStatuses === 'onrack') &&
+                toggleItemSelect(order._id, idx)
+            "
           >
-            <!-- Checkbox only when selected -->
+            <div
+              v-if="
+                !orderStatuses &&
+                !(orderStatuses === 'kds' && orderStatuses === 'preparing' && orderStatuses === 'onrack')
+              "
+              class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
+            >
+              <Ban class="w-4 h-4" />
+            </div>
             <div v-if="isItemSelected(order._id, idx)" class="absolute left-2 top-1/2 -translate-y-1/2">
               <VaCheckbox
                 :model-value="true"
@@ -355,8 +472,11 @@
                 </span>
               </div>
             </div>
-
-            <span class="font-bold">€ {{ getTotalPrice(item) }}</span>
+            <span v-if="!item.overrideUnitPrice" class="font-bold">€ {{ getTotalPrice(item) }}</span>
+            <div v-if="item.overrideUnitPrice" class="space-x-2">
+              <span class="font-bold line-through">€ {{ getTotalPrice(item) }}</span>
+              <span class="font-bold text-red-700">€ {{ item.overrideUnitPrice }}</span>
+            </div>
           </div>
 
           <!-- Totals -->
@@ -393,7 +513,7 @@
           <div class="flex gap-2">
             <button
               class="px-3 py-1 rounded-full bg-red-500 text-white font-semibold text-xs transition disabled:opacity-40 disabled:cursor-not-allowed"
-              :disabled="!hasSelectedForOrder(order._id)"
+              :disabled="!hasSelectedForOrder(order._id) || !['Completed', 'Cancelled'].includes(order.status)"
               @click="openConfirm('remove', order._id)"
             >
               Remove
@@ -401,7 +521,7 @@
 
             <button
               class="px-3 py-1 rounded-full bg-yellow-400 text-xs text-white font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed"
-              :disabled="!hasSelectedForOrder(order._id)"
+              :disabled="!hasSelectedForOrder(order._id) || !['Completed', 'Cancelled'].includes(order.status)"
               @click="openConfirm('edit', order._id)"
             >
               Edit
@@ -555,6 +675,7 @@ const users = ref([])
 const expandedIndex = ref(null)
 const isLoading = ref(true)
 const selectedItems = reactive({})
+const selectedOfferItems = reactive({})
 const selectedPeriod = ref('1 Month')
 
 const isConfirmOpen = ref(false)
@@ -659,12 +780,31 @@ const toggleItemSelect = (orderId, idx) => {
   }
 }
 
+const toggleOfferSelection = (orderId, idx) => {
+  if (!selectedOfferItems[orderId]) {
+    selectedOfferItems[orderId] = []
+  }
+  const pos = selectedOfferItems[orderId].indexOf(idx)
+  if (pos > -1) {
+    selectedOfferItems[orderId].splice(pos, 1)
+  } else {
+    selectedOfferItems[orderId].push(idx)
+  }
+}
+
 const isItemSelected = (orderId, idx) => {
   return Array.isArray(selectedItems[orderId]) && selectedItems[orderId].includes(idx)
 }
 
+const isOfferSelected = (orderId, idx) => {
+  return Array.isArray(selectedOfferItems[orderId]) && selectedOfferItems[orderId].includes(idx)
+}
+
 const hasSelectedForOrder = (orderId) => {
-  return Array.isArray(selectedItems[orderId]) && selectedItems[orderId].length > 0
+  return (
+    (Array.isArray(selectedItems[orderId]) && selectedItems[orderId].length > 0) ||
+    (selectedOfferItems[orderId] && selectedOfferItems[orderId].length)
+  )
 }
 
 const removeSelected = async (orderId) => {
@@ -672,18 +812,47 @@ const removeSelected = async (orderId) => {
   if (!order) return
 
   const items = (selectedItems[orderId] || []).map((i) => order.menuItems[i])
-  if (!items.length) return
 
-  const payload = buildOfferMenuItemsPayload(items)
-  console.log(payload)
+  const offersItems = (selectedOfferItems[orderId] || []).map((i) => order.offerDetails[i])
+  if (!items.length && !offersItems.length) return
 
-  // Await all API calls in parallel and wait for all to finish
+  const payload = buildOrderMenuItemsPayload(items)
+  const offerPayload = buildOfferMenuItemsPayload(offersItems)
+
   await Promise.all(
     payload.menuItems.map((item) => {
       const data = {
         menuItems: [
           {
             menuItem: item.menuItem,
+            quantity: item.quantity,
+            options: (item.options || []).map((opt) => ({
+              option: opt.option,
+              quantity: opt.quantity || 1,
+            })),
+          },
+        ],
+      }
+      return applyOrderEdit(orderId, 'delete', order.tableNumber, data)
+    }),
+  )
+
+  await Promise.all(
+    offerPayload.menuItems.map((item) => {
+      const data = {
+        offerMenuItems: [
+          {
+            offerId: item.offerId,
+            menuItems: [
+              {
+                menuItem: item.menuItem,
+                quantity: item.quantity,
+                options: (item.options || []).map((opt) => ({
+                  option: opt.option,
+                  quantity: opt.quantity || 1,
+                })),
+              },
+            ],
           },
         ],
       }
@@ -698,12 +867,11 @@ const editSelected = async (orderId) => {
   const order = orders.value.find((o) => o._id === orderId)
   if (!order) return
 
-  // const items = (selectedItems[orderId] || []).map((i) => order.menuItems[i])
-  // if (!items.length) return
+  const items = (selectedItems[orderId] || []).map((i) => order.menuItems[i])
+  const offersItems = (selectedOfferItems[orderId] || []).map((i) => order.offerDetails[i])
+  if (!items.length && !offersItems.length) return
 
-  // console.log('Edit items:', items)
-
-  const data = order.menuItems.map((menuItem) => {
+  const data = items.map((menuItem) => {
     return {
       orderId: orderId,
       itemId: menuItem._id,
@@ -739,15 +907,50 @@ const editSelected = async (orderId) => {
           }
         }),
     }
+    selectedItems[orderId] = []
   })
 
   const orderStore = useOrderStore()
-  orderStore.addEditOrder(order)
+  orderStore.resetEditOrder()
+  orderStore.setCartItems([])
   data.map((e) => {
     orderStore.addItemToCart(e)
     const newIndex = orderStore.cartItems.length - 1
     orderStore.calculateItemTotal(newIndex)
   })
+
+  if (offersItems.length) {
+    offersItems.map((e) => {
+      let selectionTotal = 0
+      e.structuredOffer.selections.forEach((item) => {
+        item.addedItems.forEach((addedItem) => {
+          selectionTotal += addedItem.basePrice * addedItem.quantity
+          addedItem.selectedOptions.forEach((group) => {
+            group.selected.forEach((selection) => {
+              selectionTotal += selection.price * selection.quantity
+            })
+          })
+        })
+      })
+      orderStore.offersAdded({
+        ...e.structuredOffer,
+        _id: e.offerId,
+        offerId: e.offerId,
+        basePrice: e.structuredOffer.price,
+        selectionTotalPrice: selectionTotal,
+        totalPrice: e.structuredOffer.price + selectionTotal,
+        quantity: 1,
+      })
+    })
+  }
+
+  // selectedOfferItems[orderId] = []
+
+  const total =
+    orderStore.cartItems.reduce((sum, item) => sum + item.totalPrice, 0) +
+    orderStore.offerItems.reduce((sum, item) => sum + item.totalPrice, 0)
+  order.editOrderTotal = total
+  orderStore.addEditOrder(order)
 
   emits('close')
 }
@@ -759,6 +962,7 @@ const repeatOrder = async (orderId) => {
     return {
       itemId: menuItem._id,
       itemName: menuItem.menuItem,
+      description: menuItem.description,
       basePrice: parseFloat(menuItem.price) || 0,
       totalPrice: 0,
       imageUrl: menuItem.imageUrl || '',
@@ -792,6 +996,30 @@ const repeatOrder = async (orderId) => {
     }
   })
   const orderStore = useOrderStore()
+
+  order.offerDetails.map((e) => {
+    let selectionTotal = 0
+    e.structuredOffer.selections.forEach((item) => {
+      item.addedItems.forEach((addedItem) => {
+        selectionTotal += addedItem.basePrice * addedItem.quantity
+        addedItem.selectedOptions.forEach((group) => {
+          group.selected.forEach((selection) => {
+            selectionTotal += selection.price * selection.quantity
+          })
+        })
+      })
+    })
+    orderStore.offersAdded({
+      ...e.structuredOffer,
+      _id: e.offerId,
+      offerId: e.offerId,
+      basePrice: e.structuredOffer.price,
+      selectionTotalPrice: selectionTotal,
+      totalPrice: e.structuredOffer.price + selectionTotal,
+      quantity: 1,
+    })
+  })
+
   data.map((e) => {
     orderStore.addItemToCart(e)
     const newIndex = orderStore.cartItems.length - 1
@@ -804,14 +1032,11 @@ const repeatOrder = async (orderId) => {
 const addItemsToOrder = async (orderId) => {
   const order = orders.value.find((o) => o._id === orderId)
   if (!order) return
-
-  const items = (selectedItems[orderId] || []).map((i) => order.menuItems[i])
-  if (!items.length) return
-
-  const payload = buildOfferMenuItemsPayload(items, '687e0a484e996f117b336b39') // pass actual offerId
-
-  await applyOrderEdit(orderId, 'add', order.tableNumber, payload)
-  fetchOrders()
+  const orderStore = useOrderStore()
+  orderStore.resetEditOrder()
+  orderStore.setCartItems([])
+  orderStore.addEditOrder({ ...order, editOrderTotal: 0 })
+  emits('close')
 }
 
 const cancelOrder = async (orderId) => {
@@ -821,8 +1046,7 @@ const cancelOrder = async (orderId) => {
   await applyOrderEdit(orderId, 'cancel', order.tableNumber)
   fetchOrders()
 }
-const buildOfferMenuItemsPayload = (items) => {
-  // Group items by offerId (because one order can have multiple offers)
+const buildOrderMenuItemsPayload = (items) => {
   const menuItems = []
 
   items.forEach((item) => {
@@ -831,9 +1055,31 @@ const buildOfferMenuItemsPayload = (items) => {
       quantity: item.quantity,
       isFree: !!item.isFree,
       options: (item.options || []).map((opt) => ({
-        option: opt._id,
+        option: opt.option,
         quantity: opt.quantity || 1,
       })),
+    })
+  })
+
+  // Transform into offerMenuItems array
+  return {
+    menuItems,
+  }
+}
+
+const buildOfferMenuItemsPayload = (items) => {
+  const menuItems = []
+  items.forEach((offer) => {
+    offer.offerItems.forEach((item) => {
+      menuItems.push({
+        offerId: offer.offerId,
+        menuItem: item.menuItem,
+        quantity: item.quantity,
+        options: (item.options || []).map((opt) => ({
+          option: opt.option,
+          quantity: opt.quantity || 1,
+        })),
+      })
     })
   })
 
@@ -913,41 +1159,140 @@ const ordersToShow = computed(() => {
   return showAll.value ? orders.value : orders.value.slice(0, 5)
 })
 
+const orderStatuses = ref(null)
+
 const url = import.meta.env.VITE_API_BASE_URL
+const coordurl = import.meta.env.VITE_COORD_API_URL
 
 const fetchOrderStatus = async () => {
+  const users = useUsersStore()
   const outlet = useServiceStore()
+  const orderStore = useOrderStore()
+  const offers = orderStore.offers
   try {
-    const res = await axios.get(
-      'https://coord.restuspos.com/CoordApi/v1/Stella/GetOrderStatusByMobile',
-      {
-        params: {
-          mobile: props.selectedUser.MobilePhone,
-          w4CompanyCode: outlet.restDetails.winmaxConfig.company,
+    const base = coordurl.replace(/\/+$/, '')
+    const urlC = `${base}/CoordApi/v1/Stella/GetOrderStatusByMobile`
+    const res = await axios.get(urlC, {
+      params: {
+        mobile: props.selectedUser.MobilePhone,
+        w4CompanyCode: outlet.restDetails.winmaxConfig.company.toLowerCase(),
+      },
+      headers: {
+        'X-API-Key': '1234567890',
+      },
+      transformRequest: [
+        (data, headers) => {
+          if (headers && headers.hasOwnProperty('Authorization')) {
+            delete headers['Authorization']
+          }
+          return data
         },
-        headers: { 'X-API-Key': '1234567890' },
-      }
-    )
-
+      ],
+    })
     if (res.data?.statusCode) {
-      liveStatus.value = res.data.statusCode
+      orderStatuses.value = res.data.statusCode.toLowerCase()
     } else {
-      liveStatus.value = null
+      orderStatuses.value = null
     }
   } catch (error) {
-    liveStatus.value = null
+    orderStatuses.value = null
   }
 }
- 
+
+const mapOfferDetailsToSelections = (offerDetailsResponse, detailedOfferPayload) => {
+  const detailedSelections = JSON.parse(JSON.stringify(detailedOfferPayload.selections)) // deep clone
+
+  // Flatten offerItems from the first offerDetails
+  const offerItems = offerDetailsResponse.offerItems || []
+
+  const storeMenuItems = useMenuStore().categories.flatMap((a) => a.menuItems)
+
+  offerItems.forEach((item) => {
+    detailedSelections.forEach((selection) => {
+      // find menuItem match in this selection
+      const matchedMenuItem = selection.menuItems.find((mi) => mi.menuItemId === item.menuItem)
+
+      if (matchedMenuItem) {
+        const storeMenu = storeMenuItems.find((a) => a._id === item.menuItem)
+
+        // Initialize addedItems array if not already
+        if (!selection.addedItems) selection.addedItems = []
+
+        const optionIds = (item.options || []).map((a) => a.option)
+        const articleOptionsGroup = storeMenu.articlesOptionsGroup.filter((group) =>
+          group.articlesOptions.some((opt) => optionIds.includes(opt.id)),
+        )
+        if (selection.addedItems.length < selection.max) {
+          selection.addedItems.push({
+            articlesOptionsGroups: storeMenu.articlesOptionsGroup,
+            itemId: item.menuItem, // or item._id
+            quantity: item.quantity,
+            imageUrl: storeMenu.imageUrl,
+            itemDescription: storeMenu.description,
+            basePrice: item.price.toFixed(2),
+            itemName: item.name,
+            code: item.code,
+            // also map options if you want:
+            selectedOptions: articleOptionsGroup.map((group) => {
+              return {
+                groupId: group._id,
+                groupName: group?.name,
+                selected: item.options
+                  ?.filter((opt) => group.articlesOptions.some((gOpt) => gOpt._id === opt.option))
+                  .map((opt) => ({
+                    optionId: opt.option,
+                    name: opt.name,
+                    quantity: opt.quantity,
+                    price: opt.price,
+                    type: opt.type,
+                  })),
+              }
+            }),
+          })
+          console.log(selection.addedItems)
+        }
+      }
+    })
+  })
+
+  return {
+    ...detailedOfferPayload,
+    selections: detailedSelections,
+  }
+}
 
 const fetchOrders = async () => {
   const menuItems = useMenuStore()
+  const orderStore = useOrderStore()
   try {
     const res = await axios.get(
       `${url}/orders/history?phone=${props.customer?.Phone}&page=1&limit=500&from=2025-01-01&status=Completed`,
     )
     if (res.data?.status === 'Success') {
       orders.value = res.data.data.items.map((order) => {
+        const detailedOfferItems = (order.offerDetails || [])
+          .map((offer) => {
+            const offerItem = orderStore.offers.find((a) => a._id === offer.offerId)
+
+            let mappedData = ''
+            if (offerItem) {
+              mappedData = mapOfferDetailsToSelections(offer, offerItem)
+            }
+            if (offerItem) {
+              return { orderOffer: offer, offerData: mappedData }
+            } else {
+              return ''
+            }
+          })
+          .filter((offer) => offer)
+          .map((offer) => {
+            return {
+              ...offer.orderOffer,
+              structuredOffer: {
+                ...offer.offerData,
+              },
+            }
+          })
         const detailedItems = (order.menuItems || []).map((item) => {
           const menuItem = menuItems.unFilteredMenuItems.find((mi) => mi._id === item.menuItem)
 
@@ -972,14 +1317,14 @@ const fetchOrders = async () => {
         return {
           ...order,
           menuItems: detailedItems,
+          offerDetails: detailedOfferItems,
         }
       })
-      console.log(orders.value)
     } else {
       orders.value = []
     }
   } catch (error) {
-    console.error('Error fetching order history:', error)
+    console.log(error)
     orders.value = []
   } finally {
     isLoading.value = false
@@ -1027,7 +1372,6 @@ const applyOrderEdit = async (orderId, action, tableNumber, payload = {}) => {
     })
     return res.data
   } catch (err) {
-    console.error('Order edit failed:', err)
     init({ message: err.response.data.message, color: 'danger' })
     throw err
   }
@@ -1039,8 +1383,12 @@ const getTheEmployeeName = (employeeId) => {
   return [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username
 }
 const getTotalPrice = (item) => {
-  if (!item.options.length) return item.price.toFixed(2)
-  const total = item.options.reduce((sum, opt) => sum + (opt.price || 0), 0)
+  if (!item.articlesOptionsGroup.flatMap((a) => a.articlesOptions).filter((a) => a.selected).length)
+    return item.price.toFixed(2)
+  const total = item.articlesOptionsGroup
+    .flatMap((a) => a.articlesOptions)
+    .filter((a) => a.selected)
+    .reduce((sum, opt) => sum + (opt.price || 0), 0)
   return (total + item.price).toFixed(2)
 }
 
@@ -1144,11 +1492,11 @@ const complaintStats = computed(() => {
   return { count, percent }
 })
 
-onMounted(() => {
+onMounted(async () => {
   fetchUsers()
-  fetchOrders()
-  fetchOrderStatus()
-  fetchOrders() 
+  // fetchOrders()
+  await fetchOrderStatus()
+  await fetchOrders()
 })
 </script>
 <style scoped>

@@ -3,7 +3,6 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import AuthLayout from '../layouts/AuthLayout.vue'
 import AppLayout from '../layouts/AppLayout.vue'
 import axios from 'axios'
-import RouteViewComponent from '../layouts/RouterBypass.vue'
 const routes: Array<RouteRecordRaw> = [
   {
     name: 'loader',
@@ -29,6 +28,12 @@ const routes: Array<RouteRecordRaw> = [
         path: 'stellaUsers',
         component: () => import('../pages/stellaUsers/index.vue'),
         meta: { roles: ['super-admin'] },
+      },
+      {
+        name: 'outletUsers',
+        path: 'outletUsers',
+        component: () => import('../pages/outletUsers/index.vue'),
+        meta: { roles: ['admin', 'super-admin'] },
       },
       {
         name: 'areas',

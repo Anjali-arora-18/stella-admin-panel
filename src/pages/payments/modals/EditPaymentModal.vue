@@ -67,7 +67,7 @@
 
       <!-- Submit Button -->
       <div class="flex justify-end mt-3">
-        <VaButton type="submit">{{ isUpdating ? 'Update' : 'Add' }}</VaButton>
+        <VaButton type="submit" :disabled="isSubmitDisabled">{{ isUpdating ? 'Update' : 'Add' }}</VaButton>
       </div>
     </VaForm>
   </VaModal>
@@ -144,24 +144,22 @@ const getPaymentconfig = () => {
 }
 getPaymentconfig()
 
-// Submit function
+const isSubmitDisabled = computed(() => {
+  if (!formData.value.name?.trim()) return true
+  if (!formData.value.paymentGateway) return false
+  const selectedGateway = paymentOptions.value.find((a) => a.paymentMethodName === formData.value.paymentGateway)
+  if (!selectedGateway) return false
+  const hasEmptyRequiredField = selectedGateway.inputConfig.some((input) => input.required && !input.value?.trim())
+  return hasEmptyRequiredField
+})
+
 const submit = async () => {
-  let selectedGateway = null
-
-  // Only validate gateway if a value is provided
-  if (formData.value.paymentGateway) {
-    selectedGateway = paymentOptions.value.find(
-      (a) => a.paymentMethodName === formData.value.paymentGateway
-    )
-    if (!selectedGateway) {
-      init({ message: 'Please select a valid payment gateway', color: 'danger' })
-      return
-    }
-  }
-
-  const selectedPaymentGatewayInputKeys = selectedGateway?.inputConfig || []
-
   if (validate()) {
+    let selectedGateway = null
+    if (formData.value.paymentGateway) {
+      selectedGateway = paymentOptions.value.find((a) => a.paymentMethodName === formData.value.paymentGateway)
+    }
+
     let data = JSON.parse(JSON.stringify(formData.value))
 
     // Build paymentGatewayConfig only if gateway selected
@@ -171,8 +169,9 @@ const submit = async () => {
 
     data = {
       ...data,
-      paymentGatewayConfig,
-      outletId: servicesStore.selectedRest,
+      paymentGatewayConfig: selectedGateway
+        ? Object.fromEntries(selectedGateway.inputConfig.map((input) => [input.name, input.value]))
+        : {},
     }
 
     // Remove unnecessary fields
@@ -181,7 +180,7 @@ const submit = async () => {
     delete data.__v
     delete data.updating
 
-    const url: any = import.meta.env.VITE_API_BASE_URL
+    const url = import.meta.env.VITE_API_BASE_URL
 
     try {
       if (props.selectedPayment && data._id) {
@@ -192,14 +191,15 @@ const submit = async () => {
         await axios.post(`${url}/payments`, data)
         init({ message: "You've successfully created a payment", color: 'success' })
       }
-
       emits('cancel')
-    } catch (err: any) {
+    } catch (err) {
       const message = err?.response?.data?.message || 'Something went wrong'
       init({ message, color: 'danger' })
     }
   }
 }
+
+getPaymentconfig()
 </script>
 
 <style scoped>

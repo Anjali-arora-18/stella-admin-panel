@@ -34,7 +34,7 @@ const getArticles = async () => {
     return
   }
 
-  const selectedCategoryIndex = categories.value.findIndex(c => c._id === selectedCategory.value._id)
+  const selectedCategoryIndex = categories.value.findIndex((c) => c._id === selectedCategory.value._id)
   if (selectedCategoryIndex === -1) {
     loading.value = false
     return
@@ -48,23 +48,25 @@ const getArticles = async () => {
         categoryId: selectedCategory.value._id,
       },
     })
-    .then(resp => {
+    .then((resp) => {
       const cat = categories.value[selectedCategoryIndex]
 
-      cat.articles = resp.data.filter(a => !a.subCategories.length)
-      cat.subCategories = (cat.subCategories || []).map(sub => ({
+      cat.articles = resp.data.filter((a) => !a.subCategories.length)
+      cat.subCategories = (cat.subCategories || []).map((sub) => ({
         ...sub,
         articles: resp.data
-          .filter(a => a.subCategories.find(s => s.id === sub._id))
+          .filter((a) => a.subCategories.find((s) => s.id === sub._id))
           .sort(
             (a, b) =>
-              (a.subCategories.find(s => s.id === sub._id).sortOrder || 0) -
-              (b.subCategories.find(s => s.id === sub._id).sortOrder || 0)
+              (a.subCategories.find((s) => s.id === sub._id).sortOrder || 0) -
+              (b.subCategories.find((s) => s.id === sub._id).sortOrder || 0),
           ),
       }))
       loading.value = false
     })
-    .catch(() => { loading.value = false })
+    .catch(() => {
+      loading.value = false
+    })
 }
 
 const getCategories = async (outletId) => {
@@ -78,7 +80,7 @@ const getCategories = async (outletId) => {
   }))
   categories.value = items
     .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
-    .map(cat => ({
+    .map((cat) => ({
       ...cat,
       subCategories: (cat.subCategories || []).sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)),
     }))
@@ -90,9 +92,10 @@ const getCategories = async (outletId) => {
 // ----- Drag & Drop Handlers -----
 const updateSortOrder = async (payload) => {
   const url = import.meta.env.VITE_API_BASE_URL
-  axios.post(`${url}/organize-menu`, payload)
+  axios
+    .post(`${url}/organize-menu`, payload)
     .then(() => init({ message: 'Order updated.', color: 'success' }))
-    .catch(err => {
+    .catch((err) => {
       init({ message: err.response.data.error, color: 'danger' })
       if (serviceStore.selectedRest) getCategories(serviceStore.selectedRest)
     })
@@ -100,26 +103,29 @@ const updateSortOrder = async (payload) => {
 
 const movedCategory = async ($event) => {
   if (!$event.moved) return
-  categories.value.forEach((c, idx) => c.sortOrder = idx)
-  const payload = { resourceType: 'categories', items: categories.value.map(c => ({ id: c._id, sortOrder: c.sortOrder })) }
+  categories.value.forEach((c, idx) => (c.sortOrder = idx))
+  const payload = {
+    resourceType: 'categories',
+    items: categories.value.map((c) => ({ id: c._id, sortOrder: c.sortOrder })),
+  }
   await updateSortOrder(payload)
 }
 
 const movedSubCategory = async ($event, category) => {
-  const cat = categories.value.find(c => c._id === category._id)
-  cat.subCategories.forEach((s, idx) => s.sortOrder = idx)
+  const cat = categories.value.find((c) => c._id === category._id)
+  cat.subCategories.forEach((s, idx) => (s.sortOrder = idx))
   const payload = {
     resourceType: 'subcategories',
     categoryId: cat._id,
-    items: cat.subCategories.filter(s => !s.isArticle).map(s => ({ id: s._id, sortOrder: s.sortOrder })),
+    items: cat.subCategories.filter((s) => !s.isArticle).map((s) => ({ id: s._id, sortOrder: s.sortOrder })),
   }
   await updateSortOrder(payload)
 }
 
 const movedArticle = async ($event, category, subcategory = null) => {
-  const cat = categories.value.find(c => c._id === category._id)
+  const cat = categories.value.find((c) => c._id === category._id)
   let items = []
-  if (subcategory) items = cat.subCategories.find(s => s._id === subcategory._id).articles
+  if (subcategory) items = cat.subCategories.find((s) => s._id === subcategory._id).articles
   else items = cat.articles
 
   const payload = {
@@ -132,81 +138,86 @@ const movedArticle = async ($event, category, subcategory = null) => {
 }
 
 const movedArticleGroup = async ($event) => {
-  if (!$event.moved) return;
+  if (!$event.moved) return
 
-  const items = selectedSubcategory.value?.articlesOptionsGroup ||
+  const items =
+    selectedSubcategory.value?.articlesOptionsGroup ||
     selectedArticle.value?.articlesOptionsGroup ||
     selectedCategory.value?.articlesOptionsGroup ||
-    [];
+    []
 
   // Update sortOrder
-  items.forEach((grp, idx) => grp.sortOrder = idx);
+  items.forEach((grp, idx) => (grp.sortOrder = idx))
 
   const payload = {
     resourceType: 'articleoptionsgroups',
     categoryId: selectedCategory.value?._id,
     subcategoryId: selectedSubcategory.value?._id,
     menuitemId: selectedArticle.value?._id,
-    items: items.map(g => ({ id: g._id, sortOrder: g.sortOrder })),
-  };
+    items: items.map((g) => ({ id: g._id, sortOrder: g.sortOrder })),
+  }
 
-  await updateSortOrder(payload);
+  await updateSortOrder(payload)
 }
 
 const movedArticleOption = async ($event) => {
-  if (!$event.moved) return;
+  if (!$event.moved) return
 
-  const updatedGroupId = selectedGroup.value?._id;
-  if (!updatedGroupId) return;
+  const updatedGroupId = selectedGroup.value?._id
+  if (!updatedGroupId) return
 
   // Recalculate sort order for current group's options
-  const items = selectedGroup.value?.articlesOptions || [];
-  items.forEach((opt, idx) => (opt.sortOrder = idx));
+  const items = selectedGroup.value?.articlesOptions || []
+  items.forEach((opt, idx) => (opt.sortOrder = idx))
 
   // --- Collect all articles that share the same group ---
-  const affectedArticles: { cat: any; sub?: any; article: any }[] = [];
+  const affectedArticles: { cat: any; sub?: any; article: any }[] = []
 
-  categories.value.forEach(cat => {
-    cat.articles?.forEach(article => {
-      if (article.articlesOptionsGroup?.some(g => g._id === updatedGroupId)) {
-        affectedArticles.push({ cat, article });
+  categories.value.forEach((cat) => {
+    cat.articles?.forEach((article) => {
+      if (article.articlesOptionsGroup?.some((g) => g._id === updatedGroupId)) {
+        affectedArticles.push({ cat, article })
       }
-    });
+    })
 
-    cat.subCategories?.forEach(sub => {
-      sub.articles?.forEach(article => {
-        if (article.articlesOptionsGroup?.some(g => g._id === updatedGroupId)) {
-          affectedArticles.push({ cat, sub, article });
+    cat.subCategories?.forEach((sub) => {
+      sub.articles?.forEach((article) => {
+        if (article.articlesOptionsGroup?.some((g) => g._id === updatedGroupId)) {
+          affectedArticles.push({ cat, sub, article })
         }
-      });
-    });
-  });
+      })
+    })
+  })
 
   // --- Send updates for all affected articles ---
   const updatePromises = affectedArticles.map(({ cat, sub, article }) => {
     const payload = {
-      resourceType: "articleoptions",
+      resourceType: 'articleoptions',
       categoryId: cat._id,
       subcategoryId: sub?._id,
       menuitemId: article._id,
       articlesOptionsGroupId: updatedGroupId,
-      items: items.map(o => ({ id: o._id, sortOrder: o.sortOrder })),
-    };
-    return axios.post(`${import.meta.env.VITE_API_BASE_URL}/organize-menu`, payload);
-  });
+      items: items.map((o) => ({ id: o._id, sortOrder: o.sortOrder })),
+    }
+    return axios.post(`${import.meta.env.VITE_API_BASE_URL}/organize-menu`, payload)
+  })
 
   try {
-    await Promise.all(updatePromises);
-    init({ message: 'Order updated for all related articles.', color: 'success' });
+    await Promise.all(updatePromises)
+    init({ message: 'Order updated for all related articles.', color: 'success' })
   } catch (err: any) {
-    init({ message: err.response?.data?.error || 'Update failed', color: 'danger' });
-    if (serviceStore.selectedRest) getCategories(serviceStore.selectedRest);
+    init({ message: err.response?.data?.error || 'Update failed', color: 'danger' })
+    if (serviceStore.selectedRest) getCategories(serviceStore.selectedRest)
   }
-};
+}
 
-watch(() => serviceStore.selectedRest, (newId) => {
-  if (newId) getCategories(newId)
-}, { immediate: true })
+watch(
+  () => serviceStore.selectedRest,
+  (newId) => {
+    if (newId) getCategories(newId)
+  },
+  { immediate: true },
+)
 
 // ----- Filters -----
 const filteredSubcategories = computed(() => selectedCategory.value?.subCategories || [])
@@ -224,14 +235,14 @@ const sharedGroupNotice = computed(() => {
   // Count all articles in the current category that use the same group ID
   let count = 0
 
-  categories.value.forEach(cat => {
+  categories.value.forEach((cat) => {
     const articlesToCheck = cat.articles || []
-    cat.subCategories?.forEach(sub => {
+    cat.subCategories?.forEach((sub) => {
       articlesToCheck.push(...(sub.articles || []))
     })
 
-    articlesToCheck.forEach(art => {
-      const groupIds = (art.articlesOptionsGroup || []).map(g => g._id)
+    articlesToCheck.forEach((art) => {
+      const groupIds = (art.articlesOptionsGroup || []).map((g) => g._id)
       if (groupIds.includes(selectedGroup.value._id)) count++
     })
   })
@@ -239,7 +250,10 @@ const sharedGroupNotice = computed(() => {
   // Remove the current article itself
   count = Math.max(0, count - 1)
 
-  if (count > 0) return `This Group is used in ${count} other Article${count > 1 ? 's' : ''}. Updating the Options will reflect in all Articles. To see changes reflected in other Articles, please refresh the page.`
+  if (count > 0)
+    return `This Group is used in ${count} other Article${
+      count > 1 ? 's' : ''
+    }. Updating the Options will reflect in all Articles. To see changes reflected in other Articles, please refresh the page.`
 
   return null
 })
@@ -248,8 +262,12 @@ const sharedGroupNotice = computed(() => {
 <template>
   <div class="organize-menu flex gap-4 pt-4 pb-4 h-screen">
     <!-- Categories -->
-    <div :class="['column border rounded bg-white flex flex-col transition-all duration-300',
-      collapsed.categories ? 'collapsed' : 'flex-1']">
+    <div
+      :class="[
+        'column border rounded bg-white flex flex-col transition-all duration-300',
+        collapsed.categories ? 'collapsed' : 'flex-1',
+      ]"
+    >
       <div class="header">
         <h3 v-if="!collapsed.categories" class="title">Categories</h3>
         <button class="toggle-btn" @click="collapsed.categories = !collapsed.categories">
@@ -258,9 +276,18 @@ const sharedGroupNotice = computed(() => {
       </div>
       <div v-if="!collapsed.categories" class="flex-1 overflow-y-auto p-2">
         <VueDraggableNext :list="categories" @change="movedCategory">
-          <div v-for="cat in categories" :key="cat._id"
+          <div
+            v-for="cat in categories"
+            :key="cat._id"
             :class="['item-card', selectedCategory?._id === cat._id ? 'selected' : '']"
-            @click="selectedCategory = cat; selectedSubcategory = null; selectedArticle = null; selectedGroup = null; getArticles()">
+            @click="
+              (selectedCategory = cat),
+                (selectedSubcategory = null),
+                (selectedArticle = null),
+                (selectedGroup = null),
+                getArticles()
+            "
+          >
             <VaIcon name="drag_indicator" class="cursor-move text-slate-400" /> {{ cat.name }}
           </div>
         </VueDraggableNext>
@@ -269,8 +296,12 @@ const sharedGroupNotice = computed(() => {
     </div>
 
     <!-- Subcategories -->
-    <div :class="['column border rounded bg-white flex flex-col transition-all duration-300',
-      collapsed.subcategories ? 'collapsed' : 'flex-1']">
+    <div
+      :class="[
+        'column border rounded bg-white flex flex-col transition-all duration-300',
+        collapsed.subcategories ? 'collapsed' : 'flex-1',
+      ]"
+    >
       <div class="header">
         <h3 v-if="!collapsed.subcategories" class="title">Sub-Categories</h3>
         <button class="toggle-btn" @click="collapsed.subcategories = !collapsed.subcategories">
@@ -278,10 +309,13 @@ const sharedGroupNotice = computed(() => {
         </button>
       </div>
       <div v-if="!collapsed.subcategories" class="flex-1 overflow-y-auto p-2">
-        <VueDraggableNext :list="filteredSubcategories" @change="cat => movedSubCategory(cat, selectedCategory)">
-          <div v-for="sub in filteredSubcategories" :key="sub._id"
+        <VueDraggableNext :list="filteredSubcategories" @change="(cat) => movedSubCategory(cat, selectedCategory)">
+          <div
+            v-for="sub in filteredSubcategories"
+            :key="sub._id"
             :class="['item-card', selectedSubcategory?._id === sub._id ? 'selected' : '']"
-            @click="selectedSubcategory = sub; selectedArticle = null; selectedGroup = null; getArticles()">
+            @click="(selectedSubcategory = sub), (selectedArticle = null), (selectedGroup = null), getArticles()"
+          >
             <VaIcon name="drag_indicator" class="cursor-move text-slate-400" /> {{ sub.name }}
           </div>
         </VueDraggableNext>
@@ -290,8 +324,12 @@ const sharedGroupNotice = computed(() => {
     </div>
 
     <!-- Articles -->
-    <div :class="['column border rounded bg-white flex flex-col transition-all duration-300',
-      collapsed.articles ? 'collapsed' : 'flex-1']">
+    <div
+      :class="[
+        'column border rounded bg-white flex flex-col transition-all duration-300',
+        collapsed.articles ? 'collapsed' : 'flex-1',
+      ]"
+    >
       <div class="header">
         <h3 v-if="!collapsed.articles" class="title">Articles</h3>
         <button class="toggle-btn" @click="collapsed.articles = !collapsed.articles">
@@ -299,11 +337,16 @@ const sharedGroupNotice = computed(() => {
         </button>
       </div>
       <div v-if="!collapsed.articles" class="flex-1 overflow-y-auto p-2">
-        <VueDraggableNext :list="filteredArticles"
-          @change="cat => movedArticle(cat, selectedCategory, selectedSubcategory)">
-          <div v-for="art in filteredArticles" :key="art._id"
+        <VueDraggableNext
+          :list="filteredArticles"
+          @change="(cat) => movedArticle(cat, selectedCategory, selectedSubcategory)"
+        >
+          <div
+            v-for="art in filteredArticles"
+            :key="art._id"
             :class="['item-card', selectedArticle?._id === art._id ? 'selected' : '']"
-            @click="selectedArticle = art; selectedGroup = null">
+            @click="(selectedArticle = art), (selectedGroup = null)"
+          >
             <VaIcon name="drag_indicator" class="cursor-move text-slate-400" /> {{ art.name }}
           </div>
         </VueDraggableNext>
@@ -312,8 +355,12 @@ const sharedGroupNotice = computed(() => {
     </div>
 
     <!-- Groups -->
-    <div :class="['column border rounded bg-white flex flex-col transition-all duration-300',
-      collapsed.groups ? 'collapsed' : 'flex-1']">
+    <div
+      :class="[
+        'column border rounded bg-white flex flex-col transition-all duration-300',
+        collapsed.groups ? 'collapsed' : 'flex-1',
+      ]"
+    >
       <div class="header">
         <h3 v-if="!collapsed.groups" class="title">Groups</h3>
         <button class="toggle-btn" @click="collapsed.groups = !collapsed.groups">
@@ -322,8 +369,12 @@ const sharedGroupNotice = computed(() => {
       </div>
       <div v-if="!collapsed.groups" class="flex-1 overflow-y-auto p-2">
         <VueDraggableNext :list="filteredGroups" @change="movedArticleGroup">
-          <div v-for="grp in filteredGroups" :key="grp._id"
-            :class="['item-card', selectedGroup?._id === grp._id ? 'selected' : '']" @click="selectedGroup = grp">
+          <div
+            v-for="grp in filteredGroups"
+            :key="grp._id"
+            :class="['item-card', selectedGroup?._id === grp._id ? 'selected' : '']"
+            @click="selectedGroup = grp"
+          >
             <VaIcon name="drag_indicator" class="cursor-move text-slate-400" /> {{ grp.name }}
           </div>
         </VueDraggableNext>
@@ -332,8 +383,12 @@ const sharedGroupNotice = computed(() => {
     </div>
 
     <!-- Options -->
-    <div :class="['column border rounded bg-white flex flex-col transition-all duration-300',
-      collapsed.options ? 'collapsed' : 'flex-1']">
+    <div
+      :class="[
+        'column border rounded bg-white flex flex-col transition-all duration-300',
+        collapsed.options ? 'collapsed' : 'flex-1',
+      ]"
+    >
       <div class="header">
         <h3 v-if="!collapsed.options" class="title">Options</h3>
         <button class="toggle-btn" @click="collapsed.options = !collapsed.options">
@@ -342,9 +397,9 @@ const sharedGroupNotice = computed(() => {
       </div>
       <div v-if="!collapsed.options" class="flex-1 overflow-y-auto p-2">
         <div v-if="sharedGroupNotice" class="shared-group-notice mb-2 text-sm text-gray-600 flex items-center gap-3">
-  <VaIcon name="info" class="text-blue-500 w-4 h-4" />
-  <span>{{ sharedGroupNotice }}</span>
-</div>
+          <VaIcon name="info" class="text-blue-500 w-4 h-4" />
+          <span>{{ sharedGroupNotice }}</span>
+        </div>
 
         <VueDraggableNext :list="filteredOptions" @change="movedArticleOption">
           <div v-for="opt in filteredOptions" :key="opt._id" class="item-card">
@@ -390,6 +445,12 @@ const sharedGroupNotice = computed(() => {
   flex: 1;
   text-align: center;
   font-weight: bold;
+  color: #374151;
+  margin: 0;
+  margin-top: 1rem;
+  align-items: center;
+  justify-content: center;
+  display: flex;
 }
 
 .toggle-btn {
