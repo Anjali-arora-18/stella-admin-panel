@@ -51,7 +51,7 @@
             inputmode="numeric"
             class="border rounded px-2 py-1 text-xs outline-none focus:outline-none focus:ring-1 focus:ring-gray-200 focus:border-gray-300 w-full md:w-[120px]"
             @input="phoneNumber = phoneNumber.replace(/\D/g, '')"
-            @keyup.enter="fetchCustomerDetails(false)"
+            @keyup.enter="fetchCustomerDetails(true)"
           />
 
           <!-- Customer Name -->
@@ -61,7 +61,6 @@
             :disabled="selectedUser !== ''"
             placeholder="Customer Name"
             class="border rounded px-2 py-1 text-xs outline-none focus:outline-none focus:ring-1 focus:ring-gray-200 focus:border-gray-300 flex-1 min-w-0"
-            @keyup.enter="fetchCustomerDetails(false)"
           />
 
           <!-- Search Button -->
@@ -96,30 +95,53 @@
           </template>
 
           <template v-else>
-            <VaTooltip text="Edit Customer" placement="top">
-              <VaButton
-                class="hover:bg-blue-600 text-white h-[24px] w-[24px] rounded-md flex items-center justify-center"
-                size="small"
-                icon="mso-edit"
-                :style="{ '--va-background-color': outlet.primaryColor }"
-                @click="openCustomerModal"
-              />
-            </VaTooltip>
+            <div class="flex items-center gap-1">
+              <VaTooltip text="Edit Customer" placement="top">
+                <VaButton
+                  class="hover:bg-blue-600 text-white h-[24px] w-[24px] rounded-md flex items-center justify-center"
+                  size="small"
+                  icon="mso-edit"
+                  :style="{ '--va-background-color': outlet.primaryColor }"
+                  @click="openCustomerModal"
+                />
+              </VaTooltip>
+
+              <!-- Order History Button -->
+              <VaTooltip text="View Order History" placement="top">
+                <VaButton
+                  class="hover:bg-green-600 text-white h-[24px] w-[24px] rounded-md flex items-center justify-center"
+                  size="small"
+                  icon="mso-history"
+                  :style="{ '--va-background-color': outlet.primaryColor }"
+                  @click="showHistoryModal = true"
+                />
+              </VaTooltip>
+            </div>
           </template>
 
           <!-- Suggestions -->
           <div v-if="userResults.length" id="userResults" class="user-results w-full absolute top-full left-0 mt-2">
             <ul ref="userList" class="divide divide-y-2 bg-white border rounded shadow w-full z-10">
               <li
-                v-for="user in userResults"
-                :key="user.ID"
+                v-for="(user, index) in userResults"
+                :key="user._id || user.id || user.ID || index"
                 class="p-2 cursor-pointer hover:bg-blue-100"
                 @click="selectUser(user)"
               >
-                {{ user['Name'] }}
+                {{
+                  user.Name ||
+                  user.customerName ||
+                  user.name ||
+                  user.MobilePhone ||
+                  user.Phone ||
+                  user.phoneNo ||
+                  user.phone ||
+                  'Anonymous'
+                }}
               </li>
             </ul>
           </div>
+
         </div>
 
         <div v-if="selectedTab && selectedUser" class="flex items-center gap-1 w-full">
@@ -142,12 +164,13 @@
             </button>
           </div>
 
-          <input
-            v-model="localDateTime"
-            type="datetime-local"
-            class="text-xs border rounded px-1 py-1 w-[40%]"
-            :disabled="orderFor === 'current'"
-          />
+        <input
+          v-model="localDateTime"
+          type="datetime-local"
+          class="text-xs border rounded px-1 py-1 w-[40%]"
+          :disabled="orderFor === 'current'"
+        />
+
         </div>
 
         <!-- Address -->
@@ -158,7 +181,7 @@
 
           <div class="flex flex-wrap md:flex-nowrap items-center gap-1 relative w-full">
             <template v-if="selectedTab === 'takeaway'">
-              <input
+              <!-- <input
                 type="text"
                 :value="selectedZone || 'No Zone Selected'"
                 disabled
@@ -171,7 +194,58 @@
                 @click="showDeliveryDropdown = true"
               >
                 {{ serviceZoneId || 'N/A' }}
-              </VaButton>
+              </VaButton> -->
+
+              <!-- LOCATION FIELD (Takeaway Tab) -->
+              <div class="relative flex items-center gap-1 w-full">
+                <!-- Input-like clickable field -->
+                <div
+                  class="border rounded w-full px-2 py-[5px] text-xs bg-white cursor-pointer hover:bg-gray-50 flex items-center justify-between"
+                  @click="showDeliveryDropdown = !showDeliveryDropdown"
+                >
+                  <span>{{ selectedZone || 'Select Location' }}</span>
+                  <!-- Unfilled / outlined arrow icon -->
+                  <svg
+                    class="w-3 h-3 text-gray-600 ml-1"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+                  </svg>
+                </div>
+
+                <!-- Disabled number button (aligned inline) -->
+                <VaButton
+                  class="text-white h-[28px] w-[28px] rounded-md flex items-center justify-center opacity-60 cursor-not-allowed"
+                  size="small"
+                  :style="{ '--va-background-color': outlet.primaryColor }"
+                  disabled
+                >
+                  {{ serviceZoneId || 'N/A' }}
+                </VaButton>
+
+                <!-- Dropdown -->
+                <div
+                  v-if="showDeliveryDropdown"
+                  class="absolute left-0 top-full max-h-[300px] overflow-y-auto mt-1 w-full text-left bg-white border rounded shadow z-10"
+                >
+                  <ul ref="deliveryList" class="text-xs">
+                    <li
+                      v-for="(zone, index) in deliveryZoneOptions"
+                      :key="index"
+                      class="px-3 py-2 hover:bg-gray-100 cursor-pointer border border-b-1"
+                      :class="{
+                        'text-primary font-bold': selectedZone === zone.name,
+                      }"
+                      @click.prevent.stop="selectDeliveryZone(zone)"
+                    >
+                      {{ zone.serviceZoneId }} - {{ zone.name }}
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </template>
 
             <template v-else>
@@ -182,10 +256,11 @@
                 track-by="value"
                 searchable
                 highlight-matched-text
+                placeholder="Select address..."
+                clearable
                 class="h-[24px] w-[24px] min-w-[32px] flex items-center justify-center rounded-md p-0 text-xs mt-1"
                 style="--va-select-dropdown-max-height: 100px"
               />
-
               <VaButton
                 class="hover:bg-blue-600 text-white h-[24px] w-[24px] rounded-md flex items-center justify-center"
                 size="small"
@@ -209,7 +284,7 @@
                   :class="{
                     'text-primary font-bold': selectedZone === zone.name,
                   }"
-                  @click="selectDeliveryZone(zone)"
+                  @click.prevent.stop="selectDeliveryZone(zone)"
                 >
                   {{ zone.serviceZoneId }} - {{ zone.name }}
                 </li>
@@ -220,13 +295,16 @@
 
         <!-- Notes -->
         <div v-if="selectedTab">
-          <label class="text-xs text-gray-600 font-medium block mb-1">Notes</label>
-          <textarea
-            rows="1"
-            disabled
-            placeholder="Special instructions, allergies, delivery notes..."
-            class="w-full border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-          ></textarea>
+            <label class="text-xs text-gray-600 font-medium block mb-1">Notes</label>
+            <VaTextarea
+              v-model="orderStore.deliveryNotes"
+              placeholder="Delivery notes e.g call on arrival, gate code, or takeaway instructions"
+              autosize
+              :min-rows="1"
+              class="block !h-auto"
+              style="width: calc(100% - 32px);"
+              @input="autoGrow"
+            />
         </div>
       </div>
     </Transition>
@@ -244,6 +322,18 @@
       @confirm="onConfirmRemove"
       @close="closeConfirmRemoveModal"
     />
+    <CustomerHistoryModal
+      v-if="showHistoryModal"
+      :customer="selectedUser"
+      :outlet="outlet"
+      :selected-user="selectedUser"
+      :delivery-zone-options="deliveryZoneOptions"
+      :takeaway-promise-time="selectedZoneDetails?.takeawayPromiseTime || 0"
+      :delivery-promise-time="selectedZoneDetails?.deliveryPromiseTime || 0"
+      :delivery-fee="selectedZoneDetails?.deliveryCharge || 0"
+      :selected-tab="selectedTab"
+      @close="showHistoryModal = false"
+    />
   </div>
 </template>
 
@@ -254,6 +344,7 @@ import axios from 'axios'
 import { useServiceStore } from '@/stores/services.ts'
 import CustomerModal from '../modals/CustomerModal.vue'
 import ConfirmRemoveCustomerDetails from '../modals/ConfirmRemoveCustomerDetails.vue'
+import CustomerHistoryModal from '../modals/CustomerHistoryModal.vue'
 import { useOrderStore } from '@/stores/order-store'
 import { onClickOutside } from '@vueuse/core'
 const props = defineProps(['forceRemount'])
@@ -264,6 +355,7 @@ const emits = defineEmits([
   'setCustomerDetailsId',
   'setDeliveryFee',
   'setDeliveryZone',
+  'setDateSelected', 
 ])
 const target = ref('userList')
 const deliveryTarget = ref('deliveryList')
@@ -284,6 +376,7 @@ const showDeliveryDropdown = ref(false)
 const selectedZoneDetails = ref(null)
 const orderFor = ref('current')
 const showConfirmRemove = ref(false)
+const showHistoryModal = ref(false)
 
 function handleRemoveCustomer() {
   // Check if order has items
@@ -335,23 +428,127 @@ const getLocalDateTime = () => {
 const updateTimeOnly = () => {
   localDateTime.value = getLocalDateTime()
 }
+// --- opening hours helpers ---
+const dayNames = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
 
+function parseHHmm(hhmm) {
+  // "11:00" -> {h:11,m:0}; tolerate "", null
+  if (!hhmm || typeof hhmm !== 'string' || !hhmm.includes(':')) return null
+  const [h, m] = hhmm.split(':').map((x) => Number(x))
+  if (Number.isNaN(h) || Number.isNaN(m)) return null
+  return { h, m }
+}
+
+function dateAtHM(baseDate, h, m) {
+  const d = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), h, m, 0, 0)
+  return d
+}
+
+// in Customer Details
+const FALLBACK_OPEN = { h: 11, m: 0 }
+const FALLBACK_CLOSE = { h: 23, m: 0 }
+
+function getOpenCloseFor(dt) {
+  const ot = outlet.value?.openingTimes
+  let opensStr = '', closesStr = ''
+
+  if (ot) {
+    if (ot.is24h) {
+      const open = new Date(dt); open.setHours(0,0,0,0)
+      const close = new Date(open); close.setDate(close.getDate() + 1)
+      return { open, close }
+    }
+    if (ot.selected === 'byDay') {
+      const key = dayNames[dt.getDay()]
+      const rec = ot.byDay?.[key] || {}
+      opensStr = rec.opens || ''
+      closesStr = rec.closes || ''
+    } else {
+      opensStr = ot.daily?.opens || ''
+      closesStr = ot.daily?.closes || ''
+    }
+  }
+
+  const o = parseHHmm(opensStr) || FALLBACK_OPEN
+  const c = parseHHmm(closesStr) || FALLBACK_CLOSE
+
+  const open = dateAtHM(dt, o.h, o.m)
+  let close = dateAtHM(dt, c.h, c.m)
+  if (close <= open) { close = new Date(close.getTime()); close.setDate(close.getDate() + 1) }
+  return { open, close }
+}
+
+
+function fmtForInput(d) {
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+/** Clamp a target date to a given {open, close} window */
+function clampToWindow(target, { open, close }) {
+  if (target < open) return new Date(open)
+  if (target > close) return new Date(close)
+  return target
+}
+const dayMin = ref(null)
+const dayMax = ref(null)
+
+// 1) Let users pick ANY date/time; just emit + optional warning
 watch(
   localDateTime,
-  (newVal) => {
-    if (newVal && newVal.length >= 16) {
-      const [datePart, timePart] = newVal.split('T')
-      if (datePart && timePart) {
-        const [year, month, day] = datePart.split('-').map(Number)
-        const [hour, minute] = timePart.split(':').map(Number)
-        selectedDate.value = new Date(year, month - 1, day, hour, minute)
-        emits('setDateSelected', selectedDate.value)
+  (val) => {
+    if (!val || val.length < 16) return
+
+    // Parse YYYY-MM-DDTHH:mm
+    const [datePart, timePart] = val.split('T')
+    const [y, m, d] = datePart.split('-').map(Number)
+    const [hh, mm] = timePart.split(':').map(Number)
+    const chosen = new Date(y, m - 1, d, hh, mm, 0, 0)
+
+    // Set + emit immediately (do not modify the user's choice)
+    selectedDate.value = chosen
+    emits('setDateSelected', chosen)
+
+    // For future orders, show a soft warning if outside opening hours
+    if (orderFor.value === 'future') {
+      const win = getOpenCloseFor(chosen)
+      if (win) {
+        const normalized = new Date(
+          chosen.getFullYear(),
+          chosen.getMonth(),
+          chosen.getDate(),
+          chosen.getHours(),
+          chosen.getMinutes(),
+          0, 0
+        )
+        const inWindow = normalized >= win.open && normalized < win.close
+        
       }
     }
   },
-  { immediate: true },
+  { immediate: false }
 )
+
+
 let timeInterval = null
+const futureMin = computed(() => {
+  if (orderFor.value !== 'future') return null
+  const dt = selectedDate.value ?? new Date()
+  const win = getOpenCloseFor(dt)
+  if (!win) return null
+  // If selecting today and we’re already past open, min should be now
+  const now = new Date()
+  const min = (dt.toDateString() === now.toDateString()) ? new Date(Math.max(now.getTime(), win.open.getTime())) : win.open
+  return fmtForInput(min)
+})
+
+const futureMax = computed(() => {
+  if (orderFor.value !== 'future') return null
+  const dt = selectedDate.value ?? new Date()
+  const win = getOpenCloseFor(dt)
+  if (!win) return null
+  return fmtForInput(win.close)
+})
 
 const startAutoUpdateTime = () => {
   stopAutoUpdateTime()
@@ -369,13 +566,30 @@ const stopAutoUpdateTime = () => {
     timeInterval = null
   }
 }
-watch(orderFor, (newVal) => {
-  if (newVal === 'current') {
-    startAutoUpdateTime()
-  } else {
-    stopAutoUpdateTime()
+
+watch(orderFor, (mode) => {
+  orderStore.setOrderFor(mode)
+
+  if (mode !== 'future') return
+
+  // If outlet not loaded yet, don't clamp or flip back
+  const ot = outlet.value && outlet.value.openingTimes
+  if (!ot) return
+
+  const dt = selectedDate.value ?? new Date()
+  const win = getOpenCloseFor(dt)
+
+  if (!win) {
+    init({ color: 'danger', message: 'Selected day is closed. Please choose another day.' })
+    return // don't force back to current; let user pick another date
   }
+
+  const clamped = clampToWindow(dt, win)
+  selectedDate.value = clamped
+  localDateTime.value = fmtForInput(clamped)
 })
+
+
 onMounted(() => {
   if (orderFor.value === 'current') {
     startAutoUpdateTime()
@@ -395,10 +609,10 @@ function openCustomerModal() {
 function closeCustomerModal() {
   showCustomerModal.value = false
 }
-
 async function fetchCustomerDetails(setUser = false) {
   userResults.value = []
   isUserLoading.value = true
+
   if (!phoneNumber.value && !name.value) {
     init({
       color: 'danger',
@@ -408,6 +622,7 @@ async function fetchCustomerDetails(setUser = false) {
     return
   } else {
     const servicesStore = useServiceStore()
+
     await axios
       .get(`${import.meta.env.VITE_API_BASE_URL}/winmax/entities`, {
         params: {
@@ -416,20 +631,128 @@ async function fetchCustomerDetails(setUser = false) {
           ...(name.value && { Name: name.value }),
         },
       })
-      .then((response) => {
+      .then(async (response) => {
         if (response.status === 200) {
-          if (!setUser) {
-            userResults.value = response.data.data
+          const wm = response.data
+          const wmList = Array.isArray(wm?.data) ? wm.data : []
+          const winmaxNotFound = /not\s*found/i.test(String(wm?.message || '')) || wmList.length === 0
+
+          if (!winmaxNotFound) {
+            // Winmax HAS a match → use it
+            if (!setUser) {
+              userResults.value = wmList.map((user) => ({
+                ...user,
+                OtherAddresses: Array.isArray(user.OtherAddresses)
+                  ? user.OtherAddresses.map((add) => ({
+                      ...add,
+                      ZipCode:
+                      typeof add.Address === 'string' && add.Address.split(',').length
+                        ? add.Address.split(',')[add.Address.split(',').length - 1].trim()
+                        : '',
+                    }))
+                  : [],
+              }))
+            } else {
+              selectUser(wmList[0])
+            }
+            return
+          }
+
+          // Winmax returned 200 + "Entity not found..." OR empty data → query Stella
+          const stellaRes = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/customers/search`, {
+            params: {
+              outletId: servicesStore.selectedRest,
+              ...(phoneNumber.value && { phoneNo: phoneNumber.value }),
+              ...(name.value && { customerName: name.value }),
+            },
+          })
+
+          const hits = Array.isArray(stellaRes?.data?.data) ? stellaRes.data.data : []
+          if (hits.length) {
+            userResults.value = hits.map((e) => ({
+              ...e,
+              Name: e.customerName,
+              MobilePhone: e.phoneNo,
+              OtherAddresses: (Array.isArray(e?.address) ? e.address : []).map((address) => ({
+                Designation: address.designation,
+                Address: [
+                  address.aptNo,
+                  address.floor,
+                  address.streetName,
+                  address.streetNo,
+                  address.district,
+                  address.city,
+                  address.postalCode,
+                ].join(','),
+                ZipCode: address.postalCode,
+                Phone: '',
+                Fax: '',
+                Location: '',
+                CountryCode: '',
+              })),
+            }))
+
+            // If we need to auto-pick, prefer exact phone match
+            if (setUser && userResults.value.length) {
+              const norm = (s) => String(s || '').replace(/\D+/g, '')
+              const wanted = norm(phoneNumber.value)
+              const exact = userResults.value.find((u) => norm(u.MobilePhone || u.Phone) === wanted)
+              selectUser(exact || userResults.value[0])
+            }
           } else {
-            selectUser(response.data.data[0])
+            // Neither Winmax nor Stella → open create modal
+            openCustomerModal()
           }
         }
       })
-      .catch(() => {
-        openCustomerModal()
-      })
+      .catch(async () => {
+        // If Winmax call errored (non-200), try Stella
+        await axios
+          .get(`${import.meta.env.VITE_API_BASE_URL}/customers/search`, {
+            params: {
+              outletId: servicesStore.selectedRest,
+              ...(phoneNumber.value && { phoneNo: phoneNumber.value }),
+              ...(name.value && { customerName: name.value }),
+            },
+          })
+          .then((response) => {
+            const arr = Array.isArray(response?.data?.data) ? response.data.data : []
+            userResults.value = arr.map((e) => ({
+              ...e,
+              Name: e.customerName,
+              MobilePhone: e.phoneNo,
+              OtherAddresses: (Array.isArray(e?.address) ? e.address : []).map((address) => ({
+                Designation: address.designation,
+                Address: [
+                  address.aptNo,
+                  address.floor,
+                  address.streetName,
+                  address.streetNo,
+                  address.district,
+                  address.city,
+                  address.postalCode,
+                ].join(','),
+                ZipCode: address.postalCode,
+                Phone: '',
+                Fax: '',
+                Location: '',
+                CountryCode: '',
+              })),
+            }))
+          })
 
-    isUserLoading.value = false
+        if (!userResults.value.length) {
+          openCustomerModal()
+        } else if (setUser) {
+          const norm = (s) => String(s || '').replace(/\D+/g, '')
+          const wanted = norm(phoneNumber.value)
+          const exact = userResults.value.find((u) => norm(u.MobilePhone || u.Phone) === wanted)
+          selectUser(exact || userResults.value[0])
+        }
+      })
+      .finally(() => {
+        isUserLoading.value = false
+      })
   }
 }
 
@@ -440,17 +763,58 @@ function setNewUser(payload) {
 }
 
 function selectUser(user) {
-  selectedUser.value = user
-  name.value = user['Name']
-  phoneNumber.value = user['MobilePhone'] || user['Phone']
+  // normalize different payload shapes
+  const normName =
+    user['Name'] ??
+    user['customerName'] ??
+    user['name'] ??
+    ''
+  const normPhone =
+    user['MobilePhone'] ??
+    user['Phone'] ??
+    user['phoneNo'] ??
+    user['phone'] ??
+    ''
+
+  name.value = String(normName)
+  phoneNumber.value = String(normPhone)
+
+  selectedUser.value = {
+    ...user,
+    Name: normName,
+    MobilePhone: normPhone,
+    OtherAddresses: Array.isArray(user.OtherAddresses)
+      ? user.OtherAddresses
+      : Array.isArray(user.address)
+        ? user.address.map((addr) => ({
+            Designation: addr.designation,
+            Address: [
+              addr.aptNo,
+              addr.floor,
+              addr.streetName,
+              addr.streetNo,
+              addr.district,
+              addr.city,
+              addr.postalCode,
+            ].join(','),
+            ZipCode: addr.postalCode,
+            Phone: '',
+            Fax: '',
+            Location: '',
+            CountryCode: '',
+          }))
+        : [],
+  }
 
   userResults.value = []
+    prefillNotesFromUser(selectedUser.value)
+
 }
+
 
 const deliveryZoneOptions = ref([])
 
 function selectDeliveryZone(zone) {
-  console.log(zone)
   if (zone) {
     emits('setDeliveryFee', selectedTab.value === 'takeaway' ? 0 : zone.deliveryCharge)
     emits('setDeliveryZone', true)
@@ -462,14 +826,12 @@ function selectDeliveryZone(zone) {
   }
 }
 
+
 async function handleDeliveryZoneFetch() {
-  deliveryZoneOptions.value = []
-  let postalCode = ''
   const servicesStore = useServiceStore()
-  // let payloadPostCode = postalCode
-  // if (selectedTab.value === 'takeaway') {
-  //   payloadPostCode = ''
-  // }
+  if (deliveryZoneOptions.value.length) {
+    return
+  }
   try {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/deliveryZones/${servicesStore.selectedRest}`)
 
@@ -484,26 +846,8 @@ async function handleDeliveryZoneFetch() {
       }
       init({
         color: 'danger',
-        message: 'No delivery zones found for selected address.',
+        message: 'No delivery zones found.',
       })
-    } else {
-      if (selectedAddress.value && !selectedAddress.value.text.includes('Meeting Point')) {
-        const addressArray = selectedAddress.value?.text
-        const addressSplit = addressArray.split(',')
-        if (addressSplit.length) {
-          postalCode = addressSplit[addressSplit.length - 1].trim()
-          const firstZone = response.data.data.find((a) => a.postalCodes.includes(postalCode))
-          serviceZoneId.value = firstZone.serviceZoneId
-          if (firstZone) {
-            selectDeliveryZone(firstZone)
-          } else {
-            init({
-              color: 'danger',
-              message: 'No delivery zones mapped with this postal code.',
-            })
-          }
-        }
-      }
     }
   } catch (err) {
     console.log(err)
@@ -517,7 +861,12 @@ async function handleDeliveryZoneFetch() {
     })
   }
 }
-
+function prefillNotesFromUser(user) {
+  const note = String(user?.customerNote || '').trim()
+  if (note && !String(orderStore.deliveryNotes || '').trim()) {
+    orderStore.deliveryNotes = note
+  }
+}
 function getParsedAddress(payload) {
   const add = payload.split(',')
 
@@ -543,8 +892,52 @@ function getParsedAddress(payload) {
   if (add[6]) {
     address += add[6]
   }
+  if (address.includes(',')) return address
+  else return ',' + address
+}
+function fromEditOrder(order) {
+  if (!order) return
+  // open & switch tab based on type (adjust keys if yours differ)
+  isOpen.value = true
+  selectedTab.value = /takeaway/i.test(order.orderType || order.type) ? 'takeaway' : 'delivery'
 
-  return address
+  // set identity
+  phoneNumber.value = order.customerPhone || order.phone || ''
+  name.value = order.customerName || order.name || ''
+
+  // build a minimal Winmax-like "OtherAddresses" array so filteredAddresses works unchanged
+  const fullAddr =
+    order.deliveryAddress || order.address || order.delivery_address || '' // pick what you store
+  const postal =
+    order.postalCode || order.postCode || ''                               // optional, used for zone match
+  const designation = order.addressDesignation || 'From order'
+
+  selectedUser.value = {
+    _id: order.customerDetailsId || order.customerId || undefined,
+    customerName: name.value,
+    phoneNo: phoneNumber.value,
+    OtherAddresses: [
+      {
+        Designation: designation,
+        Address: fullAddr,
+        ZipCode: postal,
+      },
+    ],
+  }
+
+  // ensure the dropdown has a value right away
+  // filteredAddresses already converts OtherAddresses -> {text,value,postalCode,fullAddress}
+  // nextTick in case computed needs a tick
+  setTimeout(() => {
+    selectedAddress.value = filteredAddresses.value[0] || null
+  })
+
+  // set zone id label if you show it on the button
+  serviceZoneId.value = order.deliveryZoneId || order.serviceZoneId || ''
+
+  // emit to parent like the rest of your watchers do
+  emits('setOrderType', selectedTab.value)
+  emits('setCustomerDetailsId', selectedUser.value._id)
 }
 
 const outlet = computed(() => {
@@ -553,41 +946,35 @@ const outlet = computed(() => {
 })
 
 const filteredAddresses = computed(() => {
-  let OtherAddresses = []
   let addresses = []
-  if (selectedZoneDetails.value) {
-    if (selectedUser.value['OtherAddresses'] && selectedUser.value['OtherAddresses'].length) {
-      OtherAddresses = selectedUser.value['OtherAddresses'].filter((address) => {
-        const adrs = address.Address.split(',')
-        const postalCode = adrs[adrs.length - 1].trim().toString()
-
-        return selectedZoneDetails.value.postalCodes.includes(postalCode)
-      })
-      addresses = OtherAddresses.map((e) => {
+  if (selectedUser.value && selectedUser.value['OtherAddresses']) {
+    addresses = selectedUser.value['OtherAddresses'].map((e) => {
+      if (e.Designation && e.Designation.includes('Meeting')) {
+        return {
+          text: `${e.Designation ? e.Designation + ' - ' : ''} , ${e.ZipCode}`,
+          value: `${e.Designation ? e.Designation + ' - ' : ''}, ${e.ZipCode}`,
+          postalCode: e.ZipCode,
+          fullAddress: e.Address || '',
+        }
+      } else {
+        const addressArray = e.Address.split(',')
+        const postalCode = addressArray[addressArray.length - 1].trim()
         return {
           text: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
           value: `${e.Designation ? e.Designation + ' - ' : ''}${getParsedAddress(e.Address)}`,
+          postalCode: postalCode,
+          fullAddress: e.Address,
         }
-      })
-    }
-    selectedZoneDetails.value.meetingPointAddress
-      .filter((a) => a !== '')
-      .forEach((meetingPoint) => {
-        addresses.push({
-          text: `Meeting Point - ${meetingPoint}`,
-          value: meetingPoint,
-        })
-      })
-    return addresses
-  } else {
-    return []
+      }
+    })
   }
+  return addresses.filter((a) => !a.text.includes('00000'))
 })
 
 watch(
   () => selectedZoneDetails.value,
   (newVal, oldVal) => {
-    if (newVal && oldVal) {
+    if (newVal && oldVal && !selectedAddress.value) {
       selectedAddress.value = filteredAddresses.value.length ? filteredAddresses.value[0] : ''
     }
   },
@@ -597,50 +984,88 @@ watch(
   () => selectedUser.value,
   () => {
     if (selectedUser.value) {
-      const otherAddresses = selectedUser.value['OtherAddresses']
-      if (Array.isArray(otherAddresses) && otherAddresses.length > 0) {
-        const firstAddress = otherAddresses[0]
-        selectedAddress.value = {
-          text: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}${getParsedAddress(
-            firstAddress.Address,
-          )}`,
-          value: `${firstAddress.Designation ? firstAddress.Designation + ' - ' : ''}${getParsedAddress(
-            firstAddress.Address,
-          )}`,
-        }
-      } else {
-        selectedAddress.value = ''
-      }
-
+      selectedAddress.value = null
       emits('setOrderType', selectedTab.value)
       handleDeliveryZoneFetch()
-      emits('setCustomerDetailsId', selectedUser.value._id)
+      emits('setCustomerDetailsId', selectedUser.value._id || selectedUser.value.id)
       userResults.value = []
+    } else {
+      selectedAddress.value = null
     }
   },
 )
+
 
 watch(
   () => selectedTab.value,
   () => {
     emits('setOrderType', selectedTab.value)
     emits('setTab', selectedTab.value)
+    selectedZone.value = ''
+    serviceZoneId.value = ''
+    selectedZoneDetails.value = null
+    selectedAddress.value = null
 
     if (selectedUser.value) {
       handleDeliveryZoneFetch()
     }
-    emits('setCustomerDetailsId', selectedUser.value._id)
+    emits('setCustomerDetailsId', selectedUser.value._id || selectedUser.value.id)
   },
 )
 
 watch(
   () => selectedAddress.value,
-  () => {
-    if (selectedZoneDetails.value) {
-      selectDeliveryZone(selectedZoneDetails.value)
-      orderStore.setDeliveryZone(selectedZoneDetails.value)
-      emits('setDeliveryZone', true)
-      orderStore.setAddress(selectedAddress.value.text)
+  async (newAddress) => {
+    if (newAddress) {
+      const postalCode = newAddress.postalCode
+      const currentText = newAddress.text
+      const fullAddress = newAddress.fullAddress
+
+      // Always fetch fresh delivery zones to ensure latest data
+      await handleDeliveryZoneFetch()
+
+      // Find matching zone based on postal code
+      const matchingZone = deliveryZoneOptions.value.find((zone) =>
+        zone.postalCodes.some((zoneCode) => String(zoneCode).trim() === String(postalCode).trim()),
+      )
+      // Check for meeting point match first
+      const meetingPoints = deliveryZoneOptions.value
+        .map((zone) => zone.meetingPoints?.find((mp) => currentText.includes(mp.designation)))
+        .filter(Boolean)
+
+      if (selectedTab.value === 'delivery') {
+        if (meetingPoints.length && currentText.includes('Meeting Point')) {
+          // Find the zone containing the meeting point
+          const zoneWithMeetingPoint = deliveryZoneOptions.value.find((zone) =>
+            zone.meetingPoints?.some((mp) => currentText.includes(mp.designation)),
+          )
+          if (zoneWithMeetingPoint) {
+            selectDeliveryZone(zoneWithMeetingPoint)
+            orderStore.setDeliveryZone(zoneWithMeetingPoint)
+            emits('setDeliveryZone', true)
+            orderStore.setAddress(fullAddress || currentText)
+            return
+          }
+        }
+
+        if (matchingZone) {
+          selectDeliveryZone(matchingZone)
+          orderStore.setDeliveryZone(matchingZone)
+          emits('setDeliveryZone', true)
+          orderStore.setAddress(fullAddress || currentText)
+        } else {
+          if (!currentText.includes('Meeting') && selectedTab.value === 'delivery') {
+            init({
+              color: 'danger',
+              message: `No delivery zone found for postal code: ${postalCode}`,
+            })
+          }
+          selectedZone.value = ''
+          serviceZoneId.value = ''
+          selectedZoneDetails.value = null
+          emits('setDeliveryZone', false)
+        }
+      }
     }
   },
 )
@@ -676,6 +1101,8 @@ watch(orderFor, (newVal) => {
 
 defineExpose({
   isOpen,
+  fromEditOrder,
+
 })
 </script>
 

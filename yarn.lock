@@ -6459,6 +6459,11 @@ lru-cache@^8.0.3:
   dependencies:
     semver "^7.3.5"
 
+lucide-vue-next@^0.544.0:
+  version "0.544.0"
+  resolved "https://registry.npmjs.org/lucide-vue-next/-/lucide-vue-next-0.544.0.tgz"
+  integrity sha512-mDp/AdGOPIDkpFHnFiTWgQgCST9aBXHVaiobZfOMIvv7nrOukzF/TP+7KoOwrngdWRaH9TMiepMBIX1vsgKJ3g==
+
 lz-string@^1.5.0:
   version "1.5.0"
   resolved "https://registry.npmjs.org/lz-string/-/lz-string-1.5.0.tgz"
@@ -9045,7 +9050,7 @@ vue-tsc@^2.1.6:
     "@vue/language-core" "2.1.6"
     semver "^7.5.4"
 
-"vue@^2.6.14 || ^3.3.0", vue@^3.0.0, "vue@^3.0.0-0 || ^2.6.0", "vue@^3.0.0-0 || ^2.7.0", vue@^3.0.4, vue@^3.2.0, vue@^3.2.2, vue@^3.2.25, "vue@>= 3.2.0 < 4.0.0", vue@>=2, vue@3.5.8:
+"vue@^2.6.14 || ^3.3.0", vue@^3.0.0, "vue@^3.0.0-0 || ^2.6.0", "vue@^3.0.0-0 || ^2.7.0", vue@^3.0.4, vue@^3.2.0, vue@^3.2.2, vue@^3.2.25, "vue@>= 3.2.0 < 4.0.0", vue@>=2, vue@>=3.0.1, vue@3.5.8:
   version "3.5.8"
   resolved "https://registry.npmjs.org/vue/-/vue-3.5.8.tgz"
   integrity sha512-hvuvuCy51nP/1fSRvrrIqTLSvrSyz2Pq+KQ8S8SXCxTWVE0nMaOnSDnSOxV1eYmGfvK7mqiwvd1C59CEEz7dAQ==

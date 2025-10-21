@@ -132,5 +132,13 @@ export default {
         icon: 'group',
       },
     },
+    {
+      name: 'outletUsers',
+      displayName: 'menu.outletUsers',
+      visible: true,
+      meta: {
+        icon: 'group',
+      },
+    },
   ] as INavigationRoute[],
 }

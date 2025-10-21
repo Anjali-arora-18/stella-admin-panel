@@ -13,8 +13,8 @@
 
     <template #footer>
       <div class="flex justify-end gap-2">
-        <VaButton size="medium" @click="emit('update:modelValue', false)">Cancel</VaButton>
-        <VaButton color="danger" size="medium" @click="onYes">Yes</VaButton>
+        <VaButton size="small" @click="emit('update:modelValue', false)">Cancel</VaButton>
+        <VaButton color="danger" size="small" @click="onYes">Yes</VaButton>
       </div>
     </template>
   </VaModal>

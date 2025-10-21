@@ -64,8 +64,8 @@ const getMenuOptions = async () => {
     const articlesOptionsGroups = response.data.articlesOptionsGroups
 
     itemWithArticlesOptionsGroups.value = {
-      ...props.item,
       articlesOptionsGroups: articlesOptionsGroups || [],
+      ...props.item,
     }
 
     if (articlesOptionsGroups && articlesOptionsGroups.length) {

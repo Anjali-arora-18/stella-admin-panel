@@ -6,6 +6,7 @@
     size="large"
     hide-default-actions
     close-button
+    @update:modelValue="$emit('close')"
   >
     <h3 class="va-h3 ml-3">{{ isEdit ? 'Edit Customer' : 'Add New Customer' }}</h3>
     <div class="bg-white p-4 pb-0">
@@ -46,10 +47,13 @@
                     editAddress === index ? 'bg-yellow-100 border-yellow-500' : 'bg-[#f8f9fa]',
                   ]"
                 >
-                  <div>
-                    <span v-if="addr.designation">
-                      <strong>{{ addr.designation }}</strong> -
+                  <div v-if="addr.designation && addr.designation.startsWith('Meet')">
+                    <span>
+                      <strong>{{ addr.designation }}</strong>
                     </span>
+                  </div>
+                  <div v-else>
+                    <span v-if="addr.designation" class="font-bold uppercase">{{ addr.designation }} - </span>
                     <span v-if="addr.aptNo">{{ addr.aptNo }},</span>
                     <span v-if="addr.floor">{{ addr.floor }},</span>
                     <span v-if="addr.streetName || addr.streetNo">{{ addr.streetName }} {{ addr.streetNo }},</span>
@@ -121,7 +125,10 @@
                     class="p-2 cursor-pointer hover:bg-primary-500"
                     @click="setAddress(street)"
                   >
-                    {{ street['Postal Code'] }} &nbsp; - &nbsp;{{ street['Street Name'] }}
+                    <span v-if="street.Designation && street.Designation.includes('Meeting')">
+                      {{ street.Designation }}
+                    </span>
+                    <span v-else>{{ street['Postal Code'] }} &nbsp; - &nbsp;{{ street['Street Name'] }}</span>
                   </li>
                 </ul>
               </div>
@@ -170,7 +177,7 @@
             <div class="flex flex-col gap-1 mb-4">
               <label class="text-sm font-medium text-gray-500">Address Notes</label>
 
-              <VaTextarea placeholder="Delivery instructions, building access..." rows="3" />
+              <VaTextarea v-model="addressNote" placeholder="Delivery instructions, building access..." rows="3"/>
 
               <div class="mt-2 flex justify-end">
                 <VaButton
@@ -201,24 +208,18 @@
           />
         </div>
 
-        <VaButtonToggle
-          v-model="isTick"
-          :toggle-color="outlet.primaryColor"
-          color="#65667c"
-          :options="[
-            {
-              label: 'Save Data',
-              value: true,
-              icon: 'va-check',
-            },
-            {
-              label: `Don't Save`,
-              value: false,
-              icon: 'va-close',
-            },
-          ]"
-          icon-color="warning"
-        />
+<VaButtonToggle
+  v-model="isTick"
+  :disabled="lockTick"
+  :toggle-color="outlet.primaryColor"
+  color="#65667c"
+  :options="[
+    { label: 'Save Data', value: true, icon: 'va-check' },
+    { label: `Don't Save`, value: false, icon: 'va-close' },
+  ]"
+  icon-color="warning"
+/>
+
 
         <VaButton
           preset="secondary"
@@ -228,9 +229,8 @@
         >
           Cancel
         </VaButton>
-
         <VaButton
-          type="submit"
+          type="button"
           :disabled="isSubmitting || isTick === null"
           :style="{ '--va-background-color': outlet.primaryColor }"
           class="text-white text-sm font-semibold"
@@ -242,27 +242,31 @@
     </div>
   </VaModal>
 </template>
-
 <script setup lang="ts">
+import { useOrderStore } from '@/stores/order-store'
 import { ref, watch, reactive, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useToast } from 'vuestic-ui'
 import axios from 'axios'
 import { useServiceStore } from '@/stores/services.ts'
 
 const { init } = useToast()
-
-const emits = defineEmits(['cancel', 'setUser'])
+const addressNote = ref('')
+const emits = defineEmits(['cancel', 'setUser', 'close'])
+const orderStore = useOrderStore()
 
 const props = defineProps<{
   selectedUser?: Record<string, string>
   userName: string
-  userNumber: number
+  userNumber: string
   outlet: Record<string, any>
+  forceUpdateId?: string | null
 }>()
+
 const addressListRef = ref(null)
-const addressItems = ref([])
-const dropdownRef = ref(null)
-const dropdownContainer = ref(null)
+const addressSet = ref(null)
+const addressItems = ref<any[]>([])
+const dropdownRef = ref<HTMLElement | null>(null)
+const dropdownContainer = ref<HTMLElement | null>(null)
 
 const showCustomerModal = ref(true)
 const searchAdd = reactive({
@@ -280,17 +284,26 @@ const district = ref('')
 const streetNumber = ref('')
 const aptNumber = ref('')
 const designation = ref('')
-const isTick = ref(null)
-const streetList = ref([])
-const address = ref([])
+const isTick = ref<boolean | null>(null)
+const streetList = ref<any[]>([])
+const address = ref<any[]>([])
 const isSubmitting = ref(false)
 const editAddress = ref(-1)
 
 watch(showCustomerModal, (val) => {
-  if (!val) emits('cancel')
+  if (!val) {
+    // clear transient state on close
+    streetList.value = []
+    addressSet.value = null
+    editAddress.value = -1
+    emits('cancel')
+  }
 })
 
 const isAddressValid = computed(() => {
+  if (designation.value.trim().startsWith('Meet')) {
+    return designation.value.trim() !== ''
+  }
   return (
     postCode.value.trim() !== '' &&
     streetAddress.value.trim() !== '' &&
@@ -301,20 +314,22 @@ const isAddressValid = computed(() => {
 })
 
 if (props.selectedUser) {
-  name.value = props.selectedUser['Name']
-  phoneNumber.value = props.selectedUser['MobilePhone'] || props.selectedUser['Phone']
-  notifications.value = props.selectedUser['notifications']
+  name.value = props.selectedUser['Name'] || ''
+  phoneNumber.value = props.selectedUser['MobilePhone'] || props.selectedUser['Phone'] || ''
+  notifications.value = !!props.selectedUser['notifications']
+
   if (typeof props.selectedUser['isTick'] !== 'undefined') {
-    isTick.value = props.selectedUser['isTick']
+    isTick.value = !!props.selectedUser['isTick']
   } else {
     isTick.value = true
   }
 
-  if (props.selectedUser['OtherAddresses']) {
-    props.selectedUser['OtherAddresses'].map((e: any) => {
-      const add = e.Address.split(',')
+  const other = props.selectedUser['OtherAddresses']
+  if (Array.isArray(other) && other.length) {
+    other.forEach((e: any) => {
+      const add = String(e.Address || '').split(',')
       address.value.push({
-        designation: e.Designation,
+        designation: e.Designation || 'Home',
         floor: add[1] || '',
         aptNo: add[0] || '',
         streetName: add[3] || '',
@@ -326,14 +341,12 @@ if (props.selectedUser) {
     })
   }
 } else {
-  name.value = props.userName
-  phoneNumber.value = props.userNumber
+  name.value = props.userName || ''
+  phoneNumber.value = String(props.userNumber ?? '').trim()
   isTick.value = null
 }
 
-const isEdit = computed(() => {
-  return props.selectedUser
-})
+const isEdit = computed(() => !!(props.selectedUser || props.forceUpdateId))
 
 function handleClickOutside(event: MouseEvent) {
   if (
@@ -351,21 +364,37 @@ function handleSearch() {
   fetchStreetName()
 }
 
-function setAddress(address) {
-  streetAddress.value = address['Street Name']
-  district.value = address['District']
-  postCode.value = address['Postal Code']
-  muncipality.value = address['Municipality / Community']
+function setAddress(addr: any) {
+  addressSet.value = addr
+
+  if (addr.Designation && addr.Designation.includes('Meeting Point')) {
+    const d = addr?.Designation ?? "";
+
+    designation.value = d.includes("Meeting Point")
+      ? d.replace(
+          /(Meeting\s*Point)(\s*-\s*)([^-]+)(.*)/i,
+          (_, _mp, sep, mid, rest) => `M.P${sep}${mid.trim().slice(0, 4)}${rest}`
+        ).trim()
+      : d;
+  }
+
+  streetAddress.value = addr['Street Name'] || ''
+  district.value = addr['District'] || ''
+  postCode.value = addr['Postal Code'] || ''
+  muncipality.value = addr['Municipality / Community'] || ''
   streetList.value = []
 }
 
 async function addAddress() {
   if (!isAddressValid.value) {
     init({ color: 'danger', message: 'Please fill all required address fields.' })
+    addressSet.value = null
     return
   }
 
-  if (editAddress.value === -1) {
+  const isMeetingPoint = designation.value.includes("M.P")
+
+  if (!isMeetingPoint /*&& editAddress.value === -1*/) {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/postalcodes/streets`, {
         params: {
@@ -399,6 +428,10 @@ async function addAddress() {
   } else {
     address.value.push(payload)
   }
+  // Set the order’s delivery notes for this session only (not persisted in customer profile)
+ if (addressNote.value?.trim()) {
+   orderStore.deliveryNotes = addressNote.value.trim()
+ }
   floor.value = ''
   aptNumber.value = ''
   designation.value = ''
@@ -415,7 +448,7 @@ async function addAddress() {
   editAddress.value = -1
 }
 
-function editAddressFields(addr, index) {
+function editAddressFields(addr: any, index: number) {
   postCode.value = addr.postCode || ''
   muncipality.value = addr.city || ''
   streetAddress.value = addr.streetName || ''
@@ -430,7 +463,7 @@ function editAddressFields(addr, index) {
   nextTick(() => {
     const el = addressItems.value[index]
     if (el && addressListRef.value) {
-      const parent = addressListRef.value
+      const parent: any = addressListRef.value
       parent.scrollTop = el.offsetTop - parent.offsetTop
     }
   })
@@ -454,7 +487,22 @@ async function fetchStreetName() {
     })
 
     if (response.status === 200 && response.data.data.length > 0) {
-      streetList.value = response.data.data
+      streetList.value = response.data.data.sort((a: any, b: any) => {
+        const aDesignation = a.Designation || ''
+        const bDesignation = b.Designation || ''
+        const aIsMeeting = aDesignation.includes('Meeting')
+        const bIsMeeting = bDesignation.includes('Meeting')
+
+        if (aIsMeeting && bIsMeeting) {
+          return aDesignation.localeCompare(bDesignation)
+        } else if (aIsMeeting) {
+          return -1
+        } else if (bIsMeeting) {
+          return 1
+        } else {
+          return (a['Street Name'] || '').localeCompare(b['Street Name'] || '')
+        }
+      })
     } else {
       streetList.value = []
       init({ color: 'danger', message: 'Address not available for Delivery' })
@@ -464,61 +512,202 @@ async function fetchStreetName() {
     init({ color: 'danger', message: 'Failed to fetch address data' })
   }
 }
+async function stellaUpsertFromForm(
+  base: any,
+  outletId: string,
+  maybeId?: string,
+  wmMeta?: { ID?: number | string; Code?: number | string } | null = null,
+) {
+  const byId = maybeId
+    ? { data: { data: [{ _id: maybeId }] } }
+    : await axios.get(`${import.meta.env.VITE_API_BASE_URL}/customers/search`, {
+        params: { phoneNo: base.phone, outletId },
+      })
+
+  const hit = maybeId ? { _id: maybeId } : (Array.isArray(byId?.data?.data) && byId.data.data[0]) || null
+
+  const common = {
+    phone: base.phone,
+    name: base.name,
+    isTick: !!base.isTick,
+    notifications: !!base.notifications,
+    customerNote: base.customerNote || '',
+    addressNote: base.addressNote || '',
+    outletId,
+    addreswholeObj: (base.address || []).map((e: any) => ({
+      designation: e.designation || 'Home',
+      aptNo: e.aptNo || '',
+      floor: e.floor || '',
+      streetNo: e.streetNo || '',
+      streetName: e.streetName || '',
+      district: e.district || '',
+      city: e.city || '',
+      postalCode: e.postCode || e.postalCode || '',
+    })),
+    ...(wmMeta?.ID ? { ID: wmMeta.ID } : {}),
+    ...(wmMeta?.Code ? { Code: wmMeta.Code } : {}),
+  }
+
+  if (hit) {
+    return axios.patch(`${import.meta.env.VITE_API_BASE_URL}/customers/${hit._id || hit.id}`, {
+      ...common,
+      id: hit._id || hit.id,
+    })
+  } else {
+    return axios.post(`${import.meta.env.VITE_API_BASE_URL}/customers`, common)
+  }
+}
+async function winmaxCreateOrUpdate(base: any, outletId: string, selected?: any) {
+  const hasWmId = !!selected?.ID
+
+  const baseAddrs = Array.isArray(base.address) ? base.address : []
+  const addressForWinmax = baseAddrs.filter(Boolean).map((e: any) => ({
+    designation: e?.designation || 'Home',
+    aptNo: e?.aptNo || '',
+    floor: e?.floor || '',
+    streetName: e?.streetName || '',
+    streetNo: e?.streetNo || '',
+    district: e?.district || '',
+    city: e?.city || '',
+    postCode: e?.postCode || e?.postalCode || '',
+  }))
+
+  // 🔑 IMPORTANT: coerce to booleans — DO NOT pass the ref `isTick`
+  const wmPayload = {
+    name: String(base.name || ''),
+    phone: String(base.phone || ''),
+    address: addressForWinmax,
+    isTick: !!base.isTick,
+    isPresent: !!base.isTick, // ← as requested: “isPresent: isTick”
+    notifications: !!base.notifications,
+  }
+
+  if (hasWmId) {
+    await axios.put(
+      `${import.meta.env.VITE_API_BASE_URL}/winmax/entities/${selected.ID}`,
+      { ...wmPayload, ID: selected.ID, Code: selected.Code, id: selected._id || selected.id },
+      { params: { outletId } },
+    )
+    return { ID: selected.ID, Code: selected.Code }
+  } else {
+    const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/winmax/entities`, wmPayload, {
+      params: { outletId },
+    })
+    let meta =
+      res?.data?.data && (res.data.data.ID || res.data.data.Code)
+        ? { ID: res.data.data.ID, Code: res.data.data.Code }
+        : null
+
+    if (!meta) {
+      const lookup = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/winmax/entities`, {
+        params: { outletId, Phone: base.phone },
+      })
+      const first = Array.isArray(lookup?.data?.data) ? lookup.data.data[0] : null
+      if (first?.ID) meta = { ID: first.ID, Code: first.Code }
+    }
+    return meta
+  }
+}
+const lockTick = computed(() => {
+  // Lock only when editing an existing customer AND their isTick is true
+  return !!(props.selectedUser && (props.selectedUser as any).isTick);
+});
 
 async function addOrUpdateCustomerDetails() {
   const servicesStore = useServiceStore()
-  const payload = {
-    name: name.value,
-    phone: phoneNumber.value,
-    address: address.value,
-    isTick: isTick.value,
-    notifications: notifications.value,
+  const outletId = servicesStore.selectedRest
+
+  // normalize phone to digits only
+  phoneNumber.value = String(phoneNumber.value || '').replace(/\D+/g, '')
+
+  const base = {
+    name: String(name.value || '').trim(),
+    phone: String(phoneNumber.value || '').trim(),
+    address: Array.isArray(address.value) ? address.value : [],
+    isTick: isTick.value, // UI toggle (Save / Don’t Save). We still do Winmax-first per rule.
+    notifications: !!notifications.value,
     customerNote: '',
     addressNote: '',
   }
+
   try {
-    let response
+    // 1) Forced anonymous update of an existing Stella doc (never Winmax)
+    if ((props as any).forceUpdateId) {
+      await stellaUpsertFromForm(base, outletId, (props as any).forceUpdateId /* maybeId */, /* wmMeta */ null)
+      emits('setUser', { phoneNumber: base.phone, name: base.name })
+      return
+    }
+
+    // 2) Editing an existing selected user
+    // 2) Editing an existing selected user
     if (props.selectedUser) {
-      payload['id'] = props.selectedUser._id
-      response = await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/winmax/entities/${props.selectedUser['ID']}?outletId=${
-          servicesStore.selectedRest
-        }`,
-        payload,
-      )
-    } else {
-      response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/winmax/entities?outletId=${servicesStore.selectedRest}`,
-        payload,
-      )
+      const selected = props.selectedUser as any
+
+      // isPresent === isTick (coming from Stella doc)
+      const present = !!selected.isTick
+
+      if (present) {
+        // Winmax only
+        await winmaxCreateOrUpdate(base, outletId, selected?.ID ? selected : undefined)
+      } else {
+        // Anonymous (Stella-only) → UPDATE STELLA ONLY
+        await stellaUpsertFromForm(base, outletId, selected._id || selected.id, null)
+      }
+
+      emits('setUser', { phoneNumber: base.phone, name: base.name })
+      return
     }
 
-    emits('setUser', { phoneNumber: phoneNumber.value, name: name.value })
-  } catch (error) {
-    let message = 'Something went wrong.'
+    // 3) Creating a brand-new record → ALWAYS Winmax first, then Stella
+    const wmCreated = await winmaxCreateOrUpdate(base, outletId, null)
+    await stellaUpsertFromForm(base, outletId, /* maybeId */ undefined, wmCreated)
 
-    if (error.response && error.response.data && error.response.data.error) {
-      message = error.response.data.error
-    }
-    init({
-      color: 'danger',
-      message,
-    })
+    emits('setUser', { phoneNumber: base.phone, name: base.name })
+  } catch (error: any) {
+    const msg =
+      error?.response?.data?.error ||
+      error?.response?.data?.message ||
+      (Array.isArray(error?.response?.data?.errors) ? error.response.data.errors.join(', ') : null) ||
+      error?.message ||
+      'Something went wrong.'
+    init({ color: 'danger', message: msg })
   }
 }
 
 async function handleSubmit() {
   if (isSubmitting.value) return
 
-  isSubmitting.value = true
+  // basic guards for brand-new customers
+  if (!String(name.value || '').trim()) {
+    init({ color: 'danger', message: 'Please enter a customer name.' })
+    return
+  }
+  const digits = String(phoneNumber.value || '').replace(/\D+/g, '')
+  if (!digits) {
+    init({ color: 'danger', message: 'Please enter a valid mobile number.' })
+    return
+  }
+  if (isTick.value === null) {
+    init({ color: 'danger', message: 'Choose “Save Data” or “Don’t Save”.' })
+    return
+  }
 
+  // normalize phone in the bound field so downstream calls receive digits-only
+  phoneNumber.value = digits
+
+  isSubmitting.value = true
   try {
     await addOrUpdateCustomerDetails()
+    // close modal on success
     showCustomerModal.value = false
+  } catch (e: any) {
+    const msg = e?.response?.data?.error || e?.response?.data?.message || e?.message || 'Something went wrong.'
+    init({ color: 'danger', message: msg })
   } finally {
     isSubmitting.value = false
   }
 }
+
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
 })
@@ -527,6 +716,7 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 </script>
+
 <style>
 .customer-results {
   position: absolute;

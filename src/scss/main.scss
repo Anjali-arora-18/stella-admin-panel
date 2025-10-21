@@ -99,3 +99,277 @@ main, .va-layout__area--content, body {
 .va-layout {
   height: 100vh;
 }
+
+/* Vuestic VAPagination Component Styles */
+
+/* Main pagination wrapper */
+.va-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 1rem 0;
+}
+
+/* Individual pagination buttons */
+.va-pagination .va-button {
+  min-width: 40px;
+  height: 40px;
+  margin: 0 4px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+/* Hover effect */
+.va-pagination .va-button:not(.va-button--disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Active/Selected page button */
+.va-pagination .va-button--primary {
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%) !important;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
+}
+
+/* Secondary/Default buttons */
+.va-pagination .va-button--secondary {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.va-pagination .va-button--secondary:hover {
+  background-color: #e8e8e8;
+}
+
+/* Disabled buttons */
+.va-pagination .va-button--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Navigation arrows (prev/next) */
+.va-pagination .va-button:first-child,
+.va-pagination .va-button:last-child {
+  font-weight: 600;
+}
+
+/* Input field for direct page entry */
+.va-pagination .va-input {
+  width: 70px;
+  margin: 0 8px;
+}
+
+.va-pagination .va-input input {
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Ellipsis indicator */
+.va-pagination__ellipsis {
+  padding: 0 8px;
+  color: #999;
+  user-select: none;
+}
+
+/* ========================================
+   CUSTOM THEMES
+   ======================================== */
+
+/* Dark Theme */
+.va-pagination.theme-dark .va-button--secondary {
+  background-color: #2c3e50;
+  color: #ecf0f1;
+  border: 1px solid #34495e;
+}
+
+.va-pagination.theme-dark .va-button--secondary:hover {
+  background-color: #34495e;
+  border-color: #4a90e2;
+}
+
+.va-pagination.theme-dark .va-button--primary {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+}
+
+/* Minimal Theme */
+.va-pagination.theme-minimal .va-button {
+  background: transparent !important;
+  border: none;
+  color: #666;
+  box-shadow: none !important;
+}
+
+.va-pagination.theme-minimal .va-button:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  color: #333;
+}
+
+.va-pagination.theme-minimal .va-button--primary {
+  color: #4a90e2 !important;
+  border-bottom: 3px solid #4a90e2;
+  border-radius: 0;
+}
+
+/* Rounded Theme */
+.va-pagination.theme-rounded .va-button {
+  border-radius: 50%;
+  min-width: 45px;
+  height: 45px;
+}
+
+/* Bordered Theme */
+.va-pagination.theme-bordered .va-button {
+  border: 2px solid #e0e0e0;
+  background-color: white;
+}
+
+.va-pagination.theme-bordered .va-button:hover {
+  border-color: #4a90e2;
+}
+
+.va-pagination.theme-bordered .va-button--primary {
+  border-color: #4a90e2;
+}
+
+/* Gradient Theme */
+.va-pagination.theme-gradient {
+  --va-button-background: none;
+  --va-button-hover-background: none;
+  
+  .va-button {
+    &[data-v-active="true"],
+    &.va-button--active,
+    &.va-button--current,
+    &[aria-current="true"] {
+      background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+      background-color: transparent !important;
+      --va-button-background: none !important;
+      --va-background-color: transparent !important;
+      border: none !important;
+      color: white !important;
+      
+      &::before,
+      &::after {
+        display: none !important;
+      }
+    }
+
+    &:not([data-v-active="true"]):not(.va-button--active):not(.va-button--current):not([aria-current="true"]) {
+      background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;
+      background-color: transparent !important;
+      --va-button-background: none !important;
+      --va-background-color: transparent !important;
+      
+      &::before,
+      &::after {
+        display: none !important;
+      }
+    }
+  }
+}
+
+/* ========================================
+   SIZE VARIANTS
+   ======================================== */
+
+/* Small Size */
+.va-pagination--small .va-button {
+  min-width: 32px;
+  height: 32px;
+  font-size: 0.875rem;
+  margin: 0 2px;
+}
+
+/* Large Size */
+.va-pagination--large .va-button {
+  min-width: 48px;
+  height: 48px;
+  font-size: 1.125rem;
+  margin: 0 6px;
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes pageSelect {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.va-pagination .va-button--primary {
+  animation: pageSelect 0.3s ease;
+}
+
+/* Smooth transitions */
+.va-pagination .va-button {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 768px) {
+  .va-pagination {
+    gap: 4px;
+  }
+  
+  .va-pagination .va-button {
+    min-width: 36px;
+    height: 36px;
+    font-size: 0.875rem;
+    margin: 0 2px;
+  }
+  
+  /* Hide some page numbers on mobile */
+  .va-pagination .va-button:nth-child(n+6):nth-last-child(n+6) {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .va-pagination .va-button {
+    min-width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+
+.va-pagination .va-button:focus-visible {
+  outline: 3px solid #4a90e2;
+  outline-offset: 2px;
+  z-index: 1;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .va-pagination .va-button {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .va-pagination .va-button {
+    transition: none;
+    animation: none;
+  }
+  
+  .va-pagination .va-button:hover {
+    transform: none;
+  }
+}
