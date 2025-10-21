@@ -259,11 +259,9 @@ const etaTime = computed(() => {
       : orderStore.deliveryZone?.takeawayPromiseTime
 
   const etaDate = new Date(selectedDate)
-
   etaDate.setMinutes(etaDate.getMinutes() + (promiseTime || 0))
 
   const timeString = etaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
-
   const isFutureOrder = selectedDate.getTime() > now.getTime() + 30 * 60 * 1000
 
   const zoneName = orderStore.deliveryZone?.name ? `${orderStore.deliveryZone.name} - ` : ''
@@ -292,6 +290,7 @@ const etaTime = computed(() => {
     return `${zoneName}${props.orderType === 'delivery' ? 'Delivery - ETA' : 'Takeaway - Ready at'} ${timeString}`
   }
 })
+
 
 const getTotalPrice = computed(() => {
   const total = totalAmount.value + props.deliveryFee

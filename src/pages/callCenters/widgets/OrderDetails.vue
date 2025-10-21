@@ -883,6 +883,8 @@ function clearPromoCode() {
   orderStore.setOrderTotal(null)
 }
 
+
+
 const getMenuOptions = async (selectedItem) => {
   const url = import.meta.env.VITE_API_BASE_URL
   isLoading.value = true
@@ -910,6 +912,26 @@ const getMenuOptions = async (selectedItem) => {
     isLoading.value = false
   }
 }
+
+const isFutureTimeValid = () => {
+  if (orderFor.value !== 'future') return true // only validate future orders
+  if (!props.dateSelected) return false
+
+  const dateTime = new Date(props.dateSelected)
+  const hour = dateTime.getHours()
+  const minute = dateTime.getMinutes()
+
+  // Only validate the **time** part
+  // Valid time: 11:00 to 23:00 (inclusive)
+  if (hour < 11 || hour > 23 || (hour === 23 && minute > 0)) {
+    return false
+  }
+
+  return true
+}
+
+const futureTimeError = ref(false)
+
 
 const getOfferItems = async (selectedItem) => {
   selectedItemWithArticlesOptionsGroups.value = selectedItem
