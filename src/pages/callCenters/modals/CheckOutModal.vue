@@ -696,6 +696,28 @@ const offersAfterPromos = computed(() => {
   const n = Number(v?.updatedOffersTotal || 0)
   return Number(n.toFixed(2))
 })
+function normalizeCodes(singleStr, codesArr) {
+  // Prefer provided array if non-empty
+  let codes = Array.isArray(codesArr) && codesArr.length ? codesArr.slice() : []
+
+  // Otherwise, parse the string: "P50, XL+1" -> ["P50","XL+1"]
+  if (!codes.length && singleStr) {
+    codes = singleStr
+      .split(/[\s,;\n\r]+/g)
+      .map(s => s.trim())
+      .filter(Boolean)
+  }
+
+  // De-dupe case-insensitively
+  const seen = new Set()
+  const out = []
+  for (const c of codes) {
+    const k = c.toLowerCase()
+    if (!seen.has(k)) { seen.add(k); out.push(c) }
+  }
+  return out
+}
+
 
 async function createOrder() {
   apiLoading.value = true
@@ -729,6 +751,7 @@ async function createOrder() {
       })),
     ),
   }))
+const codes = normalizeCodes(props.promoCode, props.promoCodes)
 
   try {
     const payload = {
@@ -745,8 +768,8 @@ async function createOrder() {
       orderDateTime: new Date(props.dateSelected).toISOString(),
       paymorderNotes: orderStore.orderNotes || '',
       address: sanitizeAddress(orderStore.address),
-      promoCode: (props.promoCodes?.length === 1 ? props.promoCodes[0] : props.promoCode) || '',
-      promoCodes: props.promoCodes ?? [],   
+  ...(codes.length ? { promoCodes: codes } : {}),
+  ...(codes.length === 1 ? { promoCode: codes[0] } : {}),
     }
 
 
