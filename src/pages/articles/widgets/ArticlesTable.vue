@@ -273,164 +273,140 @@ function openFileModal(data) {
 <template>
   <div>
     <!-- HEADER -->
-    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-      <!-- Left Section: Title + Count + Search -->
-<div class="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
-  <!-- Title -->
-  <div class="flex items-center gap-2">
-    <h1 class="text-2xl font-semibold text-slate-800 dark:text-slate-100 tracking-tight">
-      Articles
-    </h1>
+<div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+  <!-- Left: Title + Counter + Search -->
+  <div class="flex flex-1 min-w-0 items-center gap-4 flex-wrap">
+    <!-- Title + Counter -->
+    <div class="flex items-center gap-2 flex-shrink-0">
+      <h1 class="text-2xl font-semibold text-slate-800 dark:text-slate-100 tracking-tight">Articles</h1>
+      <div class="px-2.5 py-0.5 text-sm rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 font-medium">
+        {{ totalVisibleCount }}
+      </div>
+    </div>
 
-    <!-- Article Counter -->
+    <!-- Search Bar -->
     <div
-  class="px-2.5 py-0.5 text-sm rounded-full bg-blue-100 text-blue-700 
-         dark:bg-blue-900/40 dark:text-blue-300 font-medium"
->
-  {{ totalVisibleCount }}
-</div>
+      class="relative flex-1 min-w-[150px] max-w-[300px] w-full sm:w-[240px] md:w-[300px] 
+             bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200 dark:border-slate-700 
+             rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
+    >
+      <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
+      <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Search Articles by Name or Code..."
+        class="w-full pl-9 pr-3 py-2 text-sm bg-transparent focus:outline-none text-slate-700 dark:text-slate-200 rounded-xl truncate"
+      />
+    </div>
   </div>
-  <div
-    class="relative flex items-center w-full sm:w-[240px] md:w-[300px] 
+
+  <!-- Right: Buttons -->
+  <div class="flex flex-wrap gap-2 justify-end items-center flex-shrink-0">
+    <!-- Active Only Toggle -->
+    <div class="flex items-center gap-1">
+      <span class="hidden md:inline text-sm font-medium text-slate-700 dark:text-slate-200">Active Only</span>
+      <label class="relative inline-block w-9 h-5 cursor-not-allowed">
+        <input type="checkbox" class="sr-only" checked />
+        <span class="block rounded-full h-5 w-9 transition-colors duration-300 ease-in-out bg-emerald-500"></span>
+        <span class="absolute left-0 top-0.5 w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-300 ease-in-out translate-x-4"></span>
+      </label>
+    </div>
+
+    <!-- Columns Button -->
+<div class="relative" ref="columnsMenuWrapper">
+  <button
+    @click="showColumnsMenu = !showColumnsMenu"
+    class="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium
            bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200 dark:border-slate-700
-           rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
+           shadow-sm hover:shadow-md hover:bg-white/80 dark:hover:bg-slate-800/80
+           transition-all duration-200 active:scale-[0.97]
+           h-10 w-10 md:w-auto md:h-auto"
   >
-    <div class="relative w-full sm:w-[240px] md:w-[300px]">
-  <Search 
-    class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none"
-  />
-  <input
-    v-model="searchQuery"
-    type="text"
-    placeholder="Search Articles by Name or Code..."
-    class="w-full pl-9 pr-3 py-2 text-sm bg-transparent focus:outline-none text-slate-700 dark:text-slate-200 rounded-xl"
-  />
-</div>
-  </div>
-</div>
+    <Columns3 class="w-4 h-4" />
+    <span class="hidden md:inline">Columns</span>
+  </button>
 
-<div class="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto justify-end">
-<!-- Right header buttons -->
-<div class="flex items-center gap-3">
-<!-- Active Only Toggle Button waiting for api -->
-<div class="flex items-center gap-3">
-  <span class="text-sm font-medium text-slate-700 dark:text-slate-200">Active Only</span>
-  <label class="relative inline-block w-9 h-5 cursor-not-allowed">
-    <input
-      type="checkbox"
-      class="sr-only"
-      checked
-    />
-    <!-- Track -->
-    <span
-      class="block rounded-full h-5 w-9 transition-colors duration-300 ease-in-out bg-emerald-500"
-    ></span>
-    <!-- Thumb -->
-    <span
-      class="absolute left-0 top-0.5 w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-300 ease-in-out translate-x-4"
-    ></span>
-  </label>
-</div>
+  <!-- Dropdown -->
+  <div
+    v-if="showColumnsMenu"
+    class="absolute left-0 mt-2 w-64 rounded-2xl border border-slate-200 dark:border-slate-700
+           bg-white/80 dark:bg-slate-800/90 backdrop-blur-md shadow-2xl p-4 z-50
+           transition-all duration-200"
+  >
+    <div class="flex flex-col gap-3 max-h-[420px] overflow-auto pr-1">
+      <label
+        v-for="col in baseColumns"
+        :key="col.key"
+        class="flex items-center justify-between text-sm cursor-pointer text-slate-700 dark:text-slate-200 hover:text-blue-500"
+      >
+        <div class="flex items-center gap-2">
+          <input type="checkbox" v-model="columnVisibility[col.key]" class="accent-blue-500 h-4 w-4 rounded" />
+          <span class="select-none">{{ col.label }}</span>
+        </div>
+      </label>
+    </div>
 
-  <!-- Columns dropdown (left) -->
-  <div class="relative" ref="columnsMenuWrapper">
-    <button
-      @click="showColumnsMenu = !showColumnsMenu"
-      class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium
-             bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200 dark:border-slate-700
-             shadow-sm hover:shadow-md hover:bg-white/80 dark:hover:bg-slate-800/80
-             transition-all duration-200 active:scale-[0.97]"
-    >
-    <Columns3 class="w-4 h-4" />  
-      Columns
+    <div class="flex justify-between mt-4 pt-3 border-t border-slate-100 dark:border-slate-700">
+      <button @click="resetColumnVisibility" class="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
+        Reset
       </button>
-
-    <!-- Dropdown -->
-    <div
-      v-if="showColumnsMenu"
-      class="absolute left-0 mt-2 w-64 rounded-2xl border border-slate-200 dark:border-slate-700
-             bg-white/80 dark:bg-slate-800/90 backdrop-blur-md shadow-2xl p-4 z-50
-             transition-all duration-200"
-    >
-      <div class="flex flex-col gap-3 max-h-[420px] overflow-auto pr-1">
-        <label
-          v-for="col in baseColumns"
-          :key="col.key"
-          class="flex items-center justify-between text-sm cursor-pointer text-slate-700 dark:text-slate-200 hover:text-blue-500"
-        >
-          <div class="flex items-center gap-2">
-            <input
-              type="checkbox"
-              v-model="columnVisibility[col.key]"
-              class="accent-blue-500 h-4 w-4 rounded"
-            />
-            <span class="select-none">{{ col.label }}</span>
-          </div>
-        </label>
-      </div>
-
-      <div class="flex justify-between mt-4 pt-3 border-t border-slate-100 dark:border-slate-700">
-        <button
-          @click="resetColumnVisibility"
-          class="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-        >
-          Reset
-        </button>
-        <button
-          @click="() => (showColumnsMenu = false)"
-          class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-        >
-          Done
-        </button>
-      </div>
+      <button @click="showColumnsMenu = false" class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
+        Done
+      </button>
     </div>
   </div>
-
-  <!-- Import Button -->
-  <button
-    @click="onImportClick"
-    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium
-           bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.97]
-           transition-all duration-200 shadow-sm hover:shadow-md"
-  >
-  <Import class="w-4 h-4" />
-    Import
-  </button>
-
-  <!-- Add Article Button -->
-  <button
-    @click="onAddClick"
-    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium
-           bg-emerald-600 text-white hover:bg-emerald-700 active:scale-[0.97]
-           transition-all duration-200 shadow-sm hover:shadow-md"
-  >
-  <Plus class="w-4 h-4" />
-    Add Article
-  </button>
 </div>
 
-        <VaPagination
-          v-model="currentPage"
-          :pages="pages"
-          buttons-preset="default"
-          gapped
-          :visible-pages="3"
-          class="sm:ml-4 justify-center theme-gradient"
-        />
-      </div>
-    </div>
+
+
+    <!-- Import Button -->
+    <button
+  @click="onImportClick"
+  class="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium 
+         bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.97] transition-all duration-200 
+         shadow-sm hover:shadow-md h-10 w-10 md:w-auto md:h-auto"
+>
+  <Import class="w-4 h-4" />
+  <span class="hidden md:inline">Import</span>
+</button>
+
+    <!-- Add Article Button -->
+   <button
+  @click="onAddClick"
+  class="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium 
+         bg-emerald-600 text-white hover:bg-emerald-700 active:scale-[0.97] transition-all duration-200 
+         shadow-sm hover:shadow-md h-10 w-10 md:w-auto md:h-auto"
+>
+  <Plus class="w-4 h-4" />
+  <span class="hidden md:inline">Add Article</span>
+</button>
+
+    <!-- Pagination -->
+    <VaPagination
+      v-model="currentPage"
+      :pages="pages"
+      buttons-preset="default"
+      gapped
+      :visible-pages="3"
+      class="justify-center theme-gradient"
+    />
+  </div>
+</div>
+
+
     <!-- TABLE -->
+    <div class="flex flex-col h-[calc(100vh-14rem)]">
     <VaDataTable
       :columns="columns"
       :items="filteredItems"
       :loading="$props.loading"
       :disable-client-side-sorting="true"
       :style="{
-        '--va-data-table-height': '710px',
         '--va-data-table-thead-background': '#f8fafc',
         '--va-data-table-thead-color': '#64748b',
       }"
       sticky-header
+
       @update:sortBy="(sortBy) => $emit('sortBy', sortBy)"
       @update:sortingOrder="(sortDesc) => $emit('sortingOrder', sortDesc)"
     >
@@ -905,6 +881,7 @@ function openFileModal(data) {
 </template>
       
     </VaDataTable>
+  </div>
   </div>
 </template>
 
