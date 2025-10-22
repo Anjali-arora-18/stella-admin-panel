@@ -791,9 +791,77 @@ async function openPromotionModal() {
     init({ message: 'Invalid or expired promotion code.', color: 'danger' })
   }
 }
+function parseCodes(raw) {
+  const tokens = (raw || '')
+    .split(/[\s,;\n\r]+/g)
+    .map((s) => s.trim())
+    .filter(Boolean)
+
+  const seen = new Set()
+  const out = []
+  for (const t of tokens) {
+    const k = t.toLowerCase()
+    if (!seen.has(k)) { seen.add(k); out.push(t) }
+  }
+  return out
+}
+
+// Build payload identical to the modal (keys + types)
+function buildPromoPayloadFromState(promoCodes) {
+  const menuItems = orderStore.cartItems.map((e) => ({
+    menuItem: e.itemId,
+    quantity: e.quantity,
+    options: e.selectedOptions.flatMap((group) =>
+      group.selected.map((option) => ({
+        option: option.optionId,
+        quantity: option.quantity,
+      })),
+    ),
+  }))
+
+  const offerMenuItems = orderStore.offerItems.map((offer) => ({
+    offerId: offer.offerId,
+    menuItems: offer.selections.flatMap((selection) =>
+      selection.addedItems.map((item) => ({
+        menuItem: item.itemId,
+        quantity: item.quantity || 1,
+        options:
+          (item.selectedOptions || []).flatMap((group) =>
+            group.selected.map((option) => ({
+              option: option.optionId,
+              quantity: option.quantity,
+            })),
+          ),
+      })),
+    ),
+  }))
+
+  const single = promoCodes.length === 1 ? promoCodes[0] : null
+
+  const payload = {
+    orderFor: orderFor.value,
+    customerDetailId: props.customerDetailsId,
+    orderType: props.orderType === 'takeaway' ? 'Takeaway' : 'Delivery',
+    deliveryZoneId: orderStore.deliveryZone?._id,
+    address: orderStore.address,
+    menuItems,
+    offerMenuItems,
+    orderNotes: orderStore.orderNotes || '',
+    deliveryFee: props.deliveryFee,
+    outletId: serviceStore.selectedRest,
+    orderDateTime: new Date(props.dateSelected).toISOString(),
+    paymentMode: '',
+    promoCodes: promoCodes,                 // array (no empty strings)
+    hasOtherOffers: offerMenuItems.length,  // number (not boolean)
+  }
+
+  if (single) payload.promoCode = single
+  return payload
+}
 
 async function applyPromoCode() {
-  if (!promoCode.value) {
+  const codes = parseCodes(promoCode.value)
+  if (!codes.length) {
     init({ message: 'Please enter a promotion code.', color: 'warning' })
     return
   }
@@ -810,69 +878,29 @@ async function applyPromoCode() {
     return
   }
 
-  let menuItems = []
-  menuItems = orderStore.cartItems.map((e) => {
-    return {
-      menuItem: e.itemId,
-      quantity: e.quantity,
-      options: e.selectedOptions.flatMap((group) =>
-        group.selected.map((option) => ({
-          option: option.optionId,
-          quantity: option.quantity,
-        })),
-      ),
-    }
-  })
-
-  const offerMenuItems = orderStore.offerItems.map((offer) => ({
-    offerId: offer.offerId,
-    menuItems: offer.selections.flatMap((selection) =>
-      selection.addedItems.map((item) => ({
-        menuItem: item.itemId,
-        quantity: item.quantity || 1,
-        options:
-          item.selectedOptions?.flatMap((group) =>
-            group.selected.map((option) => ({
-              option: option.optionId,
-              quantity: option.quantity,
-            })),
-          ) || [],
-      })),
-    ),
-  }))
-
   try {
-    const payload = {
-      orderFor: orderFor.value,
-      customerDetailId: props.customerDetailsId,
-      orderType: props.orderType === 'takeaway' ? 'Takeaway' : 'Delivery',
-      deliveryZoneId: orderStore.deliveryZone?._id,
-      address: orderStore.address,
-      menuItems,
-      offerMenuItems,
-      orderNotes: orderStore.orderNotes || '', 
-      deliveryFee: props.deliveryFee,
-      outletId: serviceStore.selectedRest,
-      orderDateTime: new Date(props.dateSelected).toISOString(),
-      paymentMode: '',
-      promoCode: promoCode.value || '',
-      hasOtherOffers: offerMenuItems.length,
-    }
-
+    const payload = buildPromoPayloadFromState(codes)
     const response = await orderStore.validatePromoCode(payload)
 
-    if (response.data.success) {
-      init({ message: `PromoCode selected`, color: 'success' })
+    if (response.data && response.data.success) {
       orderStore.setOrderTotal(response.data.data)
       isPromoValid.value = true
+      // ✅ keep the input readable and in sync
+      promoCode.value = codes.join(', ')
+      init({ message: `PromoCode${codes.length > 1 ? 's' : ''} selected`, color: 'success' })
     } else {
       orderStore.setOrderTotal(null)
-      init({ message: `PromoCode invalid`, color: 'danger' })
+      isPromoValid.value = false
+      init({ message: (response.data && response.data.message) || 'PromoCode invalid', color: 'danger' })
     }
   } catch (err) {
-    init({ message: `PromoCode invalid`, color: 'danger' })
+    orderStore.setOrderTotal(null)
+    isPromoValid.value = false
+    init({ message: (err && err.response && err.response.data && err.response.data.message) || 'PromoCode invalid', color: 'danger' })
   }
 }
+
+
 
 function clearPromoCode() {
   promoCode.value = ''

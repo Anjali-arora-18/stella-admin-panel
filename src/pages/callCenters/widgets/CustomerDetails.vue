@@ -248,6 +248,7 @@
               </div>
             </template>
 
+            <!-- Address (Delivery tab) -->
             <template v-else>
               <VaSelect
                 v-model="selectedAddress"
@@ -261,11 +262,15 @@
                 class="h-[24px] w-[24px] min-w-[32px] flex items-center justify-center rounded-md p-0 text-xs mt-1"
                 style="--va-select-dropdown-max-height: 100px"
               />
+
+              <!-- Disable outlet/zone manual selection in Delivery -->
               <VaButton
-                class="hover:bg-blue-600 text-white h-[24px] w-[24px] rounded-md flex items-center justify-center"
+                class="text-white h-[24px] w-[24px] rounded-md flex items-center justify-center opacity-60 cursor-not-allowed"
                 size="small"
                 :style="{ '--va-background-color': outlet.primaryColor }"
-                @click="showDeliveryDropdown = true"
+                :disabled="selectedTab === 'delivery'"
+                @click.prevent
+                title="Zone is auto-selected from address"
               >
                 {{ serviceZoneId || 'N/A' }}
               </VaButton>
