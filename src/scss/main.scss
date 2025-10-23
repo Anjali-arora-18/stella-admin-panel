@@ -372,3 +372,66 @@ main, .va-layout__area--content, body {
     transform: none;
   }
 }
+
+
+/* ========================================
+   CUSTOM CLEAN PAGINATION STYLE (exact design)
+   ======================================== */
+
+.va-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px !important; /* very small spacing between buttons */
+}
+
+/* Common button style */
+.va-pagination .va-button {
+  width: 32px; /* same height & width → perfect square */
+  height: 32px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b !important; /* text/icon color */
+  background-color: #fcfdfe  !important; /* default inactive background */
+  border: none !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease;
+}
+
+/* Remove background from arrows */
+.va-pagination .va-button:first-child,
+.va-pagination .va-button:last-child {
+  background-color: transparent !important;
+  width: 32px;
+  height: 32px;
+}
+
+/* Hover effect for arrows */
+.va-pagination .va-button:first-child:hover,
+.va-pagination .va-button:last-child:hover {
+  background-color: #f8fafc !important;
+}
+
+/* Active (selected) page button → swap colors */
+.va-pagination .va-button--primary {
+  background-color: #64748b !important; /* swapped bg */
+  color: #f8fafc !important; /* swapped text */
+}
+
+/* Hover state for inactive page numbers */
+.va-pagination .va-button:not(.va-button--primary):hover {
+  background-color: #f8fafc !important;
+}
+
+/* Remove unnecessary extras */
+.va-pagination .va-button--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background-color: transparent !important;
+}
+
+/* Optional: remove hidden ellipsis spacing if used */
+.va-pagination__ellipsis {
+  display: none;
+}
