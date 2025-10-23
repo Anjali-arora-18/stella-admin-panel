@@ -357,8 +357,6 @@ function openFileModal(data) {
   </div>
 </div>
 
-
-
     <!-- Import Button -->
     <button
   @click="onImportClick"
@@ -393,9 +391,8 @@ function openFileModal(data) {
   </div>
 </div>
 
-
     <!-- TABLE -->
-    <div class="flex flex-col h-[calc(100vh-14rem)]">
+    <div class="flex flex-col h-[calc(100vh-12rem)]">
     <VaDataTable
       :columns="columns"
       :items="filteredItems"

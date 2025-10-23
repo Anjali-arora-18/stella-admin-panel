@@ -2,7 +2,7 @@
   <div>
     <div class="rounded bg-white w-full mt-4">
       <!-- Modern Tab Headers -->
-      <div class="flex justify-center gap-4 py-2">
+      <div class="flex justify-center gap-4 py-4">
         <button
           :class="['tab-btn', activeTab === 0 ? 'active' : '']"
           @click="activeTab = 0; $router.push({ name: 'articlesOptionsGroups' })"
