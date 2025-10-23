@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { defineVaDataTableColumns, useModal, useToast } from 'vuestic-ui'
 import { useRouter } from 'vue-router'
-import { ref, toRef, watch } from 'vue'
+import { ref, toRef, watch, computed } from 'vue'
 import { useServiceStore } from '@/stores/services'
 import FileUpload from '@/components/file-uploader/FileUpload.vue'
 import AddSelectionModal from '../modals/AddSelectionModal.vue'
 import axios from 'axios'
+import { Plus, Search, CirclePlus, Pencil, Copy } from 'lucide-vue-next';
+
 const emits = defineEmits(['getOffers', 'editOffers', 'openOfferModal'])
 const props = defineProps({
   items: {
@@ -16,7 +18,9 @@ const props = defineProps({
 })
 
 const isAddSelectionModalOpen = ref(false)
-
+const onAddOfferClick = () => {
+  emits('openOfferModal')
+}
 const { confirm } = useModal()
 const { init } = useToast()
 const offerData = ref('')
@@ -25,14 +29,14 @@ const isEditSelection = ref(false)
 const router = useRouter()
 const servicesStore = useServiceStore()
 const columns = defineVaDataTableColumns([
-  { label: 'Name', key: 'name' },
-  { label: 'Code', key: 'code' },
-  { label: 'Description', key: 'description', width: '150px' },
-  { label: 'Price', key: 'price' },
   { label: 'Image', key: 'imageUrl' },
-  { label: 'Start-End Date', key: 'startDate' },
+  { label: 'Name', key: 'name' },
+  { label: 'Description', key: 'description', width: '150px' },
+  { label: 'Code', key: 'code' },
+  { label: 'Price', key: 'price' },
+  { label: 'Date Range', key: 'startDate' },
   { label: 'Week Days', key: 'weeklyOffer', width: '150px' },
-  { label: 'Time From-To', key: 'timeRange' },
+  { label: 'Time Range', key: 'timeRange' },
   { label: 'Order Type', key: 'orderType' },
   { label: 'Selections', key: 'selections' },
   { label: 'Actions', key: 'actions' },
@@ -45,7 +49,27 @@ const selectionColumns = defineVaDataTableColumns([
   { label: 'Max Choice', key: 'max' },
   { label: 'Actions', key: 'actions' },
 ])
+const totalVisibleCount = computed(() => filteredItems.value.length)
+const searchQuery = ref('')
+const filteredItems = ref([])
+watch(
+  [() => props.items, searchQuery],
+  ([newItems, query]) => {
+    const lowerQuery = query.toLowerCase().trim()
+    const mappedItems = newItems.map((item) => ({ ...item }))
 
+    if (!lowerQuery) {
+      filteredItems.value = mappedItems
+    } else {
+      filteredItems.value = mappedItems.filter((item) =>
+        [item.name, item.code]
+          .filter(Boolean)
+          .some((field) => field.toLowerCase().includes(lowerQuery))
+      )
+    }
+  },
+  { immediate: true }
+)
 const IsActive = ref(true)
 
 const weekdayShortMap = {
@@ -222,25 +246,122 @@ function formatReadableDate(dateStr: string): string {
 }
 </script>
 
+<!-- PAGE -->
 <template>
   <div>
-    <div class="flex items-center justify-between mb-4">
-      <h1 class="page-title">Offers</h1>
-      <div class="flex gap-2">
-        <VaButton size="small" color="primary" @click="emits('openOfferModal')">Add Offers</VaButton>
+    <!-- HEADER -->
+<div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+  <!-- Left: Title + Counter + Search -->
+  <div class="flex flex-1 min-w-0 items-center gap-4 flex-wrap">
+    <!-- Title + Counter -->
+    <div class="flex items-center gap-2 flex-shrink-0">
+      <h1 class="text-2xl font-semibold text-slate-800 dark:text-slate-100 tracking-tight">Offers</h1>
+      <div class="px-2.5 py-0.5 text-sm rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 font-medium">
+        {{ totalVisibleCount }}
       </div>
     </div>
+
+    <!-- Search Bar -->
+    <div
+      class="relative flex-1 min-w-[150px] max-w-[300px] w-full sm:w-[240px] md:w-[300px] 
+             bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200 dark:border-slate-700 
+             rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
+    >
+      <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
+      <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Search by Name or Code"
+        class="w-full pl-9 pr-3 py-2 text-sm bg-transparent focus:outline-none text-slate-700 dark:text-slate-200 rounded-xl truncate"
+      />
+    </div>
+  </div>
+
+  <!-- Right: Buttons -->
+  <div class="flex flex-wrap gap-2 justify-end items-center flex-shrink-0">
+
+    <!-- Add Offer Button -->
+   <button
+  @click="onAddOfferClick"
+  class="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium 
+         bg-emerald-600 text-white hover:bg-emerald-700 active:scale-[0.97] transition-all duration-200 
+         shadow-sm hover:shadow-md h-10 w-10 md:w-auto md:h-auto"
+>
+  <Plus class="w-4 h-4" />
+  <span class="hidden md:inline">Add Offer</span>
+</button>
+  </div>
+</div>
+
+    <!-- TABLE -->
+    <div class="flex flex-col h-[calc(100vh-12rem)]">
     <VaDataTable
       :columns="columns"
-      :items="items"
+      :items="filteredItems"
       :loading="$props.loading"
       :style="{
-        '--va-data-table-height': '710px',
-        '--va-data-table-thead-background': 'var(--va-background-element)',
-        '--va-data-table-thead-color': '#2C82E0',
+        '--va-data-table-thead-background': '#f8fafc',
+        '--va-data-table-thead-color': '#64748b',
       }"
       sticky-header
     >
+
+      <!-- IMAGE -->
+      <template #cell(imageUrl)="{ rowData }">
+  <div class="relative group w-12 h-12 overflow-hidden rounded shadow-lg">
+    <!-- Dark overlay on hover -->
+    <div
+      class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded"
+    ></div>
+
+    <!-- Image Display -->
+    <img
+      :src="rowData.imageUrl || '/missing-image.png'"
+      alt="Offer Image"
+      class="w-full h-full object-cover cursor-pointer"
+      @click="openFileModal(rowData)"
+      @error="(e) => { e.target.src = '/missing-image.png' }"
+    />
+
+    <!-- Add Image Button (top-left) -->
+    <VaButton
+      preset="plain"
+      size="small"
+      class="!absolute !top-0.5 !left-0.5 !p-0 !w-5 !h-5 !rounded-full hidden group-hover:flex items-center justify-center z-20
+             hover:scale-110 transition-transform duration-50"
+      @click.prevent="openFileModal(rowData)"
+    >
+      <VaIcon name="mso-add_photo_alternate" class="text-white" />
+    </VaButton>
+
+    <!-- Delete Button (bottom-right) -->
+    <VaButton
+      v-if="rowData.imageUrl"
+      preset="plain"
+      size="small"
+      class="!absolute !bottom-0.5 !right-0.5 !p-0 !w-5 !h-5 !rounded-full hidden group-hover:flex items-center justify-center z-20
+             hover:scale-110 transition-transform duration-50"
+      @click.prevent="onButtonOptionImageDelete(rowData)"
+    >
+      <VaIcon name="mso-delete" class="text-red-500" />
+    </VaButton>
+
+    <!-- Hidden FileUpload -->
+    <FileUpload
+      :attr-id="'file-upload-' + rowData._id"
+      class="hidden"
+      :selected-rest="selectedRest"
+      @uploadSuccess="(data) => {
+        rowData.imageUrl = data.url
+        rowData.assetId = data._id
+        updateData(rowData)
+        rowData.editing = ''
+      }"
+    />
+  </div>
+      </template>
+
+      <!-- NAME -->
       <template #cell(name)="{ rowData }">
         <div class="table-cell-content">
           <div v-if="!rowData.editName" @click="rowData.editName = true">{{ rowData.name }}</div>
@@ -258,23 +379,8 @@ function formatReadableDate(dateStr: string): string {
           />
         </div>
       </template>
-      <template #cell(code)="{ rowData }">
-        <div class="table-cell-content">
-          <div v-if="!rowData.editCode" @click="rowData.editCode = true">{{ rowData.code }}</div>
-          <input
-            v-else
-            v-model="rowData.code"
-            class="w-1/2 p-1 border rounded"
-            type="text"
-            @change="
-              () => {
-                updateData(rowData)
-                rowData.editCode = false
-              }
-            "
-          />
-        </div>
-      </template>
+
+      <!-- DESCRIPTION -->
       <template #cell(description)="{ rowData }">
         <div v-if="!rowData.editDescription" class="description-ellipsis" @click="rowData.editDescription = true">
           {{ rowData.description }}
@@ -292,6 +398,27 @@ function formatReadableDate(dateStr: string): string {
           "
         />
       </template>
+
+      <!-- CODE -->
+      <template #cell(code)="{ rowData }">
+        <div class="table-cell-content">
+          <div v-if="!rowData.editCode" @click="rowData.editCode = true">{{ rowData.code }}</div>
+          <input
+            v-else
+            v-model="rowData.code"
+            class="w-1/2 p-1 border rounded"
+            type="text"
+            @change="
+              () => {
+                updateData(rowData)
+                rowData.editCode = false
+              }
+            "
+          />
+        </div>
+      </template>
+
+      <!-- PRICE -->
       <template #cell(price)="{ rowData }">
         <div class="table-cell-content">
           <div v-if="!rowData.editPrice" @click="rowData.editPrice = true">{{ rowData.price }}</div>
@@ -309,45 +436,8 @@ function formatReadableDate(dateStr: string): string {
           />
         </div>
       </template>
-      <template #cell(imageUrl)="{ rowData }">
-        <div class="relative group w-10 h-10 overflow-hidden rounded">
-          <img
-            :src="rowData.imageUrl || '/missing-image.png'"
-            alt="Article Image"
-            class="w-full h-full object-cover cursor-pointer"
-            @click="openFileModal(rowData)"
-            @error="
-              (e) => {
-                e.target.src = '/missing-image.png'
-              }
-            "
-          />
-
-          <VaButton
-            v-if="rowData.imageUrl"
-            preset="plain"
-            size="small"
-            icon="mso-delete"
-            color="danger"
-            class="!absolute !top-0 !right-0 !p-0 !w-5 !h-5 !rounded-full hidden group-hover:flex items-center justify-center z-10"
-            @click.prevent="onButtonOptionImageDelete(rowData)"
-          />
-
-          <FileUpload
-            :attr-id="'file-upload-' + rowData._id"
-            class="hidden"
-            :selected-rest="selectedRest"
-            @uploadSuccess="
-              (data) => {
-                rowData.imageUrl = data.url
-                rowData.assetId = data._id
-                updateData(rowData)
-                rowData.editing = ''
-              }
-            "
-          />
-        </div>
-      </template>
+      
+      <!-- DATES -->    
       <template #cell(startDate)="{ rowData }">
         <div>
           {{ formatReadableDate(rowData.dateOffer?.startDate) }}
@@ -356,13 +446,7 @@ function formatReadableDate(dateStr: string): string {
         </div>
       </template>
 
-      <template #cell(timeRange)="{ rowData }">
-        <div>
-          {{ rowData.timeOffer?.startTime || '' }}
-          <span v-if="rowData.timeOffer?.startTime && rowData.timeOffer?.endTime" class="mx-1 font-bold"> - </span>
-          {{ rowData.timeOffer?.endTime || '' }}
-        </div>
-      </template>
+      <!-- DAYS -->
       <template #cell(weeklyOffer)="{ rowData }">
         <div class="weekdays-ellipsis">
           {{
@@ -373,11 +457,24 @@ function formatReadableDate(dateStr: string): string {
           }}
         </div>
       </template>
+      
+      <!-- TIMES -->
+      <template #cell(timeRange)="{ rowData }">
+        <div>
+          {{ rowData.timeOffer?.startTime || '' }}
+          <span v-if="rowData.timeOffer?.startTime && rowData.timeOffer?.endTime" class="mx-1 font-bold"> - </span>
+          {{ rowData.timeOffer?.endTime || '' }}
+        </div>
+      </template>
+
+      <!-- ORDER TYPE -->
       <template #cell(orderType)="{ rowData }">
         <div>
           {{ (rowData.orderType || []).map((type) => type.charAt(0).toUpperCase() + type.slice(1)).join(', ') }}
         </div>
       </template>
+
+      <!-- SELECTIONS -->
       <template #cell(selections)="{ row, rowData, isExpanded }">
         <div class="ellipsis">
           <VaButton
@@ -494,6 +591,7 @@ function formatReadableDate(dateStr: string): string {
         </div>
       </template>
 
+      <!-- ACTIONS -->
       <template #cell(actions)="{ rowData }">
         <div class="flex gap-2 justify-end">
           <VaButton preset="primary" size="small" icon="mso-edit" @click="emits('editOffers', rowData)" />
@@ -506,6 +604,7 @@ function formatReadableDate(dateStr: string): string {
           />
         </div>
       </template>
+
     </VaDataTable>
     <AddSelectionModal
       v-if="isAddSelectionModalOpen"
@@ -514,6 +613,7 @@ function formatReadableDate(dateStr: string): string {
       :offer-data="offerData"
       @cancel="(isAddSelectionModalOpen = false), (offerSelection = ''), (isEditSelection = false), emits('getOffers')"
     />
+  </div>
   </div>
 </template>
 
