@@ -342,22 +342,16 @@ function openFileModal(data) {
               </label>
             </div>
 
-            <div class="flex justify-between mt-4 pt-3 border-t border-slate-100 dark:border-slate-700">
-              <button
-                class="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-                @click="resetColumnVisibility"
-              >
-                Reset
-              </button>
-              <button
-                class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-                @click="showColumnsMenu = false"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
+    <div class="flex justify-between mt-4 pt-3 border-t border-slate-100 dark:border-slate-700">
+      <button @click="resetColumnVisibility" class="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
+        Reset
+      </button>
+      <button @click="showColumnsMenu = false" class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
+        Done
+      </button>
+    </div>
+  </div>
+</div>
 
         <!-- Import Button -->
         <button
@@ -377,11 +371,8 @@ function openFileModal(data) {
           <span class="hidden md:inline">Add Article</span>
         </button>
 
-        <!-- Pagination -->
+    <!-- Pagination -->
         <div class="flex items-center gap-2">
-          <!-- Previous Arrow -->
-
-          <!-- Pagination -->
           <VaPagination v-model="currentPage" :pages="pages" buttons-preset="secondary" gapped="20" :visible-pages="3">
             <template #firstPageLink="{ onClick, disabled }">
               <button
@@ -421,30 +412,33 @@ function openFileModal(data) {
             </template>
           </VaPagination>
         </div>
-      </div>
-    </div>
+  </div>
+</div>
+        
 
     <!-- TABLE -->
-    <div class="flex flex-col h-[calc(100vh-14rem)]">
-      <VaDataTable
-        :columns="columns"
-        :items="filteredItems"
-        :loading="$props.loading"
-        :disable-client-side-sorting="true"
-        :style="{
-          '--va-data-table-thead-background': '#f8fafc',
-          '--va-data-table-thead-color': '#64748b',
-        }"
-        sticky-header
-        @update:sortBy="(sortBy) => $emit('sortBy', sortBy)"
-        @update:sortingOrder="(sortDesc) => $emit('sortingOrder', sortDesc)"
-      >
-        <!-- ID COLUMN (HIDDEN) -->
-        <template #cell(id)="{ rowData }">
-          <div class="max-w-[120px] ellipsis">
-            {{ rowData.id }}
-          </div>
-        </template>
+    <div class="flex flex-col h-[calc(100vh-12rem)]">
+    <VaDataTable
+      :columns="columns"
+      :items="filteredItems"
+      :loading="$props.loading"
+      :disable-client-side-sorting="true"
+      :style="{
+        '--va-data-table-thead-background': '#f8fafc',
+        '--va-data-table-thead-color': '#64748b',
+      }"
+      sticky-header
+
+      @update:sortBy="(sortBy) => $emit('sortBy', sortBy)"
+      @update:sortingOrder="(sortDesc) => $emit('sortingOrder', sortDesc)"
+    >
+
+<!-- ID COLUMN (HIDDEN) -->
+<template #cell(id)="{ rowData }">
+        <div class="max-w-[120px] ellipsis">
+          {{ rowData.id }}
+        </div>
+</template>
 
         <!-- IMAGE COLUMN -->
         <template #cell(image)="{ rowData }">
@@ -926,7 +920,7 @@ function openFileModal(data) {
         <!-- ACTIONS COLUMN -->
         <template #cell(actions)="{ rowData }">
           <div class="flex justify-end items-center gap-1">
-            <!-- Duplicate / Copy -->
+            <!-- Duplicate -->
             <button
               class="flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:bg-slate-200 transition-colors duration-150 active:scale-95"
               title="Duplicate Article"
