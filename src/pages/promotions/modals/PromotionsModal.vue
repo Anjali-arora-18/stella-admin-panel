@@ -52,7 +52,7 @@
           <!-- Value Discount -->
           <section v-if="formData.promotionType === 'Value Discount' && !isUpdating">
             <h2 class="text-md font-semibold mb-2">Value Discount Configuration</h2>
-            <div class="grid md:grid-cols-2 gap-4">
+            <div class="grid md:grid-cols-3 gap-4">
               <VaInput
                 v-model="formData.discountValue"
                 label="Discount Value"
@@ -70,6 +70,13 @@
                 required-mark
                 placeholder="Where to apply"
               />
+              <VaSelect
+    v-model="formData.affectItems"
+    :options="affectItemsOptions"
+    label="Affect Type"
+    required-mark
+    placeholder="Single/Multiple Items"
+  />
             </div>
             <div v-if="formData.affect === 'Selected Items'" class="flex gap-2 mt-2">
               <VaButton @click="openArticlesModal">Articles</VaButton>
@@ -80,7 +87,7 @@
           <!-- Percentage Discount -->
           <section v-if="formData.promotionType === 'Percentage Discount' && !isUpdating">
             <h2 class="text-md font-semibold mb-2">Percentage Discount Configuration</h2>
-            <div class="grid md:grid-cols-2 gap-4">
+            <div class="grid md:grid-cols-3 gap-4">
               <VaInput
                 v-model="formData.discountPercentage"
                 label="Discount %"
@@ -98,6 +105,13 @@
                 required-mark
                 placeholder="Where to apply"
               />
+              <VaSelect
+    v-model="formData.affectItems"
+    :options="affectItemsOptions"
+    label="Affect Type"
+    required-mark
+    placeholder="Single/Multiple Items"
+  />
             </div>
             <div v-if="formData.affect === 'Selected Items'" class="flex gap-2 mt-2">
               <VaButton @click="openArticlesModal">Articles</VaButton>
@@ -381,6 +395,11 @@ const affectMap = {
   'Selected Items': 'SELECTED_ITEMS',
 }
 
+const affectItemsMap = {
+  'Single Item': 'SINGLE',
+  'Multiple Items': 'MULTIPLE',
+}
+
 const orderTypeMap = {
   Delivery: 'DELIVERY',
   Takeaway: 'TAKEAWAY',
@@ -406,6 +425,8 @@ const reversePromotionTypeMap = Object.fromEntries(Object.entries(promotionTypeM
 
 const reverseAffectMap = Object.fromEntries(Object.entries(affectMap).map(([label, key]) => [key, label]))
 
+const reverseAffectItemsMap = Object.fromEntries(Object.entries(affectItemsMap).map(([label, key]) => [key, label]))
+
 const reverseOrderTypeMap = Object.fromEntries(Object.entries(orderTypeMap).map(([label, key]) => [key, label]))
 
 const reverseUsageTypeMap = Object.fromEntries(Object.entries(usageTypeMap).map(([label, key]) => [key, label]))
@@ -419,6 +440,7 @@ const formData = ref({
   discountPercentage: null,
   fixedPrice: null,
   affect: '',
+  affectItems: '',
   codeType: 'SINGLE',
   codes: [],
   startFrom: 1,
@@ -453,6 +475,7 @@ const resetForm = () => {
     discountPercentage: null,
     fixedPrice: null,
     affect: '',
+    affectItems: '',
     codeType: 'SINGLE',
     quantity: 1,
     prefix: '',
@@ -487,6 +510,7 @@ const promotionTypes = ['Value Discount', 'Percentage Discount', 'Fixed Price', 
 
 const usageTypes = ['Single Use', 'Unlimited']
 const affectOptions = ['Entire Order', 'Selected Items']
+const affectItemsOptions = ['Single Item', 'Multiple Items']
 const orderTypes = ['Delivery', 'Takeaway', 'Dine-in']
 
 const allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -542,6 +566,7 @@ function populateFormData(promotion) {
     discountPercentage: promotion.discountPercentage ?? promotion.discountPercentage ?? null,
     fixedPrice: promotion.fixedPrice ?? null,
     affect: reverseAffectMap[promotion.affect] || '',
+    affectItems: reverseAffectItemsMap[promotion.affectItems] || '',
     codeType: promotion.automatic ? 'AUTO' : promotion.quantity > 1 ? 'MULTI' : 'SINGLE',
     quantity: promotion.codeType === 'MULTI' ? promotion.quantity : 1,
     prefix: promotion.codeType === 'MULTI' ? promotion.prefix || '' : '',
@@ -707,6 +732,7 @@ const submit = async () => {
     },
     promotionType: promotionTypeMap[raw.promotionType],
     affect: affectMap[raw.affect],
+    affectItems: affectItemsMap[raw.affectItems],
     usage: usageTypeMap[raw.usageType],
     orderTypes: (raw.orderType || []).map((t) => orderTypeMap[t]),
     dateRange: {

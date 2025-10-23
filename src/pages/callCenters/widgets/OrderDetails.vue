@@ -344,7 +344,7 @@
 </template>
 
 <script setup>
-import { ref, computed, useTemplateRef } from 'vue'
+import { ref, computed, useTemplateRef, watch, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useOrderStore } from '@/stores/order-store'
 import { useServiceStore } from '@/stores/services.ts'
@@ -411,6 +411,21 @@ const promoOriginalOffers = computed(() => {
   const n = v.offerDetails.reduce((sum, o) => sum + Number(o.basePrice || 0), 0)
   return Number(n.toFixed(2))
 })
+
+watch(
+  [cartItems, offerItems],
+  async (newVal, oldVal) => {
+    // If no promo is applied, skip
+    if (!isPromoValid.value || !promoCode.value.trim()) return
+
+    // Avoid running before state fully settles (e.g. quantity buttons)
+    await nextTick()
+
+    // Re-apply the promo (will re-call the validation API)
+    applyPromoCode()
+  },
+  { deep: true } // watch nested changes in arrays/objects
+)
 
 const itemsAfterPromos = computed(() => {
   const v = promoTotal.value

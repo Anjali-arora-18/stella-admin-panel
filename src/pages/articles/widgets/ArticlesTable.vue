@@ -372,21 +372,7 @@ function openFileModal(data) {
         </button>
 
     <!-- Pagination -->
-    <VaPagination
-      v-model="currentPage"
-      :pages="pages"
-      buttons-preset="default"
-      gapped
-      :visible-pages="3"
-      class="justify-center theme-gradient"
-    />
-  </div>
-</div>
-        <!-- Pagination -->
         <div class="flex items-center gap-2">
-          <!-- Previous Arrow -->
-
-          <!-- Pagination -->
           <VaPagination v-model="currentPage" :pages="pages" buttons-preset="secondary" gapped="20" :visible-pages="3">
             <template #firstPageLink="{ onClick, disabled }">
               <button
@@ -426,8 +412,9 @@ function openFileModal(data) {
             </template>
           </VaPagination>
         </div>
-      </div>
-    </div>
+  </div>
+</div>
+        
 
     <!-- TABLE -->
     <div class="flex flex-col h-[calc(100vh-12rem)]">
@@ -933,7 +920,7 @@ function openFileModal(data) {
         <!-- ACTIONS COLUMN -->
         <template #cell(actions)="{ rowData }">
           <div class="flex justify-end items-center gap-1">
-            <!-- Duplicate / Copy -->
+            <!-- Duplicate -->
             <button
               class="flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:bg-slate-200 transition-colors duration-150 active:scale-95"
               title="Duplicate Article"
