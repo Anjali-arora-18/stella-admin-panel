@@ -419,9 +419,26 @@ function onButtonEditOptionGroupArticles(rowData) { isEditOptionGroupArticlesMod
 
       <!-- MANDATORY -->
       <template #cell(mandatory)="{ rowData }">
-        <div class="table-cell-content text-center">
-          <VaCheckbox v-model="rowData.mandatory" size="small" @click="updateData(rowData)"/>
-        </div>
+  <div class="flex justify-center items-center">
+    <label class="relative inline-block w-9 h-5 cursor-pointer" title="Required">
+      <input
+        type="checkbox"
+        v-model="rowData.mandatory"
+        class="sr-only"
+        @change="updateData(rowData)"
+      />
+      <!-- Background pill -->
+      <span
+        class="block rounded-full h-5 w-9 transition-colors duration-300"
+        :class="rowData.mandatory ? 'bg-blue-500' : 'bg-slate-200'"
+      ></span>
+      <!-- Slider circle -->
+      <span
+        class="absolute left-0 top-0.5 w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-300"
+        :class="rowData.mandatory ? 'translate-x-4' : 'translate-x-1'"
+      ></span>
+    </label>
+  </div>
       </template>
 
       <!-- MIN CHOICES -->

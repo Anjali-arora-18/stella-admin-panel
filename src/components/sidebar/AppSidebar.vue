@@ -90,7 +90,7 @@
             <RouterLink
               :class="[
                 'flex items-center py-1 rounded-lg transition mr-2 pl-2 -ml-2',
-                $route.name === 'articlesOptionsGroups'
+                ['articlesOptionsGroups', 'articlesOptionsList'].includes($route.name)
                   ? 'bg-slate-100 text-slate-900 font-semibold'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-700'
               ]"

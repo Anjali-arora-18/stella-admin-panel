@@ -29,17 +29,17 @@ const isEditSelection = ref(false)
 const router = useRouter()
 const servicesStore = useServiceStore()
 const columns = defineVaDataTableColumns([
-  { label: 'Image', key: 'imageUrl' },
-  { label: 'Name', key: 'name' },
-  { label: 'Description', key: 'description', width: '150px' },
-  { label: 'Code', key: 'code' },
-  { label: 'Price', key: 'price' },
-  { label: 'Date Range', key: 'startDate' },
-  { label: 'Week Days', key: 'weeklyOffer', width: '150px' },
-  { label: 'Time Range', key: 'timeRange' },
-  { label: 'Order Type', key: 'orderType' },
-  { label: 'Selections', key: 'selections' },
-  { label: 'Actions', key: 'actions' },
+  { label: 'Image', key: 'imageUrl', sortable: false },
+  { label: 'Name', key: 'name', sortable: true, sortingOptions: ['asc', 'desc'] },
+  { label: 'Description', key: 'description', sortable: false, width: '150px' },
+  { label: 'Code', key: 'code', sortable: true, sortingOptions: ['asc', 'desc'] },
+  { label: 'Price', key: 'price', sortable: true, sortingOptions: ['asc', 'desc'] },
+  { label: 'Date Range', key: 'startDate', sortable: true, sortingOptions: ['asc', 'desc'] },
+  { label: 'Week Days', key: 'weeklyOffer', sortable: false, width: '150px' },
+  { label: 'Time Range', key: 'timeRange', sortable: true, sortingOptions: ['asc', 'desc'] },
+  { label: 'Order Type', key: 'orderType', sortable: true, sortingOptions: ['asc', 'desc'] },
+  { label: 'Selections', key: 'selections', sortable: false },
+  { label: 'Actions', key: 'actions', sortable: false },
 ])
 
 const selectionColumns = defineVaDataTableColumns([
@@ -363,78 +363,105 @@ function formatReadableDate(dateStr: string): string {
 
       <!-- NAME -->
       <template #cell(name)="{ rowData }">
-        <div class="table-cell-content">
-          <div v-if="!rowData.editName" @click="rowData.editName = true">{{ rowData.name }}</div>
-          <input
-            v-else
-            v-model="rowData.name"
-            class="w-1/2 p-1 border rounded"
-            type="text"
-            @change="
-              () => {
-                updateData(rowData)
-                rowData.editName = false
-              }
-            "
-          />
-        </div>
+  <div class="editable-field relative group">
+    <input
+      v-if="rowData.editName"
+      v-model="rowData.name"
+      class="editable-input"
+      autofocus
+      @blur="rowData.editName = false; updateData(rowData)"
+    />
+    <div v-else class="editable-text cursor-pointer" @click="rowData.editName = true">
+      <span>{{ rowData.name || '' }}</span>
+      <Pencil
+        v-if="rowData.name"
+        class="w-4 h-4 absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"
+      />
+      <CirclePlus
+        v-else
+        class="w-4 h-4 text-slate-300 hover:text-blue-500 transition-colors"
+        @click.stop="rowData.editName = true"
+      />
+    </div>
+  </div>
       </template>
 
       <!-- DESCRIPTION -->
       <template #cell(description)="{ rowData }">
-        <div v-if="!rowData.editDescription" class="description-ellipsis" @click="rowData.editDescription = true">
-          {{ rowData.description }}
-        </div>
-        <textarea
-          v-else
-          v-model="rowData.description"
-          class="description-edit"
-          rows="2"
-          @blur="
-            () => {
-              updateData(rowData)
-              rowData.editDescription = false
-            }
-          "
-        />
+  <div class="editable-field relative group">
+    <textarea
+      v-if="rowData.editDescription"
+      v-model="rowData.description"
+      class="editable-input"
+      rows="3"
+      autofocus
+      @blur="rowData.editDescription = false; updateData(rowData)"
+    />
+    <div v-else class="editable-text cursor-pointer" @click="rowData.editDescription = true">
+      <span>{{ rowData.description || '' }}</span>
+      <Pencil
+        v-if="rowData.description"
+        class="w-4 h-4 absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"
+      />
+      <CirclePlus
+        v-else
+        class="w-4 h-4 text-slate-300 hover:text-blue-500 transition-colors"
+        @click.stop="rowData.editDescription = true"
+      />
+    </div>
+  </div>
       </template>
 
       <!-- CODE -->
       <template #cell(code)="{ rowData }">
-        <div class="table-cell-content">
-          <div v-if="!rowData.editCode" @click="rowData.editCode = true">{{ rowData.code }}</div>
-          <input
-            v-else
-            v-model="rowData.code"
-            class="w-1/2 p-1 border rounded"
-            type="text"
-            @change="
-              () => {
-                updateData(rowData)
-                rowData.editCode = false
-              }
-            "
-          />
-        </div>
+  <div class="editable-field relative group">
+    <input
+      v-if="rowData.editCode"
+      v-model="rowData.code"
+      class="editable-input"
+      type="text"
+      autofocus
+      @blur="rowData.editCode = false; updateData(rowData)"
+    />
+    <div v-else class="editable-text cursor-pointer" @click="rowData.editCode = true">
+      <span>{{ rowData.code || '' }}</span>
+      <Pencil
+        v-if="rowData.code"
+        class="w-4 h-4 absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"
+      />
+      <CirclePlus
+        v-else
+        class="w-4 h-4 text-slate-300 hover:text-blue-500 transition-colors"
+        @click.stop="rowData.editCode = true"
+      />
+    </div>
+  </div>
       </template>
 
       <!-- PRICE -->
       <template #cell(price)="{ rowData }">
-        <div class="table-cell-content">
-          <div v-if="!rowData.editPrice" @click="rowData.editPrice = true">{{ rowData.price }}</div>
-          <input
-            v-else
-            v-model="rowData.price"
-            class="w-1/2 p-1 border rounded"
-            type="text"
-            @change="
-              () => {
-                updateData(rowData)
-                rowData.editPrice = false
-              }
-            "
-          />
-        </div>
+  <div class="editable-field relative group">
+    <input
+      v-if="rowData.editPrice"
+      v-model="rowData.price"
+      class="editable-input"
+      type="text"
+      autofocus
+      @blur="rowData.editPrice = false; updateData(rowData)"
+    />
+    <div v-else class="editable-text cursor-pointer" @click="rowData.editPrice = true">
+      <span>{{ rowData.price ? `€ ${parseFloat(rowData.price).toFixed(2)}` : '' }}</span>
+      <Pencil
+        v-if="rowData.price"
+        class="w-4 h-4 absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"
+      />
+      <CirclePlus
+        v-else
+        class="w-4 h-4 text-slate-300 hover:text-blue-500 transition-colors"
+        @click.stop="rowData.editPrice = true"
+      />
+    </div>
+  </div>
       </template>
       
       <!-- DATES -->    
@@ -593,15 +620,24 @@ function formatReadableDate(dateStr: string): string {
 
       <!-- ACTIONS -->
       <template #cell(actions)="{ rowData }">
-        <div class="flex gap-2 justify-end">
-          <VaButton preset="primary" size="small" icon="mso-edit" @click="emits('editOffers', rowData)" />
-          <VaButton
-            preset="primary"
-            size="small"
-            color="danger"
-            icon="mso-delete"
-            @click="onButtonOfferDelete(rowData)"
-          />
+        <div class="flex justify-end items-center gap-1">
+          <!-- Edit -->
+            <button
+              class="flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:bg-slate-200 transition-colors duration-150 active:scale-95"
+              title="Edit Offer"
+              @click="emits('editOffers', rowData)"
+            >
+              <Pencil class="w-3.5 h-3.5" />
+            </button>
+          
+            <!-- Delete -->
+            <button
+              class="flex items-center justify-center w-7 h-7 rounded-lg text-red-600 dark:text-red-200 hover:bg-red-100 dark:hover:bg-red-700 transition-colors duration-150 active:scale-95"
+              title="Delete Offer"
+              @click="onButtonOfferDelete(rowData)"
+            >
+              <VaIcon name="mso-delete" class="w-4.5 h-4.5 block" />
+            </button>
         </div>
       </template>
 
@@ -638,6 +674,10 @@ function formatReadableDate(dateStr: string): string {
   }
 }
 
+::v-deep(.va-data-table__table tbody tr:hover) {
+  background-color: #f8fafc;
+}
+
 ::v-deep(.va-data-table__table thead th:last-child) {
   text-align: right !important;
 }
@@ -645,6 +685,38 @@ function formatReadableDate(dateStr: string): string {
 .expandable_table {
   background-color: var(--va-background-element);
   color: var(--va-on-background-element);
+}
+
+.editable-field {
+  position: relative;
+  width: 100%;
+  cursor: pointer;
+}
+.editable-input {
+  width: 100%;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.editable-textarea {
+  width: 100%;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  line-height: 1.3em;
+  max-height: 5.2em; /* 4 lines x 1.3em */
+  overflow-y: auto;
+}
+
+.editable-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  line-height: 1.3em;
+  max-height: 3.9em; /* 3 lines x 1.3em */
 }
 
 .inline-input {
